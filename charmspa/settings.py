@@ -37,6 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+# Các app của nhóm
+    'accounts',
+    'customers',
+    'services',
+    'bookings',
+    'notifications',
+    'chatbot',
+    'feedback',
 ]
 
 MIDDLEWARE = [
