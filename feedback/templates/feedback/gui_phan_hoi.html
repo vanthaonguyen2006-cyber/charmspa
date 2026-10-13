@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gửi phản hồi/khiếu nại | Charm Grand</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f7f4ee;
+            color: #302a25;
+        }
+
+        /* HEADER */
+
+        .header {
+            height: 82px;
+            background: #fffdf9;
+            border-bottom: 1px solid #e8dfd2;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 48px;
+        }
+
+        .logo {
+            font-family: "Times New Roman", Georgia, serif;
+            font-size: 27px;
+            letter-spacing: 4px;
+            font-weight: bold;
+        }
+
+        .logo-sub {
+            font-size: 9px;
+            letter-spacing: 6px;
+            color: #b38a43;
+            margin-top: 5px;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 34px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #3d3732;
+            font-size: 14px;
+        }
+
+        .nav a:hover {
+            color: #a67c34;
+        }
+
+        .btn-book {
+            padding: 14px 28px;
+            border: 1px solid #bd9142;
+            color: #9c752e !important;
+            font-weight: bold;
+        }
+
+        .account {
+            padding: 11px 18px;
+            border: 1px solid #e1d7c8;
+            border-radius: 25px;
+        }
+
+
+        /* MAIN */
+
+        .container {
+            width: 94%;
+            max-width: 1450px;
+            margin: 30px auto 50px;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            padding: 24px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .profile-left {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            border: 1px solid #c99a49;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Georgia, serif;
+            font-size: 22px;
+            color: #aa7d34;
+            background: #f8f0df;
+        }
+
+        .profile-name {
+            font-family: Georgia, serif;
+            font-size: 24px;
+            margin-bottom: 7px;
+        }
+
+        .profile-info {
+            color: #777;
+            font-size: 13px;
+        }
+
+        .profile-status {
+            color: #267c56;
+        }
+
+        /* TAB */
+
+        .tabs {
+            background: white;
+            border: 1px solid #e5dacb;
+            border-radius: 12px;
+            height: 58px;
+
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
+            margin-bottom: 25px;
+        }
+
+        .tab {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: #8b8278;
+            font-size: 14px;
+        }
+
+        .tab.active {
+            color: #8d6729;
+            font-weight: bold;
+            border-bottom: 2px solid #b78b43;
+        }
+
+
+        /* TITLE */
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-family: Georgia, serif;
+            font-size: 34px;
+            font-weight: normal;
+        }
+
+        .page-desc {
+            color: #8c857c;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .my-ticket-link {
+            text-decoration: none;
+            color: #9a722f;
+            font-size: 14px;
+        }
+
+
+        /* GRID */
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+
+        /* FORM */
+
+        .form-card {
+            background: white;
+            border: 1px solid #e5dacb;
+            border-radius: 14px;
+            padding: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 23px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .required {
+            color: #9d4439;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #ded4c7;
+            border-radius: 8px;
+            padding: 14px 15px;
+            outline: none;
+
+            font-size: 14px;
+            background: white;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #bd9142;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 160px;
+        }
+
+
+        /* RADIO */
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .radio-option {
+            border: 1px solid #ded4c7;
+            border-radius: 8px;
+            padding: 17px;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .radio-option:hover {
+            border-color: #bd9142;
+            background: #faf3e3;
+        }
+
+        .radio-option input {
+            accent-color: #b7893b;
+        }
+
+
+        /* FILE */
+
+        .upload-box {
+            border: 1px dashed #b8893c;
+            border-radius: 10px;
+            padding: 32px;
+
+            text-align: center;
+            background: #fffdf9;
+        }
+
+        .upload-box input {
+            margin-top: 15px;
+        }
+
+        .upload-title {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .upload-note {
+            color: #999;
+            font-size: 12px;
+        }
+
+
+        /* BUTTON */
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 13px 28px;
+            border-radius: 7px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background: white;
+            border: 1px solid #ddd2c5;
+            color: #444;
+        }
+
+        .btn-submit {
+            background: #252522;
+            color: white;
+            border: none;
+        }
+
+        .btn-submit:hover {
+            background: #a77b34;
+        }
+
+
+        /* RIGHT COLUMN */
+
+        .side-card {
+            border-radius: 13px;
+            padding: 25px;
+            margin-bottom: 18px;
+        }
+
+        .dark-card {
+            background: #272622;
+            color: white;
+        }
+
+        .dark-small {
+            color: #c59a4a;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 17px;
+        }
+
+        .dark-title {
+            font-family: Georgia, serif;
+            font-size: 25px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .dark-desc {
+            color: #bcb7ae;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .process-card {
+            background: white;
+            border: 1px solid #e4dacb;
+        }
+
+        .process-title {
+            font-family: Georgia, serif;
+            font-size: 21px;
+            margin-bottom: 20px;
+        }
+
+        .process-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+            font-size: 13px;
+        }
+
+        .step {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f5ead2;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #9b742f;
+            font-weight: bold;
+        }
+
+
+        /* MESSAGE */
+
+        .message {
+            padding: 13px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #e6f5ed;
+            color: #247653;
+        }
+
+        .message.error {
+            background: #fde9e6;
+            color: #b23f34;
+        }
+
+
+        /* ERROR */
+
+        .field-error {
+            margin-top: 6px;
+            color: #b63e34;
+            font-size: 12px;
+        }
+
+
+        @media (max-width: 900px) {
+
+            .nav {
+                display: none;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .radio-group {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                grid-template-columns: 1fr 1fr;
+                height: auto;
+            }
+
+            .tab {
+                padding: 15px;
+            }
+
+        }
+    </style>
+</head>
+
+
+<body>
+
+<header class="header">
+
+    <div>
+        <div class="logo">CHARM GRAND</div>
+        <div class="logo-sub">LUXURY SPA & WELLNESS</div>
+    </div>
+
+    <nav class="nav">
+        <a href="#">Trang Chủ</a>
+        <a href="#">Về Chúng Tôi</a>
+        <a href="#">Liệu Trình</a>
+        <a href="#">Không Gian</a>
+        <a href="#">Tin Tức</a>
+        <a href="#">Liên Hệ</a>
+        <a href="#" class="btn-book">ĐẶT LỊCH NGAY</a>
+        <a href="#" class="account">Tài khoản</a>
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+    <!-- Hồ sơ khách hàng -->
+
+    <section class="profile-card">
+
+        <div class="profile-left">
+
+            <div class="avatar">
+                KH
+            </div>
+
+            <div>
+                <div class="profile-name">
+                    {% if khach_hang %}
+                        {{ khach_hang.ho_ten }}
+                    {% else %}
+                        Khách hàng
+                    {% endif %}
+                </div>
+
+                <div class="profile-info">
+                    Tài khoản khách hàng
+                    &nbsp; • &nbsp;
+                    <span class="profile-status">● Đang hoạt động</span>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Tabs -->
+
+    <section class="tabs">
+        <div class="tab">1. Hồ sơ khách hàng</div>
+        <div class="tab">2. Lịch sử dịch vụ</div>
+        <div class="tab">3. Lịch hẹn</div>
+        <div class="tab active">4. Phản hồi & Khiếu nại</div>
+    </section>
+
+
+    <!-- Header -->
+
+    <div class="page-header">
+
+        <div>
+            <h1 class="page-title">GỬI PHẢN HỒI/KHIẾU NẠI</h1>
+
+            <p class="page-desc">
+                Chia sẻ trải nghiệm để Charm Grand có thể phục vụ bạn chu đáo hơn.
+            </p>
+        </div>
+
+        <a class="my-ticket-link" href="#">
+            ← Phiếu của tôi
+        </a>
+
+    </div>
+
+
+    <!-- Messages -->
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+
+    <div class="content-grid">
+
+        <!-- FORM -->
+
+        <section class="form-card">
+
+            <form method="post" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+
+                <!-- LOẠI -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Bạn muốn gửi <span class="required">*</span>
+                    </label>
+
+                    <div class="radio-group">
+
+                        {% for value, label in form.loai_ph.field.choices %}
+
+                            <label class="radio-option">
+
+                                <input
+                                    type="radio"
+                                    name="{{ form.loai_ph.name }}"
+                                    value="{{ value }}"
+
+                                    {% if form.loai_ph.value == value %}
+                                        checked
+                                    {% endif %}
+
+                                    required
+                                >
+
+                                {{ label }}
+
+                            </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                    {% for error in form.loai_ph.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- DỊCH VỤ -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Dịch vụ liên quan (không bắt buộc)
+                    </label>
+
+                    {{ form.ma_dv }}
+
+                    {% for error in form.ma_dv.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- TIÊU ĐỀ -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Tiêu đề <span class="required">*</span>
+                    </label>
+
+                    {{ form.tieu_de }}
+
+                    {% for error in form.tieu_de.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- NỘI DUNG -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Nội dung <span class="required">*</span>
+                    </label>
+
+                    {{ form.noi_dung }}
+
+                    {% for error in form.noi_dung.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- FILE -->
+
+                <div class="form-group">
+
+                    <label class="form-label">
+                        Tệp đính kèm
+                    </label>
+
+                    <div class="upload-box">
+
+                        <div class="upload-title">
+                            Kéo thả hoặc chọn nhiều tệp
+                        </div>
+
+                        <div class="upload-note">
+                            JPG, PNG hoặc PDF
+                        </div>
+
+                        <input
+                            type="file"
+                            name="tep_dinh_kem"
+                            multiple
+                            accept=".jpg,.jpeg,.png,.pdf"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- BUTTON -->
+
+                <div class="form-actions">
+
+                    <button
+                        type="reset"
+                        class="btn btn-cancel"
+                    >
+                        Hủy
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-submit"
+                    >
+                        Gửi phản hồi/khiếu nại
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- RIGHT -->
+
+        <aside>
+
+            <div class="side-card dark-card">
+
+                <div class="dark-small">
+                    CAM KẾT CHĂM SÓC
+                </div>
+
+                <div class="dark-title">
+                    Mọi chia sẻ đều được lắng nghe bằng sự trân trọng.
+                </div>
+
+                <div class="dark-desc">
+                    Thông tin của bạn được lưu trữ để hỗ trợ quá trình tiếp nhận
+                    và nâng cao chất lượng dịch vụ tại Charm Grand.
+                </div>
+
+            </div>
+
+
+            <div class="side-card process-card">
+
+                <h3 class="process-title">
+                    Quy trình tiếp nhận
+                </h3>
+
+                <div class="process-item">
+                    <div class="step">1</div>
+                    <div>Gửi nội dung và tệp minh chứng</div>
+                </div>
+
+                <div class="process-item">
+                    <div class="step">2</div>
+                    <div>Charm Grand tiếp nhận và phân công xử lý</div>
+                </div>
+
+                <div class="process-item">
+                    <div class="step">3</div>
+                    <div>Theo dõi trạng thái và kết quả xử lý</div>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
+
+</body>
+</html>

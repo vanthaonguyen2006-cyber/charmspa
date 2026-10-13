@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import PhanHoiKhieuNai, PhanCongXuLy, LichSuXuLy, TepDinhKem
 
-# Register your models here.
+admin.site.register(PhanHoiKhieuNai)
+admin.site.register(PhanCongXuLy)
+admin.site.register(LichSuXuLy)
+admin.site.register(TepDinhKem)
