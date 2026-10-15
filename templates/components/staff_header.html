@@ -1,10 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<header class="staff-header">
 
-</body>
-</html>
+    <div class="header-search">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" name="search" placeholder="Tìm kiếm theo mã phiếu, khách hàng hoặc số điện thoại..." autocomplete="off">
+    </div>
+
+    <button type="button" class="notification-button">
+        <i data-lucide="bell"></i>
+        {% if notification_count %}<span class="notification-dot"></span>{% endif %}
+    </button>
+
+</header>

@@ -5,4 +5,7 @@ app_name = 'feedback'
 
 urlpatterns = [
     path('gui/', views.gui_phan_hoi, name='gui_phan_hoi'),
+
+    #test base giao diện chung
+    path('test-staff/', views.test_staff, name='test_staff'),
 ]
