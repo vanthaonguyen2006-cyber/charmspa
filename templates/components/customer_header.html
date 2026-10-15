@@ -1,10 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% load static %}
+<header class="customer-header">
+    <!-- 1. Cụm Logo -->
+    <div class="header-logo">
+        <a href="{% url 'customer_home' %}">
+            <img src="{% static 'images/logo.png' %}" alt="Charm Spa Logo" class="logo-icon">
+            <div class="logo-text">
+                <h1 class="logo-title">CHARM GRAND</h1>
+                <span class="logo-subtitle">LUXURY SPA & WELLNESS</span>
+            </div>
+        </a>
+    </div>
 
-</body>
-</html>
+    <!-- 2. Cụm Menu Điều Hướng -->
+    <nav class="header-nav">
+        <ul>
+            <li><a href="#">Trang Chủ</a></li>
+            <li><a href="#">Về Chúng Tôi</a></li>
+            <li><a href="#">Liệu Trình</a></li>
+            <li><a href="#">Không Gian</a></li>
+            <li><a href="#">Tin Tức</a></li>
+            <li><a href="#">Liên Hệ</a></li>
+        </ul>
+    </nav>
+
+    <!-- 3. Cụm Hành động -->
+    <div class="header-actions">
+        <a href="#" class="btn-booking">ĐẶT LỊCH NGAY</a>
+
+        {% if request.user.is_authenticated %}
+            <!-- Nếu đã đăng nhập -> Hiện chuông thông báo và tên khách hàng -->
+            <div class="header-notification">
+                <button class="btn-icon">
+                    <i class="fas fa-bell"></i>
+                </button>
+            </div>
+
+            <div class="header-user">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="user-name">{{ request.user.username }}</span>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+        {% else %}
+            <!-- Nếu chưa đăng nhập -> Hiện nút Đăng nhập hình viên thuốc -->
+            <a href="#" class="btn-login-pill">
+                <div class="login-avatar">
+                    <i class="far fa-user"></i>
+                </div>
+                <span class="login-text">ĐĂNG NHẬP</span>
+            </a>
+        {% endif %}
+    </div>
+</header>
