@@ -87,6 +87,11 @@
     font-size: 25px;
     font-weight: 700;
 }
+.logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Giữ tỉ lệ gốc của logo */
+}
 
 .logo-text {
     display: flex;
