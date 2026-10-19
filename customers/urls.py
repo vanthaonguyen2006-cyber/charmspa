@@ -2,5 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.customer_home, name='customer_home'),
+    # Đảm bảo có ít nhất một đường dẫn hoặc để trống danh sách đúng chuẩn:
+    # path('...', views.ten_view, name='ten_url'),
 ]

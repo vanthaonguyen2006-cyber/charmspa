@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hồ sơ khách hàng</title>
+</head>
+<body>
+<!-- 
+    Ví dụ nội dung trang con (Ví dụ: customer_profile.html) 
+    đặt tại thư mục: templates/core/customer_profile.html
+-->
+{% extends 'layouts/customer_base_pro.html' %}
+{% load static %}
+
+{% block profile_content %}
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+    <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <div>
+            <h3 class="text-xl font-bold text-gray-900">Thông tin cá nhân</h3>
+            <p class="text-sm text-gray-500 mt-1">Quản lý thông tin chi tiết và bảo mật tài khoản của bạn</p>
+        </div>
+        <button class="px-4 py-2 bg-[#8C6D4F] text-white text-sm font-medium rounded-lg hover:bg-[#785c41] transition">
+            Chỉnh sửa thông tin
+        </button>
+    </div>
+
+    <!-- Grid thông tin chi tiết lấy từ Model KhachHang & TaiKhoan -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-1">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Họ và tên</p>
+            <p class="text-base font-semibold text-gray-800">{{ khach_hang.ho_ten }}</p>
+        </div>
+
+        <div class="space-y-1">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Email đăng nhập</p>
+            <p class="text-base font-semibold text-gray-800">{{ khach_hang.ma_tk.email }}</p>
+        </div>
+
+        <div class="space-y-1">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Số điện thoại</p>
+            <p class="text-base font-semibold text-gray-800">{{ khach_hang.sdt }}</p>
+        </div>
+
+        <div class="space-y-1">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Giới tính</p>
+            <p class="text-base font-semibold text-gray-800">{{ khach_hang.gioi_tinh|default:"Chưa cập nhật" }}</p>
+        </div>
+
+        <div class="space-y-1">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Ngày sinh</p>
+            <p class="text-base font-semibold text-gray-800">{{ khach_hang.ngay_sinh|date:"d/m/Y"|default:"Chưa cập nhật" }}</p>
+        </div>
+
+        <div class="space-y-1">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Hạng thành viên hiện tại</p>
+            <p class="text-base font-semibold text-amber-700">
+                {% if khach_hang.ma_tv %}{{ khach_hang.ma_tv.ten_hang }} (Giảm {{ khach_hang.ma_tv.ty_le_giam_gia }}%){% else %}Thành viên tiêu chuẩn{% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+</body>
+</html>
