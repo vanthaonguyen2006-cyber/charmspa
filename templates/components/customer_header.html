@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<div class="notification-wrapper position-relative mx-3">
+    <!-- Nút bấm hiển thị icon chuông -->
+    <a href="#" class="text-dark text-decoration-none dropdown-toggle" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-bell fa-lg"></i>
+        <!-- Chấm đỏ báo số lượng thông báo chưa đọc -->
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+            3
+        </span>
+    </a>
 
-</body>
-</html>
+    <!-- Hộp thoại dropdown danh sách thông báo -->
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="notificationDropdown" style="width: 350px; padding: 0;">
+        <li class="dropdown-header fw-bold border-bottom py-2 fs-6">Thông báo của bạn</li>
+
+        <!-- Giao diện tĩnh của 1 thông báo (sau này sẽ dùng thẻ {% for %} để đổ dữ liệu từ View) -->
+        <li>
+            <a class="dropdown-item py-3 border-bottom bg-light" href="#">
+                <div class="d-flex align-items-start">
+                    <div class="me-3 mt-1 text-warning">
+                        <i class="fas fa-calendar-check fa-lg"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold text-wrap" style="font-size: 0.9rem;">Nhắc lịch hẹn ngày mai</h6>
+                        <p class="mb-0 text-muted text-wrap" style="font-size: 0.85rem;">Quý khách có lịch Chăm sóc da chuyên sâu lúc 14:00.</p>
+                        <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">10 phút trước</small>
+                    </div>
+                </div>
+            </a>
+        </li>
+
+        <li>
+            <a class="dropdown-item text-center text-primary py-2 fw-bold" style="font-size: 0.9rem;" href="/notifications/">Xem tất cả thông báo</a>
+        </li>
+    </ul>
+</div>
