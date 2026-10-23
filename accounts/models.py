@@ -4,6 +4,7 @@ from django.db import models
 
 class TaiKhoan(models.Model):
     ma_tk = models.CharField(max_length=10, primary_key=True, verbose_name="Mã tài khoản")
+    username = models.CharField(max_length=50, unique=True, verbose_name="Tên đăng nhập", null=True, blank=True)  # Thêm trường username
     email = models.EmailField(max_length=100, unique=True, verbose_name="Email đăng nhập")
     so_dien_thoai = models.CharField(max_length=15, unique=True, verbose_name="Số điện thoại")
     mat_khau = models.CharField(max_length=255, verbose_name="Mật khẩu")

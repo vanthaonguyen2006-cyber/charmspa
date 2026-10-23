@@ -1,0 +1,177 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Bọc toàn bộ màn hình, trừ phần header của trang chủ ra */
+.split-screen {
+    display: flex;
+    width: 100%;
+    min-height: calc(100vh - 90px); /* Trừ đi chiều cao của header */
+    font-family: 'Roboto', sans-serif;
+    background-color: #f7f3ee;
+}
+
+/* CỘT TRÁI: Chiếm tỷ lệ 4 phần, gọi trực tiếp hình ảnh nền của bạn */
+.left-side {
+    flex: 4;
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('/static/images/hinhdki2.jpg') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px;
+    color: #ffffff;
+}
+
+.brand-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.brand-logo {
+    width: 36px;
+    height: 36px;
+    background-color: #b8975a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: bold;
+    font-size: 16px;
+    color: #fff;
+}
+.brand-name {
+    font-size: 15px;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.left-content {
+    max-width: 400px;
+}
+.left-content h3 {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #e6dfd5;
+    margin-bottom: 10px;
+}
+.left-content h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    line-height: 1.2;
+    margin-bottom: 14px;
+}
+.left-content p {
+    font-size: 13px;
+    color: #dcd6ce;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.left-features {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: #e6dfd5;
+}
+
+/* CỘT PHẢI: Chiếm tỷ lệ 6 phần (nhiều không gian hơn cho form) */
+.right-side {
+    flex: 6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fcfbfa;
+    padding: 30px;
+}
+
+.register-card {
+    background: #ffffff;
+    padding: 30px 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(92, 64, 51, 0.06);
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid #f0e9e1;
+}
+
+.register-card h2 {
+    font-family: 'Playfair Display', serif;
+    color: #2c221e;
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.register-card .subtitle {
+    text-align: center;
+    color: #8c7a6b;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+/* Tùy chỉnh form do Django sinh ra */
+form p {
+    margin-bottom: 12px;
+}
+form label {
+    display: block;
+    margin-bottom: 3px;
+    color: #5c4033;
+    font-weight: 500;
+    font-size: 12px;
+}
+form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dcd1c5;
+    border-radius: 8px;
+    font-size: 13px;
+    background-color: #fdfbf7;
+    transition: all 0.3s;
+}
+form input:focus {
+    outline: none;
+    border-color: #b8975a;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(184, 151, 90, 0.1);
+}
+
+.errorlist {
+    color: #d9534f;
+    font-size: 11px;
+    list-style: none;
+    margin-top: 3px;
+    padding-left: 0;
+}
+
+.btn-submit {
+    background-color: #b8975a;
+    color: white;
+    border: none;
+    padding: 11px;
+    width: 100%;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 8px;
+}
+.btn-submit:hover {
+    background-color: #9a7b45;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #7d6b5d;
+}
+.login-link a {
+    color: #b8975a;
+    text-decoration: none;
+    font-weight: 600;
+}
+.login-link a:hover {
+    text-decoration: underline;
+}

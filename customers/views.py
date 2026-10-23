@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from customers.models import KhachHang
 
-
 def customer_profile_view(request):
     # Lấy thông tin khách hàng dựa trên tài khoản đang đăng nhập
     # (Ví dụ dựa vào email hoặc session ma_tk của bạn)
@@ -17,4 +16,4 @@ def customer_profile_view(request):
     context = {
         'khach_hang': khach_hang,
     }
-    return render(request, 'templates/core/customer_profile.html', context)
+    return render(request, 'customer/customer_profile.html', context)

@@ -1,10 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/accounts/dang_ky.css' %}">
+
+<div class="split-screen">
+    <!-- CỘT TRÁI -->
+    <div class="left-side">
+        <!-- Thay logo chữ C bằng logo hình ảnh giống header -->
+        <div class="brand-top">
+            <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="brand-logo-img">
+            <div class="brand-name">Charm Grand Spa</div>
+        </div>
+
+        <!-- Phần nội dung chữ được đẩy tụt xuống dưới và dịch sang tiếng Việt -->
+        <div class="left-content">
+            <h3>SỰ THƯ GIÃN ĐÍCH THỰC</h3>
+            <h1>Hành trình chăm sóc sức khỏe của bạn bắt đầu tại đây.</h1>
+            <p>Tạo tài khoản Charm Spa cá nhân để đặt lịch dịch vụ, tích lũy điểm thưởng thành viên và nhận các ưu đãi, gợi ý chăm sóc chu đáo nhất.</p>
+
+            <div class="left-features">
+                <span>🔒 Bảo mật riêng tư</span>
+                <span>⭐ Đặc quyền thành viên</span>
+                <span>📅 Đặt lịch dễ dàng</span>
+            </div>
+        </div>
+        <div></div>
+    </div>
+
+    <!-- CỘT PHẢI: Khung form đăng ký -->
+    <div class="right-side">
+        <div class="register-card">
+            <h2>Tạo tài khoản</h2>
+            <p class="subtitle">Trở thành thành viên của Charm Spa</p>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                {{ form.non_field_errors }}
+                {{ form.as_p }}
+
+                <button type="submit" class="btn-submit">Đăng ký</button>
+            </form>
+
+            <div class="login-link">
+                Đã có tài khoản? <a href="{% url 'dang_nhap' %}">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS tinh chỉnh riêng cho logo hình ảnh và đẩy chữ tụt xuống */
+    .brand-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .brand-logo-img {
+        height: 45px; /* Điều chỉnh chiều cao logo cho khớp header */
+        width: auto;
+    }
+    .left-side {
+        justify-content: space-between;
+        padding-top: 60px !important; /* Đẩy nội dung trên xuống */
+        padding-bottom: 60px !important; /* Đẩy nội dung dưới lên tạo khoảng trống */
+    }
+    .left-content {
+        margin-top: 120px; /* Đẩy toàn bộ khối chữ tụt sâu xuống phía dưới */
+    }
+</style>
+{% endblock %}
