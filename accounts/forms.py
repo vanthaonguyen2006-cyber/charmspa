@@ -1,50 +1,72 @@
 from django import forms
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.models import User
 from .models import TaiKhoan
+from customers.models import KhachHang
+
+
+# 1. Form Đăng Ký (Gắn kết đồng bộ User, TaiKhoan và KhachHang)
+from django import forms
+from django.contrib.auth.models import User
+from .models import TaiKhoan
+from customers.models import KhachHang
+
 
 class DangKyForm(forms.ModelForm):
-    # Khai báo ô mật khẩu và xác nhận mật khẩu
-    mat_khau = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': 'Nhập mật khẩu'}),
-        label="Mật khẩu"
-    )
-    xac_nhan_mat_khau = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': 'Nhập lại mật khẩu'}),
-        label="Xác nhận mật khẩu"
-    )
+    ho_ten = forms.CharField(max_length=100, label="Họ và tên")
+    so_dien_thoai = forms.CharField(max_length=15, label="Số điện thoại")
+    password = forms.CharField(widget=forms.PasswordInput, label="Mật khẩu")
+    password_confirm = forms.CharField(widget=forms.PasswordInput, label="Xác nhận mật khẩu")
 
     class Meta:
-        model = TaiKhoan
-        # Bổ sung 'username' vào đây để người dùng tự điền
-        fields = ['username', 'email', 'so_dien_thoai']
+        model = User
+        fields = ['username', 'email']
 
-    # Kiểm tra điều kiện bảo mật mật khẩu
-    def clean_mat_khau(self):
-        mat_khau = self.cleaned_data.get('mat_khau')
-        try:
-            validate_password(mat_khau)
-        except forms.ValidationError as e:
-            raise forms.ValidationError(e.messages)
-        return mat_khau
-
-    # Kiểm tra xác nhận mật khẩu có khớp nhau không
     def clean(self):
         cleaned_data = super().clean()
-        mat_khau = cleaned_data.get("mat_khau")
-        xac_nhan_mat_khau = cleaned_data.get("xac_nhan_mat_khau")
+        password = cleaned_data.get("password")
+        password_confirm = cleaned_data.get("password_confirm")
 
-        if mat_khau and xac_nhan_mat_khau and mat_khau != xac_nhan_mat_khau:
-            raise forms.ValidationError("Mật khẩu xác nhận không trùng khớp!")
+        if password and password_confirm and password != password_confirm:
+            raise forms.ValidationError("Mật khẩu xác nhận không khớp!")
         return cleaned_data
 
+    def save(self, commit=True):
+        cleaned_data = self.cleaned_data
 
+        # 1. Tạo User chuẩn của Django
+        user = User.objects.create_user(
+            username=cleaned_data['username'],
+            email=cleaned_data['email'],
+            password=cleaned_data['password']
+        )
 
+        if commit:
+            # 2. Tạo bản ghi trong TAI_KHOAN (Số điện thoại lưu ở đây đúng yêu cầu của bạn)
+            ma_tk_str = f"TK{user.id:03d}"
+            tai_khoan = TaiKhoan.objects.create(
+                ma_tk=ma_tk_str,
+                user=user,
+                so_dien_thoai=cleaned_data['so_dien_thoai'],
+                vai_tro="Khách hàng"
+            )
+
+            # 3. Tạo bản ghi trong KHACH_HANG (Không còn lưu sdt/email thừa thãi nữa)
+            ma_kh_str = f"KH{user.id:03d}"
+            KhachHang.objects.create(
+                ma_kh=ma_kh_str,
+                ma_tk=tai_khoan,
+                ho_ten=cleaned_data['ho_ten']
+            )
+        return user
+
+# 2. Form Đăng Nhập (Hỗ trợ nhập Username hoặc Số điện thoại/Email)
 class DangNhapForm(forms.Form):
     username = forms.CharField(
-        label="Tên đăng nhập hoặc Email",
-        widget=forms.TextInput(attrs={'placeholder': 'Nhập tên đăng nhập'})
+        max_length=150,
+        label="Email hoặc số điện thoại",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập thông tin đăng nhập'})
     )
-    mat_khau = forms.CharField(
+    password = forms.CharField(
         label="Mật khẩu",
-        widget=forms.PasswordInput(attrs={'placeholder': 'Nhập mật khẩu'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nhập mật khẩu'})
     )

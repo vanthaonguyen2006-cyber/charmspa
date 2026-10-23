@@ -1,24 +1,22 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-/* Bọc toàn bộ màn hình */
+/* Tổng thể trang chia đôi màn hình */
 .split-screen {
     display: flex;
-    width: 100%;
-    min-height: calc(100vh - 90px);
-    font-family: 'Roboto', sans-serif;
-    background-color: #f7f3ee;
+    min-height: 100vh;
+    background-color: #fcf9f5;
+    font-family: 'Playfair Display', serif, Arial, sans-serif;
 }
 
-/* CỘT TRÁI: Hình nền Spa & Thông điệp */
-.left-side {
-    flex: 4;
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('/static/images/hinhdki2.jpg') no-repeat center center;
+/* Phần bên trái: Banner không gian Spa */
+.left-banner {
+    flex: 1;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), url('/static/images/hinhdki2.jpg') no-repeat center center;
     background-size: cover;
+    position: relative;
+    color: #fff;
+    padding: 110px 60px 60px 60px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 40px;
-    color: #ffffff;
 }
 
 .brand-top {
@@ -26,202 +24,208 @@
     align-items: center;
     gap: 12px;
 }
+
 .brand-logo-img {
-    height: 45px;
+    height: 58px;
     width: auto;
 }
-.brand-name {
-    font-size: 15px;
-    letter-spacing: 1px;
-    font-weight: 500;
-}
 
-.left-content {
-    max-width: 400px;
-    margin-top: 120px;
-}
-.left-content h3 {
-    font-size: 14px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #fcecdb;
-    font-weight: 700;
-    margin-bottom: 12px;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-}
-.left-content h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 34px;
-    line-height: 1.2;
-    margin-bottom: 14px;
-}
-.left-content p {
-    font-size: 13px;
-    color: #dcd6ce;
-    line-height: 1.5;
-    margin-bottom: 20px;
-}
-
-.left-features {
-    display: flex;
-    gap: 16px;
-    font-size: 11px;
-    color: #e6dfd5;
-}
-
-/* CỘT PHẢI: Khung form đăng nhập */
-.right-side {
-    flex: 6;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #fcfbfa;
-    padding: 30px;
-}
-
-.register-card {
-    background: #ffffff;
-    padding: 30px 40px;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(92, 64, 51, 0.06);
-    width: 100%;
-    max-width: 480px;
-    border: 1px solid #f0e9e1;
-}
-
-/* Logo phần form bên phải */
-.form-logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-.form-logo {
-    height: 38px;
-    width: auto;
-}
-.form-brand-text {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-}
-.brand-title {
-    font-family: 'Playfair Display', serif;
-    font-weight: bold;
-    font-size: 16px;
-    color: #2c221e;
-    line-height: 1.1;
-}
-.brand-subtitle-text {
-    font-size: 8px;
+.brand-text-logo {
+    font-size: 22px;
+    font-weight: 600;
     letter-spacing: 1.5px;
-    color: #8c7a6b;
+    line-height: 1.3;
 }
 
-.form-main-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 24px;
-    color: #2c221e;
-    margin-bottom: 4px;
-    text-align: center;
-}
-.register-card .subtitle {
-    text-align: center;
-    color: #8c7a6b;
-    font-size: 13px;
+.left-content h1 {
+    font-size: 42px;
+    line-height: 1.2;
     margin-bottom: 20px;
+    font-weight: 400;
 }
 
-/* Tùy chỉnh các ô input trong form */
-.input-group {
-    margin-bottom: 15px;
-    text-align: left;
+.left-content p {
+    font-size: 15px;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 420px;
+    margin-bottom: 30px;
 }
-.input-group label {
-    display: block;
+
+.features-list {
+    display: flex;
+    gap: 25px;
     font-size: 13px;
-    color: #5c4033;
-    font-weight: 500;
-    margin-bottom: 5px;
+    opacity: 0.85;
 }
-.input-group input {
+
+/* Phần bên phải: Hộp chứa form đăng nhập */
+.right-form {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background-color: #fcf9f5;
+}
+
+.auth-card {
+    background: #ffffff;
+    padding: 40px 45px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
     width: 100%;
-    padding: 11px 14px;
-    border: 1px solid #dcd1c5;
-    border-radius: 8px;
-    font-size: 13px;
-    background-color: #fdfbf7;
-    transition: all 0.3s;
-}
-.input-group input:focus {
-    outline: none;
-    border-color: #b8975a;
-    background-color: #fff;
-    box-shadow: 0 0 0 3px rgba(184, 151, 90, 0.1);
+    max-width: 460px;
 }
 
-/* Ghi nhớ đăng nhập & Quên mật khẩu */
-.form-options {
+/* Header logo phía trên card đăng nhập */
+.card-brand-header {
+    text-align: center; /* Căn giữa toàn bộ nội dung trong header */
+    margin-bottom: 25px;
+}
+
+.card-brand-header img {
+    height: 50px; /* Tăng kích thước logo to hơn một chút (ví dụ từ 30px lên 50px) */
+    width: auto;
+    display: block;
+    margin: 0 auto 8px auto; /* Tự động căn giữa lề trái/phải */
+}
+
+.card-brand-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: 0.5px;
+}
+
+.card-brand-subtitle {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #8c827b;
+    font-weight: 600;
+    margin-top: 2px;
+}
+.auth-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auth-header h2 {
+    font-size: 26px;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.auth-header p {
+    font-size: 13px;
+    color: #8c827b;
+}
+
+/* Tùy chỉnh các trường form & icon */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: #5c524c;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px 12px 42px; /* Chừa khoảng trống bên trái cho icon */
+    border: 1px solid #e3dcd2;
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: #fff;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #1a1a1a;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.05);
+}
+
+.form-extra {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 13px;
-    margin-bottom: 20px;
-    color: #7d6b5d;
+    margin-bottom: 25px;
+    color: #6c625c;
 }
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-}
-.forgot-password {
-    color: #8c7a6b;
+
+.form-extra a {
+    color: #8c6843;
     text-decoration: none;
+    font-weight: 500;
 }
-.forgot-password:hover {
+
+.form-extra a:hover {
     text-decoration: underline;
 }
 
-/* Nút đăng nhập màu tối sang trọng */
-.btn-submit-dark {
-    background-color: #1a1614;
+/* Nút bấm đăng nhập màu đen */
+.btn-submit {
+    width: 100%;
+    background-color: #1a1a1a;
     color: white;
     border: none;
-    padding: 12px;
-    width: 100%;
-    border-radius: 8px;
+    padding: 14px;
+    border-radius: 10px;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s;
-}
-.btn-submit-dark:hover {
-    background-color: #3b2d24;
+    transition: background 0.3s ease;
 }
 
-.login-link {
-    text-align: center;
-    margin-top: 16px;
-    font-size: 13px;
-    color: #7d6b5d;
+.btn-submit:hover {
+    background-color: #333333;
 }
-.login-link a {
-    color: #b8975a;
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #8c827b;
+}
+
+.auth-footer a {
+    color: #8c6843;
     text-decoration: none;
     font-weight: 600;
 }
-.login-link a:hover {
+
+.auth-footer a:hover {
     text-decoration: underline;
 }
 
-/* Dòng bảo mật ở đáy */
+/* Dòng bảo mật dưới cùng */
 .security-badge {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 11px;
-    color: #8c7a6b;
-    border-top: 1px solid #f0e9e1;
-    padding-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 22px;
+    font-size: 12px;
+    color: #8c827b;
 }

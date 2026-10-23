@@ -3,6 +3,6 @@ from . import views
 
 urlpatterns = [
     path('customer/', views.customer_home, name='customer_home'),
-    # Các đường dẫn khác của bạn...
+    # Các đường dẫna khác của bạn...
 
 ]

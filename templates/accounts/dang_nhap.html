@@ -1,90 +1,104 @@
 {% extends 'layouts/customer_base.html' %}
 {% load static %}
 
-{% block content %}
-<!-- Nhúng file CSS riêng của trang đăng nhập -->
-<link rel="stylesheet" href="{% static 'css/accounts/dang_nhap.css' %}">
+{% block title %}Đăng nhập - Charm Spa Grand{% endblock %}
 
+{% block extra_css %}
+<!-- Nhúng file CSS riêng cho trang đăng nhập -->
+<link rel="stylesheet" href="{% static 'css/accounts/dang_nhap.css' %}">
+{% endblock %}
+
+{% block content %}
 <div class="split-screen">
-    <!-- CỘT TRÁI: Hình nền Spa & Thông điệp -->
-    <div class="left-side">
+
+    <!-- CỘT BÊN TRÁI: Banner không gian Wellness & Slogan -->
+    <div class="left-banner">
         <div class="brand-top">
             <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="brand-logo-img">
-            <div class="brand-name">Charm Grand Spa</div>
+            <span class="brand-text-logo">Charm Spa<br><small style="font-size:12px; font-weight:300; letter-spacing:2.5px;">LUXURY WELLNESS</small></span>
         </div>
 
         <div class="left-content">
-            <h3>SỰ THƯ GIÃN ĐÍCH THỰC</h3>
-            <h1>Không gian thư giãn đẳng cấp đang chờ đón bạn.</h1>
-            <p>Đăng nhập để quản lý lịch hẹn cá nhân, tích lũy điểm thưởng và tận hưởng các đặc quyền dành riêng cho thành viên.</p>
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8;">Welcome Back</span>
+            <h1>Reclaim your peace<br>of mind.</h1>
+            <p>Log in to manage your appointments, view accumulated loyalty points and access exclusive member offers.</p>
 
-            <div class="left-features">
-                <span>🔒 Bảo mật riêng tư</span>
-                <span>⭐ Đặc quyền thành viên</span>
-                <span>📅 Đặt lịch dễ dàng</span>
+            <div class="features-list">
+                <span>✓ Private & secure</span>
+                <span>✓ Member rewards</span>
+                <span>✓ Easy booking</span>
             </div>
         </div>
         <div></div>
     </div>
 
-    <!-- CỘT PHẢI: Khung form đăng nhập -->
-    <div class="right-side">
-        <div class="register-card">
+    <!-- CỘT BÊN PHẢI: Form đăng nhập chuẩn thiết kế mẫu -->
+    <div class="right-form">
+        <div class="auth-card">
 
-            <!-- Logo nhỏ ở trên cùng form -->
-            <div class="form-logo-container">
-                <img src="{% static 'images/logo_tach_nen.png' %}" alt="Logo" class="form-logo">
-                <div class="form-brand-text">
-                    <span class="brand-title">Charm Spa</span>
-                    <span class="brand-subtitle-text">LUXURY WELLNESS</span>
-                </div>
+            <!-- Logo tròn và tiêu đề thương hiệu chuẩn mẫu -->
+            <div class="card-brand-header">
+                <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="card-logo-img">
+                <div class="card-brand-title">Charm Spa</div>
+                <div class="card-brand-subtitle">LUXURY WELLNESS</div>
             </div>
 
-            <h2 class="form-main-title">Chào mừng trở lại</h2>
-            <p class="subtitle">Đăng nhập để tiếp tục với không gian của bạn</p>
+            <div class="auth-header">
+                <h2>Chào mừng trở lại</h2>
+                <p>Đăng nhập để tiếp tục với không gian của bạn</p>
+            </div>
 
-            <!-- Hiển thị thông báo lỗi nếu có -->
-            {% if error %}
-                <div style="color: #d9534f; background: #fdf2f2; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; text-align: center;">
-                    {{ error }}
+            <!-- Hiển thị lỗi nếu có -->
+            {% if form.errors %}
+                <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; text-align: center;">
+                    Tên đăng nhập hoặc mật khẩu không chính xác.
                 </div>
             {% endif %}
 
             <form method="POST">
                 {% csrf_token %}
 
-                {{ form.non_field_errors }}
-
-                <div class="input-group">
-                    <label for="id_username">Email hoặc số điện thoại</label>
-                    {{ form.username }}
-                    {{ form.username.errors }}
+                <!-- Trường Email hoặc số điện thoại kèm icon -->
+                <div class="form-group">
+                    <label>Email hoặc số điện thoại</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">👤</span>
+                        <input type="text" name="username" class="form-control" placeholder="Nhập thông tin đăng nhập" autocomplete="off" required>
+                    </div>
                 </div>
 
-                <div class="input-group">
-                    <label for="id_mat_khau">Mật khẩu</label>
-                    {{ form.mat_khau }}
-                    {{ form.mat_khau.errors }}
+                <!-- Trường Mật khẩu kèm icon -->
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu" autocomplete="new-password" required>
+                    </div>
                 </div>
 
-                <div class="form-options">
-                    <label class="remember-me">
-                        <input type="checkbox" name="ghi_nhho"> Ghi nhớ đăng nhập
+                <!-- Ghi nhớ đăng nhập & Quên mật khẩu -->
+                <div class="form-extra">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" name="remember_me" style="accent-color: #1a1a1a;"> Ghi nhớ đăng nhập
                     </label>
-                    <a href="#" class="forgot-password">Quên mật khẩu?</a>
+                    <a href="#">Quên mật khẩu?</a>
                 </div>
 
-                <button type="submit" class="btn-submit-dark">Đăng nhập</button>
+                <!-- Nút Đăng nhập màu đen bo góc -->
+                <button type="submit" class="btn-submit">Đăng nhập</button>
             </form>
 
-            <div class="login-link">
+            <div class="auth-footer">
                 Chưa có tài khoản? <a href="{% url 'dang_ky' %}">Đăng ký ngay</a>
             </div>
 
+            <!-- Dòng bảo mật dưới cùng -->
             <div class="security-badge">
-                🔒 Phiên đăng nhập được mã hóa và bảo mật
+                <span>🛡️</span> Phiên đăng nhập được mã hóa và bảo mật
             </div>
+
         </div>
     </div>
+
 </div>
 {% endblock %}

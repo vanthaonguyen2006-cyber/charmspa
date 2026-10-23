@@ -1,73 +1,106 @@
 {% extends 'layouts/customer_base.html' %}
 {% load static %}
 
-{% block content %}
-<link rel="stylesheet" href="{% static 'css/accounts/dang_ky.css' %}">
+{% block title %}Tạo tài khoản - Charm Spa Grand{% endblock %}
 
+{% block extra_css %}
+<!-- Nhúng file CSS riêng chuẩn theo mẫu thiết kế -->
+<link rel="stylesheet" href="{% static 'css/accounts/dang_ky.css' %}">
+{% endblock %}
+
+{% block content %}
 <div class="split-screen">
-    <!-- CỘT TRÁI -->
-    <div class="left-side">
-        <!-- Thay logo chữ C bằng logo hình ảnh giống header -->
+
+    <!-- CỘT BÊN TRÁI: Banner không gian Wellness & Slogan -->
+    <div class="left-banner">
         <div class="brand-top">
             <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="brand-logo-img">
-            <div class="brand-name">Charm Grand Spa</div>
+            <span class="brand-text-logo">Charm Spa<br><small style="font-size:10px; font-weight:300; letter-spacing:2px;">LUXURY SPA & WELLNESS</small></span>
         </div>
 
-        <!-- Phần nội dung chữ được đẩy tụt xuống dưới và dịch sang tiếng Việt -->
         <div class="left-content">
-            <h3>SỰ THƯ GIÃN ĐÍCH THỰC</h3>
-            <h1>Hành trình chăm sóc sức khỏe của bạn bắt đầu tại đây.</h1>
-            <p>Tạo tài khoản Charm Spa cá nhân để đặt lịch dịch vụ, tích lũy điểm thưởng thành viên và nhận các ưu đãi, gợi ý chăm sóc chu đáo nhất.</p>
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8;">A quieter kind of luxury</span>
+            <h1>Your wellness journey<br>begins here.</h1>
+            <p>Create your private Charm Spa account to reserve rituals, collect loyalty points and receive thoughtful recommendations.</p>
 
-            <div class="left-features">
-                <span>🔒 Bảo mật riêng tư</span>
-                <span>⭐ Đặc quyền thành viên</span>
-                <span>📅 Đặt lịch dễ dàng</span>
+            <div class="features-list">
+                <span>✓ Private & secure</span>
+                <span>✓ Member rewards</span>
+                <span>✓ Easy booking</span>
             </div>
         </div>
-        <div></div>
+        <div></div> <!-- Khoảng trống cân đối layout flex -->
     </div>
 
-    <!-- CỘT PHẢI: Khung form đăng ký -->
-    <div class="right-side">
-        <div class="register-card">
-            <h2>Tạo tài khoản</h2>
-            <p class="subtitle">Trở thành thành viên của Charm Spa</p>
+    <!-- CỘT BÊN PHẢI: Form tạo tài khoản -->
+    <div class="right-form">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>Tạo tài khoản</h2>
+                <p>Trở thành thành viên của Charm Spa</p>
+            </div>
+
+            <!-- Hiển thị lỗi nếu form có vấn đề -->
+            {% if form.errors %}
+                <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 20px;">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
 
             <form method="POST">
                 {% csrf_token %}
 
-                {{ form.non_field_errors }}
-                {{ form.as_p }}
+                <!-- Trường Họ và tên -->
+                <div class="form-group">
+                    <label>Họ và tên</label>
+                    <input type="text" name="ho_ten" class="form-control" placeholder="Nguyễn Minh Anh" autocomplete="off" required>
+                </div>
 
+                <!-- Hàng chứa Số điện thoại và Email -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" name="so_dien_thoai" class="form-control" placeholder="090 123 4567" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="minhanh@email.com" autocomplete="off" required>
+                    </div>
+                </div>
+
+                <!-- Trường Username (Tên đăng nhập hệ thống) -->
+                <div class="form-group">
+                    <label>Tên đăng nhập (Username)</label>
+                    <input type="text" name="username" class="form-control" placeholder="Nhập tên đăng nhập của bạn" autocomplete="off" required>
+                </div>
+
+                <!-- Trường Mật khẩu (Sửa name="password" để khớp với forms.py) -->
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" name="password" class="form-control" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" required>
+                </div>
+
+                <!-- Trường Xác nhận mật khẩu (Sửa name="password_confirm" để khớp với forms.py) -->
+                <div class="form-group">
+                    <label>Xác nhận mật khẩu</label>
+                    <input type="password" name="password_confirm" class="form-control" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
+                </div>
+
+                <!-- Checkbox đồng ý điều khoản -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms" style="margin: 0; font-weight: normal; font-size: 12px;">Tôi đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của Charm Spa.</label>
+                </div>
+
+                <!-- Nút Submit -->
                 <button type="submit" class="btn-submit">Đăng ký</button>
             </form>
 
-            <div class="login-link">
+            <div class="auth-footer">
                 Đã có tài khoản? <a href="{% url 'dang_nhap' %}">Đăng nhập</a>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-    /* CSS tinh chỉnh riêng cho logo hình ảnh và đẩy chữ tụt xuống */
-    .brand-top {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .brand-logo-img {
-        height: 45px; /* Điều chỉnh chiều cao logo cho khớp header */
-        width: auto;
-    }
-    .left-side {
-        justify-content: space-between;
-        padding-top: 60px !important; /* Đẩy nội dung trên xuống */
-        padding-bottom: 60px !important; /* Đẩy nội dung dưới lên tạo khoảng trống */
-    }
-    .left-content {
-        margin-top: 120px; /* Đẩy toàn bộ khối chữ tụt sâu xuống phía dưới */
-    }
-</style>
+</div>
 {% endblock %}
