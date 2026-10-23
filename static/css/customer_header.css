@@ -1,0 +1,178 @@
+/* =========================================
+   FILE: static/css/customer_header.css
+   ========================================= */
+
+.customer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    background-color: #FDFBF7;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+     position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-sizing: border-box;
+
+}
+
+/* 1. CỤM LOGO */
+.header-logo a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    width: 80px;
+    height: auto;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.logo-title {
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: 2px;
+    color: #4A3C31;
+    font-weight: bold;
+}
+
+.logo-subtitle {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #C49A45;
+    margin-top: 3px;
+}
+
+/* 2. CỤM MENU ĐIỀU HƯỚNG */
+.header-nav ul {
+    display: flex;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    gap: 35px;
+}
+
+.header-nav ul li a {
+    text-decoration: none;
+    color: #4A3C31;
+    font-weight: 500;
+    font-size: 17px; /* Đã tăng size chữ to và dễ nhìn hơn */
+    transition: color 0.3s ease;
+}
+
+.header-nav ul li a:hover {
+    color: #C49A45;
+}
+
+/* 3. CỤM HÀNH ĐỘNG */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.btn-booking {
+    text-decoration: none;
+    color: #C49A45;
+    border: 1px solid #C49A45;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-booking:hover {
+    background-color: #C49A45;
+    color: #FFF;
+}
+
+/* ===== GIAO DIỆN KHI CHƯA ĐĂNG NHẬP (VIÊN THUỐC) ===== */
+.btn-login-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #CBA557;
+    padding: 5px 15px 5px 5px;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-login-pill:hover {
+    background: #B59345;
+}
+
+.login-avatar {
+    background: #FDFBF7;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #A67C52;
+    font-size: 14px;
+}
+
+.login-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2F251E;
+}
+
+/* ===== GIAO DIỆN KHI ĐÃ ĐĂNG NHẬP (USER PROFILE) ===== */
+.header-notification .btn-icon {
+    background: #F4EBE1;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    color: #A67C52;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #F4EBE1;
+    padding: 6px 16px 6px 6px;
+    border-radius: 25px;
+    cursor: pointer;
+}
+
+.user-avatar {
+    background: #FFF;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #A67C52;
+    font-size: 14px;
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4A3C31;
+}
+
+.dropdown-icon {
+    font-size: 12px;
+    color: #888;
+}

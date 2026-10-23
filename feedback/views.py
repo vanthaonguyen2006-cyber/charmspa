@@ -41,3 +41,10 @@ def gui_phan_hoi(request):
         'form': form,
         'khach_hang': khach_hang
     })
+
+
+
+
+#test base giao diện chung
+def test_staff(request):
+    return render(request, 'feedback/test_staff.html')

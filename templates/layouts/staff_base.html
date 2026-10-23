@@ -1,10 +1,165 @@
+
+{% load static %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Charm Spa Management
+        {% endblock %}
+    </title>
+
+    <!-- FONT -->
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <!-- MAIN CSS -->
+    <link rel="stylesheet"
+          href="{% static 'css/staff.css' %}">
+
+    {% block extra_css %}{% endblock %}
 </head>
+
 <body>
+
+    <div class="staff-layout">
+
+        <!-- SIDEBAR -->
+        {% include "components/staff_sidebar.html" %}
+
+        <!-- MAIN -->
+        <div class="staff-main">
+
+            <!-- HEADER -->
+            {% include "components/staff_header.html" %}
+
+            <!-- PAGE CONTENT -->
+            <main class="staff-content">
+                {% block content %}{% endblock %}
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- LUCIDE ICONS -->
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+
+    <!-- SIDEBAR INTERACTIONS -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            if (window.lucide) {
+                lucide.createIcons();
+            } else {
+                console.error("Lucide Icons failed to load");
+            }
+
+            const sidebar = document.getElementById("staffSidebar");
+            const sidebarToggle = document.getElementById("sidebarToggle");
+
+            const careToggle = document.getElementById("careMenuToggle");
+            const careSubmenu = document.getElementById("careSubmenu");
+
+            const userToggle = document.getElementById("userMoreToggle");
+            const userDropdown = document.getElementById("userDropdown");
+
+            // COLLAPSE SIDEBAR
+            if (sidebar && sidebarToggle) {
+                sidebarToggle.addEventListener("click", function () {
+                    const collapsed = sidebar.classList.toggle("collapsed");
+
+                    document.body.classList.toggle(
+                        "sidebar-collapsed",
+                        collapsed
+                    );
+
+                    sidebarToggle.setAttribute(
+                        "aria-expanded",
+                        String(!collapsed)
+                    );
+
+                    sidebarToggle.setAttribute(
+                        "aria-label",
+                        collapsed ? "Mở rộng thanh menu" : "Thu gọn thanh menu"
+                    );
+
+                    sidebarToggle.innerHTML = collapsed
+                        ? '<i data-lucide="panel-left-open"></i>'
+                        : '<i data-lucide="panel-left-close"></i>';
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    if (collapsed && careSubmenu) {
+                        careSubmenu.classList.remove("open");
+                        careToggle?.setAttribute("aria-expanded", "false");
+                    }
+
+                    userDropdown?.classList.remove("open");
+                });
+            }
+
+            // CARE SUBMENU
+            if (careToggle && careSubmenu) {
+                if (careSubmenu.querySelector(".active-sub")) {
+                    careSubmenu.classList.add("open");
+                    careToggle.setAttribute("aria-expanded", "true");
+                }
+
+                careToggle.addEventListener("click", function () {
+                    if (sidebar?.classList.contains("collapsed")) {
+                        sidebarToggle?.click();
+                    }
+
+                    const opened = careSubmenu.classList.toggle("open");
+
+                    careToggle.setAttribute(
+                        "aria-expanded",
+                        String(opened)
+                    );
+                });
+            }
+
+            // USER DROPDOWN
+            if (userToggle && userDropdown) {
+                userToggle.addEventListener("click", function (event) {
+                    event.stopPropagation();
+
+                    const opened = userDropdown.classList.toggle("open");
+
+                    userToggle.setAttribute(
+                        "aria-expanded",
+                        String(opened)
+                    );
+                });
+
+                document.addEventListener("click", function (event) {
+                    if (!event.target.closest(".sidebar-user")) {
+                        userDropdown.classList.remove("open");
+                        userToggle.setAttribute("aria-expanded", "false");
+                    }
+                });
+            }
+
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
 
 </body>
 </html>

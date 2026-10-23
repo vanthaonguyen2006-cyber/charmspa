@@ -1,10 +1,166 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% load static %}
+<aside class="staff-sidebar" id="staffSidebar">
 
-</body>
-</html>
+    <!-- LOGO -->
+    <div class="sidebar-logo">
+        <div class="logo-icon">
+            <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 9px;">
+        </div>
+
+        <div class="logo-text">
+            <div class="logo-name">Charm Spa</div>
+            <div class="logo-subtitle">MANAGEMENT</div>
+        </div>
+
+        <button type="button"
+                class="sidebar-toggle"
+                id="sidebarToggle"
+                aria-label="Thu gọn thanh menu"
+                aria-expanded="true">
+            <i data-lucide="panel-left-close"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-section-title">KHÔNG GIAN LÀM VIỆC</div>
+
+    <!-- MENU -->
+    <nav class="sidebar-menu">
+
+        <a href="#" title="Tổng quan"
+           class="sidebar-item {% if active_menu == 'dashboard' %}active{% endif %}">
+            <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
+            <span class="sidebar-label">Tổng quan</span>
+        </a>
+
+        <a href="#" title="Khách hàng"
+           class="sidebar-item {% if active_menu == 'customers' %}active{% endif %}">
+            <i data-lucide="users-round" class="sidebar-icon"></i>
+            <span class="sidebar-label">Khách hàng</span>
+        </a>
+
+        <a href="#" title="Lịch hẹn"
+           class="sidebar-item {% if active_menu == 'bookings' %}active{% endif %}">
+            <i data-lucide="calendar-days" class="sidebar-icon"></i>
+            <span class="sidebar-label">Lịch hẹn</span>
+            {% if booking_count %}
+                <span class="menu-badge">{{ booking_count }}</span>
+            {% endif %}
+        </a>
+
+        <a href="#" title="Ngày hoạt động"
+           class="sidebar-item {% if active_menu == 'working_days' %}active{% endif %}">
+            <i data-lucide="calendar-check-2" class="sidebar-icon"></i>
+            <span class="sidebar-label">Ngày hoạt động</span>
+        </a>
+
+        <a href="#" title="Phản hồi & Khiếu nại"
+           class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}">
+            <i data-lucide="message-square-text" class="sidebar-icon"></i>
+            <span class="sidebar-label">Phản hồi & Khiếu nại</span>
+            {% if feedback_count %}
+                <span class="menu-badge">{{ feedback_count }}</span>
+            {% endif %}
+        </a>
+
+        <a href="#" title="Quản lý ưu đãi"
+           class="sidebar-item {% if active_menu == 'promotions' %}active{% endif %}">
+            <i data-lucide="tickets" class="sidebar-icon"></i>
+            <span class="sidebar-label">Quản lý ưu đãi</span>
+        </a>
+
+        <!-- CHĂM SÓC KHÁCH HÀNG -->
+        <button type="button"
+                class="sidebar-item sidebar-parent"
+                id="careMenuToggle"
+                aria-expanded="false">
+            <i data-lucide="heart-handshake" class="sidebar-icon"></i>
+            <span class="sidebar-label">Chăm sóc & Nhắc lịch</span>
+            <i data-lucide="chevron-down" class="sidebar-chevron"></i>
+        </button>
+
+        <div class="sidebar-submenu" id="careSubmenu">
+            <a href="#"
+               class="sidebar-subitem {% if active_menu == 'reminders' %}active-sub{% endif %}">
+                Nhắc lịch & Tái hẹn
+            </a>
+
+            <a href="#"
+               class="sidebar-subitem {% if active_menu == 'aftercare' %}active-sub{% endif %}">
+                Hướng dẫn sau liệu trình
+            </a>
+        </div>
+
+        <a href="#" title="Dịch vụ"
+           class="sidebar-item {% if active_menu == 'services' %}active{% endif %}">
+            <i data-lucide="sparkles" class="sidebar-icon"></i>
+            <span class="sidebar-label">Dịch vụ</span>
+        </a>
+
+        <a href="#" title="Nhân viên"
+           class="sidebar-item {% if active_menu == 'staff' %}active{% endif %}">
+            <i data-lucide="contact-round" class="sidebar-icon"></i>
+            <span class="sidebar-label">Nhân viên</span>
+        </a>
+
+        <a href="#" title="Kho & sản phẩm"
+           class="sidebar-item {% if active_menu == 'inventory' %}active{% endif %}">
+            <i data-lucide="package" class="sidebar-icon"></i>
+            <span class="sidebar-label">Kho & sản phẩm</span>
+        </a>
+
+        <a href="#" title="Báo cáo"
+           class="sidebar-item {% if active_menu == 'reports' %}active{% endif %}">
+            <i data-lucide="chart-no-axes-combined" class="sidebar-icon"></i>
+            <span class="sidebar-label">Báo cáo</span>
+        </a>
+
+        <a href="#" title="Quản trị người dùng"
+           class="sidebar-item {% if active_menu == 'accounts' %}active{% endif %}">
+            <i data-lucide="shield-check" class="sidebar-icon"></i>
+            <span class="sidebar-label">Quản trị người dùng</span>
+        </a>
+
+        <a href="#" title="Chatbot"
+           class="sidebar-item {% if active_menu == 'chatbot' %}active{% endif %}">
+            <i data-lucide="bot" class="sidebar-icon"></i>
+            <span class="sidebar-label">Chatbot</span>
+        </a>
+
+    </nav>
+
+    <!-- TÀI KHOẢN ĐĂNG NHẬP -->
+    <div class="sidebar-user">
+
+        <div class="user-avatar">
+            {{ staff_initials|default:"?" }}
+        </div>
+
+        <div class="user-info">
+            <strong>
+                {{ staff_name|default:"Tài khoản" }}
+            </strong>
+
+            <span>
+                {{ staff_position|default:"Người dùng" }}
+            </span>
+        </div>
+
+        <button type="button"
+                class="user-more"
+                id="userMoreToggle"
+                aria-label="Tùy chọn tài khoản"
+                aria-expanded="false">
+            <i data-lucide="ellipsis"></i>
+        </button>
+
+        <div class="user-dropdown" id="userDropdown">
+            <div class="user-dropdown-heading">Tài khoản của tôi</div>
+            <a href="#" class="user-dropdown-item">
+                <i data-lucide="user-round"></i>
+                <span>Thông tin cá nhân</span>
+            </a>
+        </div>
+
+    </div>
+
+</aside>
