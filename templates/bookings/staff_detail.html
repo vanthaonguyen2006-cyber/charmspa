@@ -1,0 +1,267 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Bootstrap 5 & Icons CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<!-- Flatpickr CSS cho lịch chọn khi đổi lịch -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.flatpickr/dist/themes/material_gold.css">
+
+<div class="container my-5" style="max-width: 900px;">
+    <!-- Khu vực hiển thị thông báo gọn gàng, không bị tràn -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert" style="border-radius: 8px;">
+                    <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill text-danger{% else %}bi-check-circle-fill text-success{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h3 class="fw-bold text-uppercase m-0" style="color: #ab8e56; letter-spacing: 1px;">Chi Tiết Lịch Hẹn #{{ lich_hen.ma_lh }}</h3>
+                <p class="text-muted small m-0 mt-1">Quản lý và thực hiện thao tác thay đổi, hoàn thành hoặc hủy lịch hẹn cho khách hàng.</p>
+            </div>
+
+            <!-- Nhóm nút bấm nằm gọn gàng, có khoảng cách chuẩn, không bị bẻ dòng -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{% url 'staff_booking_list' %}" class="btn btn-outline-secondary btn-sm px-3 py-2">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại
+                </a>
+
+                {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Đã xóa' and lich_hen.trang_thai != 'Hoàn thành' %}
+                    <!-- Nút Hoàn thành -->
+                    <form method="POST" action="{% url 'staff_booking_complete' lich_hen.ma_lh %}" class="d-inline m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-primary btn-sm fw-bold px-3 py-2">
+                            <i class="bi bi-check2-all me-1"></i> Hoàn thành
+                        </button>
+                    </form>
+
+                    <!-- Nút mở Modal Đổi Lịch -->
+                    <button type="button" class="btn btn-outline-warning btn-sm fw-bold text-dark px-3 py-2" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ lich_hen.ma_lh }}">
+                        <i class="bi bi-calendar-check me-1"></i> Đổi lịch
+                    </button>
+
+                    <!-- Nút mở Modal Hủy Lịch -->
+                    <button type="button" class="btn btn-outline-danger btn-sm fw-bold px-3 py-2" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lich_hen.ma_lh }}">
+                        <i class="bi bi-x-circle me-1"></i> Hủy lịch
+                    </button>
+
+                    <!-- Nút xóa lịch -->
+                    <button type="button" class="btn btn-outline-dark btn-sm fw-bold px-3 py-2" data-bs-toggle="modal" data-bs-target="#deleteModal{{ lich_hen.ma_lh }}">
+                        <i class="bi bi-trash me-1"></i> Xóa lịch
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4" style="border-radius: 12px; background-color: #ffffff;">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <h5 class="fw-bold text-secondary mb-3" style="font-size: 15px;"><i class="bi bi-person-fill me-1"></i> Thông Tin Khách Hàng</h5>
+                <p class="mb-2"><strong>Họ và tên:</strong> {{ lich_hen.ma_kh.ho_ten }}</p>
+                <p class="mb-2"><strong>Số điện thoại:</strong> {{ lich_hen.ma_kh.sdt }}</p>
+                <p class="mb-2"><strong>Email:</strong> {{ lich_hen.ma_kh.email|default:"Không có" }}</p>
+            </div>
+            <div class="col-md-6">
+                <h5 class="fw-bold text-secondary mb-3" style="font-size: 15px;"><i class="bi bi-spa me-1"></i> Thông Tin Dịch Vụ & Lịch Hẹn</h5>
+                <p class="mb-2"><strong>Dịch vụ:</strong> {{ lich_hen.ma_dv.ten_dich_vu }}</p>
+                <p class="mb-2"><strong>Ngày hẹn:</strong> {{ lich_hen.ngay_hen }}</p>
+                <p class="mb-2"><strong>Khung giờ:</strong> {% if lich_hen.gio_hen == 'noon' %}12:00{% else %}{{ lich_hen.gio_hen }}{% endif %}</p>
+                <p class="mb-2"><strong>Số lượng khách:</strong> {{ lich_hen.so_luong_khach }} khách</p>
+                <p class="mb-2">
+                    <strong>Trạng thái:</strong>
+                    {% if lich_hen.trang_thai == 'Đã hủy' %}
+                        <span class="badge bg-danger">Đã hủy</span>
+                    {% elif lich_hen.trang_thai == 'Đã xóa' %}
+                        <span class="badge bg-secondary">Đã xóa</span>
+                    {% elif lich_hen.trang_thai == 'Hoàn thành' %}
+                        <span class="badge bg-primary">Hoàn thành</span>
+                    {% else %}
+                        <span class="badge bg-success">{{ lich_hen.trang_thai }}</span>
+                    {% endif %}
+                </p>
+                <p class="mb-2">
+                    <strong>Nhân viên phụ trách:</strong>
+                    {% if lich_hen.ma_nv %}
+                        <span class="text-dark fw-bold">{{ lich_hen.ma_nv.ho_ten }}</span> {% if lich_hen.ma_nv.chuc_vu %}<span class="text-muted small">({{ lich_hen.ma_nv.chuc_vu }})</span>{% endif %}
+                    {% else %}
+                        <span class="text-muted italic">Chưa phân công</span>
+                    {% endif %}
+                </p>
+                <p class="mb-2"><strong>Ghi chú:</strong> {{ lich_hen.ghi_chu|default:"Không có" }}</p>
+                {% if lich_hen.ly_do_huy %}
+                    <p class="mb-2 text-danger"><strong>Lý do hủy:</strong> {{ lich_hen.ly_do_huy }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= KHU VỰC ADMIN PHÂN CÔNG NHÂN VIÊN ================= -->
+    <div class="card border-0 shadow-sm p-4 mt-4" style="border-radius: 12px; background-color: #ffffff;">
+        <h5 class="fw-bold text-secondary mb-3" style="font-size: 15px;">
+            <i class="bi bi-person-badge-fill me-1"></i> Phân Công Nhân Viên Phụ Trách (Dành cho Admin)
+        </h5>
+
+        <form method="POST" action="{% url 'assign_staff' lich_hen.ma_lh %}">
+            {% csrf_token %}
+            <div class="row align-items-end g-3">
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold text-secondary">Chọn nhân viên thực hiện dịch vụ:</label>
+                    <select name="nhan_vien_id" class="form-select form-select-lg fs-6">
+                        <option value="">-- Chưa phân công nhân viên --</option>
+                        {% for nv in danh_sach_nhan_vien %}
+                            <option value="{{ nv.pk }}" {% if lich_hen.ma_nv and lich_hen.ma_nv.pk == nv.pk %}selected{% endif %}>
+                                {{ nv.ho_ten }} {% if nv.chuc_vu %}- {{ nv.chuc_vu }}{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn text-white w-100 fw-bold py-2" style="background-color: #ab8e56;">
+                        <i class="bi bi-check-circle me-1"></i> Lưu phân công
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= MODAL HỦY LỊCH HẸN ================= -->
+<div class="modal fade" id="cancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <form method="POST" action="{% url 'booking_customer_cancel' lich_hen.ma_lh %}">
+                {% csrf_token %}
+                <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Xác nhận hủy lịch hẹn #{{ lich_hen.ma_lh }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 text-start">
+                    <p class="text-muted mb-3">Nhân viên xác nhận hủy lịch hẹn này theo yêu cầu của khách hàng. Vui lòng chọn lý do bên dưới:</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Lý do hủy *</label>
+                        <select name="ly_do_huy" class="form-select form-select-lg fs-6">
+                            <option value="Bận việc đột xuất">Bận việc đột xuất / Không thể đến</option>
+                            <option value="Thay đổi kế hoạch cá nhân">Thay đổi kế hoạch cá nhân</option>
+                            <option value="Khác">Lý do khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-secondary">Ghi chú thêm (tùy chọn)</label>
+                        <textarea name="ghi_chu_huy" class="form-control" rows="3" placeholder="Nhập thêm chi tiết lý do hủy..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger px-4">Xác nhận hủy lịch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL ĐỔI LỊCH HẸN ================= -->
+<div class="modal fade" id="rescheduleModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <form method="POST" action="{% url 'booking_customer_reschedule' lich_hen.ma_lh %}">
+                {% csrf_token %}
+                <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold" style="color: #ab8e56;"><i class="bi bi-calendar-range me-1"></i> Đổi Lịch Hẹn #{{ lich_hen.ma_lh }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 text-start">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Chọn ngày mới</label>
+                            <input type="text" name="ngay_hen_moi" class="form-control form-control-lg fs-6" placeholder="DD/MM/YYYY" required value="{{ lich_hen.ngay_hen }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Chọn khung giờ mới</label>
+                            <select name="gio_hen_moi" class="form-select form-select-lg fs-6" required>
+                                <option value="09:00" {% if lich_hen.gio_hen == '09:00' %}selected{% endif %}>09:00</option>
+                                <option value="10:30" {% if lich_hen.gio_hen == '10:30' %}selected{% endif %}>10:30</option>
+                                <option value="12:00" {% if lich_hen.gio_hen == '12:00' %}selected{% endif %}>12:00</option>
+                                <option value="13:30" {% if lich_hen.gio_hen == '13:30' %}selected{% endif %}>13:30</option>
+                                <option value="15:00" {% if lich_hen.gio_hen == '15:00' %}selected{% endif %}>15:00</option>
+                                <option value="16:30" {% if lich_hen.gio_hen == '16:30' %}selected{% endif %}>16:30</option>
+                                <option value="18:00" {% if lich_hen.gio_hen == '18:00' %}selected{% endif %}>18:00</option>
+                                <option value="19:30" {% if lich_hen.gio_hen == '19:30' %}selected{% endif %}>19:30</option>
+                                <option value="21:00" {% if lich_hen.gio_hen == '21:00' %}selected{% endif %}>21:00</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-secondary">Đổi dịch vụ (nếu cần)</label>
+                            <select name="ma_dv_moi" class="form-select form-select-lg fs-6">
+                                <option value="">-- Giữ nguyên dịch vụ hiện tại ({{ lich_hen.ma_dv.ten_dich_vu }}) --</option>
+                                {% for dv in dich_vu_list %}
+                                    <option value="{{ dv.pk }}">{{ dv.ten_dich_vu }} - {{ dv.thoi_luong }} phút ({{ dv.gia_dich_vu }}đ)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Số lượng khách</label>
+                            <input type="number" name="so_luong_khach_moi" class="form-control form-control-lg fs-6" value="{{ lich_hen.so_luong_khach }}" min="1" max="10">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-secondary">Ghi chú thay đổi</label>
+                            <textarea name="ghi_chu_moi" class="form-control" rows="2" placeholder="Nhập ghi chú đổi lịch...">{{ lich_hen.ghi_chu }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #ab8e56;">Xác nhận đổi lịch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL XÓA LỊCH HẸN ================= -->
+<div class="modal fade" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <form method="POST" action="{% url 'booking_admin_delete' lich_hen.ma_lh %}">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-dark border-bottom-0 py-3 px-4" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                    <h5 class="modal-title fw-bold fs-6"><i class="bi bi-exclamation-triangle-fill me-2"></i> Xác nhận xóa lịch hẹn #{{ lich_hen.ma_lh }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-start">
+                    <p class="text-muted mb-0">Hành động này sẽ chuyển lịch hẹn sang trạng thái <strong>Đã xóa</strong> và giải phóng chỗ trống giường. Bạn có chắc chắn muốn thực hiện không?</p>
+                </div>
+                <div class="modal-footer border-top-0 pb-3 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark">Xác nhận xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script hỗ trợ Flatpickr cho ô chọn ngày đổi lịch và Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.flatpickr/dist/l10n/vn.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("input[name='ngay_hen_moi']", {
+            locale: "vn",
+            dateFormat: "d/m/Y",
+            minDate: "today",
+            static: true
+        });
+    });
+</script>
+{% endblock %}
