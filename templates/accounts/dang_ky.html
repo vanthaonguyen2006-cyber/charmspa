@@ -1,0 +1,106 @@
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block title %}Tạo tài khoản - Charm Spa Grand{% endblock %}
+
+{% block extra_css %}
+<!-- Nhúng file CSS riêng chuẩn theo mẫu thiết kế -->
+<link rel="stylesheet" href="{% static 'css/accounts/dang_ky.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="split-screen">
+
+    <!-- CỘT BÊN TRÁI: Banner không gian Wellness & Slogan -->
+    <div class="left-banner">
+        <div class="brand-top">
+            <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="brand-logo-img">
+            <span class="brand-text-logo">Charm Spa<br><small style="font-size:10px; font-weight:300; letter-spacing:2px;">LUXURY SPA & WELLNESS</small></span>
+        </div>
+
+        <div class="left-content">
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8;">A quieter kind of luxury</span>
+            <h1>Your wellness journey<br>begins here.</h1>
+            <p>Create your private Charm Spa account to reserve rituals, collect loyalty points and receive thoughtful recommendations.</p>
+
+            <div class="features-list">
+                <span>✓ Private & secure</span>
+                <span>✓ Member rewards</span>
+                <span>✓ Easy booking</span>
+            </div>
+        </div>
+        <div></div> <!-- Khoảng trống cân đối layout flex -->
+    </div>
+
+    <!-- CỘT BÊN PHẢI: Form tạo tài khoản -->
+    <div class="right-form">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>Tạo tài khoản</h2>
+                <p>Trở thành thành viên của Charm Spa</p>
+            </div>
+
+            <!-- Hiển thị lỗi nếu form có vấn đề -->
+            {% if form.errors %}
+                <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 20px;">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Trường Họ và tên -->
+                <div class="form-group">
+                    <label>Họ và tên</label>
+                    <input type="text" name="ho_ten" class="form-control" placeholder="Nguyễn Minh Anh" autocomplete="off" required>
+                </div>
+
+                <!-- Hàng chứa Số điện thoại và Email -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" name="so_dien_thoai" class="form-control" placeholder="090 123 4567" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="minhanh@email.com" autocomplete="off" required>
+                    </div>
+                </div>
+
+                <!-- Trường Username (Tên đăng nhập hệ thống) -->
+                <div class="form-group">
+                    <label>Tên đăng nhập (Username)</label>
+                    <input type="text" name="username" class="form-control" placeholder="Nhập tên đăng nhập của bạn" autocomplete="off" required>
+                </div>
+
+                <!-- Trường Mật khẩu (Sửa name="password" để khớp với forms.py) -->
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" name="password" class="form-control" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" required>
+                </div>
+
+                <!-- Trường Xác nhận mật khẩu (Sửa name="password_confirm" để khớp với forms.py) -->
+                <div class="form-group">
+                    <label>Xác nhận mật khẩu</label>
+                    <input type="password" name="password_confirm" class="form-control" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
+                </div>
+
+                <!-- Checkbox đồng ý điều khoản -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms" style="margin: 0; font-weight: normal; font-size: 12px;">Tôi đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của Charm Spa.</label>
+                </div>
+
+                <!-- Nút Submit -->
+                <button type="submit" class="btn-submit">Đăng ký</button>
+            </form>
+
+            <div class="auth-footer">
+                Đã có tài khoản? <a href="{% url 'dang_nhap' %}">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,4 +1,3 @@
-# customers/models.py
 from django.db import models
 from accounts.models import TaiKhoan
 
@@ -14,24 +13,26 @@ class HangThanhVien(models.Model):
     def __str__(self):
         return self.ten_hang
 
+    class Meta:
+        db_table = "HANG_THANH_VIEN"
+        verbose_name = "Hạng thành viên"
+        verbose_name_plural = "Quản lý hạng thành viên"
+
 
 class KhachHang(models.Model):
     ma_kh = models.CharField(max_length=20, primary_key=True, verbose_name="Mã khách hàng")
-    ma_tk = models.ForeignKey(TaiKhoan, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Tài khoản")
-    ma_tv = models.ForeignKey(HangThanhVien, on_delete=models.SET_NULL, null=True, blank=True,
-                              verbose_name="Hạng thành viên")
+    ma_tk = models.OneToOneField(TaiKhoan, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Tài khoản", related_name="ho_so_khach_hang")
+    ma_tv = models.ForeignKey(HangThanhVien, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Hạng thành viên")
     ho_ten = models.CharField(max_length=100, verbose_name="Họ và tên")
     ngay_sinh = models.DateField(null=True, blank=True, verbose_name="Ngày sinh")
-    gioi_tinh = models.CharField(max_length=10, choices=[('Nam', 'Nam'), ('Nữ', 'Nữ'), ('Khác', 'Khác')], null=True,
-                                 blank=True, verbose_name="Giới tính")
-    sdt = models.CharField(max_length=15, unique=True, verbose_name="Số điện thoại")
-    email = models.EmailField(max_length=255, unique=True, null=True, blank=True, verbose_name="Email")
+    gioi_tinh = models.CharField(max_length=10, choices=[("Nam", "Nam"), ("Nữ", "Nữ"), ("Khác", "Khác")], null=True, blank=True, verbose_name="Giới tính")
     diem_tich_luy_kh = models.IntegerField(default=0, verbose_name="Điểm tích lũy")
+    # Không còn sdt hay email ở đây nữa, số điện thoại đã nằm ở TaiKhoan!
 
     def __str__(self):
-        return f"{self.ho_ten} ({self.sdt})"
+        return f"{self.ho_ten}"
 
-
-from django.db import models
-
-# Create your models here.
+    class Meta:
+        db_table = "KHACH_HANG"
+        verbose_name = "Khách hàng"
+        verbose_name_plural = "Quản lý khách hàng"
