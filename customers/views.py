@@ -1,6 +1,12 @@
 from django.shortcuts import render
 from customers.models import KhachHang
 
+def customer_home_view(request):
+    """
+    Trang giao diện chính của khách hàng (sử dụng layout chứa nút Chatbot)
+    Đường dẫn: /customer/
+    """
+    return render(request, 'layouts/customer_base.html')
 
 def customer_profile_view(request):
     # Lấy thông tin khách hàng dựa trên tài khoản đang đăng nhập
@@ -17,4 +23,4 @@ def customer_profile_view(request):
     context = {
         'khach_hang': khach_hang,
     }
-    return render(request, 'templates/core/customer_profile.html', context)
+    return render(request, 'core/customer_profile.html', context)

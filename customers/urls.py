@@ -1,7 +1,10 @@
 from django.urls import path
 from . import views
 
+app_name = 'customers'
+
 urlpatterns = [
-    # Đảm bảo có ít nhất một đường dẫn hoặc để trống danh sách đúng chuẩn:
-    # path('...', views.ten_view, name='ten_url'),
+    # Trỏ đường dẫn /customer/profile/ tới hàm có sẵn trong views.py của bạn
+    path('', views.customer_home_view, name='customer_home'),
+    path('profile/', views.customer_profile_view, name='customer_profile'),
 ]
