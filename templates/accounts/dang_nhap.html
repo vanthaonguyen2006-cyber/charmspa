@@ -47,6 +47,11 @@
                 <h2>Chào mừng trở lại</h2>
                 <p>Đăng nhập để tiếp tục với không gian của bạn</p>
             </div>
+            {% if error %}
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl text-center font-medium">
+                {{ error }}
+            </div>
+            {% endif %}
 
             <!-- Hiển thị lỗi nếu có -->
             {% if form.errors %}

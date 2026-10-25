@@ -1,83 +1,86 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.models import User
+from .models import TaiKhoan
 from .forms import DangKyForm
+
 
 def dang_ky_view(request):
     if request.method == 'POST':
         form = DangKyForm(request.POST)
         if form.is_valid():
-            form.save() # Hệ thống tự lo việc băm pass, tạo user và tạo profile liên kết chuẩn
+            form.save()  # Lưu user và tự động tạo profile, gán vai trò Khách hàng
             return redirect('dang_nhap')
     else:
         form = DangKyForm()
     return render(request, 'accounts/dang_ky.html', {'form': form})
 
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.models import User
-from .models import TaiKhoan
-
-
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from .models import TaiKhoan
-
 def dang_nhap_view(request):
+    # Nếu user đã đăng nhập rồi thì không cho hiện trang login nữa, tự động điều hướng luôn
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('/home/staff/')
+        elif request.user.is_staff:
+            return redirect('/home/staff/')
+        else:
+            return redirect('/home/customer/')
+
     if request.method == 'POST':
-        # Lấy dữ liệu từ form HTML gửi lên (name="username" và name="password")
-        login_input = request.POST.get('username')  # Có thể là username, email hoặc số điện thoại
+        # Lấy dữ liệu từ form HTML gửi lên (Hỗ trợ nhập Username, Email hoặc Số điện thoại)
+        login_input = request.POST.get('username')
         password_nhap = request.POST.get('password')
 
-        user = None
+        user_obj = None
 
-        # 1. Kiểm tra xem người dùng nhập vào là Username, Email hay Số điện thoại
-        if '@' in login_input:
-            # Nếu nhập email
-            try:
-                user_obj = User.objects.get(email=login_input)
-                username_thuc = user_obj.username
-                user = authenticate(request, username=username_thuc, password=password_nhap)
-            except User.DoesNotExist:
-                user = None
-        else:
-            # Kiểm tra xem có khớp với số điện thoại trong bảng TaiKhoan không
-            try:
-                tai_khoan = TaiKhoan.objects.get(so_dien_thoai=login_input)
-                username_thuc = tai_khoan.user.username
-                user = authenticate(request, username=username_thuc, password=password_nhap)
-            except TaiKhoan.DoesNotExist:
-                # Nếu không phải SĐT thì thử coi như nhập trực tiếp Username
-                user = authenticate(request, username=login_input, password=password_nhap)
-
-        # 2. Nếu xác thực thành công
-        if user is not None:
-            auth_login(request, user)  # Tạo phiên đăng nhập (session)
-
-            # Lấy và lưu vai trò vào session để tiện phân quyền
-            try:
-                role = user.thong_tin_tai_khoan.vai_tro
-                request.session['vai_tro'] = role
-            except Exception:
-                role = 'Khách hàng'
-                request.session['vai_tro'] = role
-
-            # 3. ĐIỀU HƯỚNG LINH HOẠT THEO TỪNG VAI TRÒ
-            if role == "Quản trị viên":
-                return redirect('/admin/')
-            elif role == "Nhân viên":
-                return redirect('/staff/dashboard/')  # Thay đổi đường dẫn trang của nhân viên nếu cần
+        # =========================================================================
+        # <--- THAY ĐỔI: TÌM USER TRƯỚC KHI GỌI authenticate() ĐỂ CHECK is_active TRƯỚC --->
+        # =========================================================================
+        try:
+            user_obj = User.objects.get(username=login_input)
+        except User.DoesNotExist:
+            if '@' in login_input:
+                try:
+                    user_obj = User.objects.get(email=login_input)
+                except User.DoesNotExist:
+                    user_obj = None
             else:
-                return redirect('/home/customer/')    # Dành cho Khách hàng
-        else:
-            # Nếu sai thông tin, truyền báo lỗi ra giao diện
-            return render(request, 'accounts/dang_nhap.html',
-                          {'error': 'Thông tin đăng nhập hoặc mật khẩu không chính xác!'})
+                try:
+                    tai_khoan = TaiKhoan.objects.get(so_dien_thoai=login_input)
+                    user_obj = tai_khoan.user
+                except TaiKhoan.DoesNotExist:
+                    user_obj = None
+
+        # Nếu tìm thấy user, kiểm tra khóa tài khoản TRƯỚC
+        if user_obj is not None:
+            # <--- ĐOẠN KIỂM TRA BỊ KHÓA ĐƯỢC ĐẶT LÊN TRÊN HẾT --->
+            if not user_obj.is_active:
+                return render(request, 'accounts/dang_nhap.html', {
+                    'error': 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ bộ phận hỗ trợ!'
+                })
+
+            # Sau khi check khóa xong mới tiến hành xác thực mật khẩu
+            user = authenticate(request, username=user_obj.username, password=password_nhap)
+
+            if user is not None:
+                auth_login(request, user)  # Tạo phiên đăng nhập (session)
+
+                # 3. Phân quyền trực tiếp dựa trên cờ chuẩn của Django
+                if user.is_superuser:
+                    return redirect('/home/staff/')
+                elif user.is_staff:
+                    return redirect('/home/staff/')
+                else:
+                    return redirect('/home/customer/')
+
+        # <--- KẾT THÚC ĐOẠN THAY ĐỔI --->
+
+        # Nếu sai thông tin hoặc không tìm thấy user
+        return render(request, 'accounts/dang_nhap.html',
+                      {'error': 'Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác!'})
 
     return render(request, 'accounts/dang_nhap.html')
 
-from django.contrib.auth import logout as auth_logout
-from django.shortcuts import redirect
 
 def dang_xuat_view(request):
     auth_logout(request)

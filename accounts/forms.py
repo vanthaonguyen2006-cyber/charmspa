@@ -12,10 +12,10 @@ from customers.models import KhachHang
 
 
 class DangKyForm(forms.ModelForm):
-    ho_ten = forms.CharField(max_length=100, label="Họ và tên")
-    so_dien_thoai = forms.CharField(max_length=15, label="Số điện thoại")
-    password = forms.CharField(widget=forms.PasswordInput, label="Mật khẩu")
-    password_confirm = forms.CharField(widget=forms.PasswordInput, label="Xác nhận mật khẩu")
+    ho_ten = forms.CharField(max_length=100, label="Họ và tên", required=True)
+    so_dien_thoai = forms.CharField(max_length=10, label="Số điện thoại", required=True)
+    password = forms.CharField(widget=forms.PasswordInput, label="Mật khẩu",required=True)
+    password_confirm = forms.CharField(widget=forms.PasswordInput, label="Xác nhận mật khẩu",required=True)
 
     class Meta:
         model = User
@@ -40,23 +40,23 @@ class DangKyForm(forms.ModelForm):
             password=cleaned_data['password']
         )
 
-        if commit:
-            # 2. Tạo bản ghi trong TAI_KHOAN (Số điện thoại lưu ở đây đúng yêu cầu của bạn)
-            ma_tk_str = f"TK{user.id:03d}"
-            tai_khoan = TaiKhoan.objects.create(
-                ma_tk=ma_tk_str,
-                user=user,
-                so_dien_thoai=cleaned_data['so_dien_thoai'],
-                vai_tro="Khách hàng"
-            )
+        # 2. Tạo bản ghi TaiKhoan
+        ma_tk_str = f"TK{user.id:03d}"
+        tai_khoan = TaiKhoan.objects.create(
+            ma_tk=ma_tk_str,
+            user=user,
+            so_dien_thoai=cleaned_data['so_dien_thoai'],
+            vai_tro="Khách hàng"
+        )
 
-            # 3. Tạo bản ghi trong KHACH_HANG (Không còn lưu sdt/email thừa thãi nữa)
-            ma_kh_str = f"KH{user.id:03d}"
-            KhachHang.objects.create(
-                ma_kh=ma_kh_str,
-                ma_tk=tai_khoan,
-                ho_ten=cleaned_data['ho_ten']
-            )
+        # 3. QUAN TRỌNG: Lấy đúng biến 'ho_ten' từ form ném vào bảng KhachHang
+        ma_kh_str = f"KH{user.id:03d}"
+        KhachHang.objects.create(
+            ma_kh=ma_kh_str,
+            ma_tk=tai_khoan,
+            ho_ten=cleaned_data['ho_ten']  # Đảm bảo trường này khớp với model KhachHang
+        )
+
         return user
 
 # 2. Form Đăng Nhập (Hỗ trợ nhập Username hoặc Số điện thoại/Email)
