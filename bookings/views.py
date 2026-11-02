@@ -208,20 +208,30 @@ def booking_customer_detail(request, ma_lh):
 
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_success(request):
+    last_code = request.session.get('last_booking_code')
+
     lich_hen = None
-    try:
-        last_code = request.session.get('last_booking_code')
-        if last_code:
-            lich_hen = LichHen.objects.select_related('ma_dv', 'ma_kh').filter(ma_lh=last_code, ma_kh__ma_tk__user=request.user).first()
-        if not lich_hen:
-            lich_hen = LichHen.objects.select_related('ma_dv', 'ma_kh').filter(
-                ma_kh__ma_tk__user=request.user
-            ).order_by('-ngay_hen', '-gio_hen').first()
-    except Exception as e:
-        print("Lỗi lấy lịch hẹn success:", e)
+
+    if last_code:
+        lich_hen = LichHen.objects.select_related(
+            'ma_dv',
+            'ma_kh',
+            'ma_kh__ma_tk'
+        ).filter(
+            ma_lh=last_code,
+            ma_kh__ma_tk__user=request.user
+        ).first()
+
+    khach_hang = KhachHang.objects.select_related(
+        'ma_tk',
+        'ma_tv'
+    ).filter(
+        ma_tk__user=request.user
+    ).first()
 
     return render(request, 'bookings/customer_success.html', {
         'lich_hen': lich_hen,
+        'khach_hang': khach_hang,
         **get_staff_context(request)
     })
 
