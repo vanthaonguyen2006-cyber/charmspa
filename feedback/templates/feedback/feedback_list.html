@@ -1,0 +1,268 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/feedback.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="feedback-page">
+
+    <!-- Tiêu đề và mô tả của trang đang mở -->
+    <div class="feedback-toolbar">
+        <div>
+            <h1>{{ page_title }}</h1>
+            <p class="feedback-subtitle">{{ page_subtitle }}</p>
+        </div>
+        {% if is_admin %}
+            <a href="{% url 'feedback:admin_feedback_statistics' %}"
+               class="feedback-btn light">Thống kê</a>
+        {% endif %}
+    </div>
+
+    <!-- Menu chuyển giữa các trang admin hoặc nhân viên -->
+    <nav class="feedback-tabs">
+        {% if is_admin %}
+            <a href="{% url 'feedback:admin_feedback_list' %}"
+               class="{% if page_mode == 'all' %}active{% endif %}">
+                Tất cả phiếu
+            </a>
+            <a href="{% url 'feedback:admin_feedback_unassigned' %}"
+               class="{% if page_mode == 'unassigned' %}active{% endif %}">
+                Chưa phân công
+            </a>
+            <a href="{% url 'feedback:admin_feedback_invalid' %}"
+               class="{% if page_mode == 'invalid' %}active{% endif %}">
+                Không hợp lệ
+            </a>
+            <a href="{% url 'feedback:admin_feedback_statistics' %}">
+                Thống kê
+            </a>
+        {% else %}
+            <a href="{% url 'feedback:staff_feedback_list' %}"
+               class="{% if page_mode == 'staff' %}active{% endif %}">
+                Phiếu được phân công
+            </a>
+            <a href="{% url 'feedback:staff_feedback_resolved' %}"
+               class="{% if page_mode == 'resolved' %}active{% endif %}">
+                Đã giải quyết
+            </a>
+        {% endif %}
+    </nav>
+
+    <!-- Thống kê trạng thái: dùng dữ liệu ORM được truyền từ view -->
+    <div class="feedback-stats">
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">
+                {% if is_admin %}Tổng số phiếu{% else %}Tổng số phiếu được giao{% endif %}
+            </div>
+            <div class="feedback-stat-value">{{ tong_so }}</div>
+        </div>
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">Đã tiếp nhận</div>
+            <div class="feedback-stat-value">{{ da_tiep_nhan }}</div>
+        </div>
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">Đang xử lý</div>
+            <div class="feedback-stat-value">{{ dang_xu_ly }}</div>
+        </div>
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">Đã giải quyết</div>
+            <div class="feedback-stat-value">{{ da_giai_quyet }}</div>
+        </div>
+    </div>
+
+    <!-- Bộ lọc phản hồi và khiếu nại -->
+    <section class="feedback-panel">
+        <form method="get">
+            <div class="feedback-filter">
+                <input type="text" name="q" value="{{ keyword }}"
+                       placeholder="Tìm mã phiếu, khách hàng hoặc tiêu đề...">
+
+                <select name="type">
+                    <option value="">Tất cả loại</option>
+                    <option value="Phản hồi" {% if feedback_type == "Phản hồi" %}selected{% endif %}>
+                        Phản hồi
+                    </option>
+                    <option value="Khiếu nại" {% if feedback_type == "Khiếu nại" %}selected{% endif %}>
+                        Khiếu nại
+                    </option>
+                </select>
+
+                <select name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Đã tiếp nhận" {% if status == "Đã tiếp nhận" %}selected{% endif %}>
+                        Đã tiếp nhận
+                    </option>
+                    <option value="Đang xử lý" {% if status == "Đang xử lý" %}selected{% endif %}>
+                        Đang xử lý
+                    </option>
+                    <option value="Đã giải quyết" {% if status == "Đã giải quyết" %}selected{% endif %}>
+                        Đã giải quyết
+                    </option>
+                </select>
+
+                {% if is_admin %}
+                    <select name="validity">
+                        <option value="">Tất cả tính hợp lệ</option>
+                        <option value="Hợp lệ" {% if validity == "Hợp lệ" %}selected{% endif %}>
+                            Hợp lệ
+                        </option>
+                        <option value="Không hợp lệ" {% if validity == "Không hợp lệ" %}selected{% endif %}>
+                            Không hợp lệ
+                        </option>
+                    </select>
+                {% endif %}
+
+                <!-- Khoảng ngày gửi -->
+                <input type="date" name="from_date" value="{{ from_date }}"
+                       aria-label="Từ ngày">
+                <input type="date" name="to_date" value="{{ to_date }}"
+                       aria-label="Đến ngày">
+            </div>
+
+            <div class="feedback-filter-actions">
+                <button class="feedback-btn gold" type="submit">
+                    Lọc danh sách
+                </button>
+
+                <!-- Xóa các điều kiện lọc -->
+                {% if is_admin %}
+                    <a class="feedback-btn light"
+                       href="{% url 'feedback:admin_feedback_list' %}">
+                        Xóa bộ lọc
+                    </a>
+                {% else %}
+                    <a class="feedback-btn light"
+                       href="{% url 'feedback:staff_feedback_list' %}">
+                        Xóa bộ lọc
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <!-- Bảng danh sách; cột sẽ thay đổi theo vai trò -->
+    <section class="feedback-panel">
+        <div class="feedback-panel-heading">
+            <h2>
+                {% if is_admin %}Danh sách phiếu{% else %}Phiếu được phân công{% endif %}
+            </h2>
+            <span class="feedback-muted">
+                Có {{ page_obj.paginator.count }} phiếu phù hợp
+            </span>
+        </div>
+
+        <div class="feedback-table-wrap">
+            <table class="feedback-table">
+                <thead>
+                    <tr>
+                        <th>Mã phiếu</th>
+                        {% if is_admin %}<th>Khách hàng</th>{% endif %}
+                        <th>Loại</th>
+                        <th>Tiêu đề</th>
+                        {% if is_admin %}<th>Nhân viên</th>{% endif %}
+                        <th>Ngày gửi</th>
+                        <th>Trạng thái</th>
+                        {% if is_admin %}<th>Tính hợp lệ</th>{% endif %}
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ph in phan_hoi_list %}
+                    <tr>
+                        <td>
+                            <span class="feedback-code">#{{ ph.ma_ph }}</span>
+                        </td>
+
+                        {% if is_admin %}
+                            <!-- Tạm hiển thị mã khách hàng vì model KhachHang đang lệch tên bảng -->
+                            <td>KH: {{ ph.ma_kh_id }}</td>
+                        {% endif %}
+
+                        <td>{{ ph.loai_ph }}</td>
+                        <td>{{ ph.tieu_de }}</td>
+
+                        {% if is_admin %}
+                            <td>
+                                {% if ph.ma_nv_hien_tai %}
+                                    {{ ph.ma_nv_hien_tai }}
+                                {% else %}
+                                    <span class="feedback-muted">Chưa phân công</span>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+
+                        <td>{{ ph.ngay_gui|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <!-- Tô màu trạng thái xử lý -->
+                            <span class="feedback-badge
+                                {% if ph.trang_thai_xu_ly == 'Đang xử lý' %}processing
+                                {% elif ph.trang_thai_xu_ly == 'Đã giải quyết' %}resolved
+                                {% endif %}">
+                                {{ ph.trang_thai_xu_ly }}
+                            </span>
+                        </td>
+
+                        {% if is_admin %}
+                            <td>
+                                <span class="feedback-badge
+                                    {% if ph.tinh_hop_le == 'Không hợp lệ' %}invalid
+                                    {% else %}valid{% endif %}">
+                                    {{ ph.tinh_hop_le }}
+                                </span>
+                            </td>
+                        {% endif %}
+
+                        <td>
+                            <!-- Mở trang chi tiết của từng phiếu -->
+                            {% if is_admin %}
+                                <a class="feedback-link"
+                                   href="{% url 'feedback:admin_feedback_detail' ph.ma_ph %}">
+                                    Xem →
+                                </a>
+                            {% else %}
+                                <a class="feedback-link"
+                                   href="{% url 'feedback:staff_feedback_detail' ph.ma_ph %}">
+                                    Xử lý →
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="feedback-empty">
+                            {% if not is_admin and not request.session.ma_nv %}
+                                Tài khoản chưa được liên kết với hồ sơ nhân viên.
+                            {% else %}
+                                Không tìm thấy phiếu phù hợp.
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        {% if page_obj.has_other_pages %}
+        <div class="feedback-pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">‹</a>
+            {% endif %}
+
+            <span class="current">
+                {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">›</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}

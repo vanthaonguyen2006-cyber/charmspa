@@ -64,7 +64,14 @@
         <!-- SECTION 2: THANH MENU TAB ĐIỀU HƯỚNG -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
             <nav class="flex flex-col sm:flex-row justify-around text-sm font-medium text-gray-500">
-                <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50 transition">
+                <!-- Mục 1: Chuyển đến trang hồ sơ khách hàng -->
+                <a href="/customer/profile/"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if request.resolver_match.url_name != 'customer_feedback_list' and request.resolver_match.url_name != 'customer_feedback_create' %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent hover:text-gray-700
+                   {% endif %}">
                     1. Hồ sơ khách hàng
                 </a>
                 <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
@@ -73,7 +80,13 @@
                 <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
                     3. Lịch hẹn
                 </a>
-                <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
+                <a href="{% url 'feedback:customer_feedback_list' %}"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if request.resolver_match.url_name == 'customer_feedback_list' or request.resolver_match.url_name == 'customer_feedback_create' %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent hover:text-gray-700
+                   {% endif %}">
                     4. Khiếu nại
                 </a>
             </nav>

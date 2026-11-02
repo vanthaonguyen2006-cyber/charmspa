@@ -6,3 +6,7 @@ def customer_home(request):
 
 def staff_home(request):
     return render(request, 'core/staff_home.html')
+
+# Hiển thị trang chủ Charm Spa Grand
+def home(request):
+    return render(request, "core/home.html")

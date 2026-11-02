@@ -1,0 +1,1086 @@
+/* ================================
+   DÙNG CHUNG CÁC TRANG PHẢN HỒI
+================================ */
+.feedback-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    color: #292722;
+}
+
+.feedback-page h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 31px;
+    font-weight: 400;
+    text-transform: uppercase;
+}
+
+.feedback-subtitle {
+    color: #8a847b;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.feedback-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.feedback-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 20px 0 14px;
+}
+
+.feedback-tabs a {
+    padding: 9px 13px;
+    border: 1px solid #e7ddce;
+    border-radius: 8px;
+    color: #756c60;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.feedback-tabs a.active,
+.feedback-tabs a:hover {
+    background: #272622;
+    border-color: #272622;
+    color: #fff;
+}
+
+.feedback-panel {
+    background: #fff;
+    border: 1px solid #e7ddce;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.feedback-panel-heading {
+    padding: 17px 20px;
+    border-bottom: 1px solid #eee5d8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.feedback-panel-heading h2 {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    margin: 0;
+}
+
+.feedback-muted {
+    color: #8b857b;
+    font-size: 11px;
+}
+
+/* ================================
+   THẺ THỐNG KÊ
+================================ */
+.feedback-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.feedback-stat {
+    background: #fff;
+    border: 1px solid #e7ddce;
+    border-radius: 12px;
+    padding: 17px;
+}
+
+.feedback-stat-label {
+    font-size: 10px;
+    color: #81796e;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.feedback-stat-value {
+    font-size: 27px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+/* ================================
+   BỘ LỌC
+================================ */
+.feedback-filter {
+    display: grid;
+    grid-template-columns: minmax(200px, 2fr) repeat(4, minmax(120px, 1fr));
+    gap: 9px;
+    padding: 12px;
+}
+
+.feedback-filter input,
+.feedback-filter select,
+.feedback-form input,
+.feedback-form select,
+.feedback-form textarea {
+    width: 100%;
+    border: 1px solid #e7ddce;
+    border-radius: 8px;
+    padding: 11px;
+    background: #fcf9f4;
+    color: #39352f;
+    font: inherit;
+    font-size: 12px;
+}
+
+.feedback-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px 12px;
+    flex-wrap: wrap;
+}
+
+.feedback-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 11px 15px;
+    background: #252521;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.feedback-btn.gold { background: #b58b43; }
+.feedback-btn.red { background: #ad3931; }
+.feedback-btn.light {
+    background: #fff;
+    color: #4c463d;
+    border-color: #e7ddce;
+}
+.feedback-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+/* ================================
+   BẢNG DANH SÁCH
+================================ */
+.feedback-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.feedback-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.feedback-table th {
+    background: #faf7f1;
+    color: #7c766c;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.feedback-table td {
+    font-size: 11px;
+    color: #46423c;
+}
+
+.feedback-table th,
+.feedback-table td {
+    padding: 17px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee5d8;
+}
+
+.feedback-table tbody tr:last-child td { border-bottom: 0; }
+.feedback-table tbody tr:hover { background: #fdfbf7; }
+
+.feedback-code {
+    color: #95641f;
+    font-weight: 700;
+}
+
+.feedback-link {
+    color: #95641f;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.feedback-badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 30px;
+    background: #eee9df;
+    color: #78633e;
+    font-size: 10px;
+}
+
+.feedback-badge.processing { background: #e7f0f4; color: #356b83; }
+.feedback-badge.resolved { background: #e5f4ec; color: #24815c; }
+.feedback-badge.invalid { background: #fde9e7; color: #ad3931; }
+.feedback-badge.valid { background: #e5f4ec; color: #24815c; }
+
+.feedback-empty {
+    text-align: center !important;
+    padding: 35px !important;
+    color: #8b857b !important;
+}
+
+/* ================================
+   CHI TIẾT PHIẾU
+================================ */
+.feedback-detail-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.feedback-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, .9fr);
+    gap: 16px;
+}
+
+.feedback-detail-main,
+.feedback-detail-side {
+    min-width: 0;
+}
+
+.feedback-card {
+    background: #fff;
+    border: 1px solid #e7ddce;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.feedback-card h2 {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    margin: 0 0 15px;
+}
+
+.feedback-type {
+    color: #ad3931;
+    text-transform: uppercase;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.feedback-title {
+    font-family: Georgia, serif;
+    font-size: 20px;
+    margin: 7px 0 15px;
+}
+
+.feedback-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 17px 0;
+}
+
+.feedback-info-label {
+    color: #928a7e;
+    font-size: 10px;
+    margin-bottom: 5px;
+}
+
+.feedback-info-value {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.feedback-message {
+    background: #faf7f1;
+    border-radius: 9px;
+    padding: 15px;
+    line-height: 1.7;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.feedback-side-value {
+    font-size: 12px;
+    margin-top: 9px;
+    overflow-wrap: anywhere;
+}
+
+.feedback-history-item {
+    display: grid;
+    grid-template-columns: 95px 12px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee5d8;
+    font-size: 11px;
+}
+
+.feedback-history-item:last-child { border-bottom: 0; }
+.feedback-history-dot { color: #b58b43; }
+.feedback-history-date { color: #8b857b; }
+
+.feedback-attachments {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.feedback-attachment {
+    border: 1px solid #e7ddce;
+    background: #fcf9f4;
+    padding: 12px;
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+}
+
+/* ================================
+   MODAL
+================================ */
+.feedback-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    padding: 20px;
+    background: rgba(35, 34, 31, .65);
+    align-items: center;
+    justify-content: center;
+}
+
+.feedback-modal.open { display: flex; }
+
+.feedback-modal-box {
+    width: min(100%, 570px);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+}
+
+.feedback-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.feedback-modal-head h2 {
+    font-family: Georgia, serif;
+    font-size: 22px;
+    margin: 0;
+}
+
+.feedback-modal-close {
+    border: 0;
+    background: transparent;
+    color: #777;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.feedback-radio-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.feedback-radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e7ddce;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.feedback-radio-option input { width: auto; }
+
+.feedback-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.feedback-notice {
+    padding: 12px 15px;
+    border-radius: 8px;
+    background: #e5f4ec;
+    color: #24815c;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+/* ================================
+   THỐNG KÊ
+================================ */
+.feedback-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.feedback-chart-card {
+    background: #fff;
+    border: 1px solid #e7ddce;
+    border-radius: 12px;
+    padding: 22px;
+    min-height: 260px;
+}
+
+.feedback-donut {
+    width: 155px;
+    height: 155px;
+    border-radius: 50%;
+    margin: 30px auto 15px;
+    position: relative;
+}
+
+.feedback-donut::after {
+    content: "";
+    position: absolute;
+    inset: 25px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.feedback-donut-label {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding-top: 85px;
+    font-weight: 700;
+}
+
+.feedback-bar-row {
+    display: grid;
+    grid-template-columns: 100px minmax(60px, 1fr) 28px;
+    gap: 10px;
+    align-items: center;
+    margin: 20px 0;
+    font-size: 11px;
+}
+
+.feedback-bar-bg {
+    height: 12px;
+    background: #f5f0e8;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.feedback-bar {
+    height: 100%;
+    border-radius: 20px;
+    background: #b58b43;
+}
+
+.feedback-bar.blue { background: #3c748d; }
+.feedback-bar.green { background: #27815e; }
+
+.feedback-pagination {
+    display: flex;
+    gap: 7px;
+    justify-content: flex-end;
+    padding: 15px;
+}
+
+.feedback-pagination a,
+.feedback-pagination span {
+    padding: 9px 12px;
+    border: 1px solid #e7ddce;
+    border-radius: 7px;
+    background: #fff;
+    font-size: 11px;
+    text-decoration: none;
+    color: #514b42;
+}
+
+.feedback-pagination .current { background: #272622; color: #fff; }
+
+@media (max-width: 900px) {
+    .feedback-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .feedback-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .feedback-detail-grid, .feedback-chart-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+    .feedback-page h1 { font-size: 25px; }
+    .feedback-stats, .feedback-filter, .feedback-info-grid { grid-template-columns: 1fr; }
+    .feedback-attachments { grid-template-columns: 1fr; }
+    .feedback-modal-box { padding: 18px; }
+    .feedback-radio-list { grid-template-columns: 1fr; }
+}
+
+/* ==========================================
+   GIAO DIỆN CHI TIẾT PHIẾU NHÂN VIÊN CSKH
+========================================== */
+
+.staff-detail-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    color: #292722;
+}
+
+/* Thông báo backend */
+.staff-detail-alert {
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.staff-detail-alert.success {
+    background: #e7f4ed;
+    color: #27845b;
+}
+
+.staff-detail-alert.error {
+    background: #fff0ed;
+    color: #ad3931;
+}
+
+/* Tiêu đề */
+.staff-detail-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.staff-detail-heading h1 {
+    font-family: Georgia, serif;
+    font-size: 30px;
+    font-weight: 400;
+    text-transform: uppercase;
+}
+
+.staff-detail-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.staff-back-link {
+    color: #9b783e;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.staff-back-link:hover {
+    text-decoration: underline;
+}
+
+/* Bố cục hai cột */
+.staff-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(260px, .85fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.staff-detail-main,
+.staff-detail-sidebar {
+    min-width: 0;
+}
+
+/* Thẻ thông tin phiếu */
+.staff-ticket-card {
+    padding: 20px;
+}
+
+.staff-ticket-title {
+    margin: 7px 0 12px;
+    font-family: Georgia, serif;
+    font-size: 21px;
+    font-weight: 500;
+}
+
+.staff-ticket-content {
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.staff-ticket-content strong {
+    font-size: 10px;
+    color: #34312c;
+}
+
+.staff-ticket-content p {
+    margin: 8px 0 0;
+}
+
+/* Ngày gửi và dịch vụ */
+.staff-ticket-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+    margin-top: 17px;
+    padding-top: 12px;
+    border-top: 1px solid #eee5d8;
+}
+
+.staff-ticket-meta div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.staff-ticket-meta span {
+    color: #898176;
+    font-size: 10px;
+}
+
+.staff-ticket-meta strong {
+    font-size: 11px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+/* Tệp đính kèm */
+.staff-attachment-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.staff-attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 10px;
+    background: #fcf9f4;
+    border: 1px solid #e7ddce;
+    border-radius: 8px;
+}
+
+.staff-attachment-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 34px;
+    flex-shrink: 0;
+    background: #f1e5cf;
+    color: #a77e36;
+    border-radius: 6px;
+    font-size: 17px;
+}
+
+.staff-attachment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+}
+
+.staff-attachment-info strong {
+    font-size: 10px;
+    overflow-wrap: anywhere;
+}
+
+.staff-attachment-info small {
+    font-size: 9px;
+    color: #898176;
+}
+
+.staff-attachment-symbol {
+    color: #a77e36;
+    font-size: 15px;
+}
+
+/* Cập nhật xử lý */
+.staff-update-card {
+    padding: 20px;
+}
+
+.staff-update-card h2 {
+    margin-bottom: 16px;
+}
+
+.staff-status-group > label,
+.staff-note-group > label {
+    display: block;
+    margin-bottom: 9px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Ba lựa chọn trạng thái */
+.staff-status-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.staff-status-option {
+    position: relative;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.staff-status-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.staff-status-option span,
+.staff-status-complete {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 9px 6px;
+    border: 1px solid #e7ddce;
+    border-radius: 8px;
+    background: #fff;
+    color: #46423c;
+    font-family: inherit;
+    font-size: 10px;
+    text-align: center;
+    transition: .2s;
+}
+
+.staff-status-option input:checked + span {
+    background: #e7f0f4;
+    border-color: #4d8da8;
+    color: #356b83;
+    font-weight: 700;
+}
+
+.staff-status-option:hover span,
+.staff-status-complete:hover {
+    border-color: #b58b43;
+}
+
+.staff-status-complete {
+    cursor: pointer;
+}
+
+.staff-note-group {
+    margin-top: 17px;
+}
+
+.staff-note-group textarea,
+#finalReply {
+    width: 100%;
+    min-height: 105px;
+    padding: 12px;
+    box-sizing: border-box;
+    resize: vertical;
+    border: 1px solid #e7ddce;
+    border-radius: 8px;
+    background: #fff;
+    color: #39352f;
+    font-family: inherit;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.staff-note-group textarea:focus,
+#finalReply:focus {
+    outline: none;
+    border-color: #b58b43;
+    box-shadow: 0 0 0 2px rgba(181, 139, 67, .12);
+}
+
+.staff-update-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 13px;
+}
+
+.staff-update-footer > span {
+    color: #898176;
+    font-size: 10px;
+}
+
+/* Cột phải */
+.staff-detail-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.staff-detail-sidebar .feedback-card {
+    margin-bottom: 0;
+    padding: 17px;
+}
+
+.staff-detail-sidebar .feedback-card h2 {
+    margin-bottom: 12px;
+    font-size: 17px;
+}
+
+/* Thông tin khách hàng */
+.staff-customer-name {
+    margin-bottom: 8px;
+    color: #302b25;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.staff-customer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #81796e;
+    font-size: 10px;
+    overflow-wrap: anywhere;
+}
+
+.staff-customer-contact small {
+    margin-top: 5px;
+}
+
+/* Timeline lịch sử */
+.staff-history-timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.staff-history-event {
+    position: relative;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 8px;
+    padding-bottom: 16px;
+}
+
+.staff-history-event:last-child {
+    padding-bottom: 0;
+}
+
+.staff-history-marker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #f2e6cf;
+    color: #b58b43;
+    font-size: 8px;
+}
+
+.staff-history-event:not(:last-child)::after {
+    position: absolute;
+    top: 15px;
+    left: 7px;
+    width: 1px;
+    height: calc(100% - 15px);
+    background: #e9dfd0;
+    content: "";
+}
+
+.staff-history-content {
+    min-width: 0;
+}
+
+.staff-history-content strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 10px;
+}
+
+.staff-history-content small {
+    display: block;
+    color: #989083;
+    font-size: 9px;
+}
+
+.staff-history-content p {
+    margin: 5px 0 0;
+    color: #756e64;
+    font-size: 10px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* Khung hoàn tất màu đen */
+.staff-complete-card {
+    padding: 19px;
+    background: #272622;
+    border: 1px solid #272622;
+    border-radius: 12px;
+    color: #fff;
+}
+
+.staff-complete-card h2 {
+    margin: 0 0 8px;
+    color: #fff;
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.staff-complete-card p {
+    margin: 0 0 13px;
+    color: #d0c8ba;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.staff-complete-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 39px;
+    padding: 10px;
+    border: 0;
+    border-radius: 7px;
+    background: #b58b43;
+    color: #fff;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.staff-complete-button:hover {
+    background: #9b7434;
+}
+
+/* Phản hồi cuối cùng */
+.staff-final-response {
+    margin-top: 17px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #fcf9f4;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.staff-final-response strong {
+    font-size: 10px;
+}
+
+.staff-final-response p {
+    margin-bottom: 0;
+}
+
+/* Thông tin đã hoàn tất */
+.staff-completed-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.staff-completed-info div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.staff-completed-info span {
+    color: #898176;
+    font-size: 10px;
+}
+
+.staff-completed-info strong {
+    font-size: 11px;
+}
+
+/* Modal */
+.staff-complete-modal {
+    width: min(100%, 540px);
+}
+
+.staff-complete-modal label {
+    display: block;
+    margin: 15px 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .staff-detail-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .staff-detail-sidebar {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+
+    .staff-complete-card {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 560px) {
+    .staff-detail-heading h1 {
+        font-size: 23px;
+    }
+
+    .staff-detail-sidebar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .staff-complete-card {
+        grid-column: auto;
+    }
+
+    .staff-ticket-meta,
+    .staff-attachment-list,
+    .staff-completed-info {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .staff-status-options {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .staff-update-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .staff-update-footer button {
+        width: 100%;
+    }
+}

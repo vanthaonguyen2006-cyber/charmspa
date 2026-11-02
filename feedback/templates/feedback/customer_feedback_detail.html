@@ -1,0 +1,687 @@
+
+{% extends 'layouts/customer_base_pro.html' %}
+
+{% block title %}
+Chi tiết phản hồi/khiếu nại | Charm Grand Spa
+{% endblock %}
+
+{% block profile_content %}
+
+<style>
+    /* Tổng thể trang chi tiết */
+    .ticket-detail-page {
+        color: #302b25;
+        font-size: 13px;
+    }
+
+    /* Tiêu đề và nút quay lại */
+    .ticket-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .ticket-heading h1 {
+        margin: 0 0 7px;
+        font-family: Georgia, serif;
+        font-size: 30px;
+        font-weight: 400;
+        text-transform: uppercase;
+    }
+
+    .ticket-meta {
+        margin: 0;
+        color: #898176;
+        font-size: 11px;
+    }
+
+    .ticket-back {
+        margin-top: 12px;
+        color: #987542;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .ticket-back:hover {
+        text-decoration: underline;
+    }
+
+    /* Khung trạng thái và tiến độ */
+    .ticket-status-card,
+    .ticket-card,
+    .ticket-side-card {
+        background: #fff;
+        border: 1px solid #e7dccb;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(48, 43, 37, 0.04);
+    }
+
+    .ticket-status-card {
+        margin-bottom: 18px;
+        padding: 22px;
+    }
+
+    .ticket-status-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .ticket-type {
+        display: block;
+        margin-bottom: 8px;
+        color: #bd493b;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .ticket-status-header h2 {
+        margin: 0;
+        font-family: Georgia, serif;
+        font-size: 21px;
+        font-weight: 600;
+    }
+
+    .ticket-status-badge {
+        flex-shrink: 0;
+        padding: 6px 11px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    .status-level-1 {
+        color: #8c692c;
+        background: #f7edd8;
+    }
+
+    .status-level-2 {
+        color: #94651f;
+        background: #fbefd7;
+    }
+
+    .status-level-3 {
+        color: #287d5b;
+        background: #e7f4ed;
+    }
+
+    /* Thanh tiến độ ba bước */
+    .ticket-timeline {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 22px;
+    }
+
+    .timeline-track,
+    .timeline-fill {
+        position: absolute;
+        top: 14px;
+        left: 16.666%;
+        height: 2px;
+    }
+
+    .timeline-track {
+        right: 16.666%;
+        background: #e7dccb;
+    }
+
+    .timeline-fill {
+        background: #b78336;
+        transition: width 0.3s ease;
+    }
+
+    .timeline-fill-1 {
+        width: 0;
+    }
+
+    .timeline-fill-2 {
+        width: 33.333%;
+    }
+
+    .timeline-fill-3 {
+        width: 66.666%;
+    }
+
+    .timeline-step {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+
+    .timeline-dot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 29px;
+        height: 29px;
+        margin: 0 auto 10px;
+        color: #898176;
+        background: #eee9e1;
+        border-radius: 50%;
+        font-size: 14px;
+    }
+
+    .timeline-step.is-done .timeline-dot {
+        color: #fff;
+        background: #292824;
+    }
+
+    .timeline-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .timeline-date {
+        color: #898176;
+        font-size: 9px;
+    }
+
+    /* Bố cục nội dung và cột thông tin bên phải */
+    .ticket-detail-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(250px, 0.75fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .ticket-main-column,
+    .ticket-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+    }
+
+    .ticket-card,
+    .ticket-side-card {
+        padding: 22px;
+    }
+
+    .ticket-card h3,
+    .ticket-side-card h3 {
+        margin: 0 0 16px;
+        font-family: Georgia, serif;
+        font-size: 17px;
+        font-weight: 600;
+    }
+
+    /* Thông tin dịch vụ */
+    .ticket-field {
+        margin-bottom: 18px;
+    }
+
+    .ticket-field-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #898176;
+        font-size: 10px;
+    }
+
+    .ticket-service {
+        color: #302b25;
+        font-size: 11px;
+    }
+
+    /* Nội dung phiếu */
+    .ticket-content {
+        padding: 16px;
+        background: #faf7f1;
+        border-radius: 9px;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+    }
+
+    .ticket-content-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #987542;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .ticket-content p {
+        margin: 0;
+    }
+
+    /* Tệp đính kèm */
+    .ticket-attachments {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .ticket-file {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        padding: 12px;
+        color: #302b25;
+        background: #fcf9f4;
+        border: 1px solid #e7dccb;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+
+    .ticket-file:hover {
+        border-color: #b78336;
+    }
+
+    .ticket-file-icon {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        color: #987542;
+        background: #f4e9d5;
+        border-radius: 7px;
+        font-size: 16px;
+    }
+
+    .ticket-file-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .ticket-file-name {
+        display: block;
+        overflow-wrap: anywhere;
+        font-size: 10px;
+    }
+
+    .ticket-file-type {
+        display: block;
+        margin-top: 4px;
+        color: #898176;
+        font-size: 9px;
+    }
+
+    .ticket-empty {
+        color: #898176;
+        font-size: 11px;
+    }
+
+    /* Nhân viên xử lý */
+    .ticket-staff {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .ticket-staff-avatar {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        color: #987542;
+        background: #f4e9d5;
+        border-radius: 50%;
+        font-weight: 700;
+    }
+
+    .ticket-staff-name {
+        margin-bottom: 5px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .ticket-staff-role {
+        color: #898176;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+    /* Hỗ trợ khách hàng */
+    .ticket-support-text {
+        margin: 0 0 14px;
+        color: #898176;
+        font-size: 11px;
+        line-height: 1.7;
+    }
+
+    .ticket-support-phone {
+        display: block;
+        padding: 12px;
+        color: #302b25;
+        border: 1px solid #e7dccb;
+        border-radius: 8px;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .ticket-support-phone:hover {
+        border-color: #b78336;
+    }
+
+    /* Phản hồi mới nhất */
+    .ticket-reply-time {
+        margin-left: auto;
+        color: #898176;
+        font-size: 9px;
+        white-space: nowrap;
+    }
+
+    .ticket-reply-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .ticket-reply-heading h3 {
+        margin: 0;
+    }
+
+    .ticket-reply-content {
+        font-size: 11px;
+        line-height: 1.9;
+        overflow-wrap: anywhere;
+    }
+
+    .ticket-reply-content p {
+        margin: 0;
+    }
+
+    .ticket-signature {
+        margin-top: 12px;
+        color: #987542;
+        font-family: Georgia, serif;
+        font-size: 13px;
+        font-style: italic;
+    }
+
+    /* Responsive */
+    @media (max-width: 850px) {
+        .ticket-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .ticket-heading {
+            flex-direction: column;
+        }
+
+        .ticket-heading h1 {
+            font-size: 24px;
+        }
+
+        .ticket-status-card,
+        .ticket-card,
+        .ticket-side-card {
+            padding: 16px;
+        }
+
+        .ticket-status-header {
+            flex-direction: column;
+        }
+
+        .ticket-attachments {
+            grid-template-columns: 1fr;
+        }
+
+        .timeline-label {
+            font-size: 10px;
+        }
+
+        .timeline-date {
+            font-size: 8px;
+        }
+
+        .ticket-reply-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .ticket-reply-time {
+            margin-left: 0;
+        }
+    }
+</style>
+
+<div class="ticket-detail-page">
+
+    <!-- Tiêu đề trang và đường dẫn quay lại -->
+    <div class="ticket-heading">
+        <div>
+            <h1>Chi tiết phản hồi/khiếu nại</h1>
+            <p class="ticket-meta">
+                #{{ phan_hoi.ma_ph }}
+                · Gửi lúc {{ phan_hoi.ngay_gui|date:"H:i, d/m/Y" }}
+            </p>
+        </div>
+
+        <a
+            href="{% url 'feedback:customer_feedback_list' %}"
+            class="ticket-back"
+        >
+            ← Quay lại
+        </a>
+    </div>
+
+    <!-- Trạng thái và tiến độ xử lý -->
+    <section class="ticket-status-card">
+
+        <div class="ticket-status-header">
+            <div>
+                <span class="ticket-type">
+                    {{ phan_hoi.get_loai_ph_display }}
+                </span>
+
+                <h2>{{ phan_hoi.tieu_de }}</h2>
+            </div>
+
+            <span class="ticket-status-badge status-level-{{ status_level }}">
+                ● {{ phan_hoi.get_trang_thai_xu_ly_display }}
+            </span>
+        </div>
+
+        <div class="ticket-timeline">
+
+            <div class="timeline-track"></div>
+
+            <div class="timeline-fill timeline-fill-{{ status_level }}"></div>
+
+            <!-- Bước 1: Đã tiếp nhận -->
+            <div class="timeline-step {% if status_level >= 1 %}is-done{% endif %}">
+                <div class="timeline-dot">
+                    {% if status_level >= 1 %}✓{% else %}1{% endif %}
+                </div>
+
+                <span class="timeline-label">Đã tiếp nhận</span>
+
+                <span class="timeline-date">
+                    {{ phan_hoi.ngay_gui|date:"H:i · d/m/Y" }}
+                </span>
+            </div>
+
+            <!-- Bước 2: Đang xử lý -->
+            <div class="timeline-step {% if status_level >= 2 %}is-done{% endif %}">
+                <div class="timeline-dot">
+                    {% if status_level >= 2 %}✓{% else %}2{% endif %}
+                </div>
+
+                <span class="timeline-label">Đang xử lý</span>
+
+                <span class="timeline-date">
+                    {% if status_level == 2 %}
+                        {{ phan_hoi.ngay_cap_nhat|date:"H:i · d/m/Y" }}
+                    {% elif status_level == 3 %}
+                        Đã hoàn tất bước này
+                    {% else %}
+                        Đang chờ xử lý
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Bước 3: Đã giải quyết -->
+            <div class="timeline-step {% if status_level >= 3 %}is-done{% endif %}">
+                <div class="timeline-dot">
+                    {% if status_level >= 3 %}✓{% else %}3{% endif %}
+                </div>
+
+                <span class="timeline-label">Đã giải quyết</span>
+
+                <span class="timeline-date">
+                    {% if phan_hoi.ngay_giai_quyet %}
+                        {{ phan_hoi.ngay_giai_quyet|date:"H:i · d/m/Y" }}
+                    {% else %}
+                        Chưa hoàn tất
+                    {% endif %}
+                </span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Nội dung chính và cột thông tin phụ -->
+    <div class="ticket-detail-grid">
+
+        <div class="ticket-main-column">
+
+            <!-- Thông tin phiếu -->
+            <section class="ticket-card">
+                <h3>Thông tin phiếu</h3>
+
+                <div class="ticket-field">
+                    <span class="ticket-field-label">Dịch vụ</span>
+
+                    <div class="ticket-service">
+                        {% if phan_hoi.ma_dv %}
+                            {{ phan_hoi.ma_dv }}
+                        {% else %}
+                            Không chọn dịch vụ
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="ticket-content">
+                    <span class="ticket-content-label">Nội dung</span>
+
+                    <p>{{ phan_hoi.noi_dung|linebreaksbr }}</p>
+                </div>
+
+                <!-- Danh sách tệp đính kèm -->
+                <div class="ticket-attachments">
+                    {% for tep in tep_dinh_kem %}
+                        <a
+                            class="ticket-file"
+                            href="{{ tep.duong_dan_tep }}"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <span class="ticket-file-icon">▤</span>
+
+                            <span class="ticket-file-info">
+                                <span class="ticket-file-name">
+                                    {{ tep.ten_tep }}
+                                </span>
+
+                                <span class="ticket-file-type">
+                                    {{ tep.loai_tep|upper }}
+                                </span>
+                            </span>
+
+                            <span aria-hidden="true">↓</span>
+                        </a>
+                    {% empty %}
+                        <p class="ticket-empty">
+                            Phiếu này chưa có tệp đính kèm.
+                        </p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Phản hồi hoặc cập nhật mới nhất -->
+            <section class="ticket-card">
+                <div class="ticket-reply-heading">
+                    <h3>Phản hồi từ Charm Grand</h3>
+
+                    {% if lich_su_moi_nhat %}
+                        <span class="ticket-reply-time">
+                            {{ lich_su_moi_nhat.ngay_thuc_hien|date:"H:i · d/m/Y" }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="ticket-reply-content">
+                    {% if lich_su_moi_nhat %}
+                        <p>{{ lich_su_moi_nhat.noi_dung|linebreaksbr }}</p>
+                    {% else %}
+                        <p>
+                            Charm Grand đã tiếp nhận phản hồi của bạn.
+                            Nội dung cập nhật sẽ hiển thị tại đây khi có
+                            thông tin xử lý mới.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="ticket-signature">
+                    Trân trọng · Bộ phận Chăm sóc Khách hàng
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Cột thông tin bên phải -->
+        <aside class="ticket-sidebar">
+
+            <!-- Nhân viên phụ trách -->
+            <section class="ticket-side-card">
+                <h3>Nhân viên xử lý</h3>
+
+                {% if phan_cong %}
+                    <div class="ticket-staff">
+                        <div class="ticket-staff-avatar">NV</div>
+
+                        <div>
+                            <div class="ticket-staff-name">
+                                {{ phan_cong.ma_nv }}
+                            </div>
+
+                            <div class="ticket-staff-role">
+                                Nhân viên phụ trách phiếu
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="ticket-empty">
+                        Phiếu đang chờ phân công nhân viên xử lý.
+                    </p>
+                {% endif %}
+            </section>
+
+            <!-- Hỗ trợ thêm -->
+            <section class="ticket-side-card">
+                <h3>Bạn cần hỗ trợ thêm?</h3>
+
+                <p class="ticket-support-text">
+                    Vui lòng cung cấp mã phiếu khi liên hệ để chúng tôi
+                    hỗ trợ bạn nhanh chóng.
+                </p>
+
+                <a href="tel:19002688" class="ticket-support-phone">
+                    Gọi 1900 2688
+                </a>
+            </section>
+
+        </aside>
+    </div>
+
+</div>
+
+{% endblock %}

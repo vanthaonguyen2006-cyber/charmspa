@@ -1,0 +1,381 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Xử lý phản hồi | Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/feedback.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="feedback-page">
+
+    <!-- Hiển thị thông báo kết quả thực tế từ Django -->
+    {% if messages %}
+        {% for message in messages %}
+            <div role="alert"
+                 class="feedback-message"
+                 style="margin:12px 0;padding:14px 18px;border-radius:8px;
+                        background:{% if message.tags == 'success' %}#e7f4ed{% else %}#fff0ed{% endif %};
+                        color:{% if message.tags == 'success' %}#27845b{% else %}#ad3931{% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Tiêu đề trang chi tiết của nhân viên -->
+    <div class="feedback-detail-heading">
+        <div>
+            <h1>
+                {% if ph.trang_thai_xu_ly == "Đã giải quyết" %}
+                    Phiếu đã giải quyết
+                {% else %}
+                    Xử lý phản hồi/khiếu nại
+                {% endif %}
+            </h1>
+
+            <p class="feedback-subtitle">
+                #{{ ph.ma_ph }} · {{ ph.loai_ph }} · Mã khách hàng {{ ph.ma_kh_id }}
+            </p>
+        </div>
+
+        <div>
+            <!-- Trở về danh sách phiếu được giao -->
+            <a class="feedback-btn light"
+               href="{% url 'feedback:staff_feedback_list' %}">
+                ← Danh sách
+            </a>
+
+            <span class="feedback-badge
+                {% if ph.trang_thai_xu_ly == 'Đang xử lý' %}processing
+                {% elif ph.trang_thai_xu_ly == 'Đã giải quyết' %}resolved
+                {% endif %}">
+                {{ ph.trang_thai_xu_ly }}
+            </span>
+        </div>
+    </div>
+
+    <div class="feedback-detail-grid">
+        <div class="feedback-detail-main">
+
+            <!-- Nội dung khách hàng và các tệp đính kèm -->
+            <section class="feedback-card">
+                <div class="feedback-type">{{ ph.loai_ph }}</div>
+                <div class="feedback-title">{{ ph.tieu_de }}</div>
+
+                <div class="feedback-message">
+                    <strong>NỘI DUNG KHÁCH HÀNG</strong>
+                    <p>{{ ph.noi_dung|linebreaksbr }}</p>
+                </div>
+
+                {% if tep_dinh_kem %}
+                    <div class="feedback-attachments">
+                        {% for tep in tep_dinh_kem %}
+                            <div class="feedback-attachment">
+                                <strong>{{ tep.ten_tep }}</strong>
+                                <div class="feedback-muted">{{ tep.loai_tep }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+
+            {% if ph.trang_thai_xu_ly == "Đã giải quyết" %}
+
+                <!-- Phiếu đã hoàn tất: hiển thị thông tin kết thúc -->
+                <section class="feedback-card">
+                    <h2>Thông tin hoàn tất</h2>
+
+                    <div class="feedback-info-grid">
+                        <div>
+                            <div class="feedback-info-label">Trạng thái</div>
+                            <div class="feedback-info-value">Đã giải quyết</div>
+                        </div>
+
+                        <div>
+                            <div class="feedback-info-label">Ngày giải quyết</div>
+                            <div class="feedback-info-value">
+                                {{ ph.ngay_giai_quyet|date:"d/m/Y H:i"|default:"Chưa cập nhật" }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="feedback-info-label">Mã nhân viên</div>
+                            <div class="feedback-info-value">
+                                {{ phan_cong.ma_nv_id|default:"Chưa xác định" }}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            {% else %}
+
+                <!-- Cập nhật trạng thái và ghi chú: gửi POST thật tới Django -->
+                <section class="feedback-card">
+                    <h2>Cập nhật xử lý</h2>
+
+                    <form method="post"
+                          action="{% url 'feedback:staff_feedback_detail' feedback_id=ph.ma_ph %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update">
+
+                        <label for="staffStatus">Trạng thái</label>
+
+                        <select id="staffStatus"
+                                name="trang_thai_xu_ly"
+                                required>
+                            <option value="Đã tiếp nhận"
+                                {% if ph.trang_thai_xu_ly == "Đã tiếp nhận" %}selected{% endif %}>
+                                Đã tiếp nhận
+                            </option>
+
+                            <option value="Đang xử lý"
+                                {% if ph.trang_thai_xu_ly == "Đang xử lý" %}selected{% endif %}>
+                                Đang xử lý
+                            </option>
+                        </select>
+
+                        <label for="staffNote">Ghi chú xử lý</label>
+
+                        <textarea id="staffNote"
+                                  name="noi_dung_xu_ly"
+                                  required
+                                  placeholder="Nhập nội dung đã kiểm tra, trao đổi với khách hàng và hướng giải quyết..."></textarea>
+
+                        <div class="feedback-toolbar" style="margin-top:15px">
+                            <span class="feedback-muted">
+                                Trạng thái và ghi chú sẽ được lưu vào hệ thống.
+                            </span>
+
+                            <button type="submit" class="feedback-btn">
+                                Lưu cập nhật
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Mở modal xác nhận trước khi hoàn tất phiếu -->
+                    <div style="background:#272622;color:#fff;border-radius:10px;padding:18px;margin-top:14px">
+                        <h2 style="color:#fff">Sẵn sàng hoàn tất?</h2>
+
+                        <p class="feedback-muted" style="color:#d0c8ba">
+                            Kiểm tra nội dung phản hồi cuối cùng trước khi đóng phiếu.
+                        </p>
+
+                        <button type="button"
+                                class="feedback-btn gold"
+                                data-open-modal="completeModal">
+                            Hoàn tất xử lý
+                        </button>
+                    </div>
+                </section>
+
+            {% endif %}
+        </div>
+
+        <!-- Thông tin ở cột bên phải -->
+        <aside class="feedback-detail-side">
+
+            <section class="feedback-card">
+                <h2>Khách hàng</h2>
+
+                <div class="feedback-side-value">
+                    <strong>Mã khách hàng: {{ ph.ma_kh_id }}</strong>
+                </div>
+
+                <p class="feedback-muted">
+                    Thông tin chi tiết khách hàng có thể được bổ sung khi liên kết
+                    hồ sơ khách hàng với tài khoản đã được chuẩn hóa.
+                </p>
+            </section>
+
+            <section class="feedback-card">
+                <h2>Phân công xử lý</h2>
+
+                {% if phan_cong %}
+                    <div class="feedback-side-value">
+                        Nhân viên:
+                        <strong>{{ phan_cong.ma_nv.ho_ten }}</strong>
+                        <br>
+
+                        <span class="feedback-muted">
+                            Mã nhân viên: {{ phan_cong.ma_nv_id }}
+                        </span>
+                    </div>
+
+                    <p class="feedback-muted">
+                        Giao lúc {{ phan_cong.thoi_gian_pc|date:"d/m/Y H:i" }}
+                    </p>
+
+                    {% if phan_cong.thoi_gian_ket_thuc %}
+                        <span class="feedback-badge resolved">Đã hoàn tất</span>
+                    {% else %}
+                        <span class="feedback-badge processing">Đang thực hiện</span>
+                    {% endif %}
+
+                {% else %}
+                    <p class="feedback-muted">
+                        Chưa tìm thấy thông tin phân công cho phiếu này.
+                    </p>
+                {% endif %}
+            </section>
+
+            <section class="feedback-card">
+                <h2>Tính hợp lệ</h2>
+
+                <span class="feedback-badge
+                    {% if ph.tinh_hop_le == 'Không hợp lệ' %}invalid
+                    {% else %}valid{% endif %}">
+                    {{ ph.tinh_hop_le }}
+                </span>
+
+                {% if ph.ly_do_khong_hop_le %}
+                    <p class="feedback-muted">
+                        Lý do: {{ ph.ly_do_khong_hop_le }}
+                    </p>
+                {% endif %}
+
+                {% if ph.chi_tiet_ly_do %}
+                    <p>{{ ph.chi_tiet_ly_do }}</p>
+                {% endif %}
+            </section>
+
+        </aside>
+    </div>
+
+    <!-- Lịch sử xử lý -->
+    <section class="feedback-card">
+        <h2>Lịch sử xử lý</h2>
+
+        {% for ls in lich_su %}
+            <div class="feedback-history-item">
+                <div class="feedback-history-date">
+                    {{ ls.ngay_thuc_hien|date:"d/m · H:i" }}
+                </div>
+
+                <div class="feedback-history-dot">●</div>
+
+                <div>
+                    <strong>{{ ls.loai_thao_tac }}</strong>
+
+                    <div class="feedback-muted">
+                        Tài khoản: {{ ls.ma_nguoi_thuc_hien_id }}
+                    </div>
+
+                    <div>
+                        {{ ls.noi_dung|default:"Không có ghi chú" }}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="feedback-muted">Chưa có lịch sử xử lý.</p>
+        {% endfor %}
+    </section>
+
+</div>
+
+<!-- MODAL: Xác nhận hoàn tất và nhập phản hồi cuối cùng -->
+{% if ph.trang_thai_xu_ly != "Đã giải quyết" %}
+    <div class="feedback-modal"
+         id="completeModal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="completeModalTitle">
+
+        <div class="feedback-modal-box">
+            <div class="feedback-modal-head">
+                <div>
+                    <h2 id="completeModalTitle">Hoàn tất xử lý phiếu</h2>
+
+                    <p class="feedback-muted">
+                        Nhập nội dung phản hồi cuối cùng trước khi đóng phiếu.
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="feedback-modal-close"
+                        data-close-modal
+                        aria-label="Đóng">
+                    ×
+                </button>
+            </div>
+
+            <!-- Thông tin phiếu đang được xử lý -->
+            <div class="feedback-message">
+                <span class="feedback-code">#{{ ph.ma_ph }}</span>
+                <div><strong>{{ ph.tieu_de }}</strong></div>
+            </div>
+
+            <!-- Hoàn tất xử lý: gửi POST thật tới Django -->
+            <form method="post"
+                  action="{% url 'feedback:staff_feedback_detail' feedback_id=ph.ma_ph %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="complete">
+
+                <label for="finalReply">
+                    Nội dung phản hồi cho khách hàng *
+                </label>
+
+                <textarea id="finalReply"
+                          name="noi_dung_phan_hoi"
+                          required
+                          placeholder="Nhập kết quả kiểm tra, hướng giải quyết và nội dung phản hồi cuối cùng..."></textarea>
+
+                <p class="feedback-muted">
+                    Khi xác nhận, trạng thái phiếu chuyển sang “Đã giải quyết”
+                    và nội dung được lưu trong lịch sử xử lý.
+                </p>
+
+                <div class="feedback-modal-actions">
+                    <button type="button"
+                            class="feedback-btn light"
+                            data-close-modal>
+                        Quay lại
+                    </button>
+
+                    <button type="submit" class="feedback-btn gold">
+                        Xác nhận hoàn tất
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Mở modal tương ứng khi nhấn nút thao tác
+    document.querySelectorAll("[data-open-modal]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const modal = document.getElementById(button.dataset.openModal);
+
+            if (modal) {
+                modal.classList.add("open");
+            }
+        });
+    });
+
+    // Đóng modal bằng nút đóng hoặc nút quay lại
+    document.querySelectorAll("[data-close-modal]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const modal = button.closest(".feedback-modal");
+
+            if (modal) {
+                modal.classList.remove("open");
+            }
+        });
+    });
+
+    // Đóng modal khi bấm ra vùng nền bên ngoài
+    document.querySelectorAll(".feedback-modal").forEach(function (modal) {
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                modal.classList.remove("open");
+            }
+        });
+    });
+
+    // Không chặn submit: các form sẽ gửi POST thật tới Django.
+</script>
+{% endblock %}
