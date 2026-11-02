@@ -46,7 +46,7 @@ Phản hồi & khiếu nại của tôi | Charm Grand Spa
 
                 {% for value, label in loai_ph_choices %}
                     <option value="{{ value }}"
-                        {% if loai_ph_da_chon == value %}selected{% endif %}>
+                        {% if selected_type == value %}selected{% endif %}>
                         {{ label }}
                     </option>
                 {% endfor %}
@@ -60,7 +60,7 @@ Phản hồi & khiếu nại của tôi | Charm Grand Spa
 
                 {% for value, label in trang_thai_choices %}
                     <option value="{{ value }}"
-                        {% if trang_thai_da_chon == value %}selected{% endif %}>
+                        {% if selected_status == value %}selected{% endif %}>
                         {{ label }}
                     </option>
                 {% endfor %}
@@ -69,7 +69,7 @@ Phản hồi & khiếu nại của tôi | Charm Grand Spa
 
         <!-- Số phiếu hiện có sau khi lọc -->
         <p class="feedback-total">
-            {{ tong_so_phieu }} phiếu · Sắp xếp mới nhất
+            {{ total_count }} phiếu · Sắp xếp mới nhất
         </p>
     </form>
 
@@ -161,9 +161,9 @@ Phản hồi & khiếu nại của tôi | Charm Grand Spa
     <!-- Chân bảng và phân trang -->
     <div class="feedback-table-footer">
         <p>
-            {% if tong_so_phieu > 0 %}
+            {% if total_count > 0 %}
                 Hiển thị {{ page_obj.start_index }}–{{ page_obj.end_index }}
-                trong tổng số {{ tong_so_phieu }} phiếu
+                trong tổng số {{ total_count }} phiếu
             {% else %}
                 Hiển thị 0 phiếu
             {% endif %}
@@ -172,7 +172,7 @@ Phản hồi & khiếu nại của tôi | Charm Grand Spa
         <div class="feedback-pagination">
             <!-- Nút về trang trước -->
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}{% if loai_ph_da_chon %}&type={{ loai_ph_da_chon|urlencode }}{% endif %}{% if trang_thai_da_chon %}&status={{ trang_thai_da_chon|urlencode }}{% endif %}"
+                <a href="?page={{ page_obj.previous_page_number }}{% if selected_type %}&type={{ selected_type|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status|urlencode }}{% endif %}"
                    aria-label="Trang trước">
                     ‹
                 </a>
@@ -187,7 +187,7 @@ Phản hồi & khiếu nại của tôi | Charm Grand Spa
 
             <!-- Nút sang trang tiếp theo -->
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{% if loai_ph_da_chon %}&type={{ loai_ph_da_chon|urlencode }}{% endif %}{% if trang_thai_da_chon %}&status={{ trang_thai_da_chon|urlencode }}{% endif %}"
+                <a href="?page={{ page_obj.next_page_number }}{% if selected_type %}&type={{ selected_type|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status|urlencode }}{% endif %}"
                    aria-label="Trang tiếp theo">
                     ›
                 </a>

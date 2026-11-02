@@ -916,3 +916,4 @@ def admin_feedback_statistics(request):
         "feedback/feedback_statistics.html",
         context
     )
+

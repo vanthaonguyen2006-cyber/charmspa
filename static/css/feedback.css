@@ -1,3 +1,32 @@
+/* ==========================================
+   ĐỒNG BỘ FONT VỚI MODULE QUẢN LÝ LỊCH
+   ========================================== */
+
+/* Font nội dung toàn bộ module */
+.feedback-page,
+.feedback-page *,
+.staff-detail-page,
+.staff-detail-page *,
+.customer-feedback-list-page,
+.customer-feedback-list-page * {
+    font-family: Arial, sans-serif !important;
+}
+
+/* Font cho các thành phần nhập liệu */
+.feedback-page input,
+.feedback-page select,
+.feedback-page textarea,
+.feedback-page button,
+.staff-detail-page input,
+.staff-detail-page select,
+.staff-detail-page textarea,
+.staff-detail-page button,
+.customer-feedback-list-page input,
+.customer-feedback-list-page select,
+.customer-feedback-list-page textarea,
+.customer-feedback-list-page button {
+    font-family: Arial, sans-serif !important;
+}
 /* ================================
    DÙNG CHUNG CÁC TRANG PHẢN HỒI
 ================================ */
@@ -5,8 +34,8 @@
     max-width: 1500px;
     margin: 0 auto;
     color: #292722;
+    font-family: Arial, "Segoe UI", Tahoma, sans-serif;
 }
-
 .feedback-page h1 {
     margin: 0;
     font-family: Georgia, serif;
@@ -1083,4 +1112,26 @@
     .staff-update-footer button {
         width: 100%;
     }
+}
+
+/* =========================================
+   ĐỒNG BỘ FONT VỚI GIAO DIỆN KHÁCH HÀNG
+========================================= */
+
+/* Font nội dung */
+.feedback-page,
+.feedback-page *,
+.feedback-modal,
+.feedback-modal * {
+    font-family: Arial, sans-serif;
+}
+
+/* Font tiêu đề */
+.feedback-page h1,
+.feedback-page h2,
+.feedback-page .feedback-title,
+.feedback-page .feedback-subject,
+.feedback-page .staff-ticket-title,
+.feedback-modal h2 {
+    font-family: Georgia, "Times New Roman", serif;
 }
