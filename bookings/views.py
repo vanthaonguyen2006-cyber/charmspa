@@ -78,9 +78,7 @@ def booking_customer_create(request):
         ghi_chu = request.POST.get('ghi_chu', '')
 
         try:
-            dich_vu = DichVu.objects.filter(pk=ma_dv).first()
-            if not dich_vu:
-                dich_vu = DichVu.objects.first()
+            dich_vu = get_object_or_404(DichVu, pk=ma_dv)
 
             ngay_check = datetime.today().strftime('%Y-%m-%d')
             if ngay_hen:
@@ -106,29 +104,10 @@ def booking_customer_create(request):
                 khach_hang.ho_ten = ho_ten
                 khach_hang.save()
 
-            ngay_hd = NgayHoatDong.objects.filter(ngay=ngay_check).first()
-            if not ngay_hd:
-                nv_first = NhanVien.objects.first()
-                try:
-                    if nv_first:
-                        ngay_hd = NgayHoatDong.objects.create(
-                            ma_nhd=f"NHD-{ngay_check}",
-                            ngay=ngay_check,
-                            trang_thai='Mở',
-                            ma_nv_cap_nhat=nv_first
-                        )
-                    else:
-                        ngay_hd = NgayHoatDong.objects.create(
-                            ma_nhd=f"NHD-{ngay_check}",
-                            ngay=ngay_check,
-                            trang_thai='Mở'
-                        )
-                except Exception:
-                    ngay_hd = NgayHoatDong.objects.create(
-                        ma_nhd=f"NHD-{ngay_check}",
-                        ngay=ngay_check,
-                        trang_thai='Mở'
-                    )
+            ngay_hd, _ = NgayHoatDong.objects.get_or_create(
+                ngay=ngay_check,
+                defaults={'ma_nhd': f'NHD-{ngay_check}', 'trang_thai': 'Mở'}
+            )
 
             ma_lh_moi = f"LH-{random.randint(100000, 999999)}"
 
@@ -233,9 +212,11 @@ def booking_customer_success(request):
     try:
         last_code = request.session.get('last_booking_code')
         if last_code:
-            lich_hen = LichHen.objects.select_related('ma_dv', 'ma_kh').filter(ma_lh=last_code).first()
+            lich_hen = LichHen.objects.select_related('ma_dv', 'ma_kh').filter(ma_lh=last_code, ma_kh__ma_tk__user=request.user).first()
         if not lich_hen:
-            lich_hen = LichHen.objects.select_related('ma_dv', 'ma_kh').order_by('-pk', '-ngay_hen', '-gio_hen').first()
+            lich_hen = LichHen.objects.select_related('ma_dv', 'ma_kh').filter(
+                ma_kh__ma_tk__user=request.user
+            ).order_by('-ngay_hen', '-gio_hen').first()
     except Exception as e:
         print("Lỗi lấy lịch hẹn success:", e)
 
@@ -286,6 +267,7 @@ def booking_customer_cancel(request, ma_lh):
     return redirect(reverse('booking_customer_list') + '?trang_thai=cancelled')
 
 @login_required(login_url='/accounts/dang_nhap/')
+@login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_reschedule(request, ma_lh):
     # Quay về đúng giao diện của người đang thực hiện đổi lịch.
     redirect_url = (
@@ -294,7 +276,10 @@ def booking_customer_reschedule(request, ma_lh):
         else 'booking_customer_list'
     )
     if request.method == "POST":
-        lich_hen = get_object_or_404(LichHen, ma_lh=ma_lh)
+        lich_hen_qs = LichHen.objects.all()
+        if not (request.user.is_staff or request.user.is_superuser):
+            lich_hen_qs = lich_hen_qs.filter(ma_kh__ma_tk__user=request.user)
+        lich_hen = get_object_or_404(lich_hen_qs, ma_lh=ma_lh)
 
         try:
             time_part = str(lich_hen.gio_hen).split()[0]
@@ -339,6 +324,10 @@ def booking_customer_reschedule(request, ma_lh):
             except (ValueError, TypeError):
                 pass
 
+        if NgayHoatDong.objects.filter(ngay=ngay_str, trang_thai='Đã khóa').exists():
+            messages.error(request, 'Ngày mới đã bị khóa. Vui lòng chọn ngày khác.')
+            return redirect(redirect_url)
+
         gio_str = gio_hen_moi if gio_hen_moi else lich_hen.gio_hen
 
         try:
@@ -382,30 +371,10 @@ def booking_customer_reschedule(request, ma_lh):
             lich_hen.ma_dv = dich_vu_hien_tai
 
         if ngay_hen_moi:
-            ngay_hd = NgayHoatDong.objects.filter(ngay=ngay_str).first()
-            if not ngay_hd:
-                nv_first = NhanVien.objects.first()
-                try:
-                    if nv_first:
-                        ngay_hd = NgayHoatDong.objects.create(
-                            ma_nhd=f"NHD-{ngay_str}",
-                            ngay=ngay_str,
-                            trang_thai='Mở',
-                            ma_nv_cap_nhat=nv_first
-                        )
-                    else:
-                        ngay_hd = NgayHoatDong.objects.create(
-                            ma_nhd=f"NHD-{ngay_str}",
-                            ngay=ngay_str,
-                            trang_thai='Mở'
-                        )
-                except Exception:
-                    ngay_hd = NgayHoatDong.objects.create(
-                        ma_nhd=f"NHD-{ngay_str}",
-                        ngay=ngay_str,
-                        trang_thai='Mở'
-                    )
-
+            ngay_hd, _ = NgayHoatDong.objects.get_or_create(
+                ngay=ngay_str,
+                defaults={'ma_nhd': f'NHD-{ngay_str}', 'trang_thai': 'Mở'}
+            )
             lich_hen.ngay_hen = ngay_str
             lich_hen.ma_nhd = ngay_hd
 
@@ -487,26 +456,15 @@ def manage_activity_days(request):
                 delta = end_date - start_date
                 for i in range(delta.days + 1):
                     current_date = start_date + timedelta(days=i)
-                    nv_first = NhanVien.objects.first()
-                    ngay_hd = NgayHoatDong.objects.filter(ngay=current_date).first()
-
-                    create_data = {
-                        'ngay': current_date,
-                        'ma_nhd': f"NHD_{current_date.strftime('%Y%m%d')}_{uuid.uuid4().hex[:6]}",
-                        'trang_thai': 'Đã khóa',
-                        'ly_do_khoa': ly_do,
-                    }
-                    if nv_first:
-                        create_data['ma_nv_cap_nhat'] = nv_first
-
-                    if not ngay_hd:
-                        try:
-                            NgayHoatDong.objects.create(**create_data)
-                        except Exception:
-                            if 'ma_nv_cap_nhat' in create_data:
-                                del create_data['ma_nv_cap_nhat']
-                            NgayHoatDong.objects.create(**create_data)
-                    else:
+                    ngay_hd, created = NgayHoatDong.objects.get_or_create(
+                        ngay=current_date,
+                        defaults={
+                            'ma_nhd': f"NHD_{current_date.strftime('%Y%m%d')}_{uuid.uuid4().hex[:6]}",
+                            'trang_thai': 'Đã khóa',
+                            'ly_do_khoa': ly_do,
+                        }
+                    )
+                    if not created:
                         ngay_hd.trang_thai = 'Đã khóa'
                         ngay_hd.ly_do_khoa = ly_do
                         ngay_hd.save()
@@ -680,29 +638,10 @@ def booking_staff_create(request):
                     messages.error(request, 'Không tìm thấy tài khoản khách hàng với số điện thoại này. Vui lòng tạo hồ sơ khách hàng trước khi đặt lịch.')
                     return redirect('staff_booking_create')
 
-            ngay_hd = NgayHoatDong.objects.filter(ngay=ngay_check).first()
-            if not ngay_hd:
-                nv_first = NhanVien.objects.first()
-                try:
-                    if nv_first:
-                        ngay_hd = NgayHoatDong.objects.create(
-                            ma_nhd=f"NHD-{ngay_check}",
-                            ngay=ngay_check,
-                            trang_thai='Mở',
-                            ma_nv_cap_nhat=nv_first
-                        )
-                    else:
-                        ngay_hd = NgayHoatDong.objects.create(
-                            ma_nhd=f"NHD-{ngay_check}",
-                            ngay=ngay_check,
-                            trang_thai='Mở'
-                        )
-                except Exception:
-                    ngay_hd = NgayHoatDong.objects.create(
-                        ma_nhd=f"NHD-{ngay_check}",
-                        ngay=ngay_check,
-                        trang_thai='Mở'
-                    )
+            ngay_hd, _ = NgayHoatDong.objects.get_or_create(
+                ngay=ngay_check,
+                defaults={'ma_nhd': f'NHD-{ngay_check}', 'trang_thai': 'Mở'}
+            )
 
             ma_lh_moi = f"LH-{random.randint(100000, 999999)}"
 

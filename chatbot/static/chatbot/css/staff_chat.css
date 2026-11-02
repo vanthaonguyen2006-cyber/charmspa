@@ -1,0 +1,113 @@
+/* Giao diện Bảng điều khiển Chat CSKH */
+.staff-chat-container {
+    display: flex;
+    height: 85vh;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+/* Danh sách phiên tư vấn (Sidebar bên trái) */
+.session-list-sidebar {
+    width: 340px;
+    border-right: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+    overflow-y: auto;
+}
+
+.session-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.session-item:hover {
+    background-color: #e9ecef;
+}
+
+.session-item.active {
+    background-color: #e2e8f0;
+    border-left: 4px solid #0d6efd;
+}
+
+.session-item .customer-name {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 2px;
+}
+
+.session-item .request-topic {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Khung trò chuyện (Main area bên phải) */
+.chat-main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #ffffff;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #f4f6f8;
+}
+
+/* Bóng bóng tin nhắn */
+.message-bubble {
+    max-width: 70%;
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.message-bubble.customer {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    align-self: flex-start;
+    color: #212529;
+}
+
+.message-bubble.staff {
+    background-color: #0d6efd;
+    color: #ffffff;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.message-bubble.chatbot {
+    background-color: #e9ecef;
+    color: #495057;
+    align-self: flex-start;
+    border: 1px dashed #ced4da;
+}
+
+/* Ô nhập liệu */
+.chat-input-area {
+    padding: 15px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #ffffff;
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input-area textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 10px;
+}
