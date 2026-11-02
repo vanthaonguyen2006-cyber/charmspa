@@ -130,3 +130,8 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Cấu hình chuyển hướng sau khi đăng nhập thành công
+LOGIN_URL = '/accounts/dang_nhap/'
+LOGIN_REDIRECT_URL = '/bookings/staff/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/dang_nhap/'
