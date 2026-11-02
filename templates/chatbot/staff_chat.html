@@ -1,163 +1,126 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>Charm Grand Spa - Trung Tâm Tư Vấn CSKH</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-    .header-bar { background-color: #8b2828; color: #fff; padding: 15px 25px; }
-    .chat-card { height: 78vh; display: flex; flex-direction: column; }
-    .session-item { cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
-    .session-item:hover { background-color: #f1f3f5; }
-    .session-item.active { background-color: #e9ecef; border-left-color: #8b2828; font-weight: bold; }
-    .msg-box { flex: 1; overflow-y: auto; padding: 15px; background: #fafafa; display: flex; flex-direction: column; gap: 10px; }
-    .msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
-    .msg-bubble.Khách\ hàng { background: #e3f2fd; align-self: flex-start; border: 1px solid #bbdefb; }
-    .msg-bubble.Nhân\ viên { background: #8b2828; color: #fff; align-self: flex-end; }
-    .msg-bubble.Chatbot { background: #fff; border: 1px solid #ddd; align-self: flex-start; color: #555; }
-  </style>
-</head>
-<body>
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
 
-<div class="header-bar d-flex justify-content-between align-items-center shadow-sm">
-  <h5 class="m-0"><i class="fa-solid fa-headset me-2"></i>Charm Grand Spa - Bảng Tư Vấn Khách Hàng Trực Tuyến</h5>
-  <span class="badge bg-light text-dark">Nhân viên CSKH</span>
-</div>
+{% block title %}Bảng tư vấn CSKH trực tuyến - Charm Spa{% endblock %}
 
-<div class="container-fluid mt-3">
-  <div class="row">
-    <!-- Danh sách Yêu cầu tư vấn -->
-    <div class="col-md-4">
-      <div class="card shadow-sm" style="height: 78vh;">
-        <div class="card-header bg-white fw-bold"><i class="fa-solid fa-list me-2"></i>Danh sách Yêu cầu Tư vấn</div>
-        <div class="list-group list-group-flush overflow-auto" id="sessionList">
-          {% for yc in yeu_caus %}
-            <a class="list-group-item list-group-item-action session-item" onclick="selectSession('{{ yc.ma_pht.ma_pht }}', this)">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-primary fw-bold">{{ yc.ma_pht.ma_pht }}</span>
-                <span class="badge {% if yc.trang_thai == 'Chờ xử lý' %}bg-danger{% else %}bg-success{% endif %}">{{ yc.trang_thai }}</span>
-              </div>
-              <p class="mb-1 text-truncate text-muted small">{{ yc.noi_dung }}</p>
-              <small class="text-secondary" style="font-size: 11px;"><i class="fa-regular fa-clock me-1"></i>{{ yc.thoi_gian_yeu_cau|date:"H:i d/m" }}</small>
-            </a>
-          {% empty %}
-            <div class="p-4 text-center text-muted">Chưa có yêu cầu tư vấn nào</div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <!-- Khung Live Chat -->
-    <div class="col-md-8">
-      <div class="card shadow-sm chat-card">
-        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center" id="activeChatHeader">
-          <span><i class="fa-solid fa-comments me-2"></i>Chọn một phiên hội thoại từ danh sách bên trái để tư vấn</span>
-        </div>
-
-        <div class="msg-box" id="msgContainer">
-          <div class="text-center text-muted mt-5">Chọn phiên trò chuyện để bắt đầu nhắn tin trực tiếp với khách hàng</div>
-        </div>
-
-        <div class="card-footer bg-white p-3">
-          <div class="input-group">
-            <input type="text" id="staffInput" class="form-control" placeholder="Nhập tin nhắn tư vấn..." disabled onkeypress="if(event.key==='Enter') sendStaffMessage()">
-            <button class="btn text-white" style="background-color: #8b2828;" id="btnSend" disabled onclick="sendStaffMessage()">
-              <i class="fa-solid fa-paper-plane me-1"></i> Gửi Khách
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  let activeSessionId = null;
-  let chatTimer = null;
-
-  // Tự động cập nhật danh sách Yêu cầu tư vấn từ Server mỗi 3 giây
-  function fetchSessionList() {
-    fetch('/chatbot/api/staff/sessions/')
-      .then(res => res.json())
-      .then(data => {
-        const listContainer = document.getElementById('sessionList');
-        if (data.sessions && data.sessions.length > 0) {
-          listContainer.innerHTML = '';
-          data.sessions.forEach(yc => {
-            const isActive = (yc.ma_pht === activeSessionId) ? 'active' : '';
-            const badgeClass = (yc.trang_thai === 'Chờ xử lý') ? 'bg-danger' : 'bg-success';
-
-            const html = `
-              <a class="list-group-item list-group-item-action session-item ${isActive}" onclick="selectSession('${yc.ma_pht}', this)">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="text-primary fw-bold">${yc.ma_pht}</span>
-                  <span class="badge ${badgeClass}">${yc.trang_thai}</span>
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row g-3">
+        <!-- DANH SÁCH PHIÊN YÊU CẦU TƯ VẤN (CỘT TRÁI) -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white fw-bold py-3 border-bottom">
+                    <i data-lucide="list" class="me-1"></i> Danh sách Yêu cầu Tư vấn
                 </div>
-                <p class="mb-1 text-truncate text-muted small">${yc.noi_dung}</p>
-                <small class="text-secondary" style="font-size: 11px;"><i class="fa-regular fa-clock me-1"></i>${yc.thoi_gian}</small>
-              </a>`;
-            listContainer.insertAdjacentHTML('beforeend', html);
-          });
+                <div class="list-group list-group-flush" id="sessionList" style="max-height: 620px; overflow-y: auto;">
+                    <!-- Dữ liệu phiên tư vấn sẽ tự động tải vào đây qua JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- KHUNG CHAT TƯ VẤN TRỰC TUYẾN (CỘT PHẢI) -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-3 d-flex flex-column" style="height: 670px;">
+                <!-- HEADER PHIÊN CHAT -->
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small">Đang tư vấn cho phiên:</span>
+                        <strong id="activeSessionId" class="text-danger ms-1">Chưa chọn phiên</strong>
+                    </div>
+                    <span id="activeSessionStatus" class="badge bg-secondary">Chờ chọn</span>
+                </div>
+
+                <!-- THÔNG TIN KHÁCH HÀNG THU GỌN -->
+                <div class="bg-light p-3 border-bottom small row g-2 m-0" id="customerInfoBar">
+                    <div class="col-md-3"><strong>HỌ VÀ TÊN:</strong> <span id="custName">-</span></div>
+                    <div class="col-md-3"><strong>SỐ ĐIỆN THOẠI:</strong> <span id="custPhone">-</span></div>
+                    <div class="col-md-3"><strong>EMAIL:</strong> <span id="custEmail">-</span></div>
+                    <div class="col-md-3"><strong>NHU CẦU:</strong> <span id="custNeed">-</span></div>
+                </div>
+
+                <!-- KHUNG HIỂN THỊ TIN NHẮN (CUỘN NỘI BỘ, KHÔNG NHẢY TRANG) -->
+                <div class="card-body p-3 flex-grow-1 overflow-y-auto" id="messageBox" style="background-color: #fafafa;">
+                    <div class="text-center text-muted my-5">Vui lòng chọn một phiên hội thoại ở cột bên trái để bắt đầu tư vấn.</div>
+                </div>
+
+                <!-- Ô NHẬP TIN NHẮN -->
+                <div class="card-footer bg-white p-3 border-top">
+                    <form id="staffSendForm" class="d-flex gap-2">
+                        <input type="text" id="staffMessageInput" class="form-control shadow-none" placeholder="Nhập tin nhắn tư vấn..." autocomplete="off">
+                        <button type="submit" id="btnSendStaff" class="btn btn-danger d-flex align-items-center gap-1 px-4">
+                            <i data-lucide="send" style="width: 16px;"></i> Gửi Khách
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentSessionId = null;
+    const messageBox = document.getElementById('messageBox');
+    const staffSendForm = document.getElementById('staffSendForm');
+    const staffMessageInput = document.getElementById('staffMessageInput');
+
+    // Hàm cuộn khung chat xuống đáy (CHỈ CUỘN KHUNG CHAT, KHÔNG CUỘN TRANG WEB)
+    function scrollToBottom() {
+        if (messageBox) {
+            messageBox.scrollTop = messageBox.scrollHeight;
         }
-      })
-      .catch(err => console.log('Đang đồng bộ danh sách phiên...'));
-  }
+    }
 
-  // Khởi chạy tự động làm mới danh sách phiên
-  fetchSessionList();
-  setInterval(fetchSessionList, 3000);
+    // LẤY CSRF TOKEN DÙNG CHO POST AJAX
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
-  function selectSession(sessionId, element) {
-    activeSessionId = sessionId;
-    document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
-    element.classList.add('active');
+    // XỬ LÝ GỬI TIN NHẮN CHỐNG NHẢY TRANG
+    if (staffSendForm) {
+        staffSendForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // CHẶN HÀNH VI TẢI LAỊ/NHẢY TRANG CỦA FORM MẶC ĐỊNH
 
-    document.getElementById('activeChatHeader').innerHTML = `<span><i class="fa-solid fa-comments me-2"></i>Đang tư vấn cho phiên: <strong>${sessionId}</strong></span>`;
-    document.getElementById('staffInput').disabled = false;
-    document.getElementById('btnSend').disabled = false;
+            const content = staffMessageInput.value.trim();
+            if (!content || !currentSessionId) return;
 
-    fetchMessages();
-    if (chatTimer) clearInterval(chatTimer);
-    chatTimer = setInterval(fetchMessages, 2500);
-  }
-
-  function fetchMessages() {
-    if (!activeSessionId) return;
-    fetch(`/chatbot/api/chat/history/?session_id=${activeSessionId}`)
-      .then(res => res.json())
-      .then(data => {
-        const box = document.getElementById('msgContainer');
-        box.innerHTML = '';
-        data.messages.forEach(m => {
-          const div = document.createElement('div');
-          div.className = `msg-bubble ${m.sender}`;
-          div.innerHTML = `<strong>${m.sender}:</strong> ${m.content} <div class="text-end text-muted mt-1" style="font-size:10px;">${m.time}</div>`;
-          box.appendChild(div);
+            fetch('/chatbot/staff/api/send/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    message: content
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    staffMessageInput.value = '';
+                    loadMessages(currentSessionId); // Tải lại danh sách tin nhắn
+                }
+            });
         });
-        box.scrollTop = box.scrollHeight;
-      });
-  }
+    }
 
-  function sendStaffMessage() {
-    const input = document.getElementById('staffInput');
-    const msg = input.value.trim();
-    if (!msg || !activeSessionId) return;
-
-    fetch('/chatbot/api/staff/reply/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 'session_id': activeSessionId, 'message': msg })
-    })
-    .then(res => res.json())
-    .then(data => {
-      input.value = '';
-      fetchMessages();
-      fetchSessionList();
-    });
-  }
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
 </script>
-
-</body>
-</html>
+{% endblock %}

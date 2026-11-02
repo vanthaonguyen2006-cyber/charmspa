@@ -23,4 +23,4 @@ def customer_profile_view(request):
     context = {
         'khach_hang': khach_hang,
     }
-    return render(request, 'core/customer_profile.html', context)
+    return render(request, 'customer/customer_profile.html', context)

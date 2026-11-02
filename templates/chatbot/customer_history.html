@@ -1,0 +1,228 @@
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  .history-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  .history-breadcrumb {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #8b2828;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .history-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+  }
+  .history-subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  .history-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  /* Cột bên trái: Danh sách phiên */
+  .session-list-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+  }
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .session-item {
+    display: block;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+  }
+  .session-item:hover, .session-item.active {
+    background: #fcf6f6;
+    border-color: #8b2828;
+  }
+  .session-item-date {
+    font-size: 11px;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .session-item-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #222;
+    margin-bottom: 4px;
+  }
+  .session-item-status {
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .status-processing { color: #d97706; }
+  .status-done { color: #16a34a; }
+
+  /* Cột bên phải: Chi tiết tin nhắn */
+  .chat-detail-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    min-height: 520px;
+  }
+  .chat-detail-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .chat-messages-scroll {
+    flex: 1;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-bottom: 20px;
+  }
+  .history-msg-row {
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+  }
+  .history-msg-row.user { align-items: flex-end; }
+  .history-msg-row.bot, .history-msg-row.staff { align-items: flex-start; }
+  
+  .history-msg-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .history-msg-row.user .history-msg-bubble {
+    background: #8b2828;
+    color: white;
+  }
+  .history-msg-row.bot .history-msg-bubble, .history-msg-row.staff .history-msg-bubble {
+    background: #f4f4f5;
+    color: #222;
+  }
+  .history-msg-info {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+  }
+  .btn-continue-chat {
+    align-self: flex-end;
+    background: #8b2828;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-continue-chat:hover {
+    background: #6e1e1e;
+  }
+</style>
+
+<div class="history-container">
+  <div class="history-breadcrumb">TÀI KHOẢN {{ request.user.get_full_name|default:request.user.username }} / TƯ VẤN</div>
+  <h1 class="history-title">LỊCH SỬ HỘI THOẠI</h1>
+  <p class="history-subtitle">Xem lại những trao đổi với Charm Grand. Chọn một hội thoại để đọc nội dung chi tiết.</p>
+
+  <div class="history-layout">
+    <!-- Cột danh sách phiên hội thoại bên trái -->
+    <div class="session-list-card">
+      <div class="session-header">
+        <span>Hội thoại của bạn</span>
+        <span style="font-size: 12px; color: #888;">{{ phien_list.count }} hội thoại</span>
+      </div>
+
+      {% for phien in phien_list %}
+        <a href="?session_id={{ phien.ma_pht }}" 
+           class="session-item {% if selected_phien and selected_phien.ma_pht == phien.ma_pht %}active{% endif %}">
+          <div class="session-item-date">
+            <span>{{ phien.thoi_gian_bat_dau|date:"d/m/Y H:i" }}</span>
+            <span class="session-item-status {% if phien.trang_thai == 'Đang xử lý' %}status-processing{% else %}status-done{% endif %}">
+              {{ phien.trang_thai }}
+            </span>
+          </div>
+          <div class="session-item-title">
+            {% if phien.ma_kb %}{{ phien.ma_kb.ten_kich_ban }}{% else %}Tư vấn trực tiếp{% endif %}
+          </div>
+          <div style="font-size: 12px; color: #777;">Mã phiên: {{ phien.ma_pht }}</div>
+        </a>
+      {% empty %}
+        <p style="font-size: 13px; color: #888; text-align: center; padding: 20px 0;">Bạn chưa có phiên hội thoại nào.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Cột chi tiết tin nhắn bên phải -->
+    <div class="chat-detail-card">
+      {% if selected_phien %}
+        <div class="chat-detail-header">
+          <h2 style="font-size: 20px; font-weight: 600; font-family: 'Playfair Display', serif;">
+            {% if selected_phien.ma_kb %}{{ selected_phien.ma_kb.ten_kich_ban }}{% else %}Tư vấn trực tiếp{% endif %}
+          </h2>
+          <div style="font-size: 12px; color: #888; margin-top: 4px;">
+            {{ selected_phien.thoi_gian_bat_dau|date:"d/m/Y H:i" }} • Trợ lý tư vấn • {{ selected_phien.trang_thai }}
+          </div>
+        </div>
+
+        <div class="chat-messages-scroll">
+          {% for tn in tin_nhans %}
+            <div class="history-msg-row {% if tn.loai_nguoi_gui == 'Khách hàng' %}user{% elif tn.loai_nguoi_gui == 'Nhân viên' %}staff{% else %}bot{% endif %}">
+              <div class="history-msg-bubble">
+                {{ tn.noi_dung|safe }}
+              </div>
+              <div class="history-msg-info">
+                {{ tn.loai_nguoi_gui }} • {{ tn.thoi_gian|date:"H:i" }}
+              </div>
+            </div>
+          {% empty %}
+            <p style="color: #999; text-align: center; margin-top: 50px;">Chưa có tin nhắn trong phiên này.</p>
+          {% endfor %}
+        </div>
+
+        <button class="btn-continue-chat" onclick="continueConversation('{{ selected_phien.ma_pht }}')">
+          Tiếp tục hội thoại
+        </button>
+      {% else %}
+        <p style="color: #999; text-align: center; margin-top: 150px;">Vui lòng chọn một phiên hội thoại từ danh sách bên trái để xem nội dung.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  function continueConversation(sessionId) {
+    // Lưu phiên được chọn vào localStorage và chuyển hướng về trang chủ/profile để mở Widget Chat
+    localStorage.setItem('cg_session', sessionId);
+    window.location.href = "/customer/?open_chat=true";
+  }
+</script>
+{% endblock %}

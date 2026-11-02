@@ -1,11 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from customers.models import KhachHang
 
 def customer_home(request):
     return render(request, 'core/customer_home.html')
 
 
-from django.shortcuts import render
-from customers.models import KhachHang
+
 
 
 def customer_profile_view(request):
@@ -24,3 +25,20 @@ def customer_profile_view(request):
         'khach_hang': khach_hang,
     }
     return render(request, 'customer/customer_profile.html', context)
+
+
+def contact_view(request):
+    if request.method == 'POST':
+        ho_ten = request.POST.get('ho_ten')
+        so_dien_thoai = request.POST.get('so_dien_thoai')
+        email = request.POST.get('email')
+        chu_de = request.POST.get('chu_de')
+        noi_dung = request.POST.get('noi_dung')
+
+        # Xử lý lưu thông tin hoặc gửi Email chăm sóc khách hàng tại đây
+
+        messages.success(request,
+                         f"Cảm ơn {ho_ten}! Yêu cầu liên hệ của bạn đã được gửi thành công. Charm Spa Grand sẽ phản hồi trong thời gian sớm nhất.")
+        return redirect('core:contact')
+
+    return render(request, 'core/contact.html')
