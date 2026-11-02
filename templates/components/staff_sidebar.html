@@ -53,12 +53,22 @@
             <span class="sidebar-label">Ngày hoạt động</span>
         </a>
 
-        <a href="/admin/feedback/phanhoikhieunai/" title="Phản hồi & Khiếu nại"
-           class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}">
+        <!-- PHẢN HỒI & KHIẾU NẠI -->
+        <a
+            href="{% if request.user.is_superuser %}{% url 'feedback:admin_feedback_list' %}{% else %}{% url 'feedback:staff_feedback_list' %}{% endif %}"
+            title="Phản hồi & Khiếu nại"
+            class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}"
+        >
             <i data-lucide="message-square-text" class="sidebar-icon"></i>
-            <span class="sidebar-label">Phản hồi & Khiếu nại</span>
+
+            <span class="sidebar-label">
+                Phản hồi & Khiếu nại
+            </span>
+
             {% if feedback_count %}
-                <span class="menu-badge">{{ feedback_count }}</span>
+                <span class="menu-badge">
+                    {{ feedback_count }}
+                </span>
             {% endif %}
         </a>
 

@@ -61,40 +61,51 @@
             </div>
         </div>
 
-<!-- SECTION 2: THANH MENU TAB ĐIỀU HƯỚNG (ĐÃ SỬA CHUẨN XÁC) -->
-       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
-           <nav class="flex flex-col sm:flex-row justify-around text-sm font-medium text-gray-500">
-               <!-- Mục 1: Hồ sơ khách hàng -->
-               <a href="/customer/profile/"
-                  class="flex-1 text-center py-4 px-6 border-b-2 transition
-                  {% if request.resolver_match.url_name == 'customer_profile' %}
-                      border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
-                  {% else %}
-                      border-transparent hover:text-gray-700
-                  {% endif %}">
-                  1. Hồ sơ khách hàng
-               </a>
+        <!-- SECTION 2: THANH MENU TAB ĐIỀU HƯỚNG -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+            <nav class="flex flex-col sm:flex-row justify-around text-sm font-medium text-gray-500">
 
-               <!-- Mục 2: Lịch sử dịch vụ -->
-               <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
-                   2. Lịch sử dịch vụ
-               </a>
+                <!-- Mục 1: Hồ sơ khách hàng -->
+                <a href="/customer/profile/"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if request.resolver_match.url_name == 'customer_profile' %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent hover:text-gray-700
+                   {% endif %}">
+                    1. Hồ sơ khách hàng
+                </a>
 
-               <!-- Mục 3: Lịch hẹn (Dùng đúng url name của booking hoặc đường dẫn) -->
-               <a href="{% url 'booking_customer_list' %}"
-                  class="flex-1 text-center py-4 px-6 border-b-2 transition
-                  {% if 'booking' in request.resolver_match.url_name %}
-                      border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
-                  {% else %}
-                      border-transparent hover:text-gray-700
-                  {% endif %}">
-                   3. Lịch hẹn
-               </a>
-               <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
-                   4. Khiếu nại
-               </a>
-           </nav>
-       </div>
+                <!-- Mục 2: Lịch sử dịch vụ -->
+                <a href="#"
+                   class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
+                    2. Lịch sử dịch vụ
+                </a>
+
+                <!-- Mục 3: Lịch hẹn -->
+                <a href="{% url 'booking_customer_list' %}"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if 'booking' in request.resolver_match.url_name %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent hover:text-gray-700
+                   {% endif %}">
+                    3. Lịch hẹn
+                </a>
+
+                <!-- Mục 4: Khiếu nại -->
+                <a href="{% url 'feedback:customer_feedback_list' %}"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if request.resolver_match.url_name == 'customer_feedback_list' or request.resolver_match.url_name == 'customer_feedback_create' %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent hover:text-gray-700
+                   {% endif %}">
+                    4. Khiếu nại
+                </a>
+
+            </nav>
+        </div>
 
         <!-- SECTION 3: NỘI DUNG CHI TIẾT -->
         <div class="tab-content-area">

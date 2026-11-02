@@ -1,0 +1,549 @@
+
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Chi tiết phiếu | Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/feedback.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="feedback-page">
+
+    <!-- Thông báo kết quả từ Django -->
+    {% if messages %}
+        {% for message in messages %}
+            <div role="alert"
+                 style="margin:12px 0;padding:14px 18px;border-radius:8px;
+                        background:{% if message.tags == 'success' %}#e7f4ed{% else %}#fff0ed{% endif %};
+                        color:{% if message.tags == 'success' %}#27845b{% else %}#ad3931{% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Tiêu đề và các thao tác chính -->
+    <div class="feedback-detail-heading">
+        <div>
+            <h1>Chi tiết phiếu</h1>
+            <p class="feedback-subtitle">
+                #{{ ph.ma_ph }} · {{ ph.loai_ph }} · {{ ph.ngay_gui|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+
+            {% if ph.tinh_hop_le == "Hợp lệ" and ph.trang_thai_xu_ly != "Đã giải quyết" %}
+                <button type="button" class="feedback-btn red"
+                        data-open-modal="invalidModal">
+                    Đánh dấu không hợp lệ
+                </button>
+            {% endif %}
+
+            <button type="button" class="feedback-btn"
+                    data-open-modal="assignModal">
+                {% if phan_cong %}Thay đổi phân công{% else %}Phân công nhân viên{% endif %}
+            </button>
+
+            {% if ph.tinh_hop_le == "Hợp lệ" and ph.trang_thai_xu_ly != "Đã giải quyết" %}
+                <button type="button" class="feedback-btn"
+                        data-open-modal="updateModal">
+                    Cập nhật trạng thái
+                </button>
+
+                <button type="button" class="feedback-btn"
+                        style="background:#27845b;border-color:#27845b;color:white"
+                        data-open-modal="completeModal">
+                    Hoàn tất phiếu
+                </button>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <div class="feedback-detail-grid">
+
+        <!-- CỘT NỘI DUNG CHÍNH -->
+        <div class="feedback-detail-main">
+
+            <!-- Nội dung khách hàng gửi -->
+            <section class="feedback-card">
+                <div class="feedback-type">{{ ph.loai_ph }}</div>
+                <div class="feedback-title">{{ ph.tieu_de }}</div>
+
+                <div class="feedback-info-grid">
+                    <div>
+                        <div class="feedback-info-label">Mã khách hàng</div>
+                        <div class="feedback-info-value">{{ ph.ma_kh_id }}</div>
+                    </div>
+
+                    <div>
+                        <div class="feedback-info-label">Loại phiếu</div>
+                        <div class="feedback-info-value">{{ ph.loai_ph }}</div>
+                    </div>
+
+                    <div>
+                        <div class="feedback-info-label">Ngày gửi</div>
+                        <div class="feedback-info-value">
+                            {{ ph.ngay_gui|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="feedback-info-label">Trạng thái xử lý</div>
+                        <div class="feedback-info-value">
+                            <strong>{{ ph.trang_thai_xu_ly }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feedback-message">
+                    <strong>NỘI DUNG KHÁCH HÀNG</strong>
+                    <p>{{ ph.noi_dung|linebreaksbr }}</p>
+                </div>
+
+                <!-- Các tệp đính kèm -->
+                {% if tep_dinh_kem %}
+                    <div class="feedback-attachments">
+                        {% for tep in tep_dinh_kem %}
+                            <div class="feedback-attachment">
+                                <strong>{{ tep.ten_tep }}</strong>
+                                <div class="feedback-muted">{{ tep.loai_tep }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+
+            <!-- Lịch sử xử lý -->
+            <section class="feedback-card">
+                <h2>Lịch sử xử lý</h2>
+
+                {% for ls in lich_su %}
+                    <div class="feedback-history-item">
+                        <div class="feedback-history-date">
+                            {{ ls.ngay_thuc_hien|date:"d/m · H:i" }}
+                        </div>
+
+                        <div class="feedback-history-dot">●</div>
+
+                        <div>
+                            <strong>{{ ls.loai_thao_tac }}</strong>
+
+                            <div class="feedback-muted">
+                                Tài khoản: {{ ls.ma_nguoi_thuc_hien_id }}
+                            </div>
+
+                            <div>
+                                {{ ls.noi_dung|default:"Không có ghi chú" }}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="feedback-muted">Chưa có lịch sử xử lý.</p>
+                {% endfor %}
+            </section>
+
+        </div>
+
+        <!-- CỘT THÔNG TIN BÊN PHẢI -->
+        <aside class="feedback-detail-side">
+
+            <!-- Thông tin khách hàng -->
+            <section class="feedback-card">
+                <h2>Thông tin khách hàng</h2>
+
+                <div class="feedback-side-value">
+                    <strong>Mã khách hàng: {{ ph.ma_kh_id }}</strong>
+                </div>
+
+                <p class="feedback-muted">
+                    Tên, số điện thoại và email sẽ hiển thị khi thống nhất
+                    lại liên kết model khách hàng với database.
+                </p>
+            </section>
+
+            <!-- Thông tin phân công -->
+            <section class="feedback-card">
+                <h2>Phân công xử lý</h2>
+
+                {% if phan_cong %}
+                    <div class="feedback-side-value">
+                        Mã nhân viên:
+                        <strong>{{ phan_cong.ma_nv_id }}</strong>
+                    </div>
+
+                    <p class="feedback-muted">
+                        Thời gian giao:
+                        {{ phan_cong.thoi_gian_pc|date:"d/m/Y H:i" }}
+                    </p>
+
+                    {% if phan_cong.thoi_gian_ket_thuc %}
+                        <span class="feedback-badge resolved">
+                            Đã kết thúc phân công
+                        </span>
+                    {% else %}
+                        <span class="feedback-badge processing">
+                            Đang xử lý
+                        </span>
+                    {% endif %}
+
+                {% else %}
+                    <p><strong>Chưa có nhân viên phụ trách</strong></p>
+                    <p class="feedback-muted">
+                        Phân công nhân viên để bắt đầu xử lý phiếu.
+                    </p>
+                {% endif %}
+
+                <button type="button" class="feedback-btn"
+                        data-open-modal="assignModal"
+                        style="width:100%;margin-top:12px">
+                    {% if phan_cong %}Thay đổi phân công{% else %}Phân công nhân viên{% endif %}
+                </button>
+            </section>
+
+            <!-- Tình trạng hợp lệ -->
+            <section class="feedback-card">
+                <h2>Tính hợp lệ</h2>
+
+                <span class="feedback-badge
+                    {% if ph.tinh_hop_le == 'Không hợp lệ' %}invalid
+                    {% else %}valid{% endif %}">
+                    {{ ph.tinh_hop_le }}
+                </span>
+
+                {% if ph.ly_do_khong_hop_le %}
+                    <p class="feedback-muted">
+                        Lý do: {{ ph.ly_do_khong_hop_le }}
+                    </p>
+                {% endif %}
+
+                {% if ph.chi_tiet_ly_do %}
+                    <p>{{ ph.chi_tiet_ly_do }}</p>
+                {% endif %}
+            </section>
+
+            <!-- Trạng thái xử lý -->
+            <section class="feedback-card">
+                <h2>Trạng thái xử lý</h2>
+
+                <div class="feedback-side-value">
+                    <strong>{{ ph.trang_thai_xu_ly }}</strong>
+                </div>
+
+                {% if ph.ngay_giai_quyet %}
+                    <p class="feedback-muted">
+                        Ngày giải quyết:
+                        {{ ph.ngay_giai_quyet|date:"d/m/Y H:i" }}
+                    </p>
+                {% endif %}
+
+                {% if ph.trang_thai_xu_ly == "Đã giải quyết" %}
+                    <span class="feedback-badge resolved">
+                        Đã hoàn tất
+                    </span>
+                {% else %}
+                    <span class="feedback-badge processing">
+                        Chưa hoàn tất
+                    </span>
+                {% endif %}
+            </section>
+
+        </aside>
+    </div>
+</div>
+
+
+<!-- ========================================= -->
+<!-- MODAL 1: PHÂN CÔNG NHÂN VIÊN -->
+<!-- ========================================= -->
+<div class="feedback-modal" id="assignModal" role="dialog"
+     aria-modal="true" aria-labelledby="assignModalTitle">
+
+    <div class="feedback-modal-box">
+
+        <div class="feedback-modal-head">
+            <div>
+                <h2 id="assignModalTitle">Phân công nhân viên CSKH</h2>
+                <p class="feedback-muted">
+                    Chọn nhân viên tiếp nhận phiếu #{{ ph.ma_ph }}.
+                    Danh sách được lấy từ cơ sở dữ liệu.
+                </p>
+            </div>
+
+            <button type="button" class="feedback-modal-close"
+                    data-close-modal aria-label="Đóng">×</button>
+        </div>
+
+        <form method="post"
+              action="{% url 'feedback:admin_feedback_detail' feedback_id=ph.ma_ph %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign">
+
+            <div class="feedback-radio-list">
+                {% for nv in nhan_vien_list %}
+                    <label class="feedback-radio-option">
+                        <input type="radio"
+                               name="ma_nv"
+                               value="{{ nv.ma_nv }}"
+                               {% if phan_cong and phan_cong.ma_nv_id == nv.ma_nv %}checked{% endif %}
+                               required>
+
+                        <span>
+                            <strong>{{ nv.ho_ten }}</strong><br>
+                            <small>{{ nv.vi_tri }} · {{ nv.ma_nv }}</small>
+                        </span>
+                    </label>
+                {% empty %}
+                    <p class="feedback-muted">
+                        Chưa có nhân viên trong cơ sở dữ liệu.
+                    </p>
+                {% endfor %}
+            </div>
+
+            <p class="feedback-muted">
+                Sau khi xác nhận, nhân viên được chọn sẽ trở thành
+                người phụ trách phiếu.
+            </p>
+
+            <div class="feedback-modal-actions">
+                <button type="button" class="feedback-btn light"
+                        data-close-modal>
+                    Hủy
+                </button>
+
+                <button type="submit" class="feedback-btn">
+                    Xác nhận phân công
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- ========================================= -->
+<!-- MODAL 2: ĐÁNH DẤU KHÔNG HỢP LỆ -->
+<!-- ========================================= -->
+<div class="feedback-modal" id="invalidModal" role="dialog"
+     aria-modal="true" aria-labelledby="invalidModalTitle">
+
+    <div class="feedback-modal-box">
+
+        <div class="feedback-modal-head">
+            <div>
+                <h2 id="invalidModalTitle">
+                    Đánh dấu phiếu không hợp lệ?
+                </h2>
+
+                <p class="feedback-muted">
+                    Sau khi xác nhận, phiếu sẽ chuyển sang trạng thái
+                    Đã giải quyết và kết thúc phân công hiện tại.
+                </p>
+            </div>
+
+            <button type="button" class="feedback-modal-close"
+                    data-close-modal aria-label="Đóng">×</button>
+        </div>
+
+        <form method="post"
+              action="{% url 'feedback:admin_feedback_detail' feedback_id=ph.ma_ph %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="mark_invalid">
+
+            <label>
+                Lý do <span style="color:#ad3931">*</span>
+            </label>
+
+            <div class="feedback-radio-list">
+                {% for value, label in ly_do_khong_hop_le_choices %}
+                    <label class="feedback-radio-option">
+                        <input type="radio"
+                               name="ly_do_khong_hop_le"
+                               value="{{ value }}"
+                               required>
+                        <span>{{ label }}</span>
+                    </label>
+                {% empty %}
+                    <p>Chưa cấu hình danh sách lý do không hợp lệ.</p>
+                {% endfor %}
+            </div>
+
+            <label for="invalidDetail">Chi tiết lý do</label>
+            <textarea id="invalidDetail"
+                      name="chi_tiet_ly_do"
+                      placeholder="Bổ sung thông tin..."></textarea>
+
+            <div class="feedback-modal-actions">
+                <button type="button" class="feedback-btn light"
+                        data-close-modal>
+                    Quay lại
+                </button>
+
+                <button type="submit" class="feedback-btn red">
+                    Xác nhận không hợp lệ
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- ========================================= -->
+<!-- MODAL 3: ADMIN CẬP NHẬT TRẠNG THÁI -->
+<!-- ========================================= -->
+<div class="feedback-modal" id="updateModal" role="dialog"
+     aria-modal="true" aria-labelledby="updateModalTitle">
+
+    <div class="feedback-modal-box">
+
+        <div class="feedback-modal-head">
+            <div>
+                <h2 id="updateModalTitle">Cập nhật trạng thái phiếu</h2>
+                <p class="feedback-muted">
+                    Admin có thể cập nhật trạng thái và ghi chú xử lý trực tiếp.
+                </p>
+            </div>
+
+            <button type="button" class="feedback-modal-close"
+                    data-close-modal aria-label="Đóng">×</button>
+        </div>
+
+        <form method="post"
+              action="{% url 'feedback:admin_feedback_detail' feedback_id=ph.ma_ph %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update">
+
+            <label for="adminFeedbackStatus">Trạng thái mới</label>
+
+            <select id="adminFeedbackStatus"
+                    name="trang_thai_xu_ly"
+                    required
+                    style="width:100%;padding:11px;margin:8px 0 16px">
+                <option value="Đã tiếp nhận"
+                    {% if ph.trang_thai_xu_ly == "Đã tiếp nhận" %}selected{% endif %}>
+                    Đã tiếp nhận
+                </option>
+
+                <option value="Đang xử lý"
+                    {% if ph.trang_thai_xu_ly == "Đang xử lý" %}selected{% endif %}>
+                    Đang xử lý
+                </option>
+            </select>
+
+            <label for="adminUpdateNote">Ghi chú xử lý</label>
+
+            <textarea id="adminUpdateNote"
+                      name="noi_dung_xu_ly"
+                      rows="4"
+                      placeholder="Nhập nội dung cập nhật hoặc ghi chú xử lý..."></textarea>
+
+            <div class="feedback-modal-actions">
+                <button type="button" class="feedback-btn light"
+                        data-close-modal>
+                    Hủy
+                </button>
+
+                <button type="submit" class="feedback-btn">
+                    Lưu cập nhật
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- ========================================= -->
+<!-- MODAL 4: ADMIN HOÀN TẤT PHIẾU -->
+<!-- ========================================= -->
+<div class="feedback-modal" id="completeModal" role="dialog"
+     aria-modal="true" aria-labelledby="completeModalTitle">
+
+    <div class="feedback-modal-box">
+
+        <div class="feedback-modal-head">
+            <div>
+                <h2 id="completeModalTitle">Hoàn tất xử lý phiếu</h2>
+
+                <p class="feedback-muted">
+                    Xác nhận hoàn tất phiếu #{{ ph.ma_ph }}.
+                    Thao tác này sẽ cập nhật trạng thái và lưu lịch sử xử lý.
+                </p>
+            </div>
+
+            <button type="button" class="feedback-modal-close"
+                    data-close-modal aria-label="Đóng">×</button>
+        </div>
+
+        <form method="post"
+              action="{% url 'feedback:admin_feedback_detail' feedback_id=ph.ma_ph %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="complete">
+
+            <label for="adminFinalResponse">
+                Nội dung phản hồi cuối cùng
+                <span style="color:#ad3931">*</span>
+            </label>
+
+            <textarea id="adminFinalResponse"
+                      name="noi_dung_phan_hoi"
+                      rows="5"
+                      placeholder="Nhập nội dung phản hồi và kết quả xử lý cuối cùng..."
+                      required></textarea>
+
+            <div class="feedback-modal-actions">
+                <button type="button" class="feedback-btn light"
+                        data-close-modal>
+                    Hủy
+                </button>
+
+                <button type="submit" class="feedback-btn"
+                        style="background:#27845b;border-color:#27845b;color:white">
+                    Xác nhận hoàn tất
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // Mở modal tương ứng khi nhấn nút thao tác
+    document.querySelectorAll("[data-open-modal]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const modal = document.getElementById(button.dataset.openModal);
+
+            if (modal) {
+                modal.classList.add("open");
+            }
+        });
+    });
+
+    // Đóng modal bằng nút đóng hoặc nút hủy
+    document.querySelectorAll("[data-close-modal]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const modal = button.closest(".feedback-modal");
+
+            if (modal) {
+                modal.classList.remove("open");
+            }
+        });
+    });
+
+    // Đóng modal khi nhấn ra ngoài hộp thoại
+    document.querySelectorAll(".feedback-modal").forEach(function (modal) {
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                modal.classList.remove("open");
+            }
+        });
+    });
+</script>
+{% endblock %}

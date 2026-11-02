@@ -1,0 +1,944 @@
+
+{% extends "layouts/customer_base.html" %}
+{% load static %}
+
+{% block title %}
+Trang chủ | Charm Spa Grand
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+/* ==========================================
+   TRANG CHỦ CHARM SPA GRAND
+   Toàn bộ CSS đặt trong home.html
+========================================== */
+
+.home-page {
+    --brown: #49372B;
+    --dark: #2F251E;
+    --gold: #C49A45;
+    --cream: #FDFBF7;
+    --beige: #F4EFE7;
+    --text: #71655A;
+
+    color: var(--brown);
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    overflow: hidden;
+}
+
+.home-page * {
+    box-sizing: border-box;
+}
+
+.home-page a {
+    text-decoration: none;
+}
+
+.home-page img {
+    display: block;
+    max-width: 100%;
+}
+
+/* ==========================================
+   1. HERO BANNER
+========================================== */
+
+.home-hero {
+    min-height: 610px;
+    padding: 85px 8%;
+    display: flex;
+    align-items: center;
+    position: relative;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(35, 27, 21, .82),
+            rgba(35, 27, 21, .25)
+        ),
+        url("{% static 'images/home_banner.jpg' %}");
+
+    background-size: cover;
+    background-position: center;
+}
+
+.home-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 650px;
+    color: white;
+}
+
+.home-eyebrow {
+    display: inline-block;
+    color: #E4C68D;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 24px;
+}
+
+.home-hero h1 {
+    font-family: Georgia, serif;
+    font-size: clamp(39px, 5vw, 65px);
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0 0 24px;
+}
+
+.home-hero p {
+    color: #E6DCD1;
+    font-size: 16px;
+    line-height: 1.9;
+    max-width: 540px;
+    margin-bottom: 32px;
+}
+
+.home-hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Nút dùng chung */
+.home-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px 26px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: .3s ease;
+}
+
+.home-btn-primary {
+    background: var(--gold);
+    color: white;
+    border: 1px solid var(--gold);
+}
+
+.home-btn-primary:hover {
+    background: #A98236;
+    border-color: #A98236;
+    color: white;
+    transform: translateY(-3px);
+}
+
+.home-btn-outline {
+    border: 1px solid rgba(255,255,255,.8);
+    color: white;
+}
+
+.home-btn-outline:hover {
+    background: white;
+    color: var(--brown);
+}
+
+/* ==========================================
+   2. THÔNG TIN NỔI BẬT
+========================================== */
+
+.home-highlights {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: #F8F4ED;
+    padding: 32px 8%;
+}
+
+.home-highlight-item {
+    text-align: center;
+    padding: 12px 20px;
+    border-right: 1px solid #E5D9C8;
+}
+
+.home-highlight-item:last-child {
+    border-right: none;
+}
+
+.home-highlight-item strong {
+    display: block;
+    color: var(--brown);
+    font-family: Georgia, serif;
+    font-size: 25px;
+    font-weight: 500;
+    margin-bottom: 7px;
+}
+
+.home-highlight-item span {
+    font-size: 13px;
+    color: var(--text);
+}
+
+/* ==========================================
+   3. TIÊU ĐỀ SECTION
+========================================== */
+
+.home-section-heading {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 50px;
+}
+
+.home-section-heading span {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.home-section-heading h2 {
+    font-family: Georgia, serif;
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 400;
+    color: var(--brown);
+    margin: 15px 0;
+}
+
+.home-section-heading p {
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.9;
+}
+
+/* ==========================================
+   4. GIỚI THIỆU CHARM SPA
+========================================== */
+
+.home-about {
+    padding: 95px 8%;
+    background: var(--cream);
+}
+
+.home-about-content {
+    max-width: 1150px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 65px;
+}
+
+.home-about-visual {
+    height: 390px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #D8C5AA;
+}
+
+.home-about-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .5s ease;
+}
+
+.home-about-visual:hover img {
+    transform: scale(1.04);
+}
+
+.home-about-text h3 {
+    font-family: Georgia, serif;
+    font-weight: 400;
+    font-size: 31px;
+    line-height: 1.4;
+    margin-bottom: 22px;
+}
+
+.home-about-text p {
+    color: var(--text);
+    line-height: 2;
+    font-size: 15px;
+    margin-bottom: 18px;
+}
+
+.home-about-link {
+    display: inline-block;
+    color: #A98236;
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 7px;
+    margin-top: 10px;
+}
+
+/* ==========================================
+   5. DỊCH VỤ NỔI BẬT
+========================================== */
+
+.home-services {
+    background: var(--beige);
+    padding: 90px 8%;
+}
+
+.home-service-list {
+    max-width: 1200px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+}
+
+.home-service-card {
+    background: white;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(47,37,30,.06);
+    transition: .3s ease;
+}
+
+.home-service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(47,37,30,.12);
+}
+
+.home-service-image {
+    height: 230px;
+    overflow: hidden;
+    background: #D8C5AA;
+}
+
+.home-service-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .5s ease;
+}
+
+.home-service-card:hover .home-service-image img {
+    transform: scale(1.06);
+}
+
+.home-service-info {
+    padding: 26px;
+}
+
+.home-service-info h3 {
+    color: var(--brown);
+    font-family: Georgia, serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 13px;
+}
+
+.home-service-info p {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.8;
+    min-height: 50px;
+}
+
+.home-service-info a {
+    display: inline-block;
+    margin-top: 18px;
+    color: #A98236;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ==========================================
+   6. LÝ DO LỰA CHỌN CHARM SPA
+========================================== */
+
+.home-advantages {
+    padding: 90px 8%;
+    background: var(--cream);
+}
+
+.home-advantage-list {
+    max-width: 1150px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+}
+
+.home-advantage-card {
+    padding: 35px 25px;
+    text-align: center;
+    border: 1px solid #E9DFD1;
+    background: white;
+    border-radius: 5px;
+    transition: .3s ease;
+}
+
+.home-advantage-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-5px);
+}
+
+.home-advantage-card i {
+    font-size: 35px;
+    color: var(--gold);
+    margin-bottom: 22px;
+}
+
+.home-advantage-card h3 {
+    font-family: Georgia, serif;
+    font-size: 21px;
+    font-weight: 400;
+    margin-bottom: 14px;
+}
+
+.home-advantage-card p {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* ==========================================
+   7. KHÔNG GIAN CHARM SPA
+========================================== */
+
+.home-gallery {
+    padding: 90px 8%;
+    background: var(--beige);
+}
+
+.home-gallery-list {
+    max-width: 1200px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.home-gallery-item {
+    height: 280px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #D8C5AA;
+}
+
+.home-gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .5s ease;
+}
+
+.home-gallery-item:hover img {
+    transform: scale(1.06);
+}
+
+/* ==========================================
+   8. KÊU GỌI ĐẶT LỊCH
+========================================== */
+
+.home-booking {
+    padding: 100px 8%;
+    text-align: center;
+    color: white;
+    background:
+        linear-gradient(
+            rgba(47,37,30,.86),
+            rgba(47,37,30,.86)
+        ),
+        url("{% static 'images/home_banner.jpg' %}");
+
+    background-size: cover;
+    background-position: center;
+}
+
+.home-booking-content {
+    max-width: 760px;
+    margin: auto;
+}
+
+.home-booking-content span {
+    color: #E4C68D;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.home-booking-content h2 {
+    font-family: Georgia, serif;
+    font-size: clamp(30px, 4vw, 45px);
+    font-weight: 400;
+    line-height: 1.35;
+    margin: 22px 0;
+}
+
+.home-booking-content p {
+    color: #E6DCD1;
+    line-height: 1.9;
+    font-size: 15px;
+    margin-bottom: 30px;
+}
+
+/* ==========================================
+   9. RESPONSIVE TABLET
+========================================== */
+
+@media (max-width: 950px) {
+
+    .home-about-content {
+        gap: 35px;
+    }
+
+    .home-service-list,
+    .home-advantage-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+/* ==========================================
+   10. RESPONSIVE MOBILE
+========================================== */
+
+@media (max-width: 650px) {
+
+    .home-hero {
+        min-height: 560px;
+        padding: 65px 7%;
+        background-position: center;
+    }
+
+    .home-hero h1 {
+        font-size: 39px;
+    }
+
+    .home-hero p {
+        font-size: 14px;
+    }
+
+    .home-hero-buttons {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .home-btn {
+        min-width: 190px;
+    }
+
+    .home-highlights {
+        padding: 20px 5%;
+        grid-template-columns: 1fr;
+    }
+
+    .home-highlight-item {
+        border-right: none;
+        border-bottom: 1px solid #E5D9C8;
+        padding: 18px;
+    }
+
+    .home-highlight-item:last-child {
+        border-bottom: none;
+    }
+
+    .home-about,
+    .home-services,
+    .home-advantages,
+    .home-gallery {
+        padding: 65px 6%;
+    }
+
+    .home-about-content {
+        grid-template-columns: 1fr;
+    }
+
+    .home-about-visual {
+        height: 270px;
+    }
+
+    .home-service-list,
+    .home-advantage-list,
+    .home-gallery-list {
+        grid-template-columns: 1fr;
+    }
+
+    .home-service-image {
+        height: 230px;
+    }
+
+    .home-gallery-item {
+        height: 240px;
+    }
+
+    .home-booking {
+        padding: 75px 7%;
+    }
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="home-page">
+
+    <!-- =====================================
+         1. HERO BANNER
+    ====================================== -->
+    <section class="home-hero">
+
+        <div class="home-hero-content">
+
+            <span class="home-eyebrow">
+                CHARM SPA GRAND · SINCE 2013
+            </span>
+
+            <h1>
+                Đánh thức vẻ đẹp.<br>
+                Nuôi dưỡng sự thư thái.
+            </h1>
+
+            <p>
+                Tạm gác lại những bộn bề cuộc sống,
+                dành thời gian chăm sóc bản thân và
+                tận hưởng những phút giây thư giãn
+                tại Charm Spa Grand.
+            </p>
+
+            <div class="home-hero-buttons">
+
+                <a href="#booking"
+                   class="home-btn home-btn-primary">
+                    ĐẶT LỊCH NGAY
+                    <i class="fas fa-arrow-right" style="margin-left:8px;"></i>
+                </a>
+
+                <a href="#services"
+                   class="home-btn home-btn-outline">
+                    KHÁM PHÁ DỊCH VỤ
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         2. THÔNG TIN NỔI BẬT
+    ====================================== -->
+    <section class="home-highlights">
+
+        <div class="home-highlight-item">
+            <strong>Since 2013</strong>
+            <span>Hành trình chăm sóc và làm đẹp</span>
+        </div>
+
+        <div class="home-highlight-item">
+            <strong>Tận tâm</strong>
+            <span>Chăm sóc khách hàng chu đáo</span>
+        </div>
+
+        <div class="home-highlight-item">
+            <strong>Thư giãn</strong>
+            <span>Không gian nghỉ ngơi và tái tạo năng lượng</span>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         3. GIỚI THIỆU CHARM SPA
+    ====================================== -->
+    <section class="home-about" id="about">
+
+        <div class="home-section-heading">
+
+            <span>VỀ CHÚNG TÔI</span>
+
+            <h2>Charm Spa Grand</h2>
+
+            <p>
+                Hơn 10 năm đồng hành cùng hành trình
+                chăm sóc sức khỏe và vẻ đẹp của khách hàng.
+            </p>
+
+        </div>
+
+
+        <div class="home-about-content">
+
+            <div class="home-about-visual">
+
+                <img src="{% static 'images/about_spa.jpg' %}"
+                     alt="Không gian Charm Spa Grand">
+
+            </div>
+
+
+            <div class="home-about-text">
+
+                <h3>
+                    Nơi cân bằng thân - tâm - trí
+                </h3>
+
+                <p>
+                    Charm Spa Grand là điểm đến dành cho
+                    những ai mong muốn tìm lại sự cân bằng
+                    và tận hưởng những phút giây thư thái.
+                </p>
+
+                <p>
+                    Với không gian chăm sóc cao cấp cùng
+                    đội ngũ chuyên viên tận tâm, chúng tôi
+                    hướng đến việc mang lại trải nghiệm
+                    chăm sóc và làm đẹp chu đáo cho mỗi khách hàng.
+                </p>
+
+                <a href="#services" class="home-about-link">
+                    KHÁM PHÁ DỊCH VỤ
+                    <i class="fas fa-arrow-right" style="margin-left:6px;"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         4. DỊCH VỤ NỔI BẬT
+    ====================================== -->
+    <section class="home-services" id="services">
+
+        <div class="home-section-heading">
+
+            <span>TRẢI NGHIỆM CỦA BẠN</span>
+
+            <h2>Dịch vụ nổi bật</h2>
+
+            <p>
+                Khám phá những trải nghiệm chăm sóc và
+                thư giãn tại Charm Spa Grand.
+            </p>
+
+        </div>
+
+
+        <div class="home-service-list">
+
+            <!-- Dịch vụ 1 -->
+            <div class="home-service-card">
+
+                <div class="home-service-image">
+                    <img src="{% static 'images/service_massage.jpg' %}"
+                         alt="Massage thư giãn">
+                </div>
+
+                <div class="home-service-info">
+
+                    <h3>Massage thư giãn</h3>
+
+                    <p>
+                        Giải tỏa căng thẳng, thư giãn cơ thể
+                        và tái tạo năng lượng sau những ngày bận rộn.
+                    </p>
+
+                    <a href="#booking">
+                        TÌM HIỂU THÊM →
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- Dịch vụ 2 -->
+            <div class="home-service-card">
+
+                <div class="home-service-image">
+                    <img src="{% static 'images/service_body.jpg' %}"
+                         alt="Chăm sóc cơ thể">
+                </div>
+
+                <div class="home-service-info">
+
+                    <h3>Chăm sóc cơ thể</h3>
+
+                    <p>
+                        Nuôi dưỡng cơ thể và mang đến
+                        cảm giác thoải mái, dễ chịu.
+                    </p>
+
+                    <a href="#booking">
+                        TÌM HIỂU THÊM →
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- Dịch vụ 3 -->
+            <div class="home-service-card">
+
+                <div class="home-service-image">
+                    <img src="{% static 'images/service_beauty.jpg' %}"
+                         alt="Chăm sóc sắc đẹp">
+                </div>
+
+                <div class="home-service-info">
+
+                    <h3>Chăm sóc sắc đẹp</h3>
+
+                    <p>
+                        Nâng niu vẻ đẹp tự nhiên và
+                        chăm sóc bản thân mỗi ngày.
+                    </p>
+
+                    <a href="#booking">
+                        TÌM HIỂU THÊM →
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         5. LÝ DO LỰA CHỌN CHARM SPA
+    ====================================== -->
+    <section class="home-advantages">
+
+        <div class="home-section-heading">
+
+            <span>GIÁ TRỊ CỦA CHÚNG TÔI</span>
+
+            <h2>Vì sao chọn Charm Spa Grand?</h2>
+
+            <p>
+                Chúng tôi luôn mong muốn mang đến
+                trải nghiệm chăm sóc tốt nhất cho khách hàng.
+            </p>
+
+        </div>
+
+
+        <div class="home-advantage-list">
+
+            <div class="home-advantage-card">
+
+                <i class="fas fa-spa"></i>
+
+                <h3>Không gian thư giãn</h3>
+
+                <p>
+                    Không gian được định hướng theo phong cách
+                    thư thái, giúp khách hàng tận hưởng
+                    khoảng thời gian dành riêng cho bản thân.
+                </p>
+
+            </div>
+
+
+            <div class="home-advantage-card">
+
+                <i class="fas fa-hand-holding-heart"></i>
+
+                <h3>Chăm sóc tận tâm</h3>
+
+                <p>
+                    Luôn quan tâm đến nhu cầu và trải nghiệm
+                    của khách hàng trong quá trình sử dụng dịch vụ.
+                </p>
+
+            </div>
+
+
+            <div class="home-advantage-card">
+
+                <i class="fas fa-award"></i>
+
+                <h3>Kinh nghiệm chuyên nghiệp</h3>
+
+                <p>
+                    Không ngừng nâng cao chất lượng dịch vụ
+                    và trải nghiệm chăm sóc khách hàng.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         6. KHÔNG GIAN CHARM SPA
+    ====================================== -->
+    <section class="home-gallery" id="gallery">
+
+        <div class="home-section-heading">
+
+            <span>KHÔNG GIAN TRẢI NGHIỆM</span>
+
+            <h2>Chạm đến sự thư thái</h2>
+
+            <p>
+                Tận hưởng những phút giây bình yên
+                trong không gian chăm sóc của Charm Spa Grand.
+            </p>
+
+        </div>
+
+
+        <div class="home-gallery-list">
+
+            <div class="home-gallery-item">
+                <img src="{% static 'images/gallery_1.jpg' %}"
+                     alt="Không gian spa 1">
+            </div>
+
+            <div class="home-gallery-item">
+                <img src="{% static 'images/gallery_2.jpg' %}"
+                     alt="Không gian spa 2">
+            </div>
+
+            <div class="home-gallery-item">
+                <img src="{% static 'images/gallery_3.jpg' %}"
+                     alt="Không gian spa 3">
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         7. KÊU GỌI ĐẶT LỊCH
+    ====================================== -->
+    <section class="home-booking" id="booking">
+
+        <div class="home-booking-content">
+
+            <span>YOUR MOMENT OF RELAXATION</span>
+
+            <h2>
+                Dành cho bản thân<br>
+                một khoảnh khắc thư giãn.
+            </h2>
+
+            <p>
+                Hãy để Charm Spa Grand đồng hành cùng bạn
+                trên hành trình chăm sóc sức khỏe,
+                sắc đẹp và yêu thương bản thân.
+            </p>
+
+            <a href="tel:19006789"
+               class="home-btn home-btn-primary">
+                <i class="fas fa-phone-alt" style="margin-right:8px;"></i>
+                LIÊN HỆ ĐẶT LỊCH
+            </a>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

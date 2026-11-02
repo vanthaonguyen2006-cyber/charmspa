@@ -6,14 +6,22 @@ from services.models import DichVu
 from django.core.paginator import Paginator
 
 
+# Trang chủ khách hàng
 def customer_home(request):
     return render(request, 'core/customer_home.html')
 
 
+# Trang chủ nhân viên
 def staff_home(request):
     return render(request, 'core/staff_home.html')
 
 
+# Trang chủ Charm Spa Grand (AMy)
+def home(request):
+    return render(request, "core/home.html")
+
+
+# Trang liệu trình (main)
 def lieu_trinh_page(request):
     dich_vu_list = list(DichVu.objects.all().order_by('pk'))
 
@@ -33,6 +41,7 @@ def lieu_trinh_page(request):
     })
 
 
+# Trang hồ sơ khách hàng (main)
 @login_required(login_url='/accounts/dang_nhap/')
 def customer_profile_view(request):
     # Chỉ lấy hồ sơ thuộc tài khoản đang đăng nhập.
@@ -47,6 +56,7 @@ def customer_profile_view(request):
     })
 
 
+# Trang liên hệ (main)
 def contact_view(request):
     if request.method == 'POST':
         ho_ten = request.POST.get('ho_ten', '').strip()

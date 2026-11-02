@@ -1,0 +1,107 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Thống kê phản hồi | Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/feedback.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="feedback-page">
+
+    <!-- Tiêu đề và đường dẫn quay lại danh sách -->
+    <div class="feedback-toolbar">
+        <div>
+            <h1>Thống kê</h1>
+            <p class="feedback-subtitle">
+                Tổng quan hiệu quả tiếp nhận và xử lý ý kiến khách hàng.
+            </p>
+        </div>
+        <a class="feedback-btn light"
+           href="{% url 'feedback:admin_feedback_list' %}">
+            Danh sách phiếu
+        </a>
+    </div>
+
+    <!-- Thẻ thống kê tổng quan -->
+    <div class="feedback-stats">
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">Tổng số phiếu</div>
+            <div class="feedback-stat-value">{{ tong_so }}</div>
+            <div class="feedback-muted">Phản hồi và khiếu nại</div>
+        </div>
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">Đã tiếp nhận</div>
+            <div class="feedback-stat-value">{{ da_tiep_nhan }}</div>
+            <div class="feedback-muted">{{ pct_da_tiep_nhan }}% tổng số phiếu</div>
+        </div>
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">Đang xử lý</div>
+            <div class="feedback-stat-value">{{ dang_xu_ly }}</div>
+            <div class="feedback-muted">{{ pct_dang_xu_ly }}% tổng số phiếu</div>
+        </div>
+        <div class="feedback-stat">
+            <div class="feedback-stat-label">Đã giải quyết</div>
+            <div class="feedback-stat-value">{{ da_giai_quyet }}</div>
+            <div class="feedback-muted">{{ pct_da_giai_quyet }}% tổng số phiếu</div>
+        </div>
+    </div>
+
+    <div class="feedback-chart-grid">
+
+        <!-- Biểu đồ tỷ lệ phản hồi so với khiếu nại -->
+        <section class="feedback-chart-card">
+            <h2>Phản hồi vs Khiếu nại</h2>
+            <p class="feedback-muted">Theo số phiếu trong toàn bộ dữ liệu</p>
+
+            <div class="feedback-donut"
+                 style="background:conic-gradient(#b58b43 0 {{ pct_phan_hoi }}%, #302823 {{ pct_phan_hoi }}% 100%)">
+                <div class="feedback-donut-label">{{ tong_so }}</div>
+            </div>
+
+            <div class="feedback-side-value">
+                <span style="color:#b58b43">●</span>
+                Phản hồi: <strong>{{ phan_hoi_count }}</strong>
+                <span class="feedback-muted">({{ pct_phan_hoi }}%)</span>
+            </div>
+            <div class="feedback-side-value">
+                <span style="color:#302823">●</span>
+                Khiếu nại: <strong>{{ khieu_nai_count }}</strong>
+                <span class="feedback-muted">({{ pct_khieu_nai }}%)</span>
+            </div>
+        </section>
+
+        <!-- Biểu đồ tiến độ xử lý bằng thanh ngang -->
+        <section class="feedback-chart-card">
+            <h2>Trạng thái xử lý</h2>
+            <p class="feedback-muted">Số lượng phiếu theo tiến độ</p>
+
+            <div class="feedback-bar-row">
+                <span>Đã tiếp nhận</span>
+                <div class="feedback-bar-bg">
+                    <div class="feedback-bar" style="width:{{ pct_da_tiep_nhan }}%"></div>
+                </div>
+                <strong>{{ da_tiep_nhan }}</strong>
+            </div>
+
+            <div class="feedback-bar-row">
+                <span>Đang xử lý</span>
+                <div class="feedback-bar-bg">
+                    <div class="feedback-bar blue" style="width:{{ pct_dang_xu_ly }}%"></div>
+                </div>
+                <strong>{{ dang_xu_ly }}</strong>
+            </div>
+
+            <div class="feedback-bar-row">
+                <span>Đã giải quyết</span>
+                <div class="feedback-bar-bg">
+                    <div class="feedback-bar green" style="width:{{ pct_da_giai_quyet }}%"></div>
+                </div>
+                <strong>{{ da_giai_quyet }}</strong>
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
