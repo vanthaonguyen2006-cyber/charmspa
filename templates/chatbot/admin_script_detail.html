@@ -1,0 +1,91 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Chi tiết kịch bản {{ script.ma_kb }} - Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'chatbot/css/flow_builder.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <a href="{% url 'chatbot:admin_script_list' %}" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1">
+        <i data-lucide="arrow-left" style="width:14px;height:14px"></i> Quay lại danh sách kịch bản
+    </a>
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mt-2 mb-4">
+        <div>
+            <h3 class="mb-1" style="font-family:'Playfair Display',Georgia,serif;font-weight:700;color:#2B2118">CHI TIẾT KỊCH BẢN</h3>
+            <div class="text-muted small">Theo dõi luồng tư vấn tự động và các bước chuyển tiếp đến nhân viên CSKH.</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'chatbot:admin_script_preview' script.pk %}" class="fb-ghost"><i data-lucide="play"></i> Xem trước</a>
+            <a href="{% url 'chatbot:admin_script_edit' script.pk %}" class="fb-primary" style="text-decoration:none"><i data-lucide="pencil"></i> Chỉnh sửa kịch bản</a>
+        </div>
+    </div>
+
+    <!-- THÔNG TIN CHUNG -->
+    <div class="fb-viewcard mb-4">
+        <div class="row g-3 p-3 px-4">
+            <div class="col-md-3">
+                <small class="text-muted d-block">Tên kịch bản</small>
+                <strong>{{ script.ten_kich_ban }}</strong>
+            </div>
+            <div class="col-md-5">
+                <small class="text-muted d-block">Mô tả</small>
+                <span>{{ script.mo_ta|default:"Chưa có mô tả" }}</span>
+            </div>
+            <div class="col-md-2">
+                <small class="text-muted d-block">Ngày cập nhật</small>
+                <span>{{ script.ngay_cap_nhat|date:"d/m/Y · H:i"|default:"—" }}</span>
+            </div>
+            <div class="col-md-2">
+                <small class="text-muted d-block">Trạng thái</small>
+                <span class="badge {% if script.trang_thai == 'Đang hoạt động' %}bg-success{% else %}bg-secondary{% endif %}">● {{ script.trang_thai }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SƠ ĐỒ CHỈ XEM -->
+    <div class="fb-viewcard">
+        <div class="fb-viewcard-head">
+            <h3>Luồng hội thoại</h3>
+            <small>Kéo để di chuyển, Ctrl + cuộn để phóng to</small>
+        </div>
+        <div class="fb-viewbox">
+            <div id="fbViewport"></div>
+            <div class="fb-statusbar">
+                <span id="fbStats"></span>
+                <span class="fb-zoom">
+                    <button type="button" id="fbZoomOut" title="Thu nhỏ">−</button>
+                    <span id="fbZoomLabel">100%</span>
+                    <button type="button" id="fbZoomIn" title="Phóng to">+</button>
+                    <button type="button" id="fbFit" class="fb-fit">Vừa màn hình</button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{{ graph|json_script:"flow-graph-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'chatbot/js/flow_engine.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var graph = JSON.parse(document.getElementById('flow-graph-data').textContent);
+    var engine = new FlowEngine(document.getElementById('fbViewport'), graph, {
+        readOnly: true,
+        onZoom: function (z) { document.getElementById('fbZoomLabel').textContent = Math.round(z * 100) + '%'; },
+        onStats: function (s) {
+            document.getElementById('fbStats').textContent = s.steps + ' bước' +
+                (s.firstTitle ? ' · ' + s.branches + ' nhánh từ ' + s.firstTitle : '');
+        }
+    });
+    document.getElementById('fbZoomIn').onclick = function () { engine.zoomBy(1.15); };
+    document.getElementById('fbZoomOut').onclick = function () { engine.zoomBy(1 / 1.15); };
+    document.getElementById('fbFit').onclick = function () { engine.fit(); };
+    if (window.lucide) window.lucide.createIcons();
+});
+</script>
+{% endblock %}

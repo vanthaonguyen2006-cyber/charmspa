@@ -1,0 +1,128 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Chi tiết hội thoại {{ conversation.ma_pht }} - Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'chatbot/css/conversation_admin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 cv-page">
+
+    <div class="cv-head">
+        <div>
+            <a href="{% url 'chatbot:admin_conversation_list' %}" class="cv-sub" style="text-decoration:none">&larr; Quay lại danh sách</a>
+            <h3 class="cv-title" style="margin-top:4px">CHI TIẾT HỘI THOẠI</h3>
+            <div class="cv-sub">#{{ conversation.ma_pht }} · {{ customer.fullname }}
+                <span class="cv-badge {% if status == 'Chờ xử lý' %}wait{% elif status == 'Đang xử lý' %}active{% elif status == 'Đã hoàn tất' %}done{% else %}bot{% endif %}" style="margin-left:8px">{{ status }}</span>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button type="button" class="cv-btn" id="cvAccept" {% if accepted or completed or not has_request %}disabled{% endif %}>
+                {% if accepted or completed %}Đã tiếp nhận hội thoại{% else %}Tiếp nhận hội thoại{% endif %}
+            </button>
+            <button type="button" class="cv-btn primary" id="cvOpenComplete" {% if completed or not has_request %}disabled{% endif %}>Hoàn tất hội thoại</button>
+        </div>
+    </div>
+
+    {% if messages %}{% for m in messages %}<div class="cv-alert {% if m.tags == 'error' %}error{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+    <div class="cv-detail" id="cvDetail"
+         data-status="{{ status }}"
+         data-messages-url="{% url 'chatbot:admin_conversation_messages' conversation.ma_pht %}"
+         data-reply-url="{% url 'chatbot:admin_conversation_reply' conversation.ma_pht %}"
+         data-accept-url="{% url 'chatbot:admin_conversation_accept' conversation.ma_pht %}">
+
+        <!-- TRÁI: hội thoại gần đây -->
+        <aside class="cv-panel cv-side">
+            <div class="cv-panel-head">Hội thoại gần đây</div>
+            <div class="cv-side-list">
+                {% for r in sidebar %}
+                <a class="cv-side-item {% if r.id == conversation.ma_pht %}active{% endif %}" href="{% url 'chatbot:admin_conversation_detail' r.id %}">
+                    <div class="top"><span><span class="cv-dot {% if r.status == 'Chờ xử lý' %}wait{% elif r.status == 'Đang xử lý' %}active{% elif r.status == 'Đã hoàn tất' %}done{% endif %}"></span>{{ r.name }}</span><small>{{ r.time_label }}</small></div>
+                    <div class="txt">{{ r.last_text }}</div>
+                </a>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <!-- GIỮA: nội dung trao đổi -->
+        <section class="cv-panel">
+            <div class="cv-chat" id="cvChat">
+                {% for it in timeline %}
+                    {% if it.kind == 'sys' %}
+                    <div class="cv-sysline">{{ it.content }} · {{ it.time }}</div>
+                    {% else %}
+                    <div class="cv-msg {% if it.sender == 'Nhân viên' %}staff{% elif it.sender == 'Chatbot' %}bot{% else %}cust{% endif %}" data-id="{{ it.id }}">
+                        <span class="cv-meta">{{ it.sender }} • {{ it.time }}</span>
+                        <div class="cv-bubble">{{ it.content|linebreaksbr }}</div>
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="cv-sysline">Chưa có tin nhắn</div>
+                {% endfor %}
+            </div>
+
+            {% if completed %}
+            <div class="cv-lock">Hội thoại đã hoàn tất{% if note %} · Ghi chú: {{ note }}{% endif %}</div>
+            {% elif not has_request %}
+            <div class="cv-lock">Khách hàng chưa yêu cầu tư vấn trực tiếp. Hội thoại này đang do chatbot xử lý.</div>
+            {% else %}
+            <form class="cv-compose" id="cvCompose">
+                <textarea id="cvInput" rows="1" maxlength="1000" placeholder="{% if accepted %}Nhập tin nhắn phản hồi...{% else %}Nhập phản hồi (gửi tin sẽ tự tiếp nhận hội thoại)...{% endif %}"></textarea>
+                <button type="submit" class="cv-btn primary" id="cvSend">Gửi</button>
+            </form>
+            {% endif %}
+        </section>
+
+        <!-- PHẢI: thông tin khách, nhân viên, lịch sử xử lý -->
+        <aside class="cv-panel">
+            <div class="cv-panel-head">Thông tin khách hàng</div>
+            <div class="cv-panel-body">
+                <dl class="cv-info">
+                    <dt>Họ tên</dt><dd>{{ customer.fullname }}</dd>
+                    <dt>Số điện thoại</dt><dd>{{ customer.phone }}</dd>
+                    <dt>Email</dt><dd>{{ customer.email }}</dd>
+                    <dt>Nhu cầu</dt><dd>{{ customer.topic }}</dd>
+                    <dt>Nhân viên phụ trách</dt><dd>{% if staff_name %}{{ staff_name }}{% else %}<span class="cv-nobody">Chưa có người xử lý</span>{% endif %}</dd>
+                </dl>
+                <div class="cv-h4">Lịch sử xử lý</div>
+                {% if history %}
+                <ul class="cv-history">
+                    {% for h in history %}<li>{{ h.text }}<small>{{ h.time }}</small></li>{% endfor %}
+                </ul>
+                {% else %}
+                <div class="cv-small">Chưa có thao tác xử lý.</div>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- HỘP THOẠI XÁC NHẬN HOÀN TẤT -->
+<div class="cv-modal cv-page" id="cvModal" aria-hidden="true">
+    <form class="cv-dialog" method="post" action="{% url 'chatbot:admin_conversation_complete' conversation.ma_pht %}">
+        {% csrf_token %}
+        <h3>Hoàn tất hội thoại</h3>
+        <div class="cv-sub">Xác nhận kết thúc cuộc tư vấn với khách hàng.</div>
+        <div class="cv-grid">
+            <div><span>Mã hội thoại</span><span>#{{ conversation.ma_pht }}</span></div>
+            <div><span>Khách hàng</span><span>{{ customer.fullname }}</span></div>
+            <div><span>Nội dung tư vấn</span><span>{{ customer.topic }}</span></div>
+            <div><span>Tóm tắt</span><span>{{ message_count }} tin nhắn</span></div>
+        </div>
+        <label for="cvNote">Ghi chú xử lý</label>
+        <textarea id="cvNote" name="ghi_chu_xu_ly" maxlength="1000" placeholder="Ví dụ: Đã tư vấn Golden Calm Therapy, khách hẹn đặt lịch thứ 6."></textarea>
+        <div class="cv-note">Toàn bộ nội dung hội thoại, phản hồi của nhân viên và ghi chú xử lý sẽ được giữ lại để tra cứu sau này.</div>
+        <div class="cv-actions">
+            <button type="button" class="cv-btn" id="cvCancelComplete">Hủy</button>
+            <button type="submit" class="cv-btn primary">Xác nhận hoàn tất</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'chatbot/js/conversation_detail.js' %}"></script>
+{% endblock %}

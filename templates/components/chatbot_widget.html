@@ -1,0 +1,15 @@
+{% load static %}
+{# Widget chatbot tư vấn - chạy theo kịch bản. Toàn bộ giao diện được dựng bởi chat_widget.js #}
+<link rel="stylesheet" href="{% static 'chatbot/css/chat_widget.css' %}">
+<div id="cgWidget"></div>
+<script>
+    window.CG_CONFIG = {
+        me: "{% url 'chatbot:chat_me' %}",
+        flow: "{% url 'chatbot:chat_flow' %}",
+        consult: "{% url 'chatbot:chat_consult' %}",
+        state: "{% url 'chatbot:chat_state' %}",
+        send: "{% url 'chatbot:chat_send' %}",
+        history: "{% url 'chatbot:customer_history' %}"
+    };
+</script>
+<script src="{% static 'chatbot/js/chat_widget.js' %}"></script>

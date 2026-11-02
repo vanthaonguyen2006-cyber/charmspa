@@ -1,0 +1,126 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Bảng tư vấn CSKH trực tuyến - Charm Spa{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row g-3">
+        <!-- DANH SÁCH PHIÊN YÊU CẦU TƯ VẤN (CỘT TRÁI) -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white fw-bold py-3 border-bottom">
+                    <i data-lucide="list" class="me-1"></i> Danh sách Yêu cầu Tư vấn
+                </div>
+                <div class="list-group list-group-flush" id="sessionList" style="max-height: 620px; overflow-y: auto;">
+                    <!-- Dữ liệu phiên tư vấn sẽ tự động tải vào đây qua JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- KHUNG CHAT TƯ VẤN TRỰC TUYẾN (CỘT PHẢI) -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-3 d-flex flex-column" style="height: 670px;">
+                <!-- HEADER PHIÊN CHAT -->
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small">Đang tư vấn cho phiên:</span>
+                        <strong id="activeSessionId" class="text-danger ms-1">Chưa chọn phiên</strong>
+                    </div>
+                    <span id="activeSessionStatus" class="badge bg-secondary">Chờ chọn</span>
+                </div>
+
+                <!-- THÔNG TIN KHÁCH HÀNG THU GỌN -->
+                <div class="bg-light p-3 border-bottom small row g-2 m-0" id="customerInfoBar">
+                    <div class="col-md-3"><strong>HỌ VÀ TÊN:</strong> <span id="custName">-</span></div>
+                    <div class="col-md-3"><strong>SỐ ĐIỆN THOẠI:</strong> <span id="custPhone">-</span></div>
+                    <div class="col-md-3"><strong>EMAIL:</strong> <span id="custEmail">-</span></div>
+                    <div class="col-md-3"><strong>NHU CẦU:</strong> <span id="custNeed">-</span></div>
+                </div>
+
+                <!-- KHUNG HIỂN THỊ TIN NHẮN (CUỘN NỘI BỘ, KHÔNG NHẢY TRANG) -->
+                <div class="card-body p-3 flex-grow-1 overflow-y-auto" id="messageBox" style="background-color: #fafafa;">
+                    <div class="text-center text-muted my-5">Vui lòng chọn một phiên hội thoại ở cột bên trái để bắt đầu tư vấn.</div>
+                </div>
+
+                <!-- Ô NHẬP TIN NHẮN -->
+                <div class="card-footer bg-white p-3 border-top">
+                    <form id="staffSendForm" class="d-flex gap-2">
+                        <input type="text" id="staffMessageInput" class="form-control shadow-none" placeholder="Nhập tin nhắn tư vấn..." autocomplete="off">
+                        <button type="submit" id="btnSendStaff" class="btn btn-danger d-flex align-items-center gap-1 px-4">
+                            <i data-lucide="send" style="width: 16px;"></i> Gửi Khách
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentSessionId = null;
+    const messageBox = document.getElementById('messageBox');
+    const staffSendForm = document.getElementById('staffSendForm');
+    const staffMessageInput = document.getElementById('staffMessageInput');
+
+    // Hàm cuộn khung chat xuống đáy (CHỈ CUỘN KHUNG CHAT, KHÔNG CUỘN TRANG WEB)
+    function scrollToBottom() {
+        if (messageBox) {
+            messageBox.scrollTop = messageBox.scrollHeight;
+        }
+    }
+
+    // LẤY CSRF TOKEN DÙNG CHO POST AJAX
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // XỬ LÝ GỬI TIN NHẮN CHỐNG NHẢY TRANG
+    if (staffSendForm) {
+        staffSendForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // CHẶN HÀNH VI TẢI LAỊ/NHẢY TRANG CỦA FORM MẶC ĐỊNH
+
+            const content = staffMessageInput.value.trim();
+            if (!content || !currentSessionId) return;
+
+            fetch('/chatbot/staff/api/send/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    message: content
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    staffMessageInput.value = '';
+                    loadMessages(currentSessionId); // Tải lại danh sách tin nhắn
+                }
+            });
+        });
+    }
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}
