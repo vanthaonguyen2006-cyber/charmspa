@@ -205,7 +205,6 @@ def booking_customer_detail(request, ma_lh):
         **get_staff_context(request)
     })
 
-
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_success(request):
     last_code = request.session.get('last_booking_code')
@@ -234,7 +233,6 @@ def booking_customer_success(request):
         'khach_hang': khach_hang,
         **get_staff_context(request)
     })
-
 
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_cancel(request, ma_lh):
