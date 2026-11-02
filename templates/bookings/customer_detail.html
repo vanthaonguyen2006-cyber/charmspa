@@ -1,0 +1,359 @@
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block content %}
+<meta charset="UTF-8">
+
+<!-- Bootstrap 5 & Icons CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --primary-gold: #ab8e56;
+        --bg-beige: #f9f6f0;
+        --border-color: #e5e0d8;
+    }
+
+    body {
+        background-color: var(--bg-beige) !important;
+        color: #2c2c2c;
+        font-family: 'Playfair Display', Arial, sans-serif;
+    }
+
+    .detail-container {
+        max-width: 700px;
+        margin: 30px auto;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .status-badge-confirmed {
+        background-color: #e6f4ea;
+        color: #137333;
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .status-badge-cancelled {
+        background-color: #fce8e6;
+        color: #c5221f;
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .info-box {
+        background-color: #fdfbf7;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px dashed var(--border-color);
+        font-size: 14px;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .btn-gold {
+        background-color: var(--primary-gold);
+        color: white;
+        border: none;
+    }
+
+    .btn-gold:hover {
+        background-color: #967a48;
+        color: white;
+    }
+
+    .service-option-card {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .service-option-card.selected {
+        border: 2px solid var(--primary-gold);
+        background-color: #fdfbf7;
+    }
+
+    .time-slot-option {
+        background: #fcfbf9;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .time-slot-option.selected {
+        background: #f5efe6;
+        border: 1.5px solid var(--primary-gold);
+        font-weight: bold;
+    }
+</style>
+
+<div class="container my-4">
+    <div class="detail-container">
+        <!-- Header Chi tiết lịch hẹn -->
+        <div class="d-flex justify-content-between align-items-center pb-3 border-bottom">
+            <div>
+                <h5 class="fw-bold m-0" style="color: var(--primary-gold);">CHI TIẾT LỊCH HẸN</h5>
+                <small class="text-muted">Mã lịch hẹn: <strong>#{{ lich_hen.ma_lh }}</strong></small>
+            </div>
+            <div>
+                {% if lich_hen.trang_thai == 'Đã hủy' %}
+                    <span class="status-badge-cancelled"><i class="bi bi-x-circle-fill me-1"></i> {{ lich_hen.trang_thai }}</span>
+                {% else %}
+                    <span class="status-badge-confirmed"><i class="bi bi-check-circle-fill me-1"></i> {{ lich_hen.trang_thai }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Thông tin chi tiết dịch vụ & khách hàng -->
+        <div class="info-box">
+            <h6 class="fw-bold mb-3 text-center" style="font-size: 14px; color: #4a4a4a; text-transform: uppercase;">Thông tin đặt chỗ & dịch vụ</h6>
+
+            <div class="info-row">
+                <span class="text-muted">Dịch vụ trị liệu:</span>
+                <strong class="text-end" style="max-width: 65%;">{{ lich_hen.ma_dv.ten_dich_vu|default:"Dịch vụ Charm Spa" }}</strong>
+            </div>
+
+            <div class="info-row">
+                <span class="text-muted">Họ và tên khách hàng:</span>
+                <strong>{{ lich_hen.ma_kh.ho_ten|default:"Khách hàng" }}</strong>
+            </div>
+
+            <div class="info-row">
+                <span class="text-muted">Số điện thoại liên hệ:</span>
+                <strong>{{ lich_hen.ma_kh.sdt|default:"Chưa cập nhật" }}</strong>
+            </div>
+
+            <div class="info-row">
+                <span class="text-muted">Ngày hẹn:</span>
+                <strong>{{ lich_hen.ngay_hen }}</strong>
+            </div>
+
+            <div class="info-row">
+                <span class="text-muted">Khung giờ hẹn:</span>
+                <strong>{{ lich_hen.gio_hen }}</strong>
+            </div>
+
+            <div class="info-row">
+                <span class="text-muted">Số lượng khách:</span>
+                <strong>{{ lich_hen.so_luong_khach }} khách</strong>
+            </div>
+
+            <div class="info-row">
+                <span class="text-muted">Đơn giá dịch vụ:</span>
+                <strong class="text-danger">{{ lich_hen.ma_dv.gia_dich_vu|default:"890.000" }} đ</strong>
+            </div>
+
+            {% if lich_hen.ghi_chu %}
+            <div class="info-row">
+                <span class="text-muted">Ghi chú của khách:</span>
+                <span class="text-end text-dark" style="max-width: 65%;">{{ lich_hen.ghi_chu }}</span>
+            </div>
+            {% endif %}
+
+            {% if lich_hen.trang_thai == 'Đã hủy' and lich_hen.ly_do_huy %}
+            <div class="info-row text-danger">
+                <span>Lý do hủy lịch:</span>
+                <span class="text-end" style="max-width: 65%;">{{ lich_hen.ly_do_huy }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Các nút điều hướng & Thao tác Đổi/Hủy lịch -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <a href="{% url 'booking_customer_list' %}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+
+            <div class="d-flex gap-2">
+                {% if lich_hen.trang_thai != 'Đã hủy' %}
+                <button type="button" class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ lich_hen.ma_lh }}">
+                    <i class="bi bi-pencil-square me-1"></i> Đổi lịch
+                </button>
+
+                <button type="button" class="btn btn-outline-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lich_hen.ma_lh }}">
+                    <i class="bi bi-x-circle me-1"></i> Hủy lịch
+                </button>
+                {% endif %}
+
+                <a href="{% url 'booking_customer_create' %}" class="btn btn-gold btn-sm px-3">
+                    <i class="bi bi-calendar-plus me-1"></i> Đặt lịch mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL HỦY LỊCH HẸN (To rộng hơn: modal-lg) -->
+<div class="modal fade" id="cancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <form method="POST" action="{% url 'booking_customer_cancel' lich_hen.ma_lh %}">
+                {% csrf_token %}
+                <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Xác nhận hủy lịch hẹn #{{ lich_hen.ma_lh }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 text-start">
+                    <p class="text-muted mb-3">Bạn có chắc chắn muốn hủy lịch hẹn dịch vụ này không? Vui lòng chọn lý do bên dưới để giúp chúng tôi cải thiện dịch vụ:</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">Lý do hủy *</label>
+                        <select name="ly_do_huy" class="form-select form-select-lg fs-6">
+                            <option value="Bận việc đột xuất">Bận việc đột xuất</option>
+                            <option value="Thay đổi thời gian cá nhân">Thay đổi thời gian cá nhân</option>
+                            <option value="Đặt nhầm dịch vụ">Đặt nhầm dịch vụ</option>
+                            <option value="Khác">Lý do khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-secondary">Ghi chú thêm (tùy chọn)</label>
+                        <textarea name="ghi_chu_huy" class="form-control" rows="4" placeholder="Nhập thêm chi tiết lý do hủy..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger px-4">Xác nhận hủy lịch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL THAY ĐỔI LỊCH HẸN & DỊCH VỤ -->
+<div class="modal fade" id="rescheduleModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12);">
+            <form method="POST" action="{% url 'booking_customer_reschedule' lich_hen.ma_lh %}">
+                {% csrf_token %}
+                <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold" style="color: var(--primary-gold); font-size: 18px;">
+                        <i class="bi bi-calendar2-range me-2"></i> Thay đổi lịch hẹn & dịch vụ #{{ lich_hen.ma_lh }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 text-start" style="max-height: 75vh; overflow-y: auto;">
+
+                    <!-- 1. CHỌN DỊCH VỤ MỚI -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase text-secondary mb-2">1. Chọn dịch vụ trị liệu mới</label>
+                        <div class="row g-3">
+                            {% if dich_vu_list %}
+                                {% for dv in dich_vu_list %}
+                                <div class="col-md-4">
+                                    <div class="service-option-card overflow-hidden p-2 {% if lich_hen.ma_dv.pk == dv.pk %}selected{% endif %}"
+                                         onclick="selectModalService(this, '{{ dv.pk }}')">
+                                        <input type="radio" name="ma_dv_moi" value="{{ dv.pk }}" {% if lich_hen.ma_dv.pk == dv.pk %}checked{% endif %} class="d-none service-radio">
+
+                                        <div style="height: 110px; background-color: #e8ded1; position: relative; border-radius: 6px; overflow: hidden; margin-bottom: 8px;">
+                                            <img src="{% static 'images/services/service1.jpg' %}" alt="{{ dv.ten_dich_vu }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% if lich_hen.ma_dv.pk == dv.pk %}
+                                            <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2" style="font-size: 10px;">Đang chọn</span>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="px-2 pb-1">
+                                            <div class="fw-bold text-dark text-truncate mb-1" style="font-size: 12px;">{{ dv.ten_dich_vu }}</div>
+                                            <small class="text-muted d-block" style="font-size: 11px;">150 phút · {{ dv.gia_dich_vu }}đ</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- 2. CHỌN NGÀY HẸN MỚI -->
+                        <div class="col-md-5 mb-4">
+                            <label class="form-label small fw-bold text-uppercase text-secondary mb-2">2. Chọn ngày hẹn mới</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-muted"><i class="bi bi-calendar-event"></i></span>
+                                <input type="text" name="ngay_hen_moi" class="form-control" value="{{ lich_hen.ngay_hen }}" required>
+                            </div>
+                        </div>
+
+                        <!-- 3. CHỌN KHUNG GIỜ MỚI -->
+                        <div class="col-md-7 mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-secondary mb-2">3. Chọn khung giờ mới</label>
+                            <div class="row g-2">
+                                {% with "09:00 10:30 12:00 13:30 15:00 16:30 18:00 19:30" as times %}
+                                    {% for slot in times.split %}
+                                    <div class="col-3">
+                                        <div class="time-slot-option {% if lich_hen.gio_hen|slice:":5" == slot %}selected{% endif %}"
+                                             onclick="selectModalTime(this, '{{ slot }}')">
+                                            <input type="radio" name="gio_hen_moi" value="{{ slot }}" {% if lich_hen.gio_hen|slice:":5" == slot %}checked{% endif %} class="d-none time-radio">
+                                            <strong style="font-size: 12px;"><i class="bi bi-clock me-1 text-warning"></i>{{ slot }}</strong>
+                                            <small class="text-success d-block" style="font-size: 9px;">Còn giường</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-top-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn px-4" style="background-color: var(--primary-gold); color: white;">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function selectModalService(element, serviceId) {
+        const parentModal = element.closest('.modal');
+        parentModal.querySelectorAll('.service-option-card').forEach(card => {
+            card.classList.remove('selected');
+            const badge = card.querySelector('.badge');
+            if (badge) badge.remove();
+            card.querySelector('.service-radio').checked = false;
+        });
+        element.classList.add('selected');
+        if (!element.querySelector('.badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-warning text-dark position-absolute top-0 end-0 m-2';
+            badge.style.fontSize = '10px';
+            badge.innerText = 'Đang chọn';
+            element.querySelector('div').style.position = 'relative';
+            element.querySelector('div').appendChild(badge);
+        }
+        element.querySelector('.service-radio').checked = true;
+    }
+
+    function selectModalTime(element, timeSlot) {
+        const parentModal = element.closest('.modal');
+        parentModal.querySelectorAll('.time-slot-option').forEach(slot => {
+            slot.classList.remove('selected');
+            slot.querySelector('.time-radio').checked = false;
+        });
+        element.classList.add('selected');
+        element.querySelector('.time-radio').checked = true;
+    }
+</script>
+{% endblock %}

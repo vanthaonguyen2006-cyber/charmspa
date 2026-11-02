@@ -1,0 +1,171 @@
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="customer-profile-layout bg-gray-50 min-h-screen py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- SECTION 1: BANNER THÔNG TIN THÀNH VIÊN (Lấy từ Model) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <!-- Avatar & Tên -->
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <div class="w-16 h-16 rounded-full bg-[#F3EFEA] border border-[#D4C5B9] flex items-center justify-center text-[#8C6D4F] font-bold text-xl">
+                        {{ khach_hang.ho_ten|slice:":2"|upper }}
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-xl font-bold text-gray-900">{{ khach_hang.ho_ten }}</h2>
+                            {% if khach_hang.ma_tv %}
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                {{ khach_hang.ma_tv.ten_hang }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <p class="text-sm text-emerald-600 flex items-center gap-1 mt-0.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> 
+                            {{ khach_hang.ma_tk.trang_thai|default:"Đang hoạt động" }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Thống kê điểm, ưu đãi từ Model -->
+                <div class="flex flex-wrap items-center justify-around md:justify-end gap-6 md:gap-12 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-gray-100 text-center md:text-left">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">Điểm tích lũy</p>
+                        <p class="text-lg font-bold text-amber-700">{{ khach_hang.diem_tich_luy_kh }} điểm</p>
+                    </div>
+                    
+                    <div class="border-x px-6 border-gray-100 hidden sm:block">
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">Số điện thoại</p>
+                        <!-- Đã đồng bộ sửa thành ma_tk.so_dien_thoai -->
+                        <p class="text-lg font-bold text-gray-900">{{ khach_hang.ma_tk.so_dien_thoai }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">Ưu đãi giảm giá</p>
+                        <p class="text-lg font-bold text-gray-900">
+                            {% if khach_hang.ma_tv %}{{ khach_hang.ma_tv.ty_le_giam_gia }}%{% else %}0%{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Nút khóa tài khoản (Đã thêm onclick="openLockModal()") -->
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="openLockModal()" class="px-4 py-2 bg-[#993D3D] text-white text-sm font-medium rounded-lg hover:bg-[#803232] transition">
+                            Khoá tài khoản
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECTION 2: THANH MENU TAB ĐIỀU HƯỚNG -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+            <nav class="flex flex-col sm:flex-row justify-around text-sm font-medium text-gray-500">
+                <!-- Mục 1: Chuyển đến trang hồ sơ khách hàng -->
+                <a href="/customer/profile/"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if request.resolver_match.url_name != 'customer_feedback_list' and request.resolver_match.url_name != 'customer_feedback_create' %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent hover:text-gray-700
+                   {% endif %}">
+                    1. Hồ sơ khách hàng
+                </a>
+                <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
+                    2. Lịch sử dịch vụ
+                </a>
+                <a href="#" class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
+                    3. Lịch hẹn
+                </a>
+                <a href="{% url 'feedback:customer_feedback_list' %}"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if request.resolver_match.url_name == 'customer_feedback_list' or request.resolver_match.url_name == 'customer_feedback_create' %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent hover:text-gray-700
+                   {% endif %}">
+                    4. Khiếu nại
+                </a>
+            </nav>
+        </div>
+
+        <!-- SECTION 3: NỘI DUNG CHI TIẾT -->
+        <div class="tab-content-area">
+            {% block profile_content %}
+            <!-- Nội dung chi tiết từng trang con đổ vào đây -->
+            {% endblock %}
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL XÁC NHẬN KHÓA TÀI KHOẢN VÀ SCRIPT     -->
+<!-- ========================================== -->
+<div id="lockModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative mx-4 animate-in fade-in zoom-in duration-200">
+
+        <!-- Nút đóng (X) -->
+        <button type="button" onclick="closeLockModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            ✕
+        </button>
+
+        <!-- Tiêu đề -->
+        <h3 class="text-xl font-bold text-gray-900 mb-1">Xác nhận khóa tài khoản</h3>
+        <p class="text-sm text-gray-500 mb-6">Bạn có chắc chắn muốn khóa tài khoản?</p>
+
+        <!-- Form gửi lý do khóa -->
+        <form action="{% url 'customer_lock_account' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Lý do khóa tài khoản <span class="text-red-500">*</span></label>
+                <select name="ly_do" id="lyDoSelect" onchange="checkLyDo(this)" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:border-[#8C6D4F]">
+                    <option value="Không còn nhu cầu sử dụng">Không còn nhu cầu sử dụng</option>
+                    <option value="Tạm ngưng tài khoản">Tạm ngưng tài khoản</option>
+                    <option value="Vấn đề bảo mật">Vấn đề bảo mật</option>
+                    <option value="Lý do khác" selected>Lý do khác</option>
+                </select>
+            </div>
+
+            <!-- Ô nhập lý do khác -->
+            <div id="divLyDoKhac">
+                <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Nhập lý do <span class="text-red-500">*</span></label>
+                <textarea name="ly_do_khac" rows="3" placeholder="Nhập lý do..." class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:border-[#8C6D4F]"></textarea>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeLockModal()" class="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+                    Hủy
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-[#993D3D] text-white rounded-xl text-sm font-medium hover:bg-[#803232] transition shadow-sm">
+                    Xác nhận khóa tài khoản
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openLockModal() {
+        document.getElementById('lockModal').classList.remove('hidden');
+    }
+
+    function closeLockModal() {
+        document.getElementById('lockModal').classList.add('hidden');
+    }
+
+    function checkLyDo(selectObj) {
+        const divKhac = document.getElementById('divLyDoKhac');
+        if (selectObj.value === 'Lý do khác') {
+            divKhac.style.display = 'block';
+        } else {
+            divKhac.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

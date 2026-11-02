@@ -1,767 +1,654 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Gửi phản hồi/khiếu nại | Charm Grand</title>
+{% extends 'layouts/customer_base_pro.html' %}
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+{% block title %}
+Gửi phản hồi/khiếu nại | Charm Grand Spa
+{% endblock %}
+
+{% block profile_content %}
+
+<style>
+    /* Chỉ định dạng phần nội dung của trang khiếu nại */
+    .feedback-page {
+        color: #302b25;
+        font-size: 13px;
+    }
+
+    /* Tiêu đề và liên kết xem phiếu đã gửi */
+    .feedback-page .feedback-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .feedback-page .feedback-heading h1 {
+        margin: 0 0 6px;
+        font-family: Georgia, serif;
+        font-size: 30px;
+        font-weight: 400;
+        text-transform: uppercase;
+    }
+
+    .feedback-page .feedback-heading p {
+        margin: 0;
+        color: #898176;
+        font-size: 11px;
+    }
+
+    .feedback-page .my-tickets {
+        color: #987542;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    /* Bố cục biểu mẫu bên trái, hướng dẫn bên phải */
+    .feedback-page .feedback-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* Khung biểu mẫu và khung quy trình */
+    .feedback-page .feedback-card {
+        padding: 28px;
+        background: #fff;
+        border: 1px solid #e7dccb;
+        border-radius: 12px;
+    }
+
+    /* Khoảng cách giữa các trường */
+    .feedback-page .form-group {
+        margin-bottom: 22px;
+    }
+
+    .feedback-page .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    /* Các ô nhập liệu */
+    .feedback-page input[type="text"],
+    .feedback-page select,
+    .feedback-page textarea {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+        color: #302b25;
+        background: #fff;
+        border: 1px solid #e7dccb;
+        border-radius: 8px;
+        font: inherit;
+    }
+
+    .feedback-page input[type="text"],
+    .feedback-page select {
+        min-height: 41px;
+    }
+
+    .feedback-page textarea {
+        min-height: 82px;
+        resize: vertical;
+    }
+
+    .feedback-page input:focus,
+    .feedback-page select:focus,
+    .feedback-page textarea:focus {
+        outline: none;
+        border-color: #b78a43;
+        box-shadow: 0 0 0 2px #b78a431c;
+    }
+
+    /* Hai lựa chọn Phản hồi và Khiếu nại */
+    .feedback-page .choice-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .feedback-page .choice-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 52px;
+        padding: 0 14px;
+        border: 1px solid #e7dccb;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .feedback-page .choice-card:has(input:checked) {
+        background: #f4e9d5;
+        border-color: #b78336;
+    }
+
+    .feedback-page .choice-card input {
+        accent-color: #987542;
+    }
+
+    /* Khu vực đính kèm tệp */
+    .feedback-page .upload-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 90px;
+        padding: 12px;
+        text-align: center;
+        background: #fcf9f4;
+        border: 1px dashed #c18a3c;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .feedback-page .upload-icon {
+        margin-bottom: 6px;
+        color: #a77932;
+        font-size: 24px;
+    }
+
+    .feedback-page .upload-note {
+        margin-top: 6px;
+        color: #898176;
+        font-size: 10px;
+    }
+
+    .feedback-page .upload-area input {
+        max-width: 100%;
+        margin-top: 8px;
+        font-size: 11px;
+    }
+
+    /* Nút Hủy và Gửi phản hồi */
+    .feedback-page .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 28px;
+    }
+
+    .feedback-page .btn {
+        padding: 12px 18px;
+        border: 1px solid #e7dccb;
+        border-radius: 8px;
+        font: inherit;
+        cursor: pointer;
+    }
+
+    .feedback-page .btn-cancel {
+        color: #302b25;
+        background: #fff;
+    }
+
+    .feedback-page .btn-submit {
+        color: #fff;
+        background: #262522;
+        border-color: #262522;
+    }
+
+    .feedback-page .btn-submit:hover {
+        background: #514536;
+    }
+
+    /* Các khung thông tin bên phải */
+    .feedback-page .side-card {
+        margin-bottom: 14px;
+        padding: 22px;
+        background: #fff;
+        border: 1px solid #e7dccb;
+        border-radius: 12px;
+    }
+
+    .feedback-page .promise-card {
+        color: #fff;
+        background: #262522;
+        border-color: #262522;
+    }
+
+    .feedback-page .eyebrow {
+        margin: 0 0 14px;
+        color: #c69a4a;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .feedback-page .promise-card h2 {
+        margin: 0 0 14px;
+        font-family: Georgia, serif;
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1.35;
+    }
+
+    .feedback-page .promise-card p:last-child {
+        margin-bottom: 0;
+        color: #c6c1b8;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    .feedback-page .side-card h3 {
+        margin: 0 0 16px;
+        font-family: Georgia, serif;
+        font-size: 17px;
+    }
+
+    .feedback-page .process-step {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 14px;
+    }
+
+    .feedback-page .step-number {
+        display: flex;
+        flex: 0 0 26px;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        color: #987542;
+        background: #f4e9d5;
+        border-radius: 50%;
+        font-weight: 700;
+    }
+
+    /* Thông báo và lỗi biểu mẫu */
+    .feedback-page .feedback-message {
+        margin-bottom: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #f4f7ed;
+        color: #4d7042;
+    }
+
+    .feedback-page .errorlist {
+        margin-top: 6px;
+        padding-left: 18px;
+        color: #b42318;
+    }
+
+    /* Tối ưu giao diện trên điện thoại */
+    @media (max-width: 850px) {
+        .feedback-page .feedback-grid {
+            grid-template-columns: 1fr;
         }
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f7f4ee;
-            color: #302a25;
-        }
-
-        /* HEADER */
-
-        .header {
-            height: 82px;
-            background: #fffdf9;
-            border-bottom: 1px solid #e8dfd2;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 48px;
-        }
-
-        .logo {
-            font-family: "Times New Roman", Georgia, serif;
-            font-size: 27px;
-            letter-spacing: 4px;
-            font-weight: bold;
-        }
-
-        .logo-sub {
-            font-size: 9px;
-            letter-spacing: 6px;
-            color: #b38a43;
-            margin-top: 5px;
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-            gap: 34px;
-        }
-
-        .nav a {
-            text-decoration: none;
-            color: #3d3732;
-            font-size: 14px;
-        }
-
-        .nav a:hover {
-            color: #a67c34;
-        }
-
-        .btn-book {
-            padding: 14px 28px;
-            border: 1px solid #bd9142;
-            color: #9c752e !important;
-            font-weight: bold;
-        }
-
-        .account {
-            padding: 11px 18px;
-            border: 1px solid #e1d7c8;
-            border-radius: 25px;
-        }
-
-
-        /* MAIN */
-
-        .container {
-            width: 94%;
-            max-width: 1450px;
-            margin: 30px auto 50px;
-        }
-
-        .profile-card {
-            background: white;
-            border-radius: 15px;
-            padding: 24px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .profile-left {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-
-        .avatar {
-            width: 68px;
-            height: 68px;
-            border-radius: 50%;
-            border: 1px solid #c99a49;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Georgia, serif;
-            font-size: 22px;
-            color: #aa7d34;
-            background: #f8f0df;
-        }
-
-        .profile-name {
-            font-family: Georgia, serif;
+        .feedback-page .feedback-heading h1 {
             font-size: 24px;
-            margin-bottom: 7px;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .feedback-page .feedback-heading {
+            align-items: flex-start;
+            flex-direction: column;
         }
 
-        .profile-info {
-            color: #777;
-            font-size: 13px;
+        .feedback-page .feedback-card {
+            padding: 16px;
         }
 
-        .profile-status {
-            color: #267c56;
+        .feedback-page .choice-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Lớp phủ tối phía sau popup */
+    .feedback-success-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background: rgba(35, 31, 27, 0.82);
+    }
+
+    /* Khung popup */
+    .feedback-success-modal {
+        width: 100%;
+        max-width: 520px;
+        padding: 32px 28px;
+        box-sizing: border-box;
+        background: #fff;
+        border-top: 6px solid #c9a04f;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Dấu tích thành công */
+    .feedback-success-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        background: #e7f4ed;
+        color: #27845b;
+        font-size: 32px;
+    }
+
+    /* Tiêu đề và mô tả */
+    .feedback-success-modal h2 {
+        margin: 0 0 12px;
+        color: #292824;
+        font-size: 23px;
+    }
+
+    .feedback-success-description,
+    .feedback-success-note {
+        color: #817b72;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    /* Thông tin mã phiếu */
+    .feedback-success-info {
+        margin: 22px 0;
+        padding: 16px;
+        background: #fbf8f2;
+        border: 1px solid #e9dfd0;
+        border-radius: 12px;
+        text-align: left;
+    }
+
+    .feedback-success-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .feedback-success-info-row + .feedback-success-info-row {
+        margin-top: 12px;
+    }
+
+    .feedback-success-code {
+        color: #966b24;
+    }
+
+    .feedback-success-status {
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: #f4ead4;
+        color: #966b24;
+        font-size: 12px;
+    }
+
+    /* Hai nút điều hướng */
+    .feedback-success-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .feedback-success-actions a {
+        flex: 1;
+        padding: 13px 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .feedback-success-btn-list {
+        border: 1px solid #e4d8c7;
+        color: #292824;
+        background: #fff;
+    }
+
+    .feedback-success-btn-detail {
+        background: #292824;
+        color: #fff;
+    }
+
+    @media (max-width: 480px) {
+        .feedback-success-modal {
+            padding: 24px 18px;
         }
 
-        /* TAB */
-
-        .tabs {
-            background: white;
-            border: 1px solid #e5dacb;
-            border-radius: 12px;
-            height: 58px;
-
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-
-            margin-bottom: 25px;
+        .feedback-success-actions {
+            flex-direction: column;
         }
+    }
 
-        .tab {
-            display: flex;
-            justify-content: center;
-            align-items: center;
 
-            color: #8b8278;
-            font-size: 14px;
-        }
+</style>
 
-        .tab.active {
-            color: #8d6729;
-            font-weight: bold;
-            border-bottom: 2px solid #b78b43;
-        }
+<div class="feedback-page">
 
-
-        /* TITLE */
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: end;
-            margin-bottom: 20px;
-        }
-
-        .page-title {
-            font-family: Georgia, serif;
-            font-size: 34px;
-            font-weight: normal;
-        }
-
-        .page-desc {
-            color: #8c857c;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        .my-ticket-link {
-            text-decoration: none;
-            color: #9a722f;
-            font-size: 14px;
-        }
-
-
-        /* GRID */
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-        }
-
-
-        /* FORM */
-
-        .form-card {
-            background: white;
-            border: 1px solid #e5dacb;
-            border-radius: 14px;
-            padding: 28px;
-        }
-
-        .form-group {
-            margin-bottom: 23px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .required {
-            color: #9d4439;
-        }
-
-        input[type="text"],
-        select,
-        textarea {
-            width: 100%;
-            border: 1px solid #ded4c7;
-            border-radius: 8px;
-            padding: 14px 15px;
-            outline: none;
-
-            font-size: 14px;
-            background: white;
-        }
-
-        input[type="text"]:focus,
-        select:focus,
-        textarea:focus {
-            border-color: #bd9142;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 160px;
-        }
-
-
-        /* RADIO */
-
-        .radio-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .radio-option {
-            border: 1px solid #ded4c7;
-            border-radius: 8px;
-            padding: 17px;
-
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .radio-option:hover {
-            border-color: #bd9142;
-            background: #faf3e3;
-        }
-
-        .radio-option input {
-            accent-color: #b7893b;
-        }
-
-
-        /* FILE */
-
-        .upload-box {
-            border: 1px dashed #b8893c;
-            border-radius: 10px;
-            padding: 32px;
-
-            text-align: center;
-            background: #fffdf9;
-        }
-
-        .upload-box input {
-            margin-top: 15px;
-        }
-
-        .upload-title {
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-
-        .upload-note {
-            color: #999;
-            font-size: 12px;
-        }
-
-
-        /* BUTTON */
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 25px;
-        }
-
-        .btn {
-            padding: 13px 28px;
-            border-radius: 7px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .btn-cancel {
-            background: white;
-            border: 1px solid #ddd2c5;
-            color: #444;
-        }
-
-        .btn-submit {
-            background: #252522;
-            color: white;
-            border: none;
-        }
-
-        .btn-submit:hover {
-            background: #a77b34;
-        }
-
-
-        /* RIGHT COLUMN */
-
-        .side-card {
-            border-radius: 13px;
-            padding: 25px;
-            margin-bottom: 18px;
-        }
-
-        .dark-card {
-            background: #272622;
-            color: white;
-        }
-
-        .dark-small {
-            color: #c59a4a;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            margin-bottom: 17px;
-        }
-
-        .dark-title {
-            font-family: Georgia, serif;
-            font-size: 25px;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
-
-        .dark-desc {
-            color: #bcb7ae;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .process-card {
-            background: white;
-            border: 1px solid #e4dacb;
-        }
-
-        .process-title {
-            font-family: Georgia, serif;
-            font-size: 21px;
-            margin-bottom: 20px;
-        }
-
-        .process-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 18px 0;
-            font-size: 13px;
-        }
-
-        .step {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #f5ead2;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            color: #9b742f;
-            font-weight: bold;
-        }
-
-
-        /* MESSAGE */
-
-        .message {
-            padding: 13px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .message.success {
-            background: #e6f5ed;
-            color: #247653;
-        }
-
-        .message.error {
-            background: #fde9e6;
-            color: #b23f34;
-        }
-
-
-        /* ERROR */
-
-        .field-error {
-            margin-top: 6px;
-            color: #b63e34;
-            font-size: 12px;
-        }
-
-
-        @media (max-width: 900px) {
-
-            .nav {
-                display: none;
-            }
-
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .radio-group {
-                grid-template-columns: 1fr;
-            }
-
-            .tabs {
-                grid-template-columns: 1fr 1fr;
-                height: auto;
-            }
-
-            .tab {
-                padding: 15px;
-            }
-
-        }
-    </style>
-</head>
-
-
-<body>
-
-<header class="header">
-
-    <div>
-        <div class="logo">CHARM GRAND</div>
-        <div class="logo-sub">LUXURY SPA & WELLNESS</div>
-    </div>
-
-    <nav class="nav">
-        <a href="#">Trang Chủ</a>
-        <a href="#">Về Chúng Tôi</a>
-        <a href="#">Liệu Trình</a>
-        <a href="#">Không Gian</a>
-        <a href="#">Tin Tức</a>
-        <a href="#">Liên Hệ</a>
-        <a href="#" class="btn-book">ĐẶT LỊCH NGAY</a>
-        <a href="#" class="account">Tài khoản</a>
-    </nav>
-
-</header>
-
-
-<main class="container">
-
-    <!-- Hồ sơ khách hàng -->
-
-    <section class="profile-card">
-
-        <div class="profile-left">
-
-            <div class="avatar">
-                KH
-            </div>
-
-            <div>
-                <div class="profile-name">
-                    {% if khach_hang %}
-                        {{ khach_hang.ho_ten }}
-                    {% else %}
-                        Khách hàng
-                    {% endif %}
-                </div>
-
-                <div class="profile-info">
-                    Tài khoản khách hàng
-                    &nbsp; • &nbsp;
-                    <span class="profile-status">● Đang hoạt động</span>
-                </div>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- Tabs -->
-
-    <section class="tabs">
-        <div class="tab">1. Hồ sơ khách hàng</div>
-        <div class="tab">2. Lịch sử dịch vụ</div>
-        <div class="tab">3. Lịch hẹn</div>
-        <div class="tab active">4. Phản hồi & Khiếu nại</div>
-    </section>
-
-
-    <!-- Header -->
-
-    <div class="page-header">
-
+    <!-- Tiêu đề trang và liên kết phiếu đã gửi -->
+    <div class="feedback-heading">
         <div>
-            <h1 class="page-title">GỬI PHẢN HỒI/KHIẾU NẠI</h1>
-
-            <p class="page-desc">
-                Chia sẻ trải nghiệm để Charm Grand có thể phục vụ bạn chu đáo hơn.
-            </p>
+            <h1>Gửi phản hồi/khiếu nại</h1>
+            <p>Chia sẻ trải nghiệm để Charm Grand có thể phục vụ bạn chu đáo hơn.</p>
         </div>
-
-        <a class="my-ticket-link" href="#">
+        <!-- Liên kết sang danh sách phiếu đã gửi -->
+        <a href="{% url 'feedback:customer_feedback_list' %}"
+           class="my-tickets">
             ← Phiếu của tôi
         </a>
 
     </div>
 
-
-    <!-- Messages -->
-
+    <!-- Hiển thị thông báo Django -->
     {% if messages %}
         {% for message in messages %}
-            <div class="message {{ message.tags }}">
+            <div class="feedback-message">
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 
+    <!-- Chia thành biểu mẫu bên trái và hướng dẫn bên phải -->
+    <div class="feedback-grid">
 
-    <div class="content-grid">
-
-        <!-- FORM -->
-
-        <section class="form-card">
-
-            <form method="post" enctype="multipart/form-data">
-
+        <!-- Biểu mẫu gửi phản hồi/khiếu nại -->
+        <section class="feedback-card">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
 
-
-                <!-- LOẠI -->
-
+                <!-- Lựa chọn loại nội dung -->
                 <div class="form-group">
-
                     <label class="form-label">
-                        Bạn muốn gửi <span class="required">*</span>
+                        Bạn muốn gửi *
                     </label>
 
-                    <div class="radio-group">
-
-                        {% for value, label in form.loai_ph.field.choices %}
-
-                            <label class="radio-option">
-
-                                <input
-                                    type="radio"
-                                    name="{{ form.loai_ph.name }}"
-                                    value="{{ value }}"
-
-                                    {% if form.loai_ph.value == value %}
-                                        checked
-                                    {% endif %}
-
-                                    required
-                                >
-
-                                {{ label }}
-
+                    <div class="choice-list">
+                        {% for radio in form.loai_ph %}
+                            <label class="choice-card"
+                                   for="{{ radio.id_for_label }}">
+                                {{ radio.tag }}
+                                <span>{{ radio.choice_label }}</span>
                             </label>
-
                         {% endfor %}
-
                     </div>
 
-                    {% for error in form.loai_ph.errors %}
-                        <div class="field-error">{{ error }}</div>
-                    {% endfor %}
-
+                    {{ form.loai_ph.errors }}
                 </div>
 
-
-                <!-- DỊCH VỤ -->
-
+                <!-- Chọn dịch vụ liên quan -->
                 <div class="form-group">
-
-                    <label class="form-label">
-                        Dịch vụ liên quan (không bắt buộc)
+                    <label class="form-label"
+                           for="{{ form.ma_dv.id_for_label }}">
+                        Dịch vụ (không bắt buộc)
                     </label>
 
                     {{ form.ma_dv }}
-
-                    {% for error in form.ma_dv.errors %}
-                        <div class="field-error">{{ error }}</div>
-                    {% endfor %}
-
+                    {{ form.ma_dv.errors }}
                 </div>
 
-
-                <!-- TIÊU ĐỀ -->
-
+                <!-- Nhập tiêu đề -->
                 <div class="form-group">
-
-                    <label class="form-label">
-                        Tiêu đề <span class="required">*</span>
+                    <label class="form-label"
+                           for="{{ form.tieu_de.id_for_label }}">
+                        Tiêu đề *
                     </label>
 
                     {{ form.tieu_de }}
-
-                    {% for error in form.tieu_de.errors %}
-                        <div class="field-error">{{ error }}</div>
-                    {% endfor %}
-
+                    {{ form.tieu_de.errors }}
                 </div>
 
-
-                <!-- NỘI DUNG -->
-
+                <!-- Nhập nội dung chi tiết -->
                 <div class="form-group">
-
-                    <label class="form-label">
-                        Nội dung <span class="required">*</span>
+                    <label class="form-label"
+                           for="{{ form.noi_dung.id_for_label }}">
+                        Nội dung *
                     </label>
 
                     {{ form.noi_dung }}
-
-                    {% for error in form.noi_dung.errors %}
-                        <div class="field-error">{{ error }}</div>
-                    {% endfor %}
-
+                    {{ form.noi_dung.errors }}
                 </div>
 
-
-                <!-- FILE -->
-
+                <!-- Chọn tệp minh chứng -->
                 <div class="form-group">
-
-                    <label class="form-label">
+                    <label class="form-label" for="tep_dinh_kem">
                         Tệp đính kèm
                     </label>
 
-                    <div class="upload-box">
+                    <label class="upload-area" for="tep_dinh_kem">
+                        <span class="upload-icon">↑</span>
+                        <span>Kéo thả hoặc chọn nhiều tệp</span>
+                        <span class="upload-note">
+                            JPG, PNG hoặc PDF · Tối đa 10 MB mỗi tệp
+                        </span>
 
-                        <div class="upload-title">
-                            Kéo thả hoặc chọn nhiều tệp
-                        </div>
-
-                        <div class="upload-note">
-                            JPG, PNG hoặc PDF
-                        </div>
-
-                        <input
-                            type="file"
-                            name="tep_dinh_kem"
-                            multiple
-                            accept=".jpg,.jpeg,.png,.pdf"
-                        >
-
-                    </div>
-
+                        <input type="file"
+                               id="tep_dinh_kem"
+                               name="tep_dinh_kem"
+                               accept=".jpg,.jpeg,.png,.pdf"
+                               multiple>
+                    </label>
                 </div>
 
+                <!-- Hiển thị lỗi chung của biểu mẫu -->
+                {{ form.non_field_errors }}
 
-                <!-- BUTTON -->
-
+                <!-- Các nút thao tác -->
                 <div class="form-actions">
-
-                    <button
-                        type="reset"
-                        class="btn btn-cancel"
-                    >
+                    <button type="reset" class="btn btn-cancel">
                         Hủy
                     </button>
 
-                    <button
-                        type="submit"
-                        class="btn btn-submit"
-                    >
-                        Gửi phản hồi/khiếu nại
+                    <button type="submit" class="btn btn-submit">
+                        ➤ &nbsp; Gửi phản hồi
                     </button>
-
                 </div>
-
             </form>
-
         </section>
 
-
-        <!-- RIGHT -->
-
+        <!-- Cột bên phải: cam kết và quy trình tiếp nhận -->
         <aside>
 
-            <div class="side-card dark-card">
+            <!-- Cam kết bảo mật -->
+            <section class="side-card promise-card">
+                <p class="eyebrow">Cam kết chăm sóc</p>
 
-                <div class="dark-small">
-                    CAM KẾT CHĂM SÓC
-                </div>
-
-                <div class="dark-title">
+                <h2>
                     Mọi chia sẻ đều được lắng nghe bằng sự trân trọng.
+                </h2>
+
+                <p>
+                    Thông tin của bạn được bảo mật và chỉ sử dụng
+                    để xác minh, cải thiện chất lượng dịch vụ.
+                </p>
+            </section>
+
+            <!-- Các bước xử lý -->
+            <section class="side-card">
+                <h3>Quy trình tiếp nhận</h3>
+
+                <div class="process-step">
+                    <span class="step-number">1</span>
+                    <span>Gửi nội dung và tệp minh chứng</span>
                 </div>
 
-                <div class="dark-desc">
-                    Thông tin của bạn được lưu trữ để hỗ trợ quá trình tiếp nhận
-                    và nâng cao chất lượng dịch vụ tại Charm Grand.
+                <div class="process-step">
+                    <span class="step-number">2</span>
+                    <span>CSKH xác minh trong 24 giờ</span>
                 </div>
 
-            </div>
-
-
-            <div class="side-card process-card">
-
-                <h3 class="process-title">
-                    Quy trình tiếp nhận
-                </h3>
-
-                <div class="process-item">
-                    <div class="step">1</div>
-                    <div>Gửi nội dung và tệp minh chứng</div>
+                <div class="process-step">
+                    <span class="step-number">3</span>
+                    <span>Cập nhật kết quả qua hồ sơ cá nhân</span>
                 </div>
-
-                <div class="process-item">
-                    <div class="step">2</div>
-                    <div>Charm Grand tiếp nhận và phân công xử lý</div>
-                </div>
-
-                <div class="process-item">
-                    <div class="step">3</div>
-                    <div>Theo dõi trạng thái và kết quả xử lý</div>
-                </div>
-
-            </div>
+            </section>
 
         </aside>
-
     </div>
+</div>
 
-</main>
 
-</body>
-</html>
+<!-- Chỉ hiện popup khi gửi phiếu thành công -->
+{% if success_feedback %}
+<div class="feedback-success-overlay">
+    <div
+        class="feedback-success-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedbackSuccessTitle"
+    >
+        <!-- Biểu tượng thành công -->
+        <div class="feedback-success-icon">✓</div>
+
+        <!-- Tiêu đề popup -->
+        <h2 id="feedbackSuccessTitle">
+            Gửi phản hồi/khiếu nại thành công
+        </h2>
+
+        <p class="feedback-success-description">
+            Charm Grand Spa đã tiếp nhận nội dung của bạn.
+        </p>
+
+        <!-- Mã phiếu và trạng thái -->
+        <div class="feedback-success-info">
+            <div class="feedback-success-info-row">
+                <span>Mã phiếu</span>
+                <strong class="feedback-success-code">
+                    #{{ success_feedback.ma_ph }}
+                </strong>
+            </div>
+
+            <div class="feedback-success-info-row">
+                <span>Trạng thái</span>
+                <span class="feedback-success-status">
+                    ● {{ success_feedback.trang_thai }}
+                </span>
+            </div>
+        </div>
+
+        <p class="feedback-success-note">
+            Bạn có thể theo dõi tiến độ xử lý trong danh sách
+            phản hồi và khiếu nại của mình.
+        </p>
+
+        <!-- Hai nút điều hướng -->
+        <div class="feedback-success-actions">
+            <a
+                href="{% url 'feedback:customer_feedback_list' %}"
+                class="feedback-success-btn-list"
+            >
+                Về danh sách
+            </a>
+
+            <a
+                href="{% url 'feedback:customer_feedback_detail' success_feedback.ma_ph %}"
+                class="feedback-success-btn-detail"
+            >
+                Xem chi tiết
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

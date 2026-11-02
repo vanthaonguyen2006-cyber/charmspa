@@ -1,0 +1,231 @@
+/* Tổng thể trang chia đôi màn hình */
+.split-screen {
+    display: flex;
+    min-height: 100vh;
+    background-color: #fcf9f5;
+    font-family: 'Playfair Display', serif, Arial, sans-serif;
+}
+
+/* Phần bên trái: Banner không gian Spa */
+.left-banner {
+    flex: 1;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), url('/static/images/hinhdki2.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+    color: #fff;
+    padding: 110px 60px 60px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.brand-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo-img {
+    height: 58px;
+    width: auto;
+}
+
+.brand-text-logo {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    line-height: 1.3;
+}
+
+.left-content h1 {
+    font-size: 42px;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.left-content p {
+    font-size: 15px;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 420px;
+    margin-bottom: 30px;
+}
+
+.features-list {
+    display: flex;
+    gap: 25px;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+/* Phần bên phải: Hộp chứa form đăng nhập */
+.right-form {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background-color: #fcf9f5;
+}
+
+.auth-card {
+    background: #ffffff;
+    padding: 40px 45px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 460px;
+}
+
+/* Header logo phía trên card đăng nhập */
+.card-brand-header {
+    text-align: center; /* Căn giữa toàn bộ nội dung trong header */
+    margin-bottom: 25px;
+}
+
+.card-brand-header img {
+    height: 50px; /* Tăng kích thước logo to hơn một chút (ví dụ từ 30px lên 50px) */
+    width: auto;
+    display: block;
+    margin: 0 auto 8px auto; /* Tự động căn giữa lề trái/phải */
+}
+
+.card-brand-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: 0.5px;
+}
+
+.card-brand-subtitle {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #8c827b;
+    font-weight: 600;
+    margin-top: 2px;
+}
+.auth-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auth-header h2 {
+    font-size: 26px;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.auth-header p {
+    font-size: 13px;
+    color: #8c827b;
+}
+
+/* Tùy chỉnh các trường form & icon */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: #5c524c;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px 12px 42px; /* Chừa khoảng trống bên trái cho icon */
+    border: 1px solid #e3dcd2;
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: #fff;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #1a1a1a;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.05);
+}
+
+.form-extra {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 25px;
+    color: #6c625c;
+}
+
+.form-extra a {
+    color: #8c6843;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.form-extra a:hover {
+    text-decoration: underline;
+}
+
+/* Nút bấm đăng nhập màu đen */
+.btn-submit {
+    width: 100%;
+    background-color: #1a1a1a;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-submit:hover {
+    background-color: #333333;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #8c827b;
+}
+
+.auth-footer a {
+    color: #8c6843;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Dòng bảo mật dưới cùng */
+.security-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 22px;
+    font-size: 12px;
+    color: #8c827b;
+}
