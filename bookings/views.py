@@ -78,9 +78,7 @@ def booking_customer_create(request):
         ghi_chu = request.POST.get('ghi_chu', '')
 
         try:
-            dich_vu = DichVu.objects.filter(pk=ma_dv).first()
-            if not dich_vu:
-                dich_vu = DichVu.objects.first()
+            dich_vu = get_object_or_404(DichVu, pk=ma_dv)
 
             ngay_check = datetime.today().strftime('%Y-%m-%d')
             if ngay_hen:
@@ -171,8 +169,6 @@ def booking_customer_create(request):
 
     return render(request, 'bookings/customer_create.html', context)
 
-
-
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_list(request):
     trang_thai_filter = request.GET.get('trang_thai', '')
@@ -240,22 +236,34 @@ def booking_customer_detail(request, ma_lh):
         **get_staff_context(request)
     })
 
-
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_success(request):
+    last_code = request.session.get('last_booking_code')
+
     lich_hen = None
-    try:
-        last_code = request.session.get('last_booking_code')
-        if last_code:
-            lich_hen = LichHen.objects.select_related('ma_dv', 'ma_kh').filter(ma_lh=last_code).first()
-    except Exception as e:
-        print("Lỗi lấy lịch hẹn success:", e)
+
+    if last_code:
+        lich_hen = LichHen.objects.select_related(
+            'ma_dv',
+            'ma_kh',
+            'ma_kh__ma_tk'
+        ).filter(
+            ma_lh=last_code,
+            ma_kh__ma_tk__user=request.user
+        ).first()
+
+    khach_hang = KhachHang.objects.select_related(
+        'ma_tk',
+        'ma_tv'
+    ).filter(
+        ma_tk__user=request.user
+    ).first()
 
     return render(request, 'bookings/customer_success.html', {
         'lich_hen': lich_hen,
+        'khach_hang': khach_hang,
         **get_staff_context(request)
     })
-
 
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_cancel(request, ma_lh):
@@ -297,6 +305,7 @@ def booking_customer_cancel(request, ma_lh):
     messages.success(request, f'Đã hủy lịch #{lich_hen.ma_lh} thành công.')
     return redirect(reverse('booking_customer_list') + '?trang_thai=cancelled')
 
+@login_required(login_url='/accounts/dang_nhap/')
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_reschedule(request, ma_lh):
     # Quay về đúng giao diện của người đang thực hiện đổi lịch.
@@ -354,6 +363,10 @@ def booking_customer_reschedule(request, ma_lh):
             except (ValueError, TypeError):
                 pass
 
+        if NgayHoatDong.objects.filter(ngay=ngay_str, trang_thai='Đã khóa').exists():
+            messages.error(request, 'Ngày mới đã bị khóa. Vui lòng chọn ngày khác.')
+            return redirect(redirect_url)
+
         gio_str = gio_hen_moi if gio_hen_moi else lich_hen.gio_hen
 
         try:
@@ -401,7 +414,6 @@ def booking_customer_reschedule(request, ma_lh):
                 ngay=ngay_str,
                 defaults={'ma_nhd': f'NHD-{ngay_str}', 'trang_thai': 'Mở'}
             )
-
             lich_hen.ngay_hen = ngay_str
             lich_hen.ma_nhd = ngay_hd
 

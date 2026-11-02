@@ -1,0 +1,460 @@
+
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Hồ sơ khách hàng | Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer_detail.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+<div class="customer-detail-page">
+
+    <nav class="customer-detail-breadcrumb" aria-label="Breadcrumb"><span>Charm Spa</span><span aria-hidden="true">›</span><span>Khách hàng</span><span aria-hidden="true">›</span><span aria-current="page">Hồ sơ khách hàng</span></nav>
+
+    <!-- TIÊU ĐỀ TRANG -->
+    <div class="detail-page-heading">
+        <div class="detail-heading-left">
+            <a class="back-button"
+               href="{% url 'staff_customer_list' %}"
+               aria-label="Quay lại danh sách">&#8592;</a>
+
+            <div>
+                <h1>Hồ sơ khách hàng</h1>
+                <p>Thông tin quản lý khách hàng · Hồ sơ chăm sóc</p>
+            </div>
+        </div>
+
+        <div class="sync-status">
+            <span class="sync-dot"></span>
+            Dữ liệu hồ sơ
+        </div>
+    </div>
+
+    <!-- THẺ TỔNG QUAN KHÁCH HÀNG -->
+    <section class="customer-summary-card">
+
+        <div class="customer-identity">
+            <div class="customer-avatar">{{ initials }}</div>
+
+            <div class="customer-identity-text">
+                <div class="customer-name-line">
+                    <h2>{{ khach_hang.ho_ten }}</h2>
+
+                    <span class="tier-pill {% if khach_hang.ma_tv %}tier-{{ khach_hang.ma_tv.ten_hang|slugify }}{% else %}tier-moi{% endif %}">
+                        {% if khach_hang.ma_tv %}
+                            {{ khach_hang.ma_tv.ten_hang }}
+                        {% else %}
+                            Thành viên mới
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="customer-subline">
+                    <span>
+                        &#9742;
+                        {% if tai_khoan %}
+                            {{ tai_khoan.so_dien_thoai }}
+                        {% else %}
+                            Chưa cập nhật số điện thoại
+                        {% endif %}
+                    </span>
+
+                    <span>{{ khach_hang.ma_kh }}</span>
+                    {% if user and user.email %}<span>{{ user.email }}</span>{% endif %}
+
+                    <span class="account-status
+                        {% if trang_thai_tai_khoan == 'Đã khóa' %}
+                            status-locked
+                        {% else %}
+                            status-active
+                        {% endif %}">
+                        <i></i>{{ trang_thai_tai_khoan }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-metric points-metric">
+            <span class="metric-label">ĐIỂM TÍCH LŨY</span>
+            <strong>
+                {{ khach_hang.diem_tich_luy_kh|default:0|floatformat:0 }} điểm
+            </strong>
+        </div>
+
+        <div class="summary-metric">
+            <span class="metric-label">HẠNG THÀNH VIÊN</span>
+            <strong>
+                {% if khach_hang.ma_tv %}
+                    {{ khach_hang.ma_tv.ten_hang }}
+                {% else %}
+                    Chưa xếp hạng
+                {% endif %}
+            </strong>
+        </div>
+
+                <div class="summary-actions">
+            <a class="btn btn-gold"
+               href="{% url 'staff_customer_record_service' khach_hang.ma_kh %}"
+               >
+                <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
+                + Cập nhật dịch vụ đã sử dụng
+            </a>
+            <a class="btn btn-outline"
+               href="{% url 'staff_customer_list' %}">
+                Quay lại danh sách
+            </a>
+        </div>
+
+    </section>
+
+    <!-- THÔNG TIN CÁ NHÂN -->
+    <section class="detail-card personal-card">
+
+        <!-- TIÊU ĐỀ VÀ NÚT CHỈNH SỬA CÙNG HÀNG -->
+        <div class="section-heading personal-section-heading">
+            <div>
+                <h3>Thông tin cá nhân</h3>
+                <p>Thông tin hiện có trong hồ sơ khách hàng</p>
+            </div>
+
+            {% if not is_editing %}
+                <a href="?edit=1" class="btn-edit">
+                    <i data-lucide="pencil"></i>
+                    Chỉnh sửa
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- THÔNG BÁO THÀNH CÔNG -->
+        {% if messages %}
+            <div class="profile-messages">
+                {% for message in messages %}
+                    <div class="profile-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- THÔNG BÁO LỖI -->
+        {% if errors %}
+            <div class="profile-messages">
+                {% for error in errors %}
+                    <div class="profile-message error">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if is_editing %}
+
+            <!-- FORM CHỈNH SỬA THÔNG TIN -->
+            <form method="post"
+                  action="{% url 'staff_customer_detail' khach_hang.ma_kh %}"
+                  class="profile-edit-form">
+
+                {% csrf_token %}
+
+                <div class="personal-grid">
+
+                    <div class="info-field">
+                        <label for="ho_ten">Họ và tên</label>
+                        <input
+                            id="ho_ten"
+                            name="ho_ten"
+                            type="text"
+                            value="{% if form_data %}{{ form_data.ho_ten }}{% else %}{{ khach_hang.ho_ten }}{% endif %}"
+                            required>
+                    </div>
+
+                    <div class="info-field">
+                        <label for="so_dien_thoai">Số điện thoại</label>
+                        <input
+                            id="so_dien_thoai"
+                            name="so_dien_thoai"
+                            type="text"
+                            value="{% if form_data %}{{ form_data.so_dien_thoai }}{% elif tai_khoan %}{{ tai_khoan.so_dien_thoai }}{% endif %}"
+                            required>
+                    </div>
+
+                    <div class="info-field">
+                        <label for="email">Email</label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value="{% if form_data %}{{ form_data.email }}{% elif user %}{{ user.email }}{% endif %}">
+                    </div>
+
+                    <div class="info-field">
+                        <label for="ngay_sinh">Ngày sinh</label>
+                        <input
+                            id="ngay_sinh"
+                            name="ngay_sinh"
+                            type="date"
+                            value="{% if form_data %}{{ form_data.ngay_sinh }}{% elif khach_hang.ngay_sinh %}{{ khach_hang.ngay_sinh|date:'Y-m-d' }}{% endif %}">
+                    </div>
+
+                    <div class="info-field">
+                        <label for="gioi_tinh">Giới tính</label>
+                        <select id="gioi_tinh" name="gioi_tinh">
+                            <option value=""
+                                {% if not form_data.gioi_tinh and not khach_hang.gioi_tinh %}selected{% endif %}>
+                                Chưa cập nhật
+                            </option>
+
+                            <option value="Nam"
+                                {% if form_data.gioi_tinh == 'Nam' or not form_data and khach_hang.gioi_tinh == 'Nam' %}selected{% endif %}>
+                                Nam
+                            </option>
+
+                            <option value="Nữ"
+                                {% if form_data.gioi_tinh == 'Nữ' or not form_data and khach_hang.gioi_tinh == 'Nữ' %}selected{% endif %}>
+                                Nữ
+                            </option>
+
+                            <option value="Khác"
+                                {% if form_data.gioi_tinh == 'Khác' or not form_data and khach_hang.gioi_tinh == 'Khác' %}selected{% endif %}>
+                                Khác
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="info-field">
+                        <label>Mã khách hàng</label>
+                        <div class="info-value">{{ khach_hang.ma_kh }}</div>
+                    </div>
+
+                    <div class="info-field">
+                        <label>Ngày tạo tài khoản</label>
+                        <div class="info-value">
+                            {% if ngay_tao %}
+                                {{ ngay_tao|date:'d/m/Y H:i' }}
+                            {% else %}
+                                Chưa có tài khoản liên kết
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="info-field">
+                        <label>Trạng thái tài khoản</label>
+                        <div class="info-value">
+                            <span class="account-status
+                                {% if trang_thai_tai_khoan == 'Đã khóa' %}
+                                    status-locked
+                                {% else %}
+                                    status-active
+                                {% endif %}">
+                                <i></i>{{ trang_thai_tai_khoan }}
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- NÚT HỦY VÀ LƯU -->
+                <div class="profile-form-actions">
+                    <a href="{% url 'staff_customer_detail' khach_hang.ma_kh %}"
+                       class="btn-cancel">
+                        Hủy
+                    </a>
+
+                    <button type="submit" class="btn-save">
+                        Lưu thay đổi
+                    </button>
+                </div>
+
+            </form>
+
+        {% else %}
+
+            <!-- HIỂN THỊ THÔNG TIN KHÁCH HÀNG -->
+            <div class="personal-grid">
+
+                <div class="info-field">
+                    <label>Họ và tên</label>
+                    <div class="info-value">
+                        {{ khach_hang.ho_ten|default:'Chưa cập nhật' }}
+                    </div>
+                </div>
+
+                <div class="info-field">
+                    <label>Số điện thoại</label>
+                    <div class="info-value">
+                        {% if tai_khoan %}
+                            {{ tai_khoan.so_dien_thoai|default:'Chưa cập nhật' }}
+                        {% else %}
+                            Chưa có tài khoản
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-field">
+                    <label>Email</label>
+                    <div class="info-value">
+                        {% if user and user.email %}
+                            {{ user.email }}
+                        {% else %}
+                            Chưa cập nhật
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-field">
+                    <label>Ngày sinh</label>
+                    <div class="info-value">
+                        {% if khach_hang.ngay_sinh %}
+                            {{ khach_hang.ngay_sinh|date:'d/m/Y' }}
+                        {% else %}
+                            Chưa cập nhật
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-field">
+                    <label>Giới tính</label>
+                    <div class="info-value">
+                        {{ khach_hang.gioi_tinh|default:'Chưa cập nhật' }}
+                    </div>
+                </div>
+
+                <div class="info-field">
+                    <label>Mã khách hàng</label>
+                    <div class="info-value">{{ khach_hang.ma_kh }}</div>
+                </div>
+
+                <div class="info-field">
+                    <label>Ngày tạo tài khoản</label>
+                    <div class="info-value">
+                        {% if ngay_tao %}
+                            {{ ngay_tao|date:'d/m/Y H:i' }}
+                        {% else %}
+                            Chưa có tài khoản liên kết
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-field">
+                    <label>Trạng thái tài khoản</label>
+                    <div class="info-value">
+                        <span class="account-status
+                            {% if trang_thai_tai_khoan == 'Đã khóa' %}
+                                status-locked
+                            {% else %}
+                                status-active
+                            {% endif %}">
+                            <i></i>{{ trang_thai_tai_khoan }}
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+    <!-- LỊCH SỬ SỬ DỤNG DỊCH VỤ -->
+    <section class="detail-card history-card">
+
+        <div class="section-heading history-heading">
+            <div class="history-title-wrap">
+                <h3>Lịch sử sử dụng dịch vụ</h3>
+                <span class="count-pill">
+                    {{ so_luot_su_dung }} lượt sử dụng
+                </span>
+            </div>
+
+            <a href="{% url 'staff_customer_record_service' khach_hang.ma_kh %}"
+               class="btn-edit btn-update-service">
+                <i data-lucide="plus-circle"></i>
+                + Cập nhật dịch vụ đã sử dụng
+            </a>
+        </div>
+
+        <div class="history-table-wrap">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>THỜI GIAN</th>
+                        <th>DỊCH VỤ</th>
+                        <th>CHUYÊN VIÊN</th>
+                        <th>GIÁ TRỊ</th>
+                        <th>ĐIỂM</th>
+                        <th>TRẠNG THÁI</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in lich_su_dich_vu %}
+                        <tr>
+                            <td>
+                                {% if item.ngay %}
+                                    {{ item.ngay|date:'d/m/Y · H:i' }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            <td class="service-name">{{ item.dich_vu }}</td>
+                            <td>{{ item.nhan_vien }}</td>
+
+                            <td>
+                                {% if item.gia_tri != None %}
+                                    {{ item.gia_tri|floatformat:0 }} đ
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            <td class="points-cell">
+                                {% if item.diem != None %}
+                                    {{ item.diem }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span class="history-status">
+                                    {{ item.trang_thai }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="empty-history">
+                                Chưa có dữ liệu lịch sử dịch vụ để hiển thị
+                                cho khách hàng này.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="history-footer">
+            <span>
+                Lịch sử sử dụng dịch vụ của {{ khach_hang.ho_ten }}
+            </span>
+        </div>
+
+    </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
+    </script>
+{% endblock %}

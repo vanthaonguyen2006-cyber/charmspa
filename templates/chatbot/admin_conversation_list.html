@@ -1,0 +1,93 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Quản lý hội thoại - Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'chatbot/css/conversation_admin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 cv-page">
+
+    <div class="cv-head">
+        <div>
+            <h3 class="cv-title">QUẢN LÝ HỘI THOẠI</h3>
+            <div class="cv-sub">Tiếp nhận, phân công và theo dõi hội thoại tư vấn từ Chatbot Charm Grand.</div>
+        </div>
+        <a class="cv-btn" href="{{ export_url }}"><i data-lucide="download"></i> Xuất báo cáo</a>
+    </div>
+
+    {% if messages %}{% for m in messages %}<div class="cv-alert {% if m.tags == 'error' %}error{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+    <!-- Thẻ phân loại có số lượng -->
+    <div class="cv-tabs">
+        {% for t in tabs %}
+        <a class="cv-tab {% if t.active %}active{% endif %}" href="{{ t.url }}">{{ t.label }} <span>{{ t.count }}</span></a>
+        {% endfor %}
+    </div>
+
+    <!-- Tìm kiếm và lọc -->
+    <form class="cv-filter" method="get">
+        <input type="search" name="q" value="{{ q }}" placeholder="Tìm theo tên khách hàng, số điện thoại hoặc nội dung hội thoại...">
+        <input type="hidden" name="status" value="{{ status }}">
+        <select name="period" onchange="this.form.submit()">
+            <option value="all" {% if period == 'all' %}selected{% endif %}>Mọi thời gian</option>
+            <option value="today" {% if period == 'today' %}selected{% endif %}>Hôm nay</option>
+            <option value="7" {% if period == '7' %}selected{% endif %}>7 ngày qua</option>
+            <option value="30" {% if period == '30' %}selected{% endif %}>30 ngày qua</option>
+        </select>
+        <button type="submit" class="cv-btn primary">Tìm kiếm</button>
+    </form>
+
+    <div class="cv-card">
+        <div style="overflow-x:auto">
+        <table class="cv-table">
+            <thead>
+                <tr>
+                    <th>Khách hàng</th>
+                    <th>Nội dung gần nhất</th>
+                    <th>Thời gian</th>
+                    <th>Nhân viên phụ trách</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td>
+                        <div class="cv-name">{{ r.name }}</div>
+                        {% if r.phone %}<div class="cv-small">{{ r.phone }}</div>{% endif %}
+                    </td>
+                    <td class="cv-last">{{ r.last_text }}<span class="cv-code">#{{ r.id }}</span></td>
+                    <td class="cv-small" style="white-space:nowrap">{{ r.time_label }}</td>
+                    <td>{% if r.staff %}{{ r.staff }}{% else %}<span class="cv-nobody">Chưa có người xử lý</span>{% endif %}</td>
+                    <td>
+                        <span class="cv-badge {% if r.status == 'Chờ xử lý' %}wait{% elif r.status == 'Đang xử lý' %}active{% elif r.status == 'Đã hoàn tất' %}done{% else %}bot{% endif %}">{{ r.status }}</span>
+                    </td>
+                    <td><a class="cv-link" href="{% url 'chatbot:admin_conversation_detail' r.id %}">Xem &rarr;</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="cv-empty">Không có hội thoại nào phù hợp.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        <div class="cv-foot">
+            <span>Hiển thị {{ first }}–{{ last }} trong tổng số {{ total }} hội thoại</span>
+            <div class="cv-pager">
+                {% if prev_url %}<a href="{{ prev_url }}">&lsaquo;</a>{% else %}<span class="off">&lsaquo;</span>{% endif %}
+                {% for p in page_links %}
+                    {% if p.active %}<span class="on">{{ p.n }}</span>{% else %}<a href="{{ p.url }}">{{ p.n }}</a>{% endif %}
+                {% endfor %}
+                {% if next_url %}<a href="{{ next_url }}">&rsaquo;</a>{% else %}<span class="off">&rsaquo;</span>{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>if (window.lucide) window.lucide.createIcons();</script>
+{% endblock %}
