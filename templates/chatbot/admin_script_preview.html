@@ -1,0 +1,172 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Xem trước kịch bản - {{ script.ten_kich_ban }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'chatbot/css/flow_builder.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <a href="{% url 'chatbot:admin_script_list' %}" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-1">
+                <i data-lucide="arrow-left" style="width:14px;height:14px"></i> Danh sách kịch bản
+            </a>
+            <h3 class="mb-1" style="font-family:'Playfair Display',Georgia,serif;font-weight:700;color:#2B2118">XEM TRƯỚC KỊCH BẢN</h3>
+            <div class="text-muted small">{{ script.ten_kich_ban }} (#{{ script.ma_kb }}) · Bấm các nút như khách hàng thật để kiểm tra luồng.</div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="fb-ghost" id="fbRestart"><i data-lucide="rotate-ccw"></i> Bắt đầu lại</button>
+            <a href="{% url 'chatbot:admin_script_edit' script.pk %}" class="fb-primary" style="text-decoration:none"><i data-lucide="pencil"></i> Quay lại chỉnh sửa</a>
+        </div>
+    </div>
+
+    <div class="fb-preview-grid">
+        <!-- SƠ ĐỒ: bước hiện tại được làm nổi bật -->
+        <div class="fb-flowcard">
+            <div class="fb-viewcard-head"><h3>Luồng hội thoại</h3><small>Bước hiện tại được tô viền nâu đỏ</small></div>
+            <div class="fb-viewbox"><div id="fbViewport"></div></div>
+        </div>
+
+        <!-- ĐIỆN THOẠI MÔ PHỎNG -->
+        <div class="fb-phone">
+            <div class="fb-phone-head">
+                <div class="fb-avatar">CS</div>
+                <div><strong>Charm Grand Spa</strong><small>● Sẵn sàng hỗ trợ bạn</small></div>
+            </div>
+            <div class="fb-trail" id="fbTrail"></div>
+            <div class="fb-chat" id="fbChat"></div>
+            <div class="fb-phone-foot">
+                <input id="fbMsg" placeholder="Nhập tin nhắn..." disabled>
+                <button type="button" id="fbSend" disabled>Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
+{{ graph|json_script:"flow-graph-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'chatbot/js/flow_engine.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var esc = FlowEngine.esc, money = FlowEngine.money;
+    var graph = JSON.parse(document.getElementById('flow-graph-data').textContent);
+    var engine = new FlowEngine(document.getElementById('fbViewport'), graph, { readOnly: true });
+    var chat = document.getElementById('fbChat'), trail = document.getElementById('fbTrail');
+    var msg = document.getElementById('fbMsg'), send = document.getElementById('fbSend');
+    var path = [];
+
+    function byId(id) { return engine.node(id); }
+    function br(t) { return esc(t).replace(/\n/g, '<br>'); }
+    function scroll() { chat.scrollTop = chat.scrollHeight; }
+    function bubble(kind, html) {
+        var d = document.createElement('div');
+        d.className = 'fb-bubble ' + kind;
+        d.innerHTML = html;
+        chat.appendChild(d);
+        scroll();
+        return d;
+    }
+    function chips(node) {
+        var box = document.createElement('div');
+        box.className = 'fb-chips';
+        node.options.forEach(function (o) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'fb-chip'; b.textContent = o.text || '(Nút chưa đặt tên)';
+            b.onclick = function () { choose(node, o, b); };
+            box.appendChild(b);
+        });
+        chat.appendChild(box);
+        scroll();
+    }
+    function lockChips(box, picked) {
+        box.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.style.opacity = b === picked ? '1' : '.45'; });
+    }
+    function choose(node, opt, btn) {
+        lockChips(btn.parentNode, btn);
+        bubble('me', esc(opt.text));
+        if (opt.nextId && byId(opt.nextId)) show(opt.nextId);
+        else bubble('sys', 'Nút này chưa được nối tới bước nào. Hãy quay lại chỉnh sửa để nối.');
+    }
+    function updateTrail() {
+        trail.textContent = path.length ? path.map(function (id) { return byId(id).title; }).join(' → ') : '';
+    }
+
+    function show(id) {
+        var n = byId(id);
+        if (!n) return;
+        path.push(id);
+        updateTrail();
+        engine.select(id);
+
+        if (n.type === 'tin_nhan') {
+            bubble('bot', br(n.content));
+            if (n.options.length) chips(n); else bubble('sys', 'Hết nhánh kịch bản.');
+        } else if (n.type === 'hinh_anh') {
+            var url = FlowEngine.safeUrl(n.image_url);
+            bubble('bot', (url ? '<img src="' + esc(url) + '" alt="" style="width:100%;border-radius:8px;margin-bottom:6px">'
+                : '<div class="fb-img" style="margin:0 0 6px">Chưa có ảnh</div>') + br(n.content));
+            if (n.options.length) chips(n);
+        } else if (n.type === 'dich_vu') {
+            bubble('bot', '<div class="fb-card-title">' + esc(n.title) + '</div>' +
+                '<div class="fb-card-meta">' + esc(n.duration || 0) + ' phút · ' + money(n.price) + ' đ</div>' + br(n.content));
+            if (n.options.length) chips(n);
+        } else if (n.type === 'form') {
+            bubble('bot', 'Vui lòng để lại thông tin, nhân viên sẽ hỗ trợ bạn ngay.');
+            var f = document.createElement('div');
+            f.className = 'fb-miniform';
+            f.innerHTML = '<input placeholder="Họ và tên"><input placeholder="Số điện thoại"><input placeholder="Nhu cầu tư vấn">';
+            var o = n.options[0];
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'fb-chip'; b.textContent = (o && o.text) || 'Gửi yêu cầu';
+            b.onclick = function () {
+                f.querySelectorAll('input').forEach(function (i) { i.disabled = true; });
+                b.disabled = true;
+                bubble('me', 'Đã gửi yêu cầu tư vấn');
+                if (o && o.nextId) show(o.nextId);
+            };
+            f.appendChild(b);
+            chat.appendChild(f); scroll();
+        } else if (n.type === 'chuyen_nhan_vien') {
+            bubble('sys', 'Yêu cầu đã được gửi · Đang chờ nhân viên tiếp nhận...');
+            var o2 = n.options[0];
+            if (o2 && o2.nextId) {
+                var g = document.createElement('div');
+                g.className = 'fb-chips';
+                var gb = document.createElement('button');
+                gb.type = 'button'; gb.className = 'fb-chip ghost';
+                gb.textContent = 'Giả lập: nhân viên tiếp nhận';
+                gb.onclick = function () { gb.disabled = true; show(o2.nextId); };
+                g.appendChild(gb); chat.appendChild(g); scroll();
+            }
+        } else if (n.type === 'chat_truc_tiep') {
+            bubble('sys', 'Nhân viên đã tiếp nhận yêu cầu');
+            bubble('staff', br(n.content || 'Xin chào, mình có thể hỗ trợ gì cho bạn?'));
+            msg.disabled = false; send.disabled = false; msg.focus();
+        }
+    }
+
+    function start() {
+        chat.innerHTML = ''; path = []; updateTrail();
+        msg.value = ''; msg.disabled = true; send.disabled = true;
+        engine.select(null);
+        var s = engine.graph.nodes.filter(function (n) { return n.type === 'bat_dau'; })[0];
+        var first = s && s.options[0] && s.options[0].nextId;
+        if (first && byId(first)) show(first);
+        else bubble('sys', 'Kịch bản chưa có bước đầu tiên. Hãy quay lại chỉnh sửa và nối khối "Bắt đầu" với một bước.');
+    }
+    send.onclick = function () {
+        var t = msg.value.trim();
+        if (!t) return;
+        bubble('me', esc(t)); msg.value = '';
+    };
+    msg.addEventListener('keydown', function (e) { if (e.key === 'Enter') send.onclick(); });
+    document.getElementById('fbRestart').onclick = start;
+    start();
+    if (window.lucide) window.lucide.createIcons();
+});
+</script>
+{% endblock %}

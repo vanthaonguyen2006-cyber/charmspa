@@ -1,0 +1,199 @@
+{% extends 'layouts/customer_base_pro.html' %}
+{% load static %}
+
+{% block title %}Hồ sơ cá nhân - Charm Grand Spa{% endblock %}
+
+{% block profile_content %}
+<div class="space-y-6">
+    
+    <!-- SECTION THÔNG TIN CÁ NHÂN -->
+   <!-- SECTION THÔNG TIN CÁ NHÂN -->
+    <form method="POST" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        {% csrf_token %}
+
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-lg font-bold text-gray-900">
+                    {% if is_editing %}Chỉnh sửa hồ sơ cá nhân{% else %}Thông tin cá nhân{% endif %}
+                </h3>
+                <p class="text-xs text-gray-400 mt-0.5">Cập nhật gần nhất bởi {{ khach_hang.ho_ten }}</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full flex items-center gap-1">
+                    🛡️ Đã xác thực thông tin
+                </span>
+
+                {% if not is_editing %}
+                    <a href="?edit=true" class="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition flex items-center gap-2">
+                        ✏️ Chỉnh sửa
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Các trường thông tin -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Họ và tên</label>
+                <input type="text" name="ho_ten" value="{{ khach_hang.ho_ten }}"
+                       {% if not is_editing %}disabled{% endif %}
+                       class="w-full {% if is_editing %}bg-white border-amber-600 ring-1 ring-amber-600{% else %}bg-gray-50 border-gray-200{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Số điện thoại</label>
+                <input type="text" name="so_dien_thoai" value="{{ khach_hang.ma_tk.so_dien_thoai }}"
+                       placeholder="Chưa cập nhật"
+                       {% if not is_editing %}disabled{% endif %}
+                       class="w-full {% if is_editing %}bg-white border-amber-600 ring-1 ring-amber-600{% else %}bg-gray-50 border-gray-200{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Email</label>
+                <input type="email" name="email" value="{{ request.user.email }}"
+                       {% if not is_editing %}disabled{% endif %}
+                       class="w-full {% if is_editing %}bg-white border-amber-600 ring-1 ring-amber-600{% else %}bg-gray-50 border-gray-200{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Ngày sinh</label>
+                <input type="date" name="ngay_sinh" value="{{ khach_hang.ngay_sinh|date:'Y-m-d' }}"
+                       {% if not is_editing %}disabled{% endif %}
+                       class="w-full {% if is_editing %}bg-white border-amber-600 ring-1 ring-amber-600{% else %}bg-gray-50 border-gray-200{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+            </div>
+
+            <!-- THAY THẾ NGUỒN KHÁCH HÀNG BẰNG GIỚI TÍNH (CHO PHÉP CHỈNH SỬA) -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Giới tính</label>
+                {% if is_editing %}
+                    <select name="gioi_tinh" class="w-full bg-white border-amber-600 ring-1 ring-amber-600 border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+                        <option value="Nam" {% if khach_hang.gioi_tinh == 'Nam' %}selected{% endif %}>Nam</option>
+                        <option value="Nữ" {% if khach_hang.gioi_tinh == 'Nữ' %}selected{% endif %}>Nữ</option>
+                        <option value="Khác" {% if khach_hang.gioi_tinh == 'Khác' %}selected{% endif %}>Khác</option>
+                    </select>
+                {% else %}
+                    <input type="text" value="{{ khach_hang.gioi_tinh|default:'Chưa cập nhật' }}" disabled
+                           class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm">
+                {% endif %}
+            </div>
+
+            <!-- CHUYÊN VIÊN ƯU TIÊN (GIỮ NGUYÊN KHÓA) -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Mã khách hàng <span class="text-gray-400 font-normal">(Hệ thống)</span></label>
+                <input type="text" value="{{ khach_hang.ma_kh|default:'Chưa có mã' }}" disabled
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-500 text-sm cursor-not-allowed font-semibold">
+            </div>
+        </div>
+
+        <!-- NÚT HỦY VÀ LƯU THAY ĐỔI -->
+        {% if is_editing %}
+        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+            <a href="{% url 'customer_profile' %}" class="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+                Hủy
+            </a>
+            <button type="submit" class="px-5 py-2.5 bg-[#8C6D4F] text-white rounded-xl text-sm font-medium hover:bg-[#785b40] transition shadow-sm">
+                Lưu thay đổi
+            </button>
+        </div>
+        {% endif %}
+    </form>
+
+    <!-- SECTION LỊCH SỬ DỊCH VỤ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Phần bảng lịch sử dịch vụ của bạn -->
+    </div>
+
+</div>
+
+<!-- ===================================================================== -->
+<!-- MODAL VÀ SCRIPT KHÓA TÀI KHOẢN                                         -->
+<!-- ===================================================================== -->
+<div id="lockModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative mx-4 animate-in fade-in zoom-in duration-200">
+
+        <!-- Nút đóng (X) -->
+        <button type="button" onclick="closeLockModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            ✕
+        </button>
+
+        <!-- Tiêu đề -->
+        <h3 class="text-xl font-bold text-gray-900 mb-1">Xác nhận khóa tài khoản</h3>
+        <p class="text-sm text-gray-500 mb-6">Bạn có chắc chắn muốn khóa tài khoản?</p>
+
+        <!-- Form gửi lý do khóa (ĐÃ GÁN ID VÀ SỬA ĐÚNG {% csrf_token %}) -->
+        <form id="lockAccountForm" action="{% url 'customer_lock_account' %}" method="POST" class="space-y-4">
+
+            <!-- ========================================================= -->
+            <!-- <--- ĐÃ SỬA LỖI Ở ĐÂY: ĐÚNG CÚ PHÁP {% csrf_token %} --->
+            <!-- ========================================================= -->
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Lý do khóa tài khoản <span class="text-red-500">*</span></label>
+                <select name="ly_do" id="lyDoSelect" onchange="checkLyDo(this)" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:border-[#8C6D4F]">
+                    <option value="Không còn nhu cầu sử dụng">Không còn nhu cầu sử dụng</option>
+                    <option value="Tạm ngưng tài khoản" selected>Tạm ngưng tài khoản</option>
+                    <option value="Vấn đề bảo mật">Vấn đề bảo mật</option>
+                    <option value="Lý do khác">Lý do khác</option>
+                </select>
+            </div>
+
+            <!-- Ô nhập lý do khác (Mặc định ẩn đi nếu không chọn 'Lý do khác') -->
+            <div id="divLyDoKhac" style="display: none;">
+                <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Nhập lý do <span class="text-red-500">*</span></label>
+                <textarea name="ly_do_khac" id="textareaLyDoKhac" rows="3" placeholder="Nhập lý do..." class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:border-[#8C6D4F]"></textarea>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeLockModal()" class="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+                    Hủy
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-[#993D3D] text-white rounded-xl text-sm font-medium hover:bg-[#803232] transition shadow-sm">
+                    Xác nhận khóa tài khoản
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openLockModal() {
+        document.getElementById('lockModal').classList.remove('hidden');
+    }
+
+    function closeLockModal() {
+        document.getElementById('lockModal').classList.add('hidden');
+    }
+
+    // Hàm ẩn/hiện ô nhập "Lý do khác" và tự động gán/bỏ thuộc tính required
+    function checkLyDo(selectObj) {
+        const divKhac = document.getElementById('divLyDoKhac');
+        const textarea = document.getElementById('textareaLyDoKhac');
+
+        if (selectObj.value === 'Lý do khác') {
+            divKhac.style.display = 'block';
+            textarea.setAttribute('required', 'required');
+        } else {
+            divKhac.style.display = 'none';
+            textarea.removeAttribute('required');
+            textarea.value = ''; // Xóa trắng nội dung khi đổi lựa chọn
+        }
+    }
+
+    // =========================================================================
+    // <--- BẮT SỰ KIỆN SUBMIT CHUẨN XÁC BẰNG ID CỦA FORM TRONG MODAL --->
+    // =========================================================================
+    document.getElementById('lockAccountForm').addEventListener('submit', function(e) {
+        const selectObj = document.getElementById('lyDoSelect');
+        const textarea = document.getElementById('textareaLyDoKhac');
+
+        if (selectObj.value === 'Lý do khác' && textarea.value.trim() === '') {
+            e.preventDefault();
+            alert('Vui lòng nhập cụ thể lý do khi chọn lý do khác!');
+            textarea.focus();
+        }
+    });
+</script>
+{% endblock %}

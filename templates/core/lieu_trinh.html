@@ -1,0 +1,65 @@
+{% extends 'layouts/customer_base_pro.html' %}
+{% load static %}
+{% block title %}Liệu trình - Charm Spa Grand{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/lieu_trinh.css' %}?v=20261101-gon">
+
+<main class="treatment-page">
+    <section class="treatment-banner" aria-labelledby="treatment-page-title">
+        <div class="treatment-banner__shade"></div>
+        <div class="treatment-container treatment-banner__content">
+            <span class="treatment-eyebrow">CHARM GRAND · LUXURY SPA & WELLNESS</span>
+            <h1 id="treatment-page-title">LIỆU TRÌNH CHĂM SÓC & THƯ GIÃN</h1>
+            <p>Khám phá các liệu trình chăm sóc cơ thể, massage và thư giãn tại Charm Spa Grand.</p>
+        </div>
+    </section>
+
+    <section class="treatment-section" aria-labelledby="treatment-list-title">
+        <div class="treatment-container">
+            <header class="treatment-heading">
+                <span class="treatment-eyebrow">KHÁM PHÁ CHARM SPA</span>
+                <h2 id="treatment-list-title">DANH SÁCH LIỆU TRÌNH</h2>
+                <p>Chọn liệu trình phù hợp với nhu cầu của bạn.</p>
+            </header>
+
+            <div class="treatment-grid">
+                {% for card in page_obj %}
+                    <article class="treatment-card">
+                        <div class="treatment-card__image">
+                            <img src="{% static card.image %}" alt="{{ card.service.ten_dich_vu }}" loading="lazy">
+                        </div>
+                        <div class="treatment-card__body">
+                            <h3>{{ card.service.ten_dich_vu }}</h3>
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="treatment-empty">Hiện chưa có liệu trình nào trong hệ thống.</div>
+                {% endfor %}
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+                <nav class="treatment-pagination" aria-label="Phân trang liệu trình">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" aria-label="Trang trước">‹</a>
+                    {% else %}
+                        <span class="is-disabled">‹</span>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num == page_obj.number %}
+                            <span class="is-active" aria-current="page">{{ num }}</span>
+                        {% else %}
+                            <a href="?page={{ num }}">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" aria-label="Trang sau">›</a>
+                    {% else %}
+                        <span class="is-disabled">›</span>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

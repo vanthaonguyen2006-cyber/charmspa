@@ -1,0 +1,193 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+{% block title %}Chi tiết lịch hẹn - Charm Spa{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}">
+<style>
+/* CSS dự phòng: trang vẫn đúng bố cục nếu static/staff.css chưa được phục vụ. */
+.staff-detail-page{background:#f7f0e8;min-height:100vh;padding:28px clamp(16px,3vw,42px) 55px;color:#302d2a;font-family:Arial,sans-serif}
+.staff-detail-page *{box-sizing:border-box}
+.staff-detail-page .detail-top{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.staff-detail-page .detail-top h1{font-family:Arial,Helvetica,sans-serif;font-size:30px;letter-spacing:.3px;font-weight:700;color:#272725;margin:0}
+.staff-detail-page .top-actions{display:flex;gap:9px;flex-wrap:wrap}
+.staff-detail-page .detail-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #e7dacc;background:#fff;padding:11px 17px;border-radius:9px;text-decoration:none;color:#4b4138;font-size:13px;font-weight:600;cursor:pointer}
+.staff-detail-page .detail-btn.dark{background:#262523;color:#fff;border-color:#262523}
+.staff-detail-page .detail-btn.danger{background:#fff3f0;color:#b84e45;border-color:#e9cbc5}
+.staff-detail-page .detail-btn.danger:hover{background:#fbe2de;color:#a63e37}
+.staff-detail-page .detail-btn:hover{background:#f4ede4;color:#413324}
+.staff-detail-page .detail-btn.dark:hover{background:#4c443c;color:#fff}
+.staff-detail-page .summary-strip{background:#252420;color:#fff;border-radius:15px;padding:24px 28px;display:grid;grid-template-columns:minmax(180px,1.45fr) minmax(180px,1fr) minmax(140px,.8fr);gap:22px;align-items:center;margin-bottom:18px}
+.staff-detail-page .summary-booking{display:flex;align-items:center;gap:16px}
+.staff-detail-page .summary-icon{width:54px;height:54px;border-radius:50%;background:#f4e9d9;color:#a9854a;display:grid;place-items:center;font-size:24px;flex-shrink:0}
+.staff-detail-page .summary-code{font-size:19px;font-weight:750;letter-spacing:.2px}
+.staff-detail-page .summary-label{display:block;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#ba9e74;margin-bottom:6px}
+.staff-detail-page .summary-value{font-weight:600;font-size:13px;line-height:1.5}
+.staff-detail-page .status-pill{border-radius:99px;padding:5px 11px;display:inline-block;font-size:11px;font-weight:700;margin-top:6px;background:#e5f3e9;color:#408254}
+.staff-detail-page .status-pill.cancelled{background:#ffe9e9;color:#b34646}
+.staff-detail-page .status-pill.completed{background:#e8f0ff;color:#466aa5}
+.staff-detail-page .status-pill.deleted{background:#e6e6e6;color:#656565}
+.staff-detail-page .detail-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(365px,1fr);gap:18px;align-items:stretch}
+.staff-detail-page .detail-column{min-width:0;display:grid;gap:18px}
+.staff-detail-page .detail-grid > .detail-column:first-child > .detail-card{height:100%}
+.staff-detail-page .detail-card{background:#fff;border:1px solid #eee2d7;border-radius:15px;padding:22px 24px;box-shadow:0 2px 8px rgba(57,37,19,.035)}
+.staff-detail-page .card-head{font-family:Arial,Helvetica,sans-serif;font-size:19px;font-weight:700;margin:0 0 18px;color:#292825}
+.staff-detail-page .booking-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:21px 24px}
+.staff-detail-page .fact-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9a8c7c;margin-bottom:6px;font-weight:700}
+.staff-detail-page .fact-value{font-size:14px;color:#302c28;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
+.staff-detail-page .note-area{margin-top:21px;padding:14px 16px;background:#fbf7f2;border-radius:10px;border-left:3px solid #b49663}
+.staff-detail-page .note-area .fact-value{font-weight:400;font-size:13px}
+.staff-detail-page .person-row{display:flex;gap:12px;align-items:center}
+.staff-detail-page .avatar{width:47px;height:47px;flex-shrink:0;display:grid;place-items:center;border-radius:50%;background:#f4e9d8;color:#947342;font-weight:750;font-size:17px}
+.staff-detail-page .person-name{font-weight:700;font-size:14px}
+.staff-detail-page .person-sub{font-size:12px;color:#9b8b7d;margin-top:4px}
+.staff-detail-page .person-details{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:21px}
+.staff-detail-page .person-details .fact-value{font-size:12px;font-weight:500;overflow-wrap:normal;word-break:normal;white-space:nowrap;max-width:100%;overflow-x:auto;overflow-y:hidden}
+.staff-detail-page .assignee-label{display:flex;align-items:center;gap:7px;color:#638d68;font-size:11px}
+.staff-detail-page .unassigned-message{padding:14px;background:#fff8ed;border:1px solid #f0dfbe;border-radius:9px;color:#866a39;font-size:13px;margin-bottom:13px}
+.staff-detail-page .assign-controls label{font-size:12px;color:#756a60;font-weight:700;display:block;margin-bottom:9px}
+.staff-detail-page .assign-controls select{border:1px solid #eaded1;border-radius:9px;padding:11px 12px;font-size:13px;width:100%;background:white;min-width:0}
+.staff-detail-page .assign-controls button{margin-top:11px;width:100%;background:#ae905b;border:0;border-radius:9px;padding:11px 14px;color:white;font-weight:700;cursor:pointer}
+.staff-detail-page .assign-controls button:hover{background:#977a4e}
+.staff-detail-page .assignee-name{font-size:15px;font-weight:700;margin:3px 0 13px}
+.staff-detail-page .section-note{font-size:12px;color:#978b81;line-height:1.5}
+.staff-detail-page .danger-action{width:100%;border:1px solid #f2dad7;background:#fff1ef;color:#bd5d54;padding:12px;border-radius:9px;font-weight:700;font-size:13px}
+.staff-detail-page .danger-action:hover{background:#fae0dc}
+.staff-detail-page .warning-box{padding:12px;border:1px solid #f3e0dd;border-radius:9px;background:#fff6f4;font-size:11px;color:#b86a5d;margin-top:13px}
+.staff-detail-page .feedback-alert{margin-bottom:17px}
+@media(max-width:1050px){.staff-detail-page .detail-grid{grid-template-columns:1fr}.staff-detail-page .detail-grid > .detail-column:first-child > .detail-card{height:auto}.staff-detail-page .summary-strip{grid-template-columns:1fr 1fr}.staff-detail-page .summary-booking{grid-column:1/-1}}
+@media(max-width:650px){.staff-detail-page{padding:16px 12px 40px}.staff-detail-page .summary-strip{grid-template-columns:1fr;padding:20px}.staff-detail-page .summary-booking{grid-column:auto}.staff-detail-page .booking-facts,.staff-detail-page .person-details{grid-template-columns:1fr}.staff-detail-page .detail-card{padding:19px}.staff-detail-page .detail-top h1{font-size:23px}}
+</style>
+
+
+<div class="staff-detail-page">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show feedback-alert" role="alert">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  <div class="detail-top">
+    <h1>CHI TIẾT LỊCH HẸN</h1>
+    <div class="top-actions">
+      <a class="detail-btn" href="{% url 'staff_booking_list' %}"><i class="bi bi-arrow-left"></i> Quay lại</a>
+      {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
+      <form method="POST" action="{% url 'staff_booking_complete' lich_hen.ma_lh %}" class="m-0" onsubmit="return confirm('Xác nhận hoàn thành lịch hẹn này?');">
+        {% csrf_token %}<button type="submit" class="detail-btn dark"><i class="bi bi-check-circle"></i> Hoàn thành</button>
+      </form>
+      {% endif %}
+      {% if request.user.is_staff or request.user.is_superuser %}
+        {% if lich_hen.trang_thai != 'Đã xóa' %}
+          <button type="button" class="detail-btn danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ lich_hen.ma_lh }}"><i class="bi bi-trash"></i> Xóa lịch</button>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="summary-strip">
+    <div class="summary-booking"><div class="summary-icon"><i class="bi bi-calendar2-check"></i></div>
+      <div><div class="summary-code">#{{ lich_hen.ma_lh }}</div>
+        <span class="status-pill {% if lich_hen.trang_thai == 'Đã hủy' %}cancelled{% elif lich_hen.trang_thai == 'Hoàn thành' %}completed{% elif lich_hen.trang_thai == 'Đã xóa' %}deleted{% endif %}">{{ lich_hen.trang_thai }}</span>
+      </div>
+    </div>
+    <div><span class="summary-label">Dịch vụ</span><div class="summary-value">{{ lich_hen.ma_dv.ten_dich_vu }}</div><span style="font-size:11px;color:#bdb7af">{{ lich_hen.ma_dv.thoi_luong|default:'150' }} phút · {{ lich_hen.so_luong_khach }} khách</span></div>
+    <div><span class="summary-label">Ngày & giờ hẹn</span><div class="summary-value">{{ lich_hen.ngay_hen|date:'d/m/Y' }}</div><div class="summary-value">{{ lich_hen.gio_hen|time:'H:i' }}</div></div>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-column">
+      <section class="detail-card">
+        <h2 class="card-head">Thông tin lịch hẹn</h2>
+        <div class="booking-facts">
+          <div><div class="fact-label">Dịch vụ</div><div class="fact-value">{{ lich_hen.ma_dv.ten_dich_vu }}</div></div>
+          <div><div class="fact-label">Thời lượng</div><div class="fact-value">{{ lich_hen.ma_dv.thoi_luong|default:'150' }} phút</div></div>
+          <div><div class="fact-label">Ngày hẹn</div><div class="fact-value">{{ lich_hen.ngay_hen|date:'d/m/Y' }}</div></div>
+          <div><div class="fact-label">Giờ hẹn</div><div class="fact-value">{{ lich_hen.gio_hen|time:'H:i' }}</div></div>
+          <div><div class="fact-label">Số khách</div><div class="fact-value">{{ lich_hen.so_luong_khach }} khách</div></div>
+          <div><div class="fact-label">Trạng thái</div><div class="fact-value">{{ lich_hen.trang_thai }}</div></div>
+        </div>
+        <div class="note-area"><div class="fact-label">Ghi chú</div><div class="fact-value">{{ lich_hen.ghi_chu|default:'Không có ghi chú' }}</div></div>
+        {% if lich_hen.ly_do_huy %}
+        <div class="note-area" style="border-left-color:#d76d67;background:#fff4f2"><div class="fact-label" style="color:#ba5b53">Lý do hủy</div><div class="fact-value">{{ lich_hen.ly_do_huy }}</div></div>
+        {% endif %}
+      </section>
+    </div>
+    <aside class="detail-column">
+      <section class="detail-card">
+        <h2 class="card-head">Thông tin khách hàng</h2>
+        <div class="person-row"><div class="avatar"><i class="bi bi-person"></i></div><div><div class="person-name">{{ lich_hen.ma_kh.ho_ten|default:'Khách hàng' }}</div><div class="person-sub">Khách hàng Charm Spa</div></div></div>
+        <div class="person-details">
+          <div><div class="fact-label">Số điện thoại</div><div class="fact-value">{{ lich_hen.so_dien_thoai_lien_he|default:lich_hen.ma_kh.ma_tk.so_dien_thoai|default:'Chưa cập nhật' }}</div></div>
+          <div><div class="fact-label">Email</div><div class="fact-value">{{ lich_hen.ma_kh.ma_tk.user.email|default:'Chưa cập nhật' }}</div></div>
+        </div>
+      </section>
+      <section class="detail-card">
+        <h2 class="card-head">Nhân viên phụ trách</h2>
+        {% if lich_hen.ma_nv %}
+          <div class="assignee-label"><i class="bi bi-check-circle-fill"></i> Đã phân công</div>
+          <div class="assignee-name">{{ lich_hen.ma_nv.ho_ten }}</div>
+          {% if lich_hen.ma_nv.vi_tri %}<p class="section-note">{{ lich_hen.ma_nv.vi_tri }}</p>{% endif %}
+        {% else %}
+          <div class="unassigned-message"><i class="bi bi-person-exclamation me-1"></i> Lịch hẹn chưa được phân công nhân viên.</div>
+        {% endif %}
+        {% if request.user.is_staff or request.user.is_superuser %}
+          {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Đã xóa' and lich_hen.trang_thai != 'Hoàn thành' %}
+          <form method="POST" action="{% url 'assign_staff' lich_hen.ma_lh %}" class="assign-controls">
+            {% csrf_token %}
+            <label for="assignedEmployee">{% if lich_hen.ma_nv %}Đổi / hủy phân công nhân viên{% else %}Chọn nhân viên thực hiện dịch vụ{% endif %}</label>
+            <select id="assignedEmployee" name="nhan_vien_id">
+              <option value="">-- Chưa phân công --</option>
+              {% for nv in danh_sach_nhan_vien %}
+                <option value="{{ nv.pk }}" {% if lich_hen.ma_nv_id == nv.pk %}selected{% endif %}>{{ nv.ho_ten }}{% if nv.vi_tri %} – {{ nv.vi_tri }}{% endif %}</option>
+              {% empty %}
+                <option value="" disabled>Chưa có nhân viên trong hệ thống</option>
+              {% endfor %}
+            </select>
+            {% if not danh_sach_nhan_vien %}
+              <p class="section-note mt-2 mb-0">Chưa có nhân viên để phân công. Quản trị viên cần thêm nhân viên vào hệ thống trước.</p>
+            {% endif %}
+            <button type="submit" {% if not danh_sach_nhan_vien and not lich_hen.ma_nv %}disabled title="Cần thêm nhân viên trước"{% endif %}><i class="bi bi-person-check me-2"></i> {% if lich_hen.ma_nv %}Cập nhật phân công{% else %}Phân công nhân viên{% endif %}</button>
+          </form>
+          {% else %}
+          <p class="section-note mb-0">Lịch đã kết thúc hoặc hủy, không thể phân công thêm.</p>
+          {% endif %}
+        {% else %}
+          <p class="section-note mb-0">Chỉ quản trị viên và nhân viên mới được phân công nhân viên.</p>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+</div>
+
+{% if request.user.is_staff or request.user.is_superuser %}
+<!-- ================= MODAL XÓA LỊCH HẸN ================= -->
+<div class="modal fade" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <form method="POST" action="{% url 'booking_admin_delete' lich_hen.ma_lh %}">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-dark border-bottom-0 py-3 px-4" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                    <h5 class="modal-title fw-bold fs-6"><i class="bi bi-exclamation-triangle-fill me-2"></i> Xác nhận xóa lịch hẹn #{{ lich_hen.ma_lh }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-start">
+                    <p class="text-muted mb-0">Hành động này sẽ chuyển lịch hẹn sang trạng thái <strong>Đã xóa</strong> và giải phóng chỗ trống giường. Bạn có chắc chắn muốn thực hiện không?</p>
+                </div>
+                <div class="modal-footer border-top-0 pb-3 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark">Xác nhận xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+```
+````

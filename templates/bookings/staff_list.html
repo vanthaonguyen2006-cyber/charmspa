@@ -1,0 +1,1009 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+{% block title %}Quản lý lịch hẹn - Charm Spa{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=font20261101">
+
+
+<style>
+/* Lịch đổi hẹn nhỏ gọn, xổ xuống dưới ô ngày và nổi trên footer modal. */
+.flatpickr-calendar.staff-compact-calendar {
+    width: 266px !important;
+    max-width: 266px !important;
+    z-index: 11000 !important;
+    font-size: 12px;
+}
+.flatpickr-calendar.staff-compact-calendar .flatpickr-days,
+.flatpickr-calendar.staff-compact-calendar .dayContainer {
+    width: 266px !important;
+    min-width: 266px !important;
+    max-width: 266px !important;
+}
+.flatpickr-calendar.staff-compact-calendar .flatpickr-day {
+    width: 37px !important;
+    max-width: 37px !important;
+    flex-basis: 37px !important;
+    height: 29px !important;
+    line-height: 29px !important;
+}
+.flatpickr-calendar.staff-compact-calendar .flatpickr-weekdaycontainer {
+    height: 24px;
+}
+.flatpickr-calendar.staff-compact-calendar .flatpickr-months .flatpickr-month {
+    height: 32px !important;
+}
+.flatpickr-calendar.staff-compact-calendar .flatpickr-current-month {
+    padding-top: 4px !important;
+    font-size: 13px !important;
+}
+</style>
+
+<div class="staff-booking-page">
+  {% if messages %}{% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
+    <div><h1 class="staff-title booking-page-title">QUẢN LÝ LỊCH HẸN</h1><p class="staff-sub">Theo dõi, kiểm tra và cập nhật trạng thái các lịch trị liệu của khách hàng.</p></div>
+    <a href="{% url 'staff_booking_create' %}" class="staff-btn-dark"><i class="bi bi-plus-circle"></i> Tạo lịch thủ công</a>
+  </div>
+  <div class="stats-grid">
+    <button type="button" class="staff-panel stat stat-clickable" id="filterTodayCard" aria-pressed="false" title="Nhấn để xem danh sách lịch hẹn hôm nay"><span class="stat-icon"><i class="bi bi-calendar-event"></i></span><span class="stat-card-content"><span class="stat-label">Lịch hẹn hôm nay</span><span class="stat-value" id="statToday">0</span><span class="stat-hint">Nhấn để xem danh sách <i class="bi bi-arrow-right"></i></span></span></button>
+    <button type="button" class="staff-panel stat stat-clickable" id="filterUnassignedCard" aria-pressed="false" title="Nhấn để xem các lịch chưa phân công"><span class="stat-icon" style="background:#fff1e8;color:#d08a5c"><i class="bi bi-person-dash"></i></span><span class="stat-card-content"><span class="stat-label">Chưa phân công</span><span class="stat-value" id="statUnassigned">0</span><span class="stat-hint">Nhấn để xem danh sách <i class="bi bi-arrow-right"></i></span></span></button>
+  </div>
+  <div class="staff-panel filters">
+    <input id="filterSearch" type="search" placeholder="Tìm mã lịch, khách hàng hoặc số điện thoại..." aria-label="Tìm kiếm lịch hẹn">
+    <input id="filterDate" type="date" aria-label="Ngày hẹn">
+    <select id="filterService" aria-label="Dịch vụ">
+      <option value="">Tất cả dịch vụ</option>
+      <option value="Nourishing Hair Shampoo - Charm Spa">Nourishing Hair Shampoo - Charm Spa (Gội đầu dưỡng sinh)</option>
+      <option value="Pregnancy Massage At Charm Spa">Pregnancy Massage At Charm Spa (Massage cho bà bầu)</option>
+      <option value="Traditional Vietnamese Massage">Traditional Vietnamese Massage (Massage truyền thống Việt Nam)</option>
+      <option value="Hot Stone Massage Therapy">Hot Stone Massage Therapy (Massage đá nóng)</option>
+      <option value="Herbal Therapy">Herbal Therapy (Massage thảo dược)</option>
+      <option value="Deep Tissue Therapy">Deep Tissue Therapy (Massage mô sâu)</option>
+      <option value="Thai Therapy">Thai Therapy (Massage Thái)</option>
+      <option value="Charm Grand Signature Bamboo Cane">Charm Grand Signature Bamboo Cane (Massage tre)</option>
+      <option value="Aromatherapy Massage">Aromatherapy Massage (Massage tinh dầu)</option>
+      <option value="Swedish Therapy">Swedish Therapy (Massage Thụy Điển)</option>
+      <option value="Body Part Therapy">Body Part Therapy (Massage cổ vai gáy)</option>
+      <option value="Body Relaxation – Body Massage Treatment">Body Relaxation – Body Massage Treatment (Massage thư giãn toàn thân)</option>
+      <option value="Foot Reflexology Therapy">Foot Reflexology Therapy (Massage chân)</option>
+      <option value="Facial Treatment">Facial Treatment (Chăm sóc da mặt)</option>
+      <option value="Body Treatment">Body Treatment (Chăm sóc cơ thể)</option>
+      <option value="Packages">Packages (Gói liệu trình)</option>
+    </select>
+    <select id="filterStatus" aria-label="Trạng thái"><option value="">Tất cả trạng thái</option><option value="Đã đặt">Đã đặt</option><option value="Hoàn thành">Hoàn thành</option><option value="Đã hủy">Đã hủy</option></select>
+    <select id="filterStaff" aria-label="Nhân viên"><option value="">Tất cả nhân viên</option></select>
+    <button id="applyFilters" class="staff-btn-apply" type="button"><i class="bi bi-funnel"></i> Lọc</button>
+    <button id="resetFilters" class="staff-btn-light" type="button"><i class="bi bi-arrow-counterclockwise"></i> Xóa lọc</button>
+  </div>
+  <div class="staff-panel table-frame">
+    <div class="table-heading"><span>Danh sách lịch hẹn <span class="count-label" id="bookingCount">{{ lich_hen_list|length }} lịch hẹn</span></span><small class="text-muted" style="font:12px Arial,sans-serif">Chỉ quản trị viên có quyền xóa/phân công</small></div>
+    <div class="table-scroll"><table><thead><tr><th>Mã lịch hẹn</th><th>Khách hàng</th><th>Dịch vụ</th><th>Ngày hẹn</th><th>Giờ</th><th>Số khách</th><th>Nhân viên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+      <tbody id="staffBookingRows">
+        {% for lh in lich_hen_list %}
+        <tr class="staff-booking-row" data-date="{{ lh.ngay_hen|date:'Y-m-d' }}" data-service="{{ lh.ma_dv.ten_dich_vu }}" data-status="{{ lh.trang_thai }}" data-staff="{{ lh.ma_nv.ho_ten|default:'Chưa phân công' }}" data-assigned="{% if lh.ma_nv_id %}1{% else %}0{% endif %}" data-search="{{ lh.ma_lh }} {{ lh.ma_kh.ho_ten }} {{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:'' }}">
+          <td class="code">#{{ lh.ma_lh }}</td>
+          <td><div class="name">{{ lh.ma_kh.ho_ten }}</div><div class="phone">{{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:'---' }}</div></td>
+          <td>{{ lh.ma_dv.ten_dich_vu }}</td><td>{{ lh.ngay_hen|date:'d/m/Y' }}</td><td><i class="bi bi-clock" style="color:#ac8c5e"></i> {{ lh.gio_hen|time:'H:i' }}</td><td>{{ lh.so_luong_khach }} khách</td>
+          <td>{% if lh.ma_nv %}{{ lh.ma_nv.ho_ten }}{% else %}<span class="unassigned">Chưa phân công</span>{% endif %}</td>
+          <td><span class="state {% if lh.trang_thai == 'Đã hủy' %}cancelled{% elif lh.trang_thai == 'Hoàn thành' %}completed{% elif lh.trang_thai == 'Đang thực hiện' %}progress{% endif %}">{{ lh.trang_thai }}</span></td>
+          <td style="white-space:nowrap"><a class="tiny-action" title="Xem chi tiết" href="{% url 'staff_booking_detail' lh.ma_lh %}"><i class="bi bi-eye"></i></a>
+          {% if lh.trang_thai != 'Đã hủy' and lh.trang_thai != 'Hoàn thành' %}
+          <button class="tiny-action blue" title="Đổi lịch" type="button" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ forloop.counter }}"><i class="bi bi-calendar2-range"></i></button>
+          {% endif %}</td>
+        </tr>
+        {% empty %}<tr id="noBookingsDb"><td colspan="9" class="text-center py-4">Chưa có lịch hẹn nào.</td></tr>{% endfor %}
+        <tr id="noFilterResults"><td colspan="9" class="text-center py-4 text-muted">Không có lịch hẹn nào phù hợp với bộ lọc.</td></tr>
+      </tbody></table></div>
+    <div class="paging"><span id="pageInfo">Hiển thị lịch hẹn</span><div class="paging-buttons"><button type="button" id="prevPage">‹</button><button type="button" class="current" id="currentPage">1</button><button type="button" id="nextPage">›</button></div></div>
+  </div>
+    <!-- CÁC MODAL ĐƯỢC ĐẶT NGOÀI TABLE ĐỂ TRÁNH HTML LỒNG SAI CẤU TRÚC -->
+    {% for lh in lich_hen_list %}
+    <div class="modal fade booking-modal"
+         id="rescheduleModal{{ forloop.counter }}"
+         tabindex="-1"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <form method="POST"
+                      action="{% url 'booking_customer_reschedule' lh.ma_lh %}"
+                      class="reschedule-form"
+                      data-booking-id="{{ forloop.counter }}"
+                      data-original-service="{{ lh.ma_dv.pk }}"
+                      data-original-service-name="{{ lh.ma_dv.ten_dich_vu|escape }}"
+                      data-original-date="{{ lh.ngay_hen|date:'d/m/Y' }}"
+                      data-original-guests="{{ lh.so_luong_khach }}"
+                      data-original-time="{{ lh.gio_hen|time:'H:i' }}">
+
+                    {% csrf_token %}
+
+                    <input type="hidden"
+                           name="ma_dv_moi"
+                           id="input_ma_dv_moi_{{ forloop.counter }}"
+                           value="{{ lh.ma_dv.pk }}">
+
+                    <input type="hidden"
+                           name="gio_hen_moi"
+                           id="input_time_slot_{{ forloop.counter }}"
+                           value="{{ lh.gio_hen|time:'H:i' }}">
+
+                    <div class="modal-header border-bottom-0 pt-4 px-4">
+                        <div>
+                            <h5 class="modal-title fw-bold" style="color: var(--primary-gold);">
+                                <i class="bi bi-calendar2-range me-2"></i>
+                                Đổi lịch hẹn #{{ lh.ma_lh }}
+                            </h5>
+                            <small class="text-muted">
+                                Khách hàng: {{ lh.ma_kh.ho_ten }}
+                            </small>
+                        </div>
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body px-4">
+                        <div class="row g-4">
+
+                            <!-- CỘT TRÁI: CHỌN DỊCH VỤ, NGÀY, GIỜ -->
+                            <div class="col-lg-8">
+
+                                <!-- CHỌN DỊCH VỤ -->
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold m-0">1. Chọn dịch vụ</h6>
+
+                                        <button type="button"
+                                                class="btn-all-services"
+                                                onclick="openAllServices('{{ forloop.counter }}')">
+                                            Xem tất cả dịch vụ &rarr;
+                                        </button>
+                                    </div>
+
+                                    <div class="row g-3"
+                                         id="main_service_container_{{ forloop.counter }}">
+
+                                        {% for dv in dich_vu_list %}
+                                            {% if forloop.counter <= 3 %}
+                                            <div class="col-md-4">
+                                                <div class="service-card {% if lh.ma_dv.pk == dv.pk %}selected{% endif %}"
+                                                     data-service-id="{{ dv.pk }}"
+                                                     data-service-name="{{ dv.ten_dich_vu|escape }}"
+                                                     data-duration="{{ dv.thoi_luong|default:150 }}"
+                                                     data-price="{{ dv.gia_dich_vu|default:0 }}"
+                                                     onclick="selectRescheduleService(this, '{{ forloop.parentloop.counter }}')">
+
+                                                    <img src="{% static 'images/services/service' %}{{ forloop.counter }}.jpg"
+                                                         alt="{{ dv.ten_dich_vu }}">
+
+                                                    <div class="fw-bold text-dark" style="font-size: 12px;">
+                                                        {{ dv.ten_dich_vu }}
+                                                    </div>
+
+                                                    <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                                        {{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ
+                                                    </small>
+
+                                                    <small class="service-status d-block mt-1 {% if lh.ma_dv.pk == dv.pk %}text-warning fw-bold{% else %}text-muted{% endif %}"
+                                                           style="font-size: 11px;">
+                                                        {% if lh.ma_dv.pk == dv.pk %}
+                                                        <i class="bi bi-check-circle-fill"></i> Đã chọn
+                                                        {% else %}
+                                                        <i class="bi bi-circle"></i> Chọn dịch vụ
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        {% empty %}
+                                        <div class="col-12 text-muted small">
+                                            Chưa có dịch vụ trong hệ thống.
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <!-- CHỌN NGÀY VÀ KHUNG GIỜ -->
+                                <div class="row g-3">
+                                    <div class="col-md-5">
+                                        <div class="calendar-box">
+                                            <h6 class="fw-bold mb-2" style="font-size: 14px;">
+                                                2. Chọn ngày hẹn
+                                            </h6>
+
+                                            <div class="custom-date-container">
+                                                <input type="text"
+                                                       name="ngay_hen_moi"
+                                                       id="input_ngay_hen_{{ forloop.counter }}"
+                                                       class="form-control form-control-custom-date edit-date-picker"
+                                                       value="{{ lh.ngay_hen|date:'d/m/Y' }}"
+                                                       data-booking-id="{{ forloop.counter }}"
+                                                       placeholder="Chọn ngày..."
+                                                       required>
+                                                <i class="bi bi-calendar3 custom-date-icon"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-7">
+                                        <div class="time-box">
+                                            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                                <h6 class="fw-bold m-0" style="font-size: 14px;">
+                                                    3. Khung giờ trống
+                                                </h6>
+                                                <span class="badge bg-light text-success border"
+                                                      id="bed_capacity_info_{{ forloop.counter }}"
+                                                      style="font-size: 10px;">
+                                                    Kiểm tra sức chứa
+                                                </span>
+                                            </div>
+
+                                            <div class="row g-2"
+                                                 id="time_slots_container_{{ forloop.counter }}">
+                                                <div class="col-12 text-center text-muted small py-2">
+                                                    Chọn ngày để kiểm tra khung giờ.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CỘT PHẢI: THÔNG TIN VÀ TÓM TẮT -->
+                            <div class="col-lg-4">
+                                <div class="summary-card">
+                                    <h6 class="fw-bold mb-1">4. Thông tin lịch hẹn</h6>
+                                    <p class="text-muted small mb-3" style="font-size: 11px;">
+                                        Kiểm tra thông tin trước khi lưu thay đổi.
+                                    </p>
+
+                                    <div class="mb-3">
+                                        <label class="small fw-bold">Khách hàng</label>
+                                        <input type="text"
+                                               class="form-control form-control-custom"
+                                               value="{{ lh.ma_kh.ho_ten }}"
+                                               readonly>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="small fw-bold">Số điện thoại</label>
+                                        <input type="text"
+                                               class="form-control form-control-custom"
+                                               value="{{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:"---" }}"
+                                               readonly>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="small fw-bold"
+                                               for="input_so_luong_{{ forloop.counter }}">
+                                            Số lượng khách
+                                        </label>
+                                        <input type="number"
+                                               name="so_luong_khach_moi"
+                                               id="input_so_luong_{{ forloop.counter }}"
+                                               class="form-control form-control-custom"
+                                               value="{{ lh.so_luong_khach }}"
+                                               min="1" max="10" required
+                                               onchange="updateAvailableSlots('{{ forloop.counter }}')">
+                                    </div>
+
+                                    <div class="p-3 mb-3 rounded"
+                                         style="background-color: #faf6f0;">
+                                        <small class="text-muted d-block text-uppercase"
+                                               style="font-size: 10px;">
+                                            TÓM TẮT LỊCH HẸN MỚI
+                                        </small>
+
+                                        <strong class="d-block mt-1"
+                                                id="summary_service_{{ forloop.counter }}"
+                                                style="font-size: 12px; line-height: 1.5;">
+                                            {{ lh.ma_dv.ten_dich_vu }}
+                                        </strong>
+
+                                        <small class="text-muted d-block mt-1"
+                                               id="summary_details_{{ forloop.counter }}"
+                                               style="font-size: 11px;">
+                                            {{ lh.ngay_hen|date:'d/m/Y' }} ·
+                                            {{ lh.gio_hen|time:"H:i" }} ·
+                                            {{ lh.ma_dv.thoi_luong }} phút ·
+                                            {{ lh.so_luong_khach }} khách
+                                        </small>
+                                    </div>
+
+                                    <div class="alert alert-light border small mb-0">
+                                        <i class="bi bi-info-circle me-1 text-warning"></i>
+                                        Hệ thống sẽ kiểm tra khung giờ theo dịch vụ và ngày bạn chọn.
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-top-0 px-4 pb-4">
+                        <button type="button" class="btn btn-light px-4"
+                                data-bs-dismiss="modal">
+                            Đóng
+                        </button>
+
+                        <button type="submit" class="btn btn-gold px-4">
+                            <i class="bi bi-check-circle me-1"></i> Lưu thay đổi
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TẤT CẢ DỊCH VỤ CHO TỪNG LỊCH HẸN -->
+    <div class="modal fade"
+         id="modalAllServices{{ forloop.counter }}"
+         tabindex="-1"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius: 12px;">
+                <div class="modal-header" style="background: var(--bg-beige);">
+                    <h5 class="modal-title fw-bold">
+                        DANH SÁCH DỊCH VỤ CHARM SPA
+                    </h5>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4" style="background: #faf8f5;">
+                    <div class="row g-3">
+                        {% for dv in dich_vu_list %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="service-card all-service-option"
+                                 data-service-id="{{ dv.pk }}"
+                                 data-service-name="{{ dv.ten_dich_vu|escape }}"
+                                 data-duration="{{ dv.thoi_luong|default:150 }}"
+                                 data-price="{{ dv.gia_dich_vu|default:0 }}"
+                                 data-image="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
+                                 onclick="chooseServiceFromAll(this, '{{ forloop.parentloop.counter }}')">
+
+                                <img src="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
+                                     alt="{{ dv.ten_dich_vu }}">
+
+                                <div class="fw-bold" style="font-size: 12px;">
+                                    {{ dv.ten_dich_vu }}
+                                </div>
+
+                                <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                    {{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ
+                                </small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center text-muted py-4">
+                            Chưa có dịch vụ nào trong hệ thống.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="background: var(--bg-beige);">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+
+<script>
+    // Những ngày spa đóng cửa được truyền từ view.
+    // Nếu view chưa truyền locked_dates_json thì dùng danh sách rỗng.
+    const disabledDates = {{ locked_dates_json|default:"[]"|safe }};
+
+    const timeSlots = [
+        '09:00', '10:30', '12:00',
+        '13:30', '15:00', '16:30',
+        '18:00', '19:30', '21:00'
+    ];
+
+    const bookingStates = {};
+
+    function getServiceType(serviceName) {
+        const name = (serviceName || '').toLowerCase();
+
+        // Hỗ trợ cả tên dịch vụ tiếng Việt và tiếng Anh.
+        return (name.includes('shampoo') || name.includes('gội'))
+            ? 'shampoo'
+            : 'massage';
+    }
+
+    function getDurationText(bookingId) {
+        const state = bookingStates[bookingId];
+        return state ? state.duration + ' phút' : '';
+    }
+
+    function selectRescheduleService(element, bookingId) {
+        const container = document.getElementById(
+            'main_service_container_' + bookingId
+        );
+
+        container.querySelectorAll('.service-card').forEach(card => {
+            card.classList.remove('selected');
+
+            const badge = card.querySelector('.service-status');
+            if (badge) {
+                badge.className = 'service-status d-block mt-1 text-muted';
+                badge.innerHTML = '<i class="bi bi-circle"></i> Chọn dịch vụ';
+            }
+        });
+
+        element.classList.add('selected');
+
+        const badge = element.querySelector('.service-status');
+        if (badge) {
+            badge.className = 'service-status d-block mt-1 text-warning fw-bold';
+            badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã chọn';
+        }
+
+        applyServiceChoice(element, bookingId);
+    }
+
+    function applyServiceChoice(element, bookingId) {
+        const serviceId = element.dataset.serviceId;
+        const serviceName = element.dataset.serviceName;
+        const duration = element.dataset.duration || '150';
+        const price = element.dataset.price || '0';
+
+        document.getElementById(
+            'input_ma_dv_moi_' + bookingId
+        ).value = serviceId;
+
+        bookingStates[bookingId] = {
+            serviceId: serviceId,
+            serviceName: serviceName,
+            duration: duration,
+            price: price,
+            type: getServiceType(serviceName)
+        };
+
+        document.getElementById(
+            'summary_service_' + bookingId
+        ).textContent = serviceName;
+
+        const badge = document.getElementById(
+            'bed_capacity_info_' + bookingId
+        );
+
+        badge.textContent = bookingStates[bookingId].type === 'shampoo'
+            ? 'Phòng gội: 6 giường'
+            : 'Massage: 30 giường';
+
+        document.getElementById('input_time_slot_' + bookingId).value = '';
+        updateAvailableSlots(bookingId);
+        updateRescheduleSummary(bookingId);
+    }
+
+    function openAllServices(bookingId) {
+        const mainModalElement = document.getElementById(
+            'rescheduleModal' + bookingId
+        );
+
+        const allModalElement = document.getElementById(
+            'modalAllServices' + bookingId
+        );
+
+        const mainModal = bootstrap.Modal.getOrCreateInstance(mainModalElement);
+        const allModal = bootstrap.Modal.getOrCreateInstance(allModalElement);
+
+        mainModalElement.addEventListener('hidden.bs.modal', function showAll() {
+            mainModalElement.removeEventListener('hidden.bs.modal', showAll);
+            allModal.show();
+        }, { once: true });
+
+        mainModal.hide();
+    }
+
+    function chooseServiceFromAll(element, bookingId) {
+        const mainModalElement = document.getElementById(
+            'rescheduleModal' + bookingId
+        );
+
+        const allModalElement = document.getElementById(
+            'modalAllServices' + bookingId
+        );
+
+        const allModal = bootstrap.Modal.getOrCreateInstance(allModalElement);
+        const mainModal = bootstrap.Modal.getOrCreateInstance(mainModalElement);
+
+        allModalElement.addEventListener('hidden.bs.modal', function showMain() {
+            allModalElement.removeEventListener('hidden.bs.modal', showMain);
+
+            const mainContainer = document.getElementById(
+                'main_service_container_' + bookingId
+            );
+
+            // Nếu dịch vụ đã có trong ba thẻ chính thì chọn thẻ đó.
+            const existingCard = Array.from(
+                mainContainer.querySelectorAll('.service-card')
+            ).find(card => card.dataset.serviceId === element.dataset.serviceId);
+
+            if (existingCard) {
+                selectRescheduleService(existingCard, bookingId);
+            } else {
+                // Nếu dịch vụ nằm ngoài ba thẻ đầu tiên, cập nhật trực tiếp
+                // dịch vụ được chọn và thay nội dung thẻ đầu tiên.
+                const firstCard = mainContainer.querySelector('.service-card');
+
+                if (firstCard) {
+                    firstCard.dataset.serviceId = element.dataset.serviceId;
+                    firstCard.dataset.serviceName = element.dataset.serviceName;
+                    firstCard.dataset.duration = element.dataset.duration;
+                    firstCard.dataset.price = element.dataset.price;
+                    firstCard.dataset.image = element.dataset.image;
+
+                    firstCard.querySelector('img').src = element.dataset.image;
+                    firstCard.querySelector('img').alt = element.dataset.serviceName;
+
+                    const title = firstCard.querySelector('.fw-bold');
+                    if (title) title.textContent = element.dataset.serviceName;
+
+                    const details = firstCard.querySelector('small:not(.service-status)');
+                    if (details) {
+                        details.textContent =
+                            element.dataset.duration + ' phút · ' +
+                            Number(element.dataset.price).toLocaleString('vi-VN') + 'đ';
+                    }
+
+                    selectRescheduleService(firstCard, bookingId);
+                } else {
+                    applyServiceChoice(element, bookingId);
+                }
+            }
+
+            mainModal.show();
+        }, { once: true });
+
+        allModal.hide();
+    }
+
+    async function updateAvailableSlots(bookingId) {
+        const dateInput = document.getElementById(
+            'input_ngay_hen_' + bookingId
+        );
+
+        const container = document.getElementById(
+            'time_slots_container_' + bookingId
+        );
+
+        const hiddenTime = document.getElementById(
+            'input_time_slot_' + bookingId
+        );
+
+        const state = bookingStates[bookingId];
+
+        if (!dateInput || !dateInput.value) {
+            container.innerHTML =
+                '<div class="col-12 text-muted small">Vui lòng chọn ngày hẹn.</div>';
+            hiddenTime.value = '';
+            updateRescheduleSummary(bookingId);
+            return;
+        }
+
+        if (!state) {
+            container.innerHTML =
+                '<div class="col-12 text-muted small">Vui lòng chọn dịch vụ.</div>';
+            return;
+        }
+
+        const dateValue = dateInput.value;
+        const serviceType = state.type;
+
+        const currentBadge = document.getElementById(
+            'bed_capacity_info_' + bookingId
+        );
+
+        currentBadge.textContent = serviceType === 'shampoo'
+            ? 'Phòng gội: 6 giường'
+            : 'Massage: 30 giường';
+
+        container.innerHTML =
+            '<div class="col-12 text-center text-muted small py-2">' +
+            '<span class="spinner-border spinner-border-sm me-2"></span>' +
+            'Đang kiểm tra khung giờ...' +
+            '</div>';
+
+        // Flatpickr đang hiển thị dd/mm/yyyy; API đặt lịch hiện tại
+        // cũng nhận ngày theo định dạng này.
+        const parts = dateValue.split('/');
+        if (parts.length !== 3) {
+            container.innerHTML =
+                '<div class="col-12 text-danger small">Ngày không hợp lệ.</div>';
+            hiddenTime.value = '';
+            return;
+        }
+
+        const dateISO = parts[2] + '-' + parts[1] + '-' + parts[0];
+        if (disabledDates.includes(dateISO)) {
+            container.innerHTML = '<div class="col-12 text-danger small">Spa không hoạt động vào ngày này.</div>';
+            hiddenTime.value = '';
+            updateRescheduleSummary(bookingId);
+            return;
+        }
+
+        const now = new Date();
+        const today = [
+            String(now.getDate()).padStart(2, '0'),
+            String(now.getMonth() + 1).padStart(2, '0'),
+            now.getFullYear()
+        ].join('/');
+
+        const isToday = dateValue === today;
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const form = document.querySelector(
+            '.reschedule-form[data-booking-id="' + bookingId + '"]'
+        );
+        const originalTime = form ? form.dataset.originalTime : '';
+
+        let slotsHTML = '';
+        let firstAvailableSlot = '';
+        let availableCount = 0;
+
+        for (const time of timeSlots) {
+            const [hour, minute] = time.split(':').map(Number);
+            const slotMinutes = hour * 60 + minute;
+            const isPast = isToday && slotMinutes <= currentMinutes;
+
+            let remaining = 0;
+            let disabled = false;
+            let status = '';
+
+            if (isPast) {
+                disabled = true;
+                status = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
+            } else {
+                try {
+                    const url =
+                        `{% url 'api_kiem_tra_giuong' %}?ngay=` +
+                        encodeURIComponent(dateValue) +
+                        '&gio=' + encodeURIComponent(time) +
+                        '&loai=' + encodeURIComponent(serviceType);
+
+                    const response = await fetch(url);
+
+                    if (!response.ok) {
+                        throw new Error('Không thể kiểm tra khung giờ.');
+                    }
+
+                    const data = await response.json();
+                    remaining = Number(data.con_lai);
+
+                    if (!Number.isFinite(remaining)) {
+                        throw new Error('Dữ liệu sức chứa không hợp lệ.');
+                    }
+
+                    // Chỉ hoàn lại số khách GỐC khi vẫn giữ cùng ngày,
+                    // cùng giờ và cùng loại phòng của lịch hẹn cũ.
+                    // API sức chứa hiện tại được giả định là đang tính cả lịch gốc.
+                    const originalType = getServiceType(form.dataset.originalServiceName);
+                    if (time === originalTime &&
+                        dateValue === form.dataset.originalDate &&
+                        serviceType === originalType) {
+                        remaining += Number(form.dataset.originalGuests || 0);
+                    }
+
+                    const requestedGuests = Number(document.getElementById(
+                        'input_so_luong_' + bookingId
+                    ).value || 0);
+
+                    if (!Number.isInteger(requestedGuests) || requestedGuests < 1 || requestedGuests > 10 || remaining < requestedGuests) {
+                        disabled = true;
+                        status = `<small class="text-danger" style="font-size:10px;">${remaining <= 0 ? 'Kín giường' : 'Không đủ giường'}</small>`;
+                    } else {
+                        status =
+                            `<small class="text-success" style="font-size:10px;">Còn ${remaining} giường</small>`;
+                        availableCount++;
+
+                        if (!firstAvailableSlot) {
+                            firstAvailableSlot = time;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Lỗi kiểm tra khung giờ:', error);
+                    disabled = true;
+                    status = '<small class="text-danger" style="font-size:10px;">Không kiểm tra được</small>';
+                }
+            }
+
+            const selectedClass = (!disabled && time === hiddenTime.value)
+                ? 'selected'
+                : '';
+
+            slotsHTML += `
+                <div class="col-6 col-md-4">
+                    <div class="time-slot ${disabled ? 'disabled' : ''} ${selectedClass}"
+                         data-time="${time}"
+                         onclick="selectRescheduleTime(this, '${bookingId}', '${time}')">
+                        <strong style="font-size:13px;">${time}</strong><br>
+                        ${status}
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = slotsHTML ||
+            '<div class="col-12 text-muted small">Không có khung giờ.</div>';
+
+        const currentSelection = Array.from(
+            container.querySelectorAll('.time-slot:not(.disabled)')
+        ).find(slot => slot.dataset.time === hiddenTime.value);
+
+        if (!currentSelection) {
+            const firstSlot = container.querySelector('.time-slot:not(.disabled)');
+
+            if (firstSlot) {
+                firstSlot.classList.add('selected');
+                hiddenTime.value = firstSlot.dataset.time;
+            } else {
+                hiddenTime.value = '';
+            }
+        }
+
+        if (availableCount === 0) {
+            container.insertAdjacentHTML(
+                'afterbegin',
+                '<div class="col-12"><div class="alert alert-warning py-2 small">' +
+                'Không có khung giờ khả dụng. Vui lòng chọn ngày khác.</div></div>'
+            );
+        }
+
+        updateRescheduleSummary(bookingId);
+    }
+
+    function selectRescheduleTime(element, bookingId, time) {
+        if (element.classList.contains('disabled')) return;
+
+        const container = document.getElementById(
+            'time_slots_container_' + bookingId
+        );
+
+        container.querySelectorAll('.time-slot').forEach(slot => {
+            slot.classList.remove('selected');
+        });
+
+        element.classList.add('selected');
+
+        document.getElementById(
+            'input_time_slot_' + bookingId
+        ).value = time;
+
+        updateRescheduleSummary(bookingId);
+    }
+
+    function updateRescheduleSummary(bookingId) {
+        const dateInput = document.getElementById(
+            'input_ngay_hen_' + bookingId
+        );
+
+        const timeInput = document.getElementById(
+            'input_time_slot_' + bookingId
+        );
+
+        const guestInput = document.getElementById(
+            'input_so_luong_' + bookingId
+        );
+
+        const details = document.getElementById(
+            'summary_details_' + bookingId
+        );
+
+        const date = dateInput ? dateInput.value : 'Chưa chọn ngày';
+        const time = timeInput && timeInput.value
+            ? timeInput.value
+            : 'Chưa chọn giờ';
+
+        const guests = guestInput ? guestInput.value : '1';
+        const duration = getDurationText(bookingId);
+
+        details.textContent =
+            `${date} · ${time} · ${duration} · ${guests} khách`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.reschedule-form').forEach(form => {
+            const bookingId = form.dataset.bookingId;
+
+            // Ghi lại ngày ban đầu để phục vụ trường hợp đổi lịch.
+            const dateInput = document.getElementById(
+                'input_ngay_hen_' + bookingId
+            );
+
+            form.dataset.originalDate = dateInput.value;
+
+            // Khởi tạo dịch vụ ban đầu từ thẻ đang được chọn.
+            const selectedCard = document.querySelector(
+                '#main_service_container_' + bookingId +
+                ' .service-card.selected'
+            );
+
+            const firstCard = selectedCard || document.querySelector(
+                '#main_service_container_' + bookingId + ' .service-card'
+            );
+
+            const originalServiceId = form.dataset.originalService;
+            const originalServiceName = form.dataset.originalServiceName;
+            const initialCard = selectedCard || firstCard;
+            bookingStates[bookingId] = {
+                serviceId: originalServiceId,
+                serviceName: originalServiceName,
+                duration: initialCard?.dataset.duration || '150',
+                price: initialCard?.dataset.price || '0',
+                type: getServiceType(originalServiceName)
+            };
+
+            flatpickr(dateInput, {
+                dateFormat: 'd/m/Y',
+                locale: 'vn',
+                static: false, // Lịch nằm ngoài vùng cuộn của modal để không bị cắt
+                // Không để Flatpickr tự lật lên phía trên khi gần mép màn hình.
+                // Gắn lịch cố định bên dưới ô ngày, nổi trên vùng cuộn và footer modal.
+                position: function (fp) {
+                    const rect = fp._input.getBoundingClientRect();
+                    const calendar = fp.calendarContainer;
+                    calendar.style.position = 'fixed';
+                    calendar.style.top = (rect.bottom + 4) + 'px';
+                    calendar.style.left = Math.min(rect.left, window.innerWidth - 290) + 'px';
+                    calendar.style.right = 'auto';
+                    calendar.style.bottom = 'auto';
+                    calendar.style.zIndex = '11000';
+                },
+                onReady: function (selectedDates, dateStr, instance) {
+                    instance.calendarContainer.classList.add('staff-compact-calendar');
+                },
+                clickOpens: true,
+                disableMobile: true,
+                minDate: 'today',
+                defaultDate: dateInput.value || 'today',
+                disable: [
+                    function (date) {
+                        const y = date.getFullYear();
+                        const m = String(date.getMonth() + 1).padStart(2, '0');
+                        const d = String(date.getDate()).padStart(2, '0');
+                        return disabledDates.includes(`${y}-${m}-${d}`);
+                    }
+                ],
+                onChange: function () {
+                    // Xóa giờ cũ vì ngày đã thay đổi, rồi kiểm tra lại.
+                    document.getElementById(
+                        'input_time_slot_' + bookingId
+                    ).value = '';
+                    updateAvailableSlots(bookingId);
+                }
+            });
+
+            updateRescheduleSummary(bookingId);
+        });
+
+        // Chỉ kiểm tra khung giờ khi mở modal đổi lịch.
+        document.querySelectorAll('.booking-modal').forEach(modalElement => {
+            modalElement.addEventListener('shown.bs.modal', function () {
+                const bookingId = modalElement.id.replace('rescheduleModal', '');
+                updateAvailableSlots(bookingId);
+            });
+        });
+
+        // Không cho gửi form nếu chưa chọn dịch vụ, ngày hoặc giờ.
+        document.querySelectorAll('.reschedule-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                const bookingId = form.dataset.bookingId;
+
+                const serviceId = document.getElementById(
+                    'input_ma_dv_moi_' + bookingId
+                ).value;
+
+                const time = document.getElementById(
+                    'input_time_slot_' + bookingId
+                ).value;
+
+                const date = document.getElementById(
+                    'input_ngay_hen_' + bookingId
+                ).value;
+
+                if (!serviceId || !date || !time) {
+                    event.preventDefault();
+                    alert('Vui lòng chọn dịch vụ, ngày hẹn và khung giờ còn trống.');
+                }
+            });
+        });
+    });
+</script>
+<script>
+(function(){
+ const rows=[...document.querySelectorAll('#staffBookingRows .staff-booking-row')];
+ const el=id=>document.getElementById(id);
+ const search=el('filterSearch'), date=el('filterDate'), service=el('filterService'), status=el('filterStatus'), staff=el('filterStaff');
+ let cardFilter='';
+ let applied={q:'',date:'',service:'',status:'',staff:''};
+ const unique=(key)=>[...new Set(rows.map(r=>r.dataset[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi'));
+  // Danh mục cố định theo các dịch vụ Charm Spa Grand đã cung cấp.
+  // Bổ sung những tên thực tế trong DB nếu chưa khớp danh mục, tránh bỏ sót lịch cũ.
+  const normalizeService = text => (text || '').normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .toLocaleLowerCase('vi').replace(/[^a-z0-9]+/g, ' ').trim();
+  const serviceMatches = (actual, choice) => {
+    const a = normalizeService(actual), b = normalizeService(choice);
+    if (!a || !b) return false;
+    if (a.includes(b) || b.includes(a)) return true;
+    const keys = [
+      ['nourishing hair shampoo','goi dau'], ['pregnancy massage','ba bau'],
+      ['traditional vietnamese massage','truyen thong'], ['hot stone','da nong'],
+      ['herbal therapy','thao duoc'], ['deep tissue','mo sau'],
+      ['thai therapy','massage thai'], ['bamboo cane','massage tre'],
+      ['aromatherapy','tinh dau'], ['swedish','thuy dien'],
+      ['body part therapy','co vai gay'], ['body relaxation','thu gian'],
+      ['foot reflexology','massage chan'], ['facial treatment','cham soc da mat'],
+      ['body treatment','cham soc co the'], ['packages','goi lieu trinh']
+    ];
+    return keys.some(aliases => aliases.some(x => b.includes(x)) && aliases.some(x => a.includes(x)));
+  };
+  for (const item of unique('service')) {
+    if (![...service.options].some(option => serviceMatches(item, option.value))) {
+      service.add(new Option(item, item));
+    }
+  }
+ for(const item of unique('staff')) staff.add(new Option(item,item));
+ let page=1;const perPage=5;
+ const today=new Date(),todayStr=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+ el('statToday').textContent=rows.filter(r=>r.dataset.date===todayStr).length;
+  el('statUnassigned').textContent=rows.filter(r=>r.dataset.assigned==='0').length;
+ function refresh(){
+  const q=applied.q;
+  const matched=rows.filter(r=>(!cardFilter || (cardFilter==='today' ? r.dataset.date===todayStr : r.dataset.assigned==='0'))&&(!q||r.dataset.search.toLocaleLowerCase('vi').includes(q))&&(!applied.date||r.dataset.date===applied.date)&&(!applied.service||serviceMatches(r.dataset.service,applied.service))&&(!applied.status||r.dataset.status===applied.status)&&(!applied.staff||r.dataset.staff===applied.staff));
+  const pages=Math.max(1,Math.ceil(matched.length/perPage));page=Math.min(page,pages);
+  rows.forEach(r=>{ r.hidden=true; r.style.setProperty('display','none','important'); });
+  matched.slice((page-1)*perPage,page*perPage).forEach(r=>{ r.hidden=false; r.style.removeProperty('display'); });
+  el('noFilterResults').classList.toggle('visible', matched.length === 0 && rows.length > 0);
+  el('bookingCount').textContent=matched.length+' lịch hẹn';
+  for (const [name,id] of [['today','filterTodayCard'],['unassigned','filterUnassignedCard']]) {
+    const active = cardFilter === name;
+    el(id).classList.toggle('active', active);
+    el(id).setAttribute('aria-pressed', String(active));
+  }
+  el('pageInfo').textContent=matched.length?'Hiển thị '+((page-1)*perPage+1)+'–'+Math.min(page*perPage,matched.length)+' trong '+matched.length+' lịch hẹn':'Không có lịch hẹn phù hợp';
+  el('currentPage').textContent=page+' / '+pages;
+  el('prevPage').disabled=page<=1;el('nextPage').disabled=page>=pages;
+ }
+ const applyCurrentFilters=()=>{
+   applied={q:search.value.trim().toLocaleLowerCase('vi'),date:date.value,service:service.value,status:status.value,staff:staff.value};
+   cardFilter='';page=1;refresh();
+ };
+ el('applyFilters').addEventListener('click',applyCurrentFilters);
+ search.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();applyCurrentFilters();}});
+ el('resetFilters').addEventListener('click',()=>{cardFilter='';applied={q:'',date:'',service:'',status:'',staff:''};search.value='';date.value='';service.value='';status.value='';staff.value='';page=1;refresh()});
+ for (const [name,id] of [['today','filterTodayCard'],['unassigned','filterUnassignedCard']]) {
+   el(id).addEventListener('click', () => {
+     cardFilter = cardFilter === name ? '' : name;
+     // Chuyển nhóm thống kê: xóa các lọc cũ để kết quả không bị rỗng ngoài ý muốn.
+     search.value='';date.value='';service.value='';status.value='';staff.value='';
+     applied={q:'',date:'',service:'',status:'',staff:''};
+     page=1;refresh();
+     document.querySelector('.staff-booking-page .table-frame').scrollIntoView({behavior:'smooth',block:'start'});
+   });
+ }
+ el('prevPage').addEventListener('click',()=>{page--;refresh()});
+ el('nextPage').addEventListener('click',()=>{page++;refresh()});
+ refresh();
+})();
+</script>
+{% endblock %}

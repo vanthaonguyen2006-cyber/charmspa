@@ -1,0 +1,449 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+{% block extra_css %}
+    {{ block.super }}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.flatpickr/dist/themes/material_gold.css">
+    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="booking-staff-create pt-2 px-8 pb-5 max-w-7xl w-full mx-auto">
+    <!-- Tiêu đề trang nhân viên tạo lịch -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-uppercase m-0 text-dark" style="font-family: 'Playfair Display', serif; letter-spacing: 0.5px;">
+                Nhân Viên Tạo Lịch Hẹn
+            </h3>
+            <p class="text-muted small m-0 mt-1">Hỗ trợ thiết lập lịch trị liệu trực tiếp cho khách hàng tại quầy.</p>
+        </div>
+        <div>
+            <a href="{% url 'staff_booking_list' %}" class="btn btn-outline-secondary btn-sm fw-bold px-3 py-2" style="border-radius: 8px;">
+                <i class="bi bi-list-ul me-1"></i> Xem danh sách lịch hẹn
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Form gửi dữ liệu sang view tạo lịch nhân viên -->
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="ma_kh" id="input_ma_kh" value="">
+
+        <input type="hidden" name="ma_dv" id="input_ma_dv" value="1">
+        <input type="hidden" name="time_slot" id="input_time_slot" value="09:00">
+
+        <div class="row g-4">
+            <!-- CỘT TRÁI -->
+            <div class="col-lg-8">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold m-0">1. Chọn dịch vụ trị liệu</h6>
+                        <button type="button" class="btn-all-services" data-bs-toggle="modal" data-bs-target="#modalAllServices">
+                            Xem tất cả dịch vụ &rarr;
+                        </button>
+                    </div>
+                    <div class="row g-3" id="main_service_container">
+                        <div class="col-md-4">
+                            <div class="service-card selected" onclick="selectService(this, '1', 'NOURISHING HAIR SHAMPOO - CHARM SPA', '150 phút', '890.000đ', 'shampoo')">
+                                <img src="{% static 'images/services/service1.jpg' %}" alt="Gội đầu">
+                                <div class="fw-bold" style="font-size: 11px;">NOURISHING HAIR SHAMPOO - CHARM SPA</div>
+                                <small class="text-muted d-block mt-1" style="font-size: 11px;">150 phút · 890.000đ</small>
+                                <small class="status-badge text-warning fw-bold" style="font-size: 11px;"><i class="bi bi-check-circle-fill"></i> Đã chọn</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="service-card" onclick="selectService(this, '2', 'PREGNANCY MASSAGE AT CHARM SPA', '150 phút', '1.150.000đ', 'massage')">
+                                <img src="{% static 'images/services/service2.jpg' %}" alt="Massage Bầu">
+                                <div class="fw-bold" style="font-size: 11px;">PREGNANCY MASSAGE AT CHARM SPA</div>
+                                <small class="text-muted d-block mt-1" style="font-size: 11px;">150 phút · 1.150.000đ</small>
+                                <small class="status-badge text-muted" style="font-size: 11px;"><i class="bi bi-circle"></i> Chọn dịch vụ</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="service-card" onclick="selectService(this, '3', 'TRADITIONAL VIETNAMESE MASSAGE', '150 phút', '1.200.000đ', 'massage')">
+                                <img src="{% static 'images/services/service3.jpg' %}" alt="Massage Việt Nam">
+                                <div class="fw-bold" style="font-size: 11px;">TRADITIONAL VIETNAMESE MASSAGE</div>
+                                <small class="text-muted d-block mt-1" style="font-size: 11px;">150 phút · 1.200.000đ</small>
+                                <small class="status-badge text-muted" style="font-size: 11px;"><i class="bi bi-circle"></i> Chọn dịch vụ</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ngày & Khung Giờ -->
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="calendar-box">
+                            <h6 class="fw-bold mb-2" style="font-size: 14px;">2. Chọn ngày hẹn</h6>
+                            <div class="custom-date-container">
+                                <input type="text" name="ngay_hen" id="input_ngay_hen" class="form-control form-control-custom-date" placeholder="Chọn ngày...">
+                                <i class="bi bi-calendar3 custom-date-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="time-box">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold m-0" style="font-size: 14px;">3. Khung giờ trống</h6>
+                                <span class="badge bg-light text-success border" id="bed_capacity_info" style="font-size: 10px;">Quỹ giường: 6 giường gội</span>
+                            </div>
+
+                            <!-- KHUNG THÔNG BÁO MÀU VÀNG CẢNH BÁO KHI HẾT GIỜ / KÍN CHỖ -->
+                            <div id="no-slots-alert" class="alert alert-warning d-none align-items-center py-2 px-3 mb-3 shadow-sm" role="alert" style="border-radius: 8px; font-size: 12px; background-color: #fef3c7; border-color: #fde68a; color: #92400e;">
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5" style="color: #d97706 !important;"></i>
+                                <div>
+                                    <strong>Vui lòng chọn ngày khác!</strong> Ngày này đã hết khung giờ hợp lệ hoặc kín chỗ.
+                                </div>
+                            </div>
+
+                            <div class="row g-2" id="time_slots_container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: THÔNG TIN KHÁCH HÀNG & TÓM TẮT -->
+            <div class="col-lg-4">
+                <div class="summary-card">
+                    <h6 class="fw-bold mb-3">4. Thông tin khách hàng</h6>
+
+                    <!-- Ô chọn/tìm kiếm khách hàng cũ dạng Dropdown tùy chỉnh -->
+                    <div class="mb-3">
+                        <label class="small fw-bold text-primary mb-1">Chọn nhanh từ danh sách khách hàng</label>
+                        <div class="customer-dropdown-container">
+                            <div class="customer-dropdown-toggle" id="dropdownToggleBtn" onclick="toggleCustomerDropdown()">
+                                <span id="dropdownSelectedText" class="text-muted">-- Chọn khách hàng đã có tài khoản --</span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </div>
+                            <div class="customer-dropdown-menu" id="customerDropdownMenu">
+                                <input type="text" class="customer-search-input" id="customerSearchBox" placeholder="Gõ tên hoặc SĐT để lọc..." oninput="filterCustomerOptions(this)">
+                                <div id="customerOptionsList">
+                                    {% for kh in khach_hang_list %}
+                                        <div class="customer-option-item"
+                                             data-id="{{ kh.pk }}"
+                                             data-name="{{ kh.ho_ten }}"
+                                             data-phone="{{ kh.ma_tk.so_dien_thoai|default:'' }}"
+                                             data-email="{{ kh.ma_tk.user.email|default:'' }}"
+                                             onclick="chonKhachHang(this.dataset.id, this.dataset.name, this.dataset.phone, this.dataset.email)">
+                                            <strong>{{ kh.ho_ten }}</strong>
+                                            <span> - SĐT: {{ kh.ma_tk.so_dien_thoai|default:"Chưa cập nhật" }}</span>
+                                            <small class="text-muted"> (Mã: {{ kh.pk }})</small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="small fw-bold" for="input_ho_ten">Họ và tên khách *</label>
+                        <input type="text" id="input_ho_ten" name="ho_ten" class="form-control form-control-custom" placeholder="Nhập họ và tên..." required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold" for="input_sdt">Số điện thoại *</label>
+                        <input type="text" id="input_sdt" name="sdt" class="form-control form-control-custom" placeholder="Nhập số điện thoại..." required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold" for="input_email">Email</label>
+                        <input type="email" id="input_email" name="email" class="form-control form-control-custom" placeholder="Nhập email...">
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold" for="input_so_luong">Số lượng khách *</label>
+                        <input type="number" name="so_luong" id="input_so_luong" class="form-control form-control-custom" value="1" min="1" max="10" onchange="updateFullSummary()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold" for="input_ghi_chu">Ghi chú nội bộ</label>
+                        <textarea id="input_ghi_chu" name="ghi_chu" class="form-control form-control-custom" rows="2" placeholder="Yêu cầu đặc biệt từ khách..."></textarea>
+                    </div>
+
+                    <div class="p-3 mb-3 rounded" style="background-color: #faf6f0;">
+                        <small class="text-muted d-block text-uppercase" style="font-size: 10px;">TÓM TẮT LỊCH HẸN</small>
+                        <strong class="d-block" id="summary_service_name" style="font-size: 11px; line-height: 1.3;">NOURISHING HAIR SHAMPOO - CHARM SPA</strong>
+                        <small class="text-muted" id="summary_details" style="font-size: 11px;">19/10/2026 · 09:00 · 150 phút · 1 khách</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-confirm"><i class="bi bi-check-circle me-1"></i> Tạo Lịch Hẹn Cho Khách</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal Chọn Dịch Vụ -->
+<div class="modal fade" id="modalAllServices" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header" style="background-color: var(--bg-beige);">
+                <h5 class="modal-title fw-bold">DANH SÁCH DỊCH VỤ CHARM SPA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #faf8f5;">
+                <div class="row g-3">
+                    {% if dich_vu_list %}
+                        {% for dv in dich_vu_list %}
+                        <div class="col-md-4">
+                            <div class="service-card" onclick="chooseFromModal('{{ dv.pk }}', '{{ dv.ten_dich_vu|escapejs }}', '{{ dv.thoi_luong }} phút', '{{ dv.gia_dich_vu }}đ', '{% static 'images/services/service' %}{{ forloop.counter }}.jpg')">
+                                <img src="{% static 'images/services/service' %}{{ forloop.counter }}.jpg" alt="Dịch vụ">
+                                <div class="fw-bold" style="font-size: 11px;">{{ dv.ten_dich_vu }}</div>
+                                <small class="text-muted d-block">{{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-md-12 text-center text-muted py-4">
+                            <p>Chưa có dịch vụ nào trong hệ thống.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.flatpickr/dist/l10n/vn.js"></script>
+
+<script>
+    let currentDuration = "150 phút";
+    let currentServiceType = "shampoo";
+
+    const disabledDates = {{ locked_dates_json|safe|default:"[]" }};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#input_ngay_hen", {
+            locale: "vn",
+            dateFormat: "d/m/Y",
+            defaultDate: "today",
+            minDate: "today",
+            disable: [
+                function(date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const dateString = `${year}-${month}-${day}`;
+                    return disabledDates.includes(dateString);
+                }
+            ],
+            static: true,
+            onChange: function() { updateAvailableSlots(); }
+        });
+        updateAvailableSlots();
+
+        // Khi nhân viên tự sửa tên/SĐT, bỏ mã khách đã chọn để tra cứu lại theo SĐT.
+        ['input_ho_ten', 'input_sdt'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                document.getElementById('input_ma_kh').value = '';
+            });
+        });
+
+        // Đóng dropdown khi click ra ngoài
+        document.addEventListener('click', function(e) {
+            const container = document.querySelector('.customer-dropdown-container');
+            if (!container.contains(e.target)) {
+                document.getElementById('customerDropdownMenu').classList.remove('show');
+            }
+        });
+    });
+
+    // Mở/đóng danh sách dropdown chọn khách hàng
+    function toggleCustomerDropdown() {
+        const menu = document.getElementById('customerDropdownMenu');
+        menu.classList.toggle('show');
+        if (menu.classList.contains('show')) {
+            document.getElementById('customerSearchBox').focus();
+        }
+    }
+
+    // Lọc danh sách khách hàng khi gõ vào ô tìm kiếm bên trong dropdown
+    function filterCustomerOptions(input) {
+        const keyword = input.value.toLowerCase();
+        const items = document.querySelectorAll('#customerOptionsList .customer-option-item');
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            if (text.includes(keyword)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // Khi chọn một khách hàng từ danh sách dropdown -> Tự điền thông tin vào các input bên dưới
+    function chonKhachHang(maKh, hoTen, sdt, email) {
+        document.getElementById('input_ma_kh').value = maKh;
+        document.getElementById('input_ho_ten').value = hoTen;
+        document.getElementById('input_sdt').value = sdt;
+        document.getElementById('input_email').value = email;
+
+        const displayEl = document.getElementById('dropdownSelectedText');
+        displayEl.innerText = `${hoTen} - SĐT: ${sdt}`;
+        displayEl.classList.remove('text-muted');
+
+        document.getElementById('customerDropdownMenu').classList.remove('show');
+    }
+
+    function selectService(element, serviceId, serviceName, duration, price) {
+        document.querySelectorAll('#main_service_container .service-card').forEach(card => {
+            card.classList.remove('selected');
+            const badge = card.querySelector('.status-badge');
+            if (badge) { badge.className = 'status-badge text-muted'; badge.innerHTML = '<i class="bi bi-circle"></i> Chọn dịch vụ'; }
+        });
+        element.classList.add('selected');
+        const currentBadge = element.querySelector('.status-badge');
+        if (currentBadge) {
+            currentBadge.className = 'status-badge text-warning fw-bold';
+            currentBadge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã chọn';
+        }
+        document.getElementById('input_ma_dv').value = serviceId;
+        document.getElementById('summary_service_name').innerText = serviceName;
+        currentDuration = duration;
+
+        currentServiceType = serviceName.toLowerCase().includes('shampoo') ? 'shampoo' : 'massage';
+        updateAvailableSlots();
+    }
+
+    function chooseFromModal(serviceId, serviceName, duration, price, imgUrl) {
+        const firstCard = document.querySelector('#main_service_container .col-md-4:first-child');
+        firstCard.innerHTML = `
+            <div class="service-card selected" onclick="selectService(this, '${serviceId}', '${serviceName}', '${duration}', '${price}')">
+                <img src="${imgUrl}" alt="${serviceName}">
+                <div class="fw-bold" style="font-size: 11px; line-height: 1.3;">${serviceName}</div>
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">${duration} · ${price}</small>
+                <small class="status-badge text-warning fw-bold" style="font-size: 11px;"><i class="bi bi-check-circle-fill"></i> Đã chọn</small>
+            </div>
+        `;
+        document.getElementById('input_ma_dv').value = serviceId;
+        document.getElementById('summary_service_name').innerText = serviceName;
+        currentDuration = duration;
+
+        currentServiceType = serviceName.toLowerCase().includes('shampoo') ? 'shampoo' : 'massage';
+        updateAvailableSlots();
+
+        const modalElement = document.getElementById('modalAllServices');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) modalInstance.hide();
+    }
+
+    async function updateAvailableSlots() {
+        const ngayVal = document.getElementById('input_ngay_hen').value;
+        const loaiDv = currentServiceType;
+
+        const infoBadge = document.getElementById('bed_capacity_info');
+        infoBadge.innerText = loaiDv === 'shampoo' ? 'Phòng gội riêng: 6 giường' : 'Hệ thống massage: 30 giường';
+
+        const timeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00'];
+        const container = document.getElementById('time_slots_container');
+        container.innerHTML = '<div class="col-12 text-center text-muted small py-2">Đang tải số giường trống...</div>';
+
+        const now = new Date();
+        const todayStr = String(now.getDate()).padStart(2, '0') + '/' +
+                         String(now.getMonth() + 1).padStart(2, '0') + '/' +
+                         now.getFullYear();
+        const isToday = (ngayVal === todayStr);
+
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTotalMinutes = currentHour * 60 + currentMinute;
+
+        let defaultSlot = '';
+        let isFirstSelected = false;
+        let slotsHTML = '';
+        let allSlotsDisabled = true;
+
+        for (let i = 0; i < timeSlots.length; i++) {
+            const time = timeSlots[i];
+
+            const [hStr, mStr] = time.split(':');
+            const slotTotalMinutes = parseInt(hStr) * 60 + parseInt(mStr || 0);
+
+            let isPastTime = isToday && (slotTotalMinutes <= currentTotalMinutes);
+
+            let remaining = loaiDv === 'shampoo' ? 6 : 30;
+            let disabledClass = '';
+            let statusText = '';
+            let selectedClass = '';
+
+            if (isPastTime) {
+                disabledClass = 'disabled';
+                statusText = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
+            } else {
+                try {
+                    const response = await fetch(`{% url 'api_kiem_tra_giuong' %}?ngay=${encodeURIComponent(ngayVal)}&gio=${encodeURIComponent(time)}&loai=${encodeURIComponent(loaiDv)}`);
+                    const data = await response.json();
+                    remaining = data.con_lai;
+                } catch (error) {
+                    console.error("Lỗi kết nối API lấy số giường:", error);
+                }
+
+                if (remaining === 0) {
+                    disabledClass = 'disabled';
+                    statusText = '<small class="text-danger" style="font-size:10px;">Kín giường</small>';
+                } else {
+                    statusText = `<small class="text-success" style="font-size:10px;">Còn ${remaining} giường</small>`;
+                    allSlotsDisabled = false;
+                    if (!isFirstSelected) {
+                        selectedClass = 'selected';
+                        defaultSlot = time;
+                        isFirstSelected = true;
+                    }
+                }
+            }
+
+            slotsHTML += `
+                <div class="col-6 col-md-3">
+                    <div class="time-slot ${disabledClass} ${selectedClass}" onclick="selectTime(this, '${time}')">
+                        <strong style="font-size:13px;">${time}</strong><br>${statusText}
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = slotsHTML;
+
+        const alertBox = document.getElementById('no-slots-alert');
+        if (allSlotsDisabled) {
+            alertBox.classList.remove('d-none');
+            alertBox.classList.add('d-flex');
+        } else {
+            alertBox.classList.remove('d-flex');
+            alertBox.classList.add('d-none');
+        }
+
+        if (defaultSlot) {
+            document.getElementById('input_time_slot').value = defaultSlot;
+        } else {
+            document.getElementById('input_time_slot').value = '';
+        }
+        updateFullSummary();
+    }
+
+    function selectTime(element, timeStr) {
+        if (element.classList.contains('disabled')) return;
+        document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+        element.classList.add('selected');
+        document.getElementById('input_time_slot').value = timeStr;
+        updateFullSummary();
+    }
+
+    function updateFullSummary() {
+        const dateVal = document.getElementById('input_ngay_hen').value || 'Hôm nay';
+        const timeVal = document.getElementById('input_time_slot').value || 'Chưa chọn giờ';
+        const guestVal = document.getElementById('input_so_luong').value || '1';
+        document.getElementById('summary_details').innerText = `${dateVal} · ${timeVal} · ${currentDuration} · ${guestVal} khách`;
+    }
+</script>
+{% endblock %}

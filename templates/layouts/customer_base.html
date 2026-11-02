@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <title>
         {% block title %}Charm Grand Spa & Wellness{% endblock %}
@@ -42,6 +43,9 @@
 
     <!-- JavaScript riêng của từng trang nếu cần -->
     {% block extra_js %}{% endblock %}
+<!-- Các code khác của file base -->
+
+    {% include 'components/chatbot_widget.html' %}
 
 </body>
 </html>
