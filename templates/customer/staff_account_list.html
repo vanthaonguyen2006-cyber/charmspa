@@ -1,0 +1,572 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Quản trị người dùng | Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <!-- CSS dùng chung danh sách khách hàng & CSS riêng trang quản trị tài khoản -->
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_account_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="customer-page">
+    <!-- Flash Messages Thông báo -->
+    {% if messages %}
+        <div style="margin-bottom: 16px;">
+            {% for message in messages %}
+                <div style="padding: 12px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; {% if message.tags == 'success' %}background-color: #e6f4ea; color: #137333; border: 1px solid #ceead6;{% else %}background-color: #fce8e6; color: #c5221f; border: 1px solid #fad2cf;{% endif %}">
+                    <span>{% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}</span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Tiêu đề trang & Huy hiệu bảo mật -->
+    <div class="customer-page-heading">
+        <div>
+            <h1>Quản trị người dùng</h1>
+            <p>Quản lý tài khoản, vai trò và quyền truy cập toàn hệ thống.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="background-color: #e6f4ea; color: #137333; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                <span>🛡️</span> Bảo mật hệ thống ổn định
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 THẺ THỐNG KÊ TỔNG QUAN -->
+    <div class="customer-stats" style="grid-template-columns: repeat(4, 1fr) !important;">
+        <article class="customer-stat-card">
+            <div class="stat-icon stat-icon-gold"><i data-lucide="users-round"></i></div>
+            <div class="stat-copy">
+                <span class="stat-label">Tổng tài khoản</span>
+                <strong>{{ tong_tai_khoan_display|default:"0" }}</strong>
+                <small>Tất cả tài khoản hệ thống</small>
+            </div>
+        </article>
+
+        <article class="customer-stat-card">
+            <div class="stat-icon stat-icon-purple"><i data-lucide="shield-check"></i></div>
+            <div class="stat-copy">
+                <span class="stat-label">Khách hàng</span>
+                <strong>{{ tong_khach_hang_display|default:"0" }}</strong>
+                <small>Vai trò khách hàng</small>
+            </div>
+        </article>
+
+        <article class="customer-stat-card">
+            <div class="stat-icon" style="background: #e8f0fe; color: #1a73e8;"><i data-lucide="user-cog"></i></div>
+            <div class="stat-copy">
+                <span class="stat-label">Nhân sự quản trị</span>
+                <strong>{{ tong_nhan_su_display|default:"0" }}</strong>
+                <small style="color: #1a73e8;">Nhân viên & Admin</small>
+            </div>
+        </article>
+
+        <article class="customer-stat-card">
+            <div class="stat-icon stat-icon-green"><i data-lucide="activity"></i></div>
+            <div class="stat-copy">
+                <span class="stat-label">Đang hoạt động</span>
+                <strong>{{ tai_khoan_hoat_dong_display|default:"0" }}</strong>
+                <small style="color: #137333;">Trạng thái bật</small>
+            </div>
+        </article>
+    </div>
+
+    <!-- Thanh tìm kiếm và bộ lọc -->
+    <form class="customer-filter-bar" method="get" action="{% url 'staff_account_list' %}">
+        <label class="customer-search-box" style="flex: 1;">
+            <i data-lucide="search"></i>
+            <input type="search" name="q" value="{{ query }}"
+                   placeholder="Tìm theo tên, số điện thoại hoặc email tài khoản..."
+                   aria-label="Tìm tài khoản">
+            {% if query %}
+                <a class="clear-search" href="{% url 'staff_account_list' %}" aria-label="Xóa tìm kiếm">×</a>
+            {% endif %}
+        </label>
+
+        <div class="customer-filter-controls">
+            <select name="vai_tro" aria-label="Lọc theo vai trò">
+                <option value="">Tất cả vai trò</option>
+                <option value="Khách hàng" {% if vai_tro_selected == 'Khách hàng' %}selected{% endif %}>Khách hàng</option>
+                <option value="Nhân viên CSKH" {% if vai_tro_selected == 'Nhân viên CSKH' %}selected{% endif %}>Nhân viên CSKH</option>
+                <option value="Chuyên viên" {% if vai_tro_selected == 'Chuyên viên' %}selected{% endif %}>Chuyên viên</option>
+                <option value="Quản trị viên" {% if vai_tro_selected == 'Quản trị viên' or vai_tro_selected == 'Admin' %}selected{% endif %}>Quản trị viên (Admin)</option>
+            </select>
+
+            <select name="trang_thai" aria-label="Lọc theo trạng thái">
+                <option value="">Trạng thái</option>
+                <option value="hoat_dong" {% if trang_thai_selected == 'hoat_dong' %}selected{% endif %}>Đang hoạt động</option>
+                <option value="da_khoa" {% if trang_thai_selected == 'da_khoa' %}selected{% endif %}>Đã khóa</option>
+            </select>
+
+            <button class="customer-filter-button" type="submit">
+                <i data-lucide="sliders-horizontal"></i>
+                <span>Bộ lọc</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- Bảng danh sách tài khoản -->
+    <section class="customer-table-card">
+        <div class="customer-table-heading">
+            <div class="customer-table-title">
+                <h2>Tài khoản người dùng</h2>
+                <span class="customer-count-pill">{{ filtered_count_display|default:"0" }} tài khoản</span>
+            </div>
+            <div class="customer-table-tools" style="display: flex; align-items: center; gap: 10px;">
+                <!-- Nút + Thêm nhân viên (Luôn hiển thị trên trang Quản trị tài khoản) -->
+                <button type="button" class="btn-gold-action" onclick="openAddStaffModal()" title="Thêm mới nhân viên">
+                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                    <span>+ Thêm nhân viên</span>
+                </button>
+
+                <!-- Nút xuất CSV -->
+                <a class="btn-outline-action" href="{{ export_url }}" title="Xuất danh sách ra file CSV">
+                    <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                    <span>Xuất dữ liệu</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="customer-table-scroll">
+            <table class="customer-table">
+                <thead>
+                    <tr>
+                        <th class="col-name">Người dùng</th>
+                        <th class="col-tier">Vai trò</th>
+                        <th class="col-tier">Trạng thái</th>
+                        <th class="col-actions">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tk in tai_khoan_list %}
+                        <tr>
+                            <td>
+                                <div class="customer-name-cell">
+                                    <span class="customer-avatar">{{ tk.avatar_initials }}</span>
+                                    <div>
+                                        <span class="customer-full-name d-block fw-bold text-dark">{{ tk.display_ho_ten|default:tk.user.username }}</span>
+                                        <small class="text-muted" style="font-size: 11px;">@{{ tk.user.username }} | {{ tk.so_dien_thoai }} | {{ tk.user.email|default:"Chưa có email" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="customer-tier" style="background: #f3f4f6; color: #374151;">{{ tk.vai_tro }}</span>
+                            </td>
+                            <td>
+                                {% if tk.user.is_active %}
+                                    <span class="customer-tier" style="background: #e6f4ea; color: #137333;">Đang hoạt động</span>
+                                {% else %}
+                                    <span class="customer-tier" style="background: #fce8e6; color: #c5221f;">Đã khóa</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="customer-row-actions">
+                                    <!-- Nút Chỉnh sửa tài khoản & Phân quyền (Hình cây bút) -->
+                                    <button type="button" class="customer-icon-button"
+                                            onclick="openEditAccountModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|escapejs }}', '{{ tk.user.email|default:''|escapejs }}', '{{ tk.so_dien_thoai|escapejs }}', '{{ tk.vai_tro|escapejs }}', '{% if tk.user.is_active %}Hoạt động{% else %}Đã khóa{% endif %}')"
+                                            title="Chỉnh sửa tài khoản & Phân quyền" aria-label="Chỉnh sửa">
+                                        <i data-lucide="pencil"></i>
+                                    </button>
+
+                                    {% if tk.user.is_active %}
+                                        <button type="button" class="customer-icon-button text-amber-700 bg-amber-50"
+                                                onclick="openLockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}')"
+                                                title="Khóa tài khoản" aria-label="Khóa tài khoản">
+                                            <i data-lucide="lock"></i>
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="customer-icon-button text-emerald-700 bg-emerald-50"
+                                                onclick="openUnlockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}', '{{ tk.so_dien_thoai }}', '{{ tk.user.email }}')"
+                                                title="Mở khóa tài khoản" aria-label="Mở khóa tài khoản">
+                                            <i data-lucide="unlock"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="customer-empty-state">
+                                <span class="empty-state-icon"><i data-lucide="users-round"></i></span>
+                                <strong>Không tìm thấy tài khoản</strong>
+                                <span>Thử thay đổi từ khóa hoặc bộ lọc tìm kiếm.</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        <div class="customer-table-footer">
+            <p>
+                Hiển thị <strong>{{ showing_start|default:0 }}–{{ showing_end|default:0 }}</strong>
+                trong tổng số <strong>{{ filtered_count_display|default:0 }}</strong> tài khoản
+            </p>
+
+            {% if page_obj.paginator.count %}
+                <nav class="customer-pagination" aria-label="Phân trang danh sách tài khoản">
+                    {% if page_obj.has_previous %}
+                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Trang trước">
+                            <i data-lucide="chevron-left"></i>
+                        </a>
+                    {% else %}
+                        <span class="page-arrow disabled"><i data-lucide="chevron-left"></i></span>
+                    {% endif %}
+
+                    {% for item in page_items %}
+                        {% if item.ellipsis %}
+                            <span class="page-ellipsis">…</span>
+                        {% else %}
+                            <a class="page-number {% if item.current %}active{% endif %}"
+                               href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ item.number }}"
+                               {% if item.current %}aria-current="page"{% endif %}>{{ item.number }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}" aria-label="Trang tiếp theo">
+                            <i data-lucide="chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <span class="page-arrow disabled"><i data-lucide="chevron-right"></i></span>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        </div>
+    </section>
+</section>
+
+<!-- ===================================================================== -->
+<!-- MODAL 1: THÊM MỚI NHÂN VIÊN                                           -->
+<!-- ===================================================================== -->
+<div id="addStaffModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">Thêm mới nhân viên</h3>
+                <p class="modal-subtitle">Thông tin có dấu * là bắt buộc.</p>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeAddStaffModal()">&times;</button>
+        </div>
+
+        <form method="POST" action="{% url 'staff_account_add_staff' %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Họ và tên <span class="req">*</span></label>
+                        <input type="text" name="ho_ten" required placeholder="Nhập họ và tên" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại <span class="req">*</span></label>
+                        <input type="tel" name="so_dien_thoai" required placeholder="Nhập số điện thoại" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Email <span class="req">*</span></label>
+                        <input type="email" name="email" required placeholder="Nhập địa chỉ email" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" name="ngay_sinh" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Tên đăng nhập <span class="req">*</span></label>
+                        <input type="text" name="username" required placeholder="Nhập tên đăng nhập" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Vai trò <span class="req">*</span></label>
+                        <select name="vai_tro" class="form-select" required>
+                            <option value="Nhân viên CSKH" selected>Nhân viên CSKH</option>
+                            <option value="Chuyên viên">Chuyên viên</option>
+                            <option value="Quản trị viên">Quản trị viên</option>
+                        </select>
+                        <span class="form-hint">Vai trò: Nhân viên CSKH / Chuyên viên / Quản trị viên</span>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu <span class="req">*</span></label>
+                        <div class="password-field-wrapper">
+                            <input type="password" name="password" id="addStaffPassword" required placeholder="Nhập mật khẩu" class="form-input" style="padding-right: 36px;">
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('addStaffPassword', this)" title="Ẩn/Hiện mật khẩu">
+                                <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Xác nhận mật khẩu <span class="req">*</span></label>
+                        <div class="password-field-wrapper">
+                            <input type="password" name="password_confirm" id="addStaffPasswordConfirm" required placeholder="Nhập lại mật khẩu" class="form-input" style="padding-right: 36px;">
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('addStaffPasswordConfirm', this)" title="Ẩn/Hiện mật khẩu">
+                                <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="trang_thai" class="form-select">
+                        <option value="Hoạt động" selected>Hoạt động</option>
+                        <option value="Đã khóa">Đã khóa</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="modal-btn-cancel" onclick="closeAddStaffModal()">Hủy</button>
+                <button type="submit" class="modal-btn-submit">Thêm nhân viên</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- MODAL 2: CHỈNH SỬA TÀI KHOẢN & PHÂN QUYỀN                             -->
+<!-- ===================================================================== -->
+<div id="editAccountModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title">Chỉnh sửa tài khoản & Phân quyền</h3>
+                <p class="modal-subtitle">Admin có thể cập nhật thông tin và thay đổi quyền truy cập của tài khoản.</p>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeEditAccountModal()">&times;</button>
+        </div>
+
+        <form id="editAccountForm" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Họ và tên</label>
+                        <input type="text" name="ho_ten" id="editHoTen" placeholder="Nhập họ và tên" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" id="editEmail" placeholder="Nhập email" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" name="so_dien_thoai" id="editSoDienThoai" required placeholder="Nhập số điện thoại" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Vai trò</label>
+                        <select name="vai_tro" id="editVaiTro" class="form-select" required>
+                            <option value="Admin">Admin</option>
+                            <option value="Nhân viên CSKH">Nhân viên CSKH</option>
+                            <option value="Chuyên viên">Chuyên viên</option>
+                            <option value="Khách hàng">Khách hàng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Trạng thái tài khoản</label>
+                    <select name="trang_thai" id="editTrangThai" class="form-select">
+                        <option value="Hoạt động">Hoạt động</option>
+                        <option value="Đã khóa">Đã khóa</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="modal-btn-cancel" onclick="closeEditAccountModal()">Hủy</button>
+                <button type="submit" class="modal-btn-submit">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL KHÓA NHANH -->
+<div id="lockModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 520px;">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title" style="font-size: 18px;">Xác nhận khóa tài khoản</h3>
+                <p id="lockModalSubtitle" class="modal-subtitle">Bạn có chắc chắn muốn khóa tài khoản này?</p>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeLockModal()">&times;</button>
+        </div>
+        <form id="lockAccountForm" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Lý do khóa tài khoản <span class="req">*</span></label>
+                    <select name="ly_do" id="lyDoSelect" onchange="checkLyDo(this)" class="form-select">
+                        <option value="Không còn nhu cầu sử dụng">Không còn nhu cầu sử dụng</option>
+                        <option value="Tạm ngưng tài khoản" selected>Tạm ngưng tài khoản</option>
+                        <option value="Vấn đề bảo mật">Vấn đề bảo mật</option>
+                        <option value="Lý do khác">Lý do khác</option>
+                    </select>
+                </div>
+                <div id="divLyDoKhac" style="display: none; margin-top: 14px;" class="form-group">
+                    <label class="form-label">Nhập lý do cụ thể <span class="req">*</span></label>
+                    <textarea name="ly_do_khac" id="textareaLyDoKhac" rows="3" placeholder="Nhập lý do..." class="form-input"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn-cancel" onclick="closeLockModal()">Hủy</button>
+                <button type="submit" style="padding: 9px 20px; background: #993D3D; color: #fff; border: none; border-radius: 8px; font-size: 13.5px; cursor: pointer; font-weight: 600;">Xác nhận khóa tài khoản</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL MỞ KHÓA NHANH -->
+<div id="unlockModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 520px;">
+        <div class="modal-header">
+            <h3 class="modal-title" style="font-size: 18px;">Xác nhận mở khóa tài khoản</h3>
+            <button type="button" class="modal-close-btn" onclick="closeUnlockModal()">&times;</button>
+        </div>
+        <form id="unlockAccountForm" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="background: #fdfbf7; border: 1px solid #f0e6d2; padding: 12px 16px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div id="unlockUserAvatar" style="width: 36px; height: 36px; border-radius: 50%; background: #e6dfd3; color: #5c4a32; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 12px;">TK</div>
+                    <div>
+                        <div id="unlockUserName" style="font-weight: bold; font-size: 14px; color: #1a1a1a;">Tên tài khoản</div>
+                        <div id="unlockUserEmail" style="font-size: 12px; color: #666;">Email</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Lý do mở khóa <span class="req">*</span></label>
+                    <select name="ly_do" id="lyDoUnlockSelect" onchange="checkLyDoUnlock(this)" class="form-select">
+                        <option value="Khách hàng yêu cầu mở khóa" selected>Khách hàng yêu cầu mở khóa</option>
+                        <option value="Xử lý vấn đề tài khoản">Xử lý vấn đề tài khoản</option>
+                        <option value="Kiểm tra bảo mật">Kiểm tra bảo mật</option>
+                        <option value="Lý do khác">Lý do khác</option>
+                    </select>
+                </div>
+                <div id="divLyDoUnlockKhac" style="display: none; margin-top: 14px;" class="form-group">
+                    <label class="form-label">Nhập lý do cụ thể <span class="req">*</span></label>
+                    <textarea name="ly_do_khac" id="textareaLyDoUnlockKhac" rows="3" placeholder="Nhập lý do..." class="form-input"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn-cancel" onclick="closeUnlockModal()">Hủy</button>
+                <button type="submit" style="padding: 9px 20px; background: #8C6D4F; color: #fff; border: none; border-radius: 8px; font-size: 13.5px; cursor: pointer; font-weight: 600;">Xác nhận mở khóa</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) window.lucide.createIcons();
+        });
+
+        // 1. Popup Thêm nhân viên
+        function openAddStaffModal() {
+            document.getElementById('addStaffModal').style.display = 'flex';
+            if (window.lucide) window.lucide.createIcons();
+        }
+        function closeAddStaffModal() {
+            document.getElementById('addStaffModal').style.display = 'none';
+        }
+
+        // Ẩn/Hiện mật khẩu
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<i data-lucide="eye-off" style="width: 17px; height: 17px;"></i>';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<i data-lucide="eye" style="width: 17px; height: 17px;"></i>';
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        // 2. Popup Chỉnh sửa tài khoản & Phân quyền
+        function openEditAccountModal(maTk, hoTen, email, soDienThoai, vaiTro, trangThai) {
+            const modal = document.getElementById('editAccountModal');
+            const form = document.getElementById('editAccountForm');
+
+            form.action = `/customer/staff/account/edit/${maTk}/`;
+
+            document.getElementById('editHoTen').value = hoTen || '';
+            document.getElementById('editEmail').value = (email && email !== 'None') ? email : '';
+            document.getElementById('editSoDienThoai').value = soDienThoai || '';
+
+            const vaiTroSelect = document.getElementById('editVaiTro');
+            let mappedRole = vaiTro;
+            if (vaiTro === 'Quản trị viên') mappedRole = 'Admin';
+            vaiTroSelect.value = mappedRole;
+            if (!vaiTroSelect.value) {
+                if (mappedRole.toLowerCase().includes('admin') || mappedRole.toLowerCase().includes('quản trị')) {
+                    vaiTroSelect.value = 'Admin';
+                } else {
+                    vaiTroSelect.value = 'Khách hàng';
+                }
+            }
+
+            document.getElementById('editTrangThai').value = (trangThai === 'Hoạt động') ? 'Hoạt động' : 'Đã khóa';
+
+            modal.style.display = 'flex';
+        }
+        function closeEditAccountModal() {
+            document.getElementById('editAccountModal').style.display = 'none';
+        }
+
+        // 3. Popup Khóa / Mở khóa nhanh
+        function openLockModal(maTk, username) {
+            const modal = document.getElementById('lockModal');
+            const form = document.getElementById('lockAccountForm');
+            const subtitle = document.getElementById('lockModalSubtitle');
+            form.action = `{% url 'staff_toggle_account' 'DUMMY_ID' %}`.replace('DUMMY_ID', maTk);
+            subtitle.innerText = `Bạn có chắc chắn muốn khóa tài khoản của "${username}"?`;
+            modal.style.display = 'flex';
+        }
+        function closeLockModal() {
+            document.getElementById('lockModal').style.display = 'none';
+        }
+
+        function openUnlockModal(maTk, username, phone, email) {
+            const modal = document.getElementById('unlockModal');
+            const form = document.getElementById('unlockAccountForm');
+            form.action = `{% url 'staff_toggle_account' 'DUMMY_ID' %}`.replace('DUMMY_ID', maTk);
+            document.getElementById('unlockUserName').innerText = username;
+            document.getElementById('unlockUserEmail').innerText = (email && email !== 'None' && email !== '') ? email : (phone || 'Không có thông tin liên hệ');
+            document.getElementById('unlockUserAvatar').innerText = username.slice(0, 2).toUpperCase();
+            modal.style.display = 'flex';
+        }
+        function closeUnlockModal() {
+            document.getElementById('unlockModal').style.display = 'none';
+        }
+
+        // Đóng khi click ngoài backdrop
+        window.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        function checkLyDo(obj) {
+            document.getElementById('divLyDoKhac').style.display = (obj.value === 'Lý do khác') ? 'block' : 'none';
+        }
+        function checkLyDoUnlock(obj) {
+            document.getElementById('divLyDoUnlockKhac').style.display = (obj.value === 'Lý do khác') ? 'block' : 'none';
+        }
+    </script>
+{% endblock %}

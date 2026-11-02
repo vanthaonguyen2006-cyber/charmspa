@@ -112,9 +112,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'vi-vn'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
 USE_I18N = True
 
@@ -136,3 +136,8 @@ MEDIA_URL = '/media/'
 
 # Thư mục lưu các tệp được tải lên trong quá trình phát triển
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cấu hình chuyển hướng sau khi đăng nhập thành công
+LOGIN_URL = '/accounts/dang_nhap/'
+LOGIN_REDIRECT_URL = '/bookings/staff/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/dang_nhap/'

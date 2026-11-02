@@ -64,3 +64,40 @@ class LichSuTaiKhoan(models.Model):
         verbose_name = "Lịch sử tài khoản"
         verbose_name_plural = "Lịch sử tài khoản"
         ordering = ["-thoi_gian"]
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+@receiver(post_save, sender=User)
+def dong_bo_tai_khoan_va_vai_tro(sender, instance, created, **kwargs):
+    """
+    Tự động đồng bộ bản ghi TAI_KHOAN mỗi khi User được tạo mới hoặc cập nhật.
+    - Nếu tạo từ DangKyForm: lấy số điện thoại truyền qua thuộc tính `_so_dien_thoai_dang_ky`.
+    - Nếu tạo từ Django Admin/createsuperuser: tạo số điện thoại tạm thời duy nhất, tránh vi phạm UNIQUE.
+    - Nếu cập nhật User: đồng bộ vai trò theo cờ `is_superuser` và `is_staff`.
+    """
+    if instance.is_superuser:
+        vai_tro_moi = "Quản trị viên"
+    elif instance.is_staff:
+        vai_tro_moi = "Nhân viên"
+    else:
+        vai_tro_moi = "Khách hàng"
+
+    if created:
+        if not TaiKhoan.objects.filter(user=instance).exists():
+            # Kiểm tra xem có số điện thoại được truyền kèm từ form đăng ký không
+            sdt_kem_theo = getattr(instance, '_so_dien_thoai_dang_ky', '').strip()
+            if not sdt_kem_theo:
+                # Nếu tạo từ Admin không có SĐT, sinh giá trị tạm thời duy nhất để không vi phạm ràng buộc UNIQUE
+                prefix = "NV" if (instance.is_staff or instance.is_superuser) else "KH"
+                sdt_kem_theo = f"{prefix}_{instance.id:06d}"
+
+            ma_tk_moi = f"TK{instance.id:03d}"
+            TaiKhoan.objects.create(
+                ma_tk=ma_tk_moi,
+                user=instance,
+                vai_tro=vai_tro_moi,
+                so_dien_thoai=sdt_kem_theo
+            )
+    else:
+        TaiKhoan.objects.filter(user=instance).update(vai_tro=vai_tro_moi)

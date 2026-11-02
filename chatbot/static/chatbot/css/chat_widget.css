@@ -1,0 +1,137 @@
+@charset "UTF-8";
+/* Widget chatbot tư vấn trên website khách hàng. Mọi class bắt đầu bằng cg- để không đụng CSS cũ. */
+#cgWidget {
+    --cg-primary: #8B1515;
+    --cg-primary-dark: #6E1010;
+    --cg-head: #7A2626;
+    --cg-cream: #FBF7F0;
+    --cg-border: #E8DFD2;
+    --cg-ink: #2B2118;
+    --cg-muted: #8A7B6A;
+    --cg-gold: #9A6B1F;
+    position: fixed; right: 20px; bottom: 20px; z-index: 1080;
+    font-family: inherit; color: var(--cg-ink);
+}
+#cgWidget *, #cgWidget *::before, #cgWidget *::after { box-sizing: border-box; }
+#cgWidget [hidden] { display: none !important; }
+
+/* ---------- Nút mở chatbot ---------- */
+.cg-launcher {
+    position: relative; display: flex; align-items: center; gap: 10px;
+    border: 0; cursor: pointer; background: var(--cg-primary); color: #fff;
+    padding: 13px 20px 13px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(110, 16, 16, .35); font-family: inherit;
+}
+.cg-launcher:hover { background: var(--cg-primary-dark); }
+.cg-launcher svg { width: 22px; height: 22px; flex: none; }
+.cg-badge {
+    position: absolute; top: -5px; right: -3px; min-width: 20px; height: 20px; padding: 0 5px;
+    border-radius: 999px; background: #E8A317; color: #2B2118; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-style: normal;
+}
+
+/* ---------- Cửa sổ chat ---------- */
+.cg-window {
+    position: absolute; right: 0; bottom: 0;
+    width: min(380px, calc(100vw - 24px)); height: min(640px, calc(100vh - 40px));
+    display: flex; flex-direction: column; overflow: hidden;
+    background: #fff; border-radius: 16px; border: 1px solid var(--cg-border);
+    box-shadow: 0 18px 50px rgba(43, 33, 24, .28);
+}
+.cg-head {
+    flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    background: var(--cg-head); color: #fff; padding: 14px 16px;
+}
+.cg-head strong { display: block; font-size: 15px; line-height: 1.3; }
+.cg-head small { display: block; font-size: 12px; opacity: .9; margin-top: 2px; }
+.cg-head button {
+    border: 0; background: transparent; color: #fff; cursor: pointer; width: 30px; height: 30px;
+    border-radius: 8px; font-size: 18px; line-height: 1; font-family: inherit;
+}
+.cg-head button:hover { background: rgba(255, 255, 255, .15); }
+.cg-trail { flex: none; padding: 7px 16px 0; font-size: 11.5px; color: var(--cg-muted); background: var(--cg-cream); min-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.cg-body {
+    flex: 1; overflow-y: auto; padding: 10px 14px 14px; background: var(--cg-cream);
+    display: flex; flex-direction: column; gap: 10px;
+}
+.cg-msg { display: flex; flex-direction: column; max-width: 88%; }
+.cg-msg.bot, .cg-msg.staff { align-self: flex-start; align-items: flex-start; }
+.cg-msg.me { align-self: flex-end; align-items: flex-end; }
+.cg-msg.sys { align-self: center; align-items: center; max-width: 94%; }
+.cg-meta { font-size: 11px; color: var(--cg-muted); margin: 0 4px 3px; }
+.cg-bubble { padding: 10px 13px; border-radius: 14px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.cg-msg.bot .cg-bubble { background: #fff; border: 1px solid var(--cg-border); border-top-left-radius: 4px; }
+.cg-msg.staff .cg-bubble { background: #FFF6E5; border: 1px solid #EBD9B3; border-top-left-radius: 4px; }
+.cg-msg.me .cg-bubble { background: var(--cg-primary); color: #fff; border-top-right-radius: 4px; }
+.cg-msg.sys .cg-bubble { background: transparent; color: var(--cg-muted); font-size: 12.5px; text-align: center; padding: 2px 6px; }
+.cg-bubble img { display: block; width: 100%; border-radius: 10px; margin-bottom: 8px; }
+.cg-card-title { font-weight: 700; font-size: 15px; }
+.cg-card-meta { color: var(--cg-primary); font-weight: 600; margin: 2px 0 6px; font-size: 13px; }
+.cg-card-ph { height: 90px; border-radius: 10px; background: var(--cg-cream); border: 1px dashed var(--cg-border); display: flex; align-items: center; justify-content: center; color: var(--cg-muted); font-size: 12px; margin-bottom: 8px; }
+
+/* ---------- Nút lựa chọn ---------- */
+.cg-chips { display: flex; flex-direction: column; gap: 7px; align-self: stretch; }
+.cg-chip {
+    text-align: left; font-family: inherit; cursor: pointer; background: #fff; color: var(--cg-primary);
+    border: 1px solid var(--cg-primary); border-radius: 10px; padding: 9px 13px; font-size: 13.5px; font-weight: 600;
+    transition: background .12s, color .12s;
+}
+.cg-chip:hover:not(:disabled) { background: var(--cg-primary); color: #fff; }
+.cg-chip:disabled { cursor: default; opacity: .45; }
+.cg-chip.picked { opacity: 1; background: var(--cg-primary); color: #fff; }
+.cg-chip.ghost { border-color: var(--cg-border); color: var(--cg-muted); font-weight: 500; }
+.cg-chip.ghost:hover:not(:disabled) { background: #fff; color: var(--cg-ink); border-color: var(--cg-muted); }
+.cg-chip.ask { border-style: dashed; }
+
+/* ---------- Form yêu cầu tư vấn ---------- */
+.cg-form { align-self: stretch; background: #fff; border: 1px solid var(--cg-border); border-radius: 14px; padding: 14px; }
+.cg-form h4 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+.cg-form p.cg-hint { margin: 0 0 10px; font-size: 12px; color: var(--cg-muted); line-height: 1.5; }
+.cg-field { margin-bottom: 9px; }
+.cg-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.cg-field input, .cg-field select {
+    width: 100%; border: 1px solid var(--cg-border); border-radius: 8px; padding: 8px 10px;
+    font-size: 13.5px; font-family: inherit; background: #fff; color: var(--cg-ink);
+}
+.cg-field input:focus, .cg-field select:focus { outline: 2px solid rgba(139, 21, 21, .25); border-color: var(--cg-primary); }
+.cg-ro { background: var(--cg-cream); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; }
+.cg-ro.empty { color: var(--cg-muted); font-style: italic; }
+.cg-error { color: var(--cg-primary); font-size: 12.5px; margin: 0 0 8px; min-height: 0; }
+.cg-submit {
+    width: 100%; border: 0; background: var(--cg-primary); color: #fff; font-weight: 700; font-size: 14px;
+    border-radius: 10px; padding: 10px; cursor: pointer; font-family: inherit;
+}
+.cg-submit:hover:not(:disabled) { background: var(--cg-primary-dark); }
+.cg-submit:disabled { opacity: .6; cursor: wait; }
+.cg-summary { align-self: stretch; background: #fff; border: 1px solid var(--cg-border); border-radius: 12px; padding: 10px 12px; font-size: 13px; }
+.cg-summary div { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
+.cg-summary span:first-child { color: var(--cg-muted); }
+.cg-summary span:last-child { font-weight: 600; text-align: right; word-break: break-word; }
+
+/* ---------- Chân khung ---------- */
+.cg-foot { flex: none; background: #fff; border-top: 1px solid var(--cg-border); }
+.cg-compose { display: flex; gap: 8px; padding: 10px 12px 6px; }
+.cg-compose input {
+    flex: 1; min-width: 0; border: 1px solid var(--cg-border); border-radius: 999px; padding: 10px 15px;
+    font-size: 14px; font-family: inherit; background: #fff; color: var(--cg-ink);
+}
+.cg-compose input:focus { outline: 2px solid rgba(139, 21, 21, .25); border-color: var(--cg-primary); }
+.cg-compose button {
+    flex: none; width: 42px; height: 42px; border: 0; border-radius: 50%; background: var(--cg-primary);
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.cg-compose button:hover { background: var(--cg-primary-dark); }
+.cg-compose svg { width: 18px; height: 18px; }
+.cg-waitnote { padding: 10px 14px 4px; font-size: 12px; color: var(--cg-muted); text-align: center; }
+.cg-links { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px 12px; font-size: 12.5px; }
+.cg-links a, .cg-links button {
+    color: var(--cg-muted); text-decoration: none; background: none; border: 0; padding: 0; cursor: pointer; font-size: 12.5px; font-family: inherit;
+}
+.cg-links a:hover, .cg-links button:hover { color: var(--cg-primary); }
+
+@media (max-width: 480px) {
+    #cgWidget { right: 12px; bottom: 12px; }
+    .cg-launcher span { display: none; }
+    .cg-launcher { padding: 14px; }
+}

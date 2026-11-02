@@ -26,19 +26,19 @@
     <!-- MENU -->
     <nav class="sidebar-menu">
 
-        <a href="#" title="Tổng quan"
+        <a href="{% url 'staff_home' %}" title="Tổng quan"
            class="sidebar-item {% if active_menu == 'dashboard' %}active{% endif %}">
             <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
             <span class="sidebar-label">Tổng quan</span>
         </a>
 
-        <a href="#" title="Khách hàng"
+        <a href="{% url 'staff_customer_list' %}" title="Khách hàng"
            class="sidebar-item {% if active_menu == 'customers' %}active{% endif %}">
             <i data-lucide="users-round" class="sidebar-icon"></i>
             <span class="sidebar-label">Khách hàng</span>
         </a>
 
-        <a href="#" title="Lịch hẹn"
+        <a href="{% url 'staff_booking_list' %}" title="Lịch hẹn"
            class="sidebar-item {% if active_menu == 'bookings' %}active{% endif %}">
             <i data-lucide="calendar-days" class="sidebar-icon"></i>
             <span class="sidebar-label">Lịch hẹn</span>
@@ -47,7 +47,7 @@
             {% endif %}
         </a>
 
-        <a href="#" title="Ngày hoạt động"
+        <a href="{% url 'quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
            class="sidebar-item {% if active_menu == 'working_days' %}active{% endif %}">
             <i data-lucide="calendar-check-2" class="sidebar-icon"></i>
             <span class="sidebar-label">Ngày hoạt động</span>
@@ -72,7 +72,7 @@
             {% endif %}
         </a>
 
-        <a href="#" title="Quản lý ưu đãi"
+        <a href="/admin/promotions/uudai/" title="Quản lý ưu đãi"
            class="sidebar-item {% if active_menu == 'promotions' %}active{% endif %}">
             <i data-lucide="tickets" class="sidebar-icon"></i>
             <span class="sidebar-label">Quản lý ưu đãi</span>
@@ -80,61 +80,82 @@
 
         <!-- CHĂM SÓC KHÁCH HÀNG -->
         <button type="button"
-                class="sidebar-item sidebar-parent"
+                class="sidebar-item sidebar-parent {% if active_menu == 'reminders' or active_menu == 'aftercare' %}active{% endif %}"
                 id="careMenuToggle"
-                aria-expanded="false">
+                aria-expanded="{% if active_menu == 'reminders' or active_menu == 'aftercare' %}true{% else %}false{% endif %}">
             <i data-lucide="heart-handshake" class="sidebar-icon"></i>
             <span class="sidebar-label">Chăm sóc & Nhắc lịch</span>
             <i data-lucide="chevron-down" class="sidebar-chevron"></i>
         </button>
 
-        <div class="sidebar-submenu" id="careSubmenu">
-            <a href="#"
+        <div class="sidebar-submenu {% if active_menu == 'reminders' or active_menu == 'aftercare' %}show{% endif %}"
+             id="careSubmenu"
+             style="{% if active_menu == 'reminders' or active_menu == 'aftercare' %}display: block;{% else %}display: none;{% endif %}">
+            <a href="/admin/care/nhaclich/"
                class="sidebar-subitem {% if active_menu == 'reminders' %}active-sub{% endif %}">
                 Nhắc lịch & Tái hẹn
             </a>
 
-            <a href="#"
+            <a href="/admin/care/huongdansauieutrinh/"
                class="sidebar-subitem {% if active_menu == 'aftercare' %}active-sub{% endif %}">
                 Hướng dẫn sau liệu trình
             </a>
         </div>
 
-        <a href="#" title="Dịch vụ"
+        <a href="/admin/services/dichvu/" title="Dịch vụ"
            class="sidebar-item {% if active_menu == 'services' %}active{% endif %}">
             <i data-lucide="sparkles" class="sidebar-icon"></i>
             <span class="sidebar-label">Dịch vụ</span>
         </a>
 
-        <a href="#" title="Nhân viên"
+        <a href="/admin/accounts/nhanvien/" title="Nhân viên"
            class="sidebar-item {% if active_menu == 'staff' %}active{% endif %}">
             <i data-lucide="contact-round" class="sidebar-icon"></i>
             <span class="sidebar-label">Nhân viên</span>
         </a>
 
-        <a href="#" title="Kho & sản phẩm"
+        <a href="/admin/inventory/sanpham/" title="Kho & sản phẩm"
            class="sidebar-item {% if active_menu == 'inventory' %}active{% endif %}">
             <i data-lucide="package" class="sidebar-icon"></i>
             <span class="sidebar-label">Kho & sản phẩm</span>
         </a>
 
-        <a href="#" title="Báo cáo"
+        <a href="/admin/reports/" title="Báo cáo"
            class="sidebar-item {% if active_menu == 'reports' %}active{% endif %}">
             <i data-lucide="chart-no-axes-combined" class="sidebar-icon"></i>
             <span class="sidebar-label">Báo cáo</span>
         </a>
 
-        <a href="#" title="Quản trị người dùng"
+        <a href="{% url 'staff_account_list' %}" title="Quản trị người dùng"
            class="sidebar-item {% if active_menu == 'accounts' %}active{% endif %}">
             <i data-lucide="shield-check" class="sidebar-icon"></i>
             <span class="sidebar-label">Quản trị người dùng</span>
         </a>
 
-        <a href="#" title="Chatbot"
-           class="sidebar-item {% if active_menu == 'chatbot' %}active{% endif %}">
+        <!-- CHATBOT -->
+        <button type="button"
+                class="sidebar-item sidebar-parent {% if active_menu == 'chatbot_conversations' or active_menu == 'chatbot_scripts' %}active{% endif %}"
+                id="chatbotMenuToggle"
+                aria-expanded="{% if active_menu == 'chatbot_conversations' or active_menu == 'chatbot_scripts' %}true{% else %}false{% endif %}">
             <i data-lucide="bot" class="sidebar-icon"></i>
             <span class="sidebar-label">Chatbot</span>
-        </a>
+            <i data-lucide="chevron-down" class="sidebar-chevron"></i>
+        </button>
+
+        <div class="sidebar-submenu {% if active_menu == 'chatbot_conversations' or active_menu == 'chatbot_scripts' %}show{% endif %}"
+             id="chatbotSubmenu"
+             style="{% if active_menu == 'chatbot_conversations' or active_menu == 'chatbot_scripts' %}display: block;{% else %}display: none;{% endif %}">
+
+            <a href="{% url 'chatbot:admin_conversation_list' %}"
+               class="sidebar-subitem {% if active_menu == 'chatbot_conversations' %}active-sub{% endif %}">
+                Quản lý hội thoại
+            </a>
+
+            <a href="{% url 'chatbot:admin_script_list' %}"
+               class="sidebar-subitem {% if active_menu == 'chatbot_scripts' %}active-sub{% endif %}">
+                Quản lý kịch bản
+            </a>
+        </div>
 
     </nav>
 
@@ -142,16 +163,22 @@
     <div class="sidebar-user">
 
         <div class="user-avatar">
-            {{ staff_initials|default:"?" }}
+            {{ request.user.username|slice:":2"|upper|default:"?" }}
         </div>
 
         <div class="user-info">
             <strong>
-                {{ staff_name|default:"Tài khoản" }}
+                {{ request.user.username|default:"Tài khoản" }}
             </strong>
 
             <span>
-                {{ staff_position|default:"Người dùng" }}
+                {% if request.user.username == 'Thngan' or request.user.is_superuser %}
+                    Quản trị viên
+                {% elif request.user.is_staff %}
+                    Nhân viên Spa
+                {% else %}
+                    Khách hàng
+                {% endif %}
             </span>
         </div>
 
@@ -163,14 +190,74 @@
             <i data-lucide="ellipsis"></i>
         </button>
 
-        <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown" id="userDropdown" style="display: none;">
             <div class="user-dropdown-heading">Tài khoản của tôi</div>
-            <a href="#" class="user-dropdown-item">
+            <a href="/admin/password_change/" class="user-dropdown-item">
                 <i data-lucide="user-round"></i>
-                <span>Thông tin cá nhân</span>
+                <span>Đổi mật khẩu</span>
+            </a>
+            <a href="/admin/logout/" class="user-dropdown-item text-danger">
+                <i data-lucide="log-out"></i>
+                <span>Đăng xuất</span>
+            </a>
+            <a href="{% url 'dang_xuat' %}" class="user-dropdown-item text-danger">
+                <i data-lucide="log-out"></i>
+                <span>Đăng xuất</span>
             </a>
         </div>
 
     </div>
 
 </aside>
+
+<!-- JS KÍCH HOẠT SỰ KIỆN XỔ XUỐNG CHO CÁC MENU -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Hàm thiết lập sự kiện bật/tắt menu con
+    function setupSubmenu(toggleId, submenuId) {
+        const toggle = document.getElementById(toggleId);
+        const submenu = document.getElementById(submenuId);
+
+        if (toggle && submenu) {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', !isExpanded);
+
+                if (submenu.style.display === 'block' || submenu.classList.contains('show')) {
+                    submenu.style.display = 'none';
+                    submenu.classList.remove('show');
+                } else {
+                    submenu.style.display = 'block';
+                    submenu.classList.add('show');
+                }
+            });
+        }
+    }
+
+    // Kích hoạt cho Menu Chăm sóc khách hàng và Chatbot
+    setupSubmenu('careMenuToggle', 'careSubmenu');
+    setupSubmenu('chatbotMenuToggle', 'chatbotSubmenu');
+
+    // Menu tùy chọn người dùng (Footer Sidebar)
+    const userToggle = document.getElementById('userMoreToggle');
+    const userDropdown = document.getElementById('userDropdown');
+    if (userToggle && userDropdown) {
+        userToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isShown = userDropdown.style.display === 'block';
+            userDropdown.style.display = isShown ? 'none' : 'block';
+            this.setAttribute('aria-expanded', !isShown);
+        });
+
+        document.addEventListener('click', function() {
+            userDropdown.style.display = 'none';
+            if (userToggle) userToggle.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>

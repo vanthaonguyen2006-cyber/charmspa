@@ -1,0 +1,23 @@
+/* BOOKING MODULE - CHARM SPA GRAND
+   Chỉ khai báo biến màu và tiện ích an toàn, không ghi đè layout chung. */
+:root {
+    --booking-primary-gold: #ab8e56;
+    --booking-bg-beige: #f9f6f0;
+    --booking-card-bg: #ffffff;
+    --booking-text-dark: #2c2c2c;
+    --booking-border-color: #e5e0d8;
+    /* Tên biến đang được các trang HTML cũ sử dụng */
+    --primary-gold: #ab8e56;
+    --bg-beige: #f9f6f0;
+    --card-bg: #ffffff;
+    --text-dark: #2c2c2c;
+    --border-color: #e5e0d8;
+}
+
+/* Đảm bảo các hình ảnh dịch vụ không biến dạng */
+.booking-customer-create .service-card img,
+.booking-customer-list .service-card-modal img,
+.booking-staff-create .service-card img,
+.booking-staff-list .service-card img {
+    object-fit: cover;
+}

@@ -2,7 +2,7 @@
 <header class="customer-header">
     <!-- 1. Cụm Logo -->
     <div class="header-logo">
-        <a href="{% url 'customer_home' %}">
+        <a href="{% url 'customers:customer_home' %}">
             <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="logo-icon">
             <div class="logo-text">
                 <h1 class="logo-title">CHARM GRAND</h1>
@@ -16,16 +16,16 @@
         <ul>
             <li><a href="{% url 'customer_home' %}">Trang Chủ</a></li>
             <li><a href="#">Về Chúng Tôi</a></li>
-            <li><a href="#">Liệu Trình</a></li>
+            <li><a href="{% url 'lieu_trinh_page' %}">Liệu Trình</a></li>
             <li><a href="#">Không Gian</a></li>
             <li><a href="#">Tin Tức</a></li>
-            <li><a href="#">Liên Hệ</a></li>
+            <li><a href="{% url 'core:contact' %}">Liên Hệ</a></li>
         </ul>
     </nav>
 
     <!-- 3. Cụm Hành động -->
     <div class="header-actions">
-        <a href="#" class="btn-booking">ĐẶT LỊCH NGAY</a>
+        <a href="{% url 'booking_customer_create' %}" class="btn-booking">ĐẶT LỊCH NGAY</a>
 
         <!-- Kiểm tra trạng thái đăng nhập chuẩn Django -->
         {% if request.user.is_authenticated %}

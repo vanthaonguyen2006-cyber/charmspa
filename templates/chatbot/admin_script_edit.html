@@ -1,0 +1,120 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Chỉnh sửa kịch bản {{ script.ma_kb }} - Charm Spa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'chatbot/css/flow_builder.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+    <!-- TIÊU ĐỀ -->
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+        <div>
+            <a href="{% url 'chatbot:admin_script_list' %}" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-1">
+                <i data-lucide="arrow-left" style="width:14px;height:14px"></i> Quay lại danh sách kịch bản
+            </a>
+            <h3 class="mb-1" style="font-family:'Playfair Display',Georgia,serif;font-weight:700;color:#2B2118">CHỈNH SỬA KỊCH BẢN</h3>
+            <div class="text-muted small">{{ script.ten_kich_ban }} · Thiết lập nội dung và bước tiếp theo cho từng lựa chọn.</div>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="fb-dirty" id="fbDirty">● Có thay đổi chưa lưu</span>
+            <a id="fbPreview" href="{% url 'chatbot:admin_script_preview' script.pk %}" class="fb-ghost">
+                <i data-lucide="play"></i> Xem trước
+            </a>
+            <button type="button" id="fbSave" class="fb-primary">
+                <i data-lucide="save"></i> Lưu thay đổi
+            </button>
+        </div>
+    </div>
+
+    <!-- KHUNG 3 CỘT -->
+    <div class="fb-shell">
+
+        <!-- CỘT TRÁI: THÊM BLOCK -->
+        <aside class="fb-palette">
+            <h3>Thêm block</h3>
+            <p class="fb-sub">Kéo block vào canvas hoặc bấm để thêm một bước.</p>
+
+            <div class="fb-block" draggable="true" data-type="tin_nhan">
+                <span class="fb-block-ico"><i data-lucide="message-square"></i></span>
+                <strong>Tin nhắn</strong><small>Nội dung chatbot</small>
+            </div>
+            <div class="fb-block" draggable="true" data-type="hinh_anh">
+                <span class="fb-block-ico"><i data-lucide="image"></i></span>
+                <strong>Hình ảnh</strong><small>Ảnh dịch vụ</small>
+            </div>
+            <div class="fb-block" draggable="true" data-type="nut_lua_chon">
+                <span class="fb-block-ico"><i data-lucide="list-tree"></i></span>
+                <strong>Nút lựa chọn</strong><small>Điều hướng luồng</small>
+            </div>
+            <div class="fb-block" draggable="true" data-type="chuyen_nhan_vien">
+                <span class="fb-block-ico"><i data-lucide="headphones"></i></span>
+                <strong>Chuyển nhân viên</strong><small>Form &amp; tiếp nhận</small>
+            </div>
+        </aside>
+
+        <!-- GIỮA: CANVAS -->
+        <section class="fb-center">
+            <div class="fb-toolbar">
+                <div class="fb-tools">
+                    <div class="fb-menu-wrap">
+                        <button type="button" class="fb-btn" id="fbAddBtn"><i data-lucide="plus"></i> Thêm node</button>
+                        <div class="fb-menu" id="fbAddMenu">
+                            <button type="button" data-type="tin_nhan"><i data-lucide="message-square"></i> Tin nhắn</button>
+                            <button type="button" data-type="dich_vu"><i data-lucide="sparkles"></i> Dịch vụ</button>
+                            <button type="button" data-type="hinh_anh"><i data-lucide="image"></i> Hình ảnh</button>
+                            <button type="button" data-type="chuyen_nhan_vien"><i data-lucide="headphones"></i> Chuyển nhân viên</button>
+                        </div>
+                    </div>
+                    <button type="button" class="fb-btn" id="fbDup"><i data-lucide="copy"></i> Nhân bản</button>
+                    <button type="button" class="fb-btn danger" id="fbDel"><i data-lucide="trash-2"></i> Xóa</button>
+                </div>
+                <div class="fb-tools">
+                    <button type="button" class="fb-btn icon" id="fbUndo" title="Hoàn tác (Ctrl+Z)"><i data-lucide="undo-2"></i></button>
+                    <button type="button" class="fb-btn icon" id="fbRedo" title="Làm lại (Ctrl+Shift+Z)"><i data-lucide="redo-2"></i></button>
+                </div>
+            </div>
+
+            <div id="fbViewport"></div>
+
+            <div class="fb-hint">Chọn node để sửa. Các đường nối thể hiện bước tiếp theo.</div>
+            <div class="fb-statusbar">
+                <span id="fbStats"></span>
+                <span class="fb-zoom">
+                    <button type="button" id="fbZoomOut" title="Thu nhỏ">−</button>
+                    <span id="fbZoomLabel">100%</span>
+                    <button type="button" id="fbZoomIn" title="Phóng to">+</button>
+                    <button type="button" id="fbFit" class="fb-fit">Vừa màn hình</button>
+                </span>
+            </div>
+        </section>
+
+        <!-- CỘT PHẢI: THUỘC TÍNH BƯỚC -->
+        <aside class="fb-panel">
+            <div class="fb-panel-head">
+                <h3>Thuộc tính bước</h3>
+                <small id="fbPanelSub">Chọn một bước để chỉnh sửa</small>
+            </div>
+            <div class="fb-panel-body" id="fbPanelBody"></div>
+        </aside>
+    </div>
+</div>
+
+<div class="fb-toasts" id="fbToasts"></div>
+{% csrf_token %}
+{{ graph|json_script:"flow-graph-data" }}
+<script>
+    window.FLOW_CONFIG = {
+        saveUrl: "{% url 'chatbot:admin_script_graph_save' script.pk %}",
+        uploadUrl: "{% url 'chatbot:admin_script_image_upload' %}"
+    };
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'chatbot/js/flow_engine.js' %}"></script>
+<script src="{% static 'chatbot/js/flow_editor.js' %}"></script>
+{% endblock %}

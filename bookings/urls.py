@@ -17,6 +17,7 @@ urlpatterns = [
     path('admin/bookings/<str:ma_lh>/delete/', views.booking_admin_delete, name='booking_admin_delete'),
     path('staff/assign/<str:ma_lh>/', views.assign_staff_to_booking, name='assign_staff'),
     #Staff
+    path('staff/home/', views.staff_home, name='staff_home'),
     path('staff/bookings/create/', views.booking_staff_create, name='staff_booking_create'),
     path('staff/bookings/', views.booking_staff_list, name='staff_booking_list'),
     path('staff/bookings/<str:ma_lh>/', views.booking_staff_detail, name='staff_booking_detail'),
