@@ -85,3 +85,4 @@ def dang_nhap_view(request):
 def dang_xuat_view(request):
     auth_logout(request)
     return redirect('dang_nhap')
+
