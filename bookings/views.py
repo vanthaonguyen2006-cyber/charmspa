@@ -131,12 +131,43 @@ def booking_customer_create(request):
             traceback.print_exc()
             messages.error(request, f"Có lỗi xảy ra khi đặt lịch: {e}")
 
+
+    # Lấy thông tin tài khoản khách hàng đang đăng nhập
+    tai_khoan = TaiKhoan.objects.filter(
+        user=request.user
+    ).first()
+
+    khach_hang = None
+    if tai_khoan:
+        khach_hang = KhachHang.objects.filter(
+            ma_tk=tai_khoan
+        ).first()
+
+    # Chuẩn bị thông tin tự động điền vào form
+    ho_ten = (
+        khach_hang.ho_ten
+        if khach_hang and khach_hang.ho_ten
+        else request.user.get_full_name() or request.user.username
+    )
+
+    so_dien_thoai = (
+        tai_khoan.so_dien_thoai
+        if tai_khoan and tai_khoan.so_dien_thoai
+        else ''
+    )
+
+    email = request.user.email or ''
+
     context = {
         'dich_vu_list': dich_vu_list,
         'locked_dates_json': locked_dates_str,
+        'khach_hang': khach_hang,
+        'booking_customer_name': ho_ten,
+        'booking_customer_phone': so_dien_thoai,
+        'booking_customer_email': email,
     }
-    return render(request, 'bookings/customer_create.html', context)
 
+    return render(request, 'bookings/customer_create.html', context)
 
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_list(request):
