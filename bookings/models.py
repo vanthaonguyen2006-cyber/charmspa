@@ -10,11 +10,12 @@ class NgayHoatDong(models.Model):
     trang_thai = models.CharField(max_length=20, verbose_name="Trạng thái")
     ly_do_khoa = models.CharField(max_length=255, null=True, blank=True, verbose_name="Lý do khóa")
     ngay_cap_nhat = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
-    ma_nv_cap_nhat = models.ForeignKey(NhanVien, on_delete=models.CASCADE, null=True, blank=True,
-                                       verbose_name="Nhân viên cập nhật")
+    # Đã xóa dòng ma_nv_cap_nhat ở đây!
 
     def __str__(self):
-        return str(self.ngay)
+        if self.ly_do_khoa:
+            return f"{self.ngay} - {self.trang_thai} ({self.ly_do_khoa})"
+        return f"{self.ngay} - {self.trang_thai}"
 
 
 class LichHen(models.Model):

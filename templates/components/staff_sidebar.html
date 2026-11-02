@@ -26,7 +26,7 @@
     <!-- MENU -->
     <nav class="sidebar-menu">
 
-        <a href="/admin/" title="Tổng quan"
+        <a href="{% url 'staff_home' %}" title="Tổng quan"
            class="sidebar-item {% if active_menu == 'dashboard' %}active{% endif %}">
             <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
             <span class="sidebar-label">Tổng quan</span>
@@ -38,7 +38,7 @@
             <span class="sidebar-label">Khách hàng</span>
         </a>
 
-        <a href="/admin/bookings/lichhen/" title="Lịch hẹn"
+        <a href="{% url 'staff_booking_list' %}" title="Lịch hẹn"
            class="sidebar-item {% if active_menu == 'bookings' %}active{% endif %}">
             <i data-lucide="calendar-days" class="sidebar-icon"></i>
             <span class="sidebar-label">Lịch hẹn</span>
@@ -47,18 +47,28 @@
             {% endif %}
         </a>
 
-        <a href="/admin/bookings/ngayhoatdong/" title="Ngày hoạt động"
+        <a href="{% url 'quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
            class="sidebar-item {% if active_menu == 'working_days' %}active{% endif %}">
             <i data-lucide="calendar-check-2" class="sidebar-icon"></i>
             <span class="sidebar-label">Ngày hoạt động</span>
         </a>
 
-        <a href="/admin/feedback/phanhoikhieunai/" title="Phản hồi & Khiếu nại"
-           class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}">
+        <!-- PHẢN HỒI & KHIẾU NẠI -->
+        <a
+            href="{% if request.user.is_superuser %}{% url 'feedback:admin_feedback_list' %}{% else %}{% url 'feedback:staff_feedback_list' %}{% endif %}"
+            title="Phản hồi & Khiếu nại"
+            class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}"
+        >
             <i data-lucide="message-square-text" class="sidebar-icon"></i>
-            <span class="sidebar-label">Phản hồi & Khiếu nại</span>
+
+            <span class="sidebar-label">
+                Phản hồi & Khiếu nại
+            </span>
+
             {% if feedback_count %}
-                <span class="menu-badge">{{ feedback_count }}</span>
+                <span class="menu-badge">
+                    {{ feedback_count }}
+                </span>
             {% endif %}
         </a>
 
@@ -153,16 +163,22 @@
     <div class="sidebar-user">
 
         <div class="user-avatar">
-            {{ staff_initials|default:"?" }}
+            {{ request.user.username|slice:":2"|upper|default:"?" }}
         </div>
 
         <div class="user-info">
             <strong>
-                {{ staff_name|default:"Tài khoản" }}
+                {{ request.user.username|default:"Tài khoản" }}
             </strong>
 
             <span>
-                {{ staff_position|default:"Người dùng" }}
+                {% if request.user.username == 'Thngan' or request.user.is_superuser %}
+                    Quản trị viên
+                {% elif request.user.is_staff %}
+                    Nhân viên Spa
+                {% else %}
+                    Khách hàng
+                {% endif %}
             </span>
         </div>
 
@@ -181,6 +197,10 @@
                 <span>Đổi mật khẩu</span>
             </a>
             <a href="/admin/logout/" class="user-dropdown-item text-danger">
+                <i data-lucide="log-out"></i>
+                <span>Đăng xuất</span>
+            </a>
+            <a href="{% url 'dang_xuat' %}" class="user-dropdown-item text-danger">
                 <i data-lucide="log-out"></i>
                 <span>Đăng xuất</span>
             </a>

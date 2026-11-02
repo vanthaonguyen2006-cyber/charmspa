@@ -1,0 +1,132 @@
+/* Charm Spa Grand - trang liệu trình.
+   Header/footer kế thừa customer_base_pro.html.
+   Trang này chỉ điều khiển banner, danh sách ảnh và phân trang. */
+.treatment-page {
+    background: #fff;
+    color: #342b26;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.treatment-page *, .treatment-page *::before, .treatment-page *::after { box-sizing: border-box; }
+
+/* Ảnh nhỏ hơn, lưới căn giữa giống ảnh mẫu. */
+.treatment-page .treatment-container {
+    width: min(1250px, calc(100% - 48px));
+    margin: 0 auto;
+}
+
+.treatment-page .treatment-banner {
+    position: relative;
+    min-height: 360px;
+    display: flex;
+    align-items: center;
+    background:
+      linear-gradient(105deg, rgba(25,20,17,.73), rgba(25,20,17,.20)),
+      url('/static/images/services/banner.jpg') center 44% / cover no-repeat;
+    color: #fff;
+}
+.treatment-page .treatment-banner__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(23,17,14,.12), transparent 65%);
+    pointer-events: none;
+}
+.treatment-page .treatment-banner__content {
+    position: relative;
+    z-index: 1;
+    padding: 55px 0;
+}
+.treatment-page .treatment-eyebrow {
+    font-size: 11px;
+    letter-spacing: 2.3px;
+    color: #ae884f;
+    font-weight: 700;
+}
+.treatment-page .treatment-banner .treatment-eyebrow { color: #f0d8ad; }
+.treatment-page .treatment-banner h1 {
+    font: 700 clamp(27px, 3.1vw, 43px)/1.25 Arial, Helvetica, sans-serif;
+    margin: 14px 0;
+    max-width: 710px;
+    letter-spacing: .35px;
+}
+.treatment-page .treatment-banner p {
+    color: #f7ece2;
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 610px;
+    margin: 0;
+}
+
+.treatment-page .treatment-section { padding: 55px 0 72px; background: #fff; }
+.treatment-page .treatment-heading { text-align: center; margin-bottom: 34px; }
+.treatment-page .treatment-heading h2 {
+    font: 700 clamp(23px,2.3vw,32px)/1.3 Arial, Helvetica, sans-serif;
+    color: #2f2925;
+    letter-spacing: .3px;
+    margin: 10px 0 9px;
+}
+.treatment-page .treatment-heading p { color: #82756b; font-size: 14px; margin: 0; }
+
+.treatment-page .treatment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 36px;
+    row-gap: 33px;
+    align-items: start;
+}
+.treatment-page .treatment-card {
+    min-width: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: center;
+}
+.treatment-page .treatment-card__image { width: 100%; aspect-ratio: 1.5; overflow: hidden; }
+.treatment-page .treatment-card__image img {
+    width: 100%; height: 100%; display: block; object-fit: cover;
+    transition: transform .25s ease;
+}
+.treatment-page .treatment-card:hover .treatment-card__image img { transform: scale(1.025); }
+.treatment-page .treatment-card__body { padding: 15px 4px 0; }
+.treatment-page .treatment-card h3 {
+    margin: 0;
+    color: #33251e;
+    text-transform: uppercase;
+    font: 700 15px/1.45 Arial, Helvetica, sans-serif;
+}
+.treatment-page .treatment-card h3::after {
+    content: "";
+    display: block;
+    width: 140px;
+    max-width: 50%;
+    height: 1px;
+    margin: 10px auto 0;
+    background: #856249;
+}
+.treatment-page .treatment-empty { grid-column: 1/-1; padding: 30px; text-align: center; }
+.treatment-page .treatment-pagination {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 38px;
+}
+.treatment-page .treatment-pagination a,
+.treatment-page .treatment-pagination span {
+    display: inline-flex; justify-content: center; align-items: center;
+    min-width: 35px; height: 35px; border: 1px solid #ded2c4; border-radius: 4px;
+    text-decoration: none; background: #fff; color: #55483c; font-size: 13px;
+}
+.treatment-page .treatment-pagination .is-active { background: #ad8a54; color: white; border-color: #ad8a54; }
+.treatment-page .treatment-pagination .is-disabled { opacity: .4; }
+
+@media (max-width: 900px) {
+    .treatment-page .treatment-container { width: min(100% - 36px, 760px); }
+    .treatment-page .treatment-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 26px; }
+    .treatment-page .treatment-banner { min-height: 310px; }
+}
+@media (max-width: 570px) {
+    .treatment-page .treatment-container { width: calc(100% - 28px); }
+    .treatment-page .treatment-grid { grid-template-columns: 1fr; gap: 25px; }
+    .treatment-page .treatment-banner { min-height: 280px; }
+    .treatment-page .treatment-banner__content { padding: 40px 0; }
+    .treatment-page .treatment-section { padding: 42px 0 54px; }
+    .treatment-page .treatment-card h3 { font-size: 14px; }
+}
