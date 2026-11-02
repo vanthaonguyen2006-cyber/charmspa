@@ -8,4 +8,8 @@ urlpatterns = [
     # Các đường dẫn khác của bạn...
     path('customer/profile/', views.customer_profile_view, name='customer_profile'),
     path('contact/', views.contact_view, name='contact'),
+    path('staff/', views.staff_home, name='staff_home'),
+
+    # Các đường dẫna khác của bạn...
+
 ]

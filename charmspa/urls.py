@@ -9,4 +9,6 @@ urlpatterns = [
     path('customer/', include('customers.urls')),
     path('home/', include('core.urls')),
     path('chatbot/', include('chatbot.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('bookings/', include('bookings.urls')),
 ]

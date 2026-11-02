@@ -42,3 +42,5 @@ def contact_view(request):
         return redirect('core:contact')
 
     return render(request, 'core/contact.html')
+def staff_home(request):
+    return render(request, 'core/staff_home.html')
