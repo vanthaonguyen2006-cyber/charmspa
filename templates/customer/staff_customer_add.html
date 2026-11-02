@@ -1,0 +1,125 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Thêm mới khách hàng | Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="customer-page">
+    <!-- Header trang -->
+    <div class="customer-page-heading mb-4">
+        <div>
+            <h1>Thêm mới khách hàng</h1>
+            <p>Nhập thông tin chi tiết để tạo hồ sơ khách hàng mới trên hệ thống.</p>
+        </div>
+        <a class="btn btn-outline-secondary px-3 py-2" href="{% url 'staff_customer_list' %}" style="border-radius: 8px; font-size: 14px;">
+            <i data-lucide="arrow-left" class="me-1" style="width: 16px; height: 16px;"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <!-- Thông báo lỗi/thành công -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Form Nhập Liệu -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+        <form method="POST" action="">
+            {% csrf_token %}
+            <div class="row g-4">
+                
+                <!-- Họ và tên -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" name="ho_ten" class="form-control py-2 px-3" placeholder="Nhập họ và tên khách hàng" required style="border-radius: 8px; font-size: 14px;">
+                </div>
+
+                <!-- Số điện thoại -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Số điện thoại <span class="text-danger">*</span></label>
+                    <input type="tel" name="so_dien_thoai" class="form-control py-2 px-3" placeholder="Nhập số điện thoại liên lạc" required style="border-radius: 8px; font-size: 14px;">
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Email</label>
+                    <input type="email" name="email" class="form-control py-2 px-3" placeholder="Nhập địa chỉ email (nếu có)" style="border-radius: 8px; font-size: 14px;">
+                </div>
+
+                <!-- Ngày sinh -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Ngày sinh</label>
+                    <input type="date" name="ngay_sinh" class="form-control py-2 px-3" style="border-radius: 8px; font-size: 14px;">
+                </div>
+
+                <!-- Giới tính (Thay thế nguồn khách hàng) -->
+                <div class="col-12 mt-3">
+                    <label class="form-label fw-semibold mb-2" style="font-size: 14px;">Giới tính</label>
+                    <div class="d-flex gap-5">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhNam" value="Nam" checked>
+                            <label class="form-check-label" for="gioiTinhNam" style="font-size: 14px;">Nam</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhNu" value="Nữ">
+                            <label class="form-check-label" for="gioiTinhNu" style="font-size: 14px;">Nữ</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhKhac" value="Khác">
+                            <label class="form-check-label" for="gioiTinhKhac" style="font-size: 14px;">Khác</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Khung thông tin thành viên mặc định -->
+                <div class="col-12 mt-2">
+                    <div class="p-3 rounded-4 border bg-light d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="text-success bg-white p-2 rounded-circle shadow-sm border">
+                                <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <span class="d-block fw-bold text-dark" style="font-size: 14px;">Thông tin thành viên khởi tạo</span>
+                                <span class="text-muted" style="font-size: 12px;">Hạng mặc định: <strong class="text-dark">Thành viên mới</strong></span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted" style="font-size: 12px;">Điểm tích lũy ban đầu:</span>
+                            <strong class="text-success ms-1" style="font-size: 14px;">0 điểm</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="col-12 text-end mt-4 pt-3 border-top">
+                    <a href="{% url 'staff_customer_list' %}" class="btn btn-light px-4 py-2 me-2 border" style="border-radius: 8px; font-size: 14px;">Hủy bỏ</a>
+                    <button type="submit" class="btn text-white px-4 py-2" style="background-color: #31572c; border-radius: 8px; font-size: 14px; font-weight: 500;">
+                        Lưu hồ sơ khách hàng
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) window.lucide.createIcons();
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,332 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Khách hàng | Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="customer-page">
+    <div class="customer-page-heading">
+        <div>
+            <h1>Khách hàng</h1>
+            <p>Quản lý hồ sơ, hạng thành viên và hành trình chăm sóc tại Charm Spa.</p>
+        </div>
+        {# Thay dấu # bằng URL trang thêm khách hàng khi bạn tạo view/URL đó. #}
+        <button type="button" id="btnThemKhachHang" class="customer-primary-button">
+            <i data-lucide="plus"></i>
+            <span>Thêm mới khách hàng</span>
+        </button>
+    </div>
+
+    <div class="customer-stats">
+        <article class="customer-stat-card">
+            <div class="stat-icon stat-icon-gold"><i data-lucide="users-round"></i></div>
+            <div class="stat-copy">
+                <span class="stat-label">Tổng khách hàng</span>
+                <strong>{{ tong_khach_hang_display }}</strong>
+                <small>Tất cả hồ sơ trên hệ thống</small>
+            </div>
+        </article>
+        <article class="customer-stat-card">
+            <div class="stat-icon stat-icon-purple"><i data-lucide="crown"></i></div>
+            <div class="stat-copy">
+                <span class="stat-label">Khách VIP</span>
+                <strong>{{ khach_vip_display }}</strong>
+                <small>Hạng Vàng, Kim cương và VIP</small>
+            </div>
+        </article>
+        <article class="customer-stat-card">
+            <div class="stat-icon stat-icon-green"><i data-lucide="user-round-plus"></i></div>
+            <div class="stat-copy">
+                <span class="stat-label">Khách mới tháng này</span>
+                <strong>{{ khach_moi_thang_nay_display }}</strong>
+                <small>Tính theo ngày tạo hồ sơ</small>
+            </div>
+        </article>
+    </div>
+
+    <form class="customer-filter-bar" method="get" action="{% url 'staff_customer_list' %}">
+        <label class="customer-search-box">
+            <i data-lucide="search"></i>
+            <input type="search" name="q" value="{{ query }}"
+                   placeholder="Tìm theo tên, số điện thoại hoặc mã khách hàng..."
+                   aria-label="Tìm khách hàng">
+            {% if query %}
+                <a class="clear-search" href="{% url 'staff_customer_list' %}" aria-label="Xóa tìm kiếm">×</a>
+            {% endif %}
+        </label>
+
+        <div class="customer-filter-controls">
+            <select name="hang" aria-label="Lọc theo hạng thành viên">
+                <option value="">Tất cả hạng</option>
+                {% for hang_item in hang_list %}
+                    <option value="{{ hang_item.pk }}" {% if hang_selected == hang_item.pk %}selected{% endif %}>
+                        {{ hang_item.ten_hang }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="trang_thai" aria-label="Lọc theo trạng thái tài khoản">
+                <option value="">Trạng thái</option>
+                <option value="hoat_dong" {% if trang_thai_selected == 'hoat_dong' %}selected{% endif %}>Đang hoạt động</option>
+                <option value="da_khoa" {% if trang_thai_selected == 'da_khoa' %}selected{% endif %}>Đã khóa</option>
+                <option value="chua_tai_khoan" {% if trang_thai_selected == 'chua_tai_khoan' %}selected{% endif %}>Chưa có tài khoản</option>
+            </select>
+
+            <select name="ngay_tham_gia" aria-label="Lọc theo ngày tham gia">
+                <option value="">Ngày tham gia</option>
+                <option value="thang_nay" {% if ngay_tham_gia_selected == 'thang_nay' %}selected{% endif %}>Tháng này</option>
+                <option value="30_ngay" {% if ngay_tham_gia_selected == '30_ngay' %}selected{% endif %}>30 ngày gần đây</option>
+            </select>
+
+            <button class="customer-filter-button" type="submit">
+                <i data-lucide="sliders-horizontal"></i>
+                <span>Bộ lọc</span>
+            </button>
+        </div>
+    </form>
+
+    <section class="customer-table-card">
+        <div class="customer-table-heading">
+            <div class="customer-table-title">
+                <h2>Danh sách khách hàng</h2>
+                <span class="customer-count-pill">{{ filtered_count_display }} hồ sơ</span>
+            </div>
+            <div class="customer-table-tools">
+                <span class="customer-updated-note">Dữ liệu hiện tại</span>
+                <a class="customer-export-button" href="{{ export_url }}">
+                    <i data-lucide="download"></i>
+                    <span>Xuất dữ liệu</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="customer-table-scroll">
+            <table class="customer-table">
+                <thead>
+                    <tr>
+                        <th class="col-code">Mã KH</th>
+                        <th class="col-name">Họ và tên</th>
+                        <th class="col-phone">Số điện thoại</th>
+                        <th class="col-points">Điểm tích lũy</th>
+                        <th class="col-tier">Hạng thành viên</th>
+                        <th class="col-actions">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kh in khach_hang_list %}
+                        <tr>
+                            <td class="customer-code">{{ kh.ma_kh }}</td>
+                            <td>
+                                <div class="customer-name-cell">
+                                    <span class="customer-avatar">{{ kh.avatar_initials }}</span>
+                                    <span class="customer-full-name">{{ kh.ho_ten }}</span>
+                                </div>
+                            </td>
+                            <td class="customer-phone">
+                                {% if kh.ma_tk and kh.ma_tk.so_dien_thoai %}
+                                    {{ kh.ma_tk.so_dien_thoai }}
+                                {% else %}
+                                    <span class="muted-dash">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="customer-points"><i data-lucide="gem"></i>{{ kh.points_display }}</span>
+                            </td>
+                            <td>
+                                {% if kh.ma_tv %}
+                                    <span class="customer-tier tier-{{ kh.tier_slug }}">{{ kh.ma_tv.ten_hang }}</span>
+                                {% else %}
+                                    <span class="customer-tier tier-moi">Thành viên mới</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="customer-row-actions">
+                                    {# Thay URL # bằng URL chi tiết khi bạn tạo trang hồ sơ khách hàng. #}
+                                    <a class="customer-detail-link"
+                                       href="{% url 'staff_customer_detail' kh.ma_kh %}">
+                                        Xem chi tiết
+                                    </a>
+
+                                    <a class="customer-icon-button"
+                                       href="{% url 'staff_customer_detail' kh.ma_kh %}?edit=1"
+                                       title="Chỉnh sửa {{ kh.ho_ten }}"
+                                       aria-label="Chỉnh sửa {{ kh.ho_ten }}">
+                                        <i data-lucide="pencil"></i>
+                                    </a>
+                                    <button class="customer-more-button" type="button" title="Thao tác khác" aria-label="Thao tác khác">
+                                        <i data-lucide="ellipsis-vertical"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="customer-empty-state">
+                                <span class="empty-state-icon"><i data-lucide="users-round"></i></span>
+                                <strong>Không tìm thấy khách hàng</strong>
+                                <span>Thử thay đổi từ khóa hoặc bộ lọc tìm kiếm.</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="customer-table-footer">
+            <p>
+                Hiển thị <strong>{{ showing_start }}–{{ showing_end }}</strong>
+                trong <strong>{{ filtered_count_display }}</strong> khách hàng
+            </p>
+
+            {% if page_obj.paginator.count %}
+                <nav class="customer-pagination" aria-label="Phân trang danh sách khách hàng">
+                    {% if page_obj.has_previous %}
+                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Trang trước">
+                            <i data-lucide="chevron-left"></i>
+                        </a>
+                    {% else %}
+                        <span class="page-arrow disabled"><i data-lucide="chevron-left"></i></span>
+                    {% endif %}
+
+                    {% for item in page_items %}
+                        {% if item.ellipsis %}
+                            <span class="page-ellipsis">…</span>
+                        {% else %}
+                            <a class="page-number {% if item.current %}active{% endif %}"
+                               href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ item.number }}"
+                               {% if item.current %}aria-current="page"{% endif %}>{{ item.number }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}" aria-label="Trang tiếp theo">
+                            <i data-lucide="chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <span class="page-arrow disabled"><i data-lucide="chevron-right"></i></span>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        </div>
+    </section>
+</section>
+<!-- Modal Thêm Mới Khách Hàng (Dùng JS thuần, không sợ xung đột Bootstrap) -->
+<div id="addCustomerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #ffffff; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; margin: 20px;">
+
+        <!-- Header Modal -->
+        <div style="padding: 20px 24px; border-bottom: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="font-size: 18px; font-weight: bold; color: #1a1a1a; margin: 0;">Thêm mới khách hàng</h3>
+                <p style="font-size: 13px; color: #666; margin: 4px 0 0 0;">Nhập thông tin để tạo hồ sơ khách hàng mới.</p>
+            </div>
+            <button type="button" onclick="dongModalThemKhachHang()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #666;">&times;</button>
+        </div>
+
+        <!-- Form Nhập Liệu -->
+        <form method="POST" action="{% url 'staff_customer_add' %}">
+            {% csrf_token %}
+            <div style="padding: 24px; max-height: 70vh; overflow-y: auto;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Họ và tên <span style="color: red;">*</span></label>
+                        <input type="text" name="ho_ten" placeholder="Nhập họ và tên" required style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Số điện thoại <span style="color: red;">*</span></label>
+                        <input type="tel" name="so_dien_thoai" placeholder="Nhập số điện thoại" required style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Email</label>
+                        <input type="email" name="email" placeholder="Nhập địa chỉ email" style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Ngày sinh</label>
+                        <input type="date" name="ngay_sinh" style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+                    </div>
+
+                    <!-- Giới tính -->
+                    <div style="grid-column: span 2; margin-top: 8px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Giới tính</label>
+                        <div style="display: flex; gap: 24px;">
+                            <label style="font-size: 14px; cursor: pointer;"><input type="radio" name="gioi_tinh" value="Nam" checked style="margin-right: 6px;"> Nam</label>
+                            <label style="font-size: 14px; cursor: pointer;"><input type="radio" name="gioi_tinh" value="Nữ" style="margin-right: 6px;"> Nữ</label>
+                            <label style="font-size: 14px; cursor: pointer;"><input type="radio" name="gioi_tinh" value="Khác" style="margin-right: 6px;"> Khác</label>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin thành viên mẫu -->
+                    <div style="grid-column: span 2; margin-top: 8px; background: #f8f9fa; border: 1px solid #e9ecef; padding: 14px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="display: block; font-size: 13px; font-weight: bold; color: #333;">Thông tin thành viên khởi tạo</span>
+                            <span style="font-size: 12px; color: #666;">Hạng mặc định: <b>Thành viên mới</b></span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 12px; color: #666;">Điểm tích lũy:</span>
+                            <strong style="color: #31572c; font-size: 14px;">0 điểm</strong>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div style="padding: 16px 24px; background: #f8f9fa; border-top: 1px solid #eaeaea; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="dongModalThemKhachHang()" style="padding: 10px 20px; border: 1px solid #ccc; background: #fff; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">Hủy</button>
+                <button type="submit" style="padding: 10px 20px; background: #31572c; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">Thêm khách hàng</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- Đoạn Script điều khiển đóng/mở Modal thuần -->
+<script>
+    function moModalThemKhachHang() {
+        document.getElementById('addCustomerModal').style.display = 'flex';
+    }
+    function dongModalThemKhachHang() {
+        document.getElementById('addCustomerModal').style.display = 'none';
+    }
+</script>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) window.lucide.createIcons();
+
+            // Lấy các phần tử
+            const btnThem = document.getElementById('btnThemKhachHang');
+            const modal = document.getElementById('addCustomerModal');
+
+            // Kiểm tra xem có tìm thấy nút và modal không
+            if (btnThem && modal) {
+                // Khi bấm vào nút Thêm mới -> Hiện modal
+                btnThem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    modal.style.setProperty('display', 'flex', 'important');
+                });
+            }
+        });
+
+        // Hàm đóng modal
+        function dongModalThemKhachHang() {
+            const modal = document.getElementById('addCustomerModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+{% endblock %}
+

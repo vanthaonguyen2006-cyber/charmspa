@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài khoản đã bị khóa - Charm Grand Spa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center space-y-6">
+
+        <!-- Icon khóa -->
+        <div class="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+            🔒
+        </div>
+
+        <!-- Tiêu đề & nội dung -->
+        <div class="space-y-2">
+            <h2 class="text-2xl font-bold text-gray-900">Tài khoản đã được khóa</h2>
+            <p class="text-sm text-gray-500 leading-relaxed">
+                Tài khoản của bạn đã được vô hiệu hóa thành công theo yêu cầu. Mọi phiên đăng nhập hiện tại đã kết thúc bảo mật.
+            </p>
+        </div>
+
+        <!-- Nút chuyển về trang đăng nhập -->
+        <div>
+            <a href="{% url 'dang_nhap' %}" class="w-full inline-block py-3 px-6 bg-[#8C6D4F] text-white font-medium rounded-xl hover:bg-[#785b40] transition shadow-sm">
+                Đăng nhập tài khoản khác
+            </a>
+        </div>
+
+        <p class="text-xs text-gray-400">
+            Cần hỗ trợ? Liên hệ hotline: <span class="font-medium text-gray-600">1900 xxxx</span>
+        </p>
+
+    </div>
+
+</body>
+</html>

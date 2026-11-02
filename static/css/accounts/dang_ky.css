@@ -1,0 +1,183 @@
+/* Tổng thể trang chia đôi màn hình: Trái là ảnh/banner, Phải là form */
+.split-screen {
+    display: flex;
+    min-height: 100vh;
+    background-color: #fcf9f5;
+    font-family: 'Playfair Display', serif, Arial, sans-serif;
+}
+
+/* Phần bên trái: Hình ảnh không gian Spa sang trọng */
+/* Phần bên trái: Hình ảnh không gian Spa sang trọng */
+.left-banner {
+    flex: 1;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), url('/static/images/hinhdki2.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+    color: #fff;
+
+    /* Tăng khoảng cách phía trên lên khoảng 2cm (tương đương khoảng 70px - 80px) */
+    padding: 100px 60px 60px 60px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.brand-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo-img {
+    height: 45px;
+    width: auto;
+}
+
+.brand-text-logo {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.left-content h1 {
+    font-size: 42px;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.left-content p {
+    font-size: 15px;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 420px;
+    margin-bottom: 30px;
+}
+
+.features-list {
+    display: flex;
+    gap: 25px;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+/* Phần bên phải: Hộp chứa form đăng ký */
+.right-form {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background-color: #fcf9f5;
+}
+
+.auth-card {
+    background: #ffffff;
+    padding: 40px 50px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 480px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h2 {
+    font-size: 28px;
+    color: #2c221e;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.auth-header p {
+    font-size: 14px;
+    color: #8c827b;
+}
+
+/* Tùy chỉnh các trường form */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: #5c524c;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e3dcd2;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #fff;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #a67c52;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(166, 124, 82, 0.1);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #6c625c;
+    margin-bottom: 25px;
+}
+
+.checkbox-group input {
+    accent-color: #a67c52;
+}
+
+/* Nút bấm đăng ký phong cách Spa Luxury */
+.btn-submit {
+    width: 100%;
+    background-color: #a67c52;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-submit:hover {
+    background-color: #8c6843;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #8c827b;
+}
+
+.auth-footer a {
+    color: #a67c52;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}

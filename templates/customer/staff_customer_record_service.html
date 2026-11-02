@@ -1,0 +1,290 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Cập nhật dịch vụ đã sử dụng | Charm Spa Grand{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer_record_service.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="record-service-page">
+    <nav class="record-breadcrumbs" aria-label="Điều hướng">
+        <a href="{% url 'staff_customer_list' %}">Khách hàng</a>
+        <span aria-hidden="true">/</span>
+        <a href="{% url 'staff_customer_detail' khach_hang.ma_kh %}">{{ khach_hang.ma_kh }}</a>
+        <span aria-hidden="true">/</span>
+        <span>Cập nhật dịch vụ</span>
+    </nav>
+
+    <header class="record-page-header">
+        <a href="{% url 'staff_customer_detail' khach_hang.ma_kh %}" class="back-link" aria-label="Quay lại hồ sơ khách hàng">
+            <i data-lucide="arrow-left"></i>
+        </a>
+        <div>
+            <p class="eyebrow">HỒ SƠ KHÁCH HÀNG · {{ khach_hang.ma_kh }}</p>
+            <h1>Cập nhật dịch vụ đã sử dụng</h1>
+            <p class="page-description">Ghi nhận dịch vụ và cập nhật điểm tích lũy cho khách hàng.</p>
+        </div>
+    </header>
+
+    {% if errors %}
+        <div class="record-alert" role="alert">
+            <i data-lucide="alert-circle"></i>
+            <div>
+                {% for err in errors %}<p>{{ err }}</p>{% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="post" id="recordServiceForm" class="record-layout">
+        {% csrf_token %}
+
+        <div class="record-main-column">
+            <section class="record-card">
+                <div class="card-heading">
+                    <span class="heading-icon"><i data-lucide="sparkles"></i></span>
+                    <div>
+                        <h2>Thông tin dịch vụ</h2>
+                        <p>Chọn dịch vụ, ngày sử dụng và nhân viên phụ trách.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="serviceSelect">Dịch vụ <span class="required">*</span></label>
+                        <select name="ma_dv" id="serviceSelect" class="form-control" required>
+                            <option value="">-- Chọn dịch vụ --</option>
+                            {% for dv in dich_vu_list %}
+                                <option value="{{ dv.ma_dv }}">{{ dv.ten_dich_vu }}</option>
+                            {% empty %}
+                                <option value="" disabled>Chưa có dịch vụ trong cơ sở dữ liệu</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="dateInput">Ngày sử dụng <span class="required">*</span></label>
+                        <input type="date" name="ngay_su_dung" id="dateInput" class="form-control"
+                               value="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="form-field form-field-wide">
+                        <label for="staffSelect">Nhân viên thực hiện <span class="required">*</span></label>
+                        <select name="ma_nv" id="staffSelect" class="form-control" required>
+                            <option value="">-- Chọn nhân viên --</option>
+                            {% for nv in nhan_vien_list %}
+                                <option value="{{ nv.ma_nv }}">{{ nv.ho_ten }} ({{ nv.vi_tri }})</option>
+                            {% empty %}
+                                <option value="" disabled>Chưa có nhân viên trong cơ sở dữ liệu</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="service-detail" aria-live="polite">
+                    <div class="service-detail-top">
+                        <div>
+                            <p class="detail-caption">CHI TIẾT DỊCH VỤ</p>
+                            <h3 id="detailServiceName">Chưa chọn dịch vụ</h3>
+                        </div>
+                        <span class="service-category" id="detailServiceBadge">—</span>
+                    </div>
+                    <div class="service-facts">
+                        <span><i data-lucide="clock-3"></i><b id="detailDuration">—</b></span>
+                        <span><i data-lucide="banknote"></i><b id="detailPriceOriginal">—</b></span>
+                    </div>
+                    <p class="detail-description" id="detailDescription">Chọn một dịch vụ để xem mô tả.</p>
+                </div>
+
+                <div class="price-grid">
+                    <div class="form-field">
+                        <label for="priceInputDisplay">Giá dịch vụ</label>
+                        <input type="text" id="priceInputDisplay" class="form-control readonly-field" value="0 đ" readonly>
+                    </div>
+                    <div class="form-field">
+                        <label for="discountDisplay">Ưu đãi thành viên</label>
+                        <input type="text" id="discountDisplay" class="form-control readonly-field"
+                               value="{{ ty_le_giam_gia|floatformat:2 }}% · {{ ten_hang }}" readonly>
+                    </div>
+                    <div class="form-field">
+                        <label>Thành tiền sau giảm</label>
+                        <div class="total-price" id="finalPriceDisplay">0 đ</div>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="noteInput">Ghi chú (tùy chọn)</label>
+                    <textarea name="ghi_chu" id="noteInput" class="form-control note-field" rows="3"
+                              placeholder="Ghi chú về lần sử dụng dịch vụ"></textarea>
+                    <small class="field-hint">Ghi chú hiện không được lưu trong model lịch sử dịch vụ.</small>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="reset" class="button button-secondary" id="btnReset">
+                    <i data-lucide="rotate-ccw"></i> Đặt lại
+                </button>
+                <button type="submit" class="button button-primary" id="btnSubmit">
+                    <i data-lucide="save"></i> Lưu thông tin sử dụng
+                </button>
+            </div>
+        </div>
+
+        <aside class="record-side-column">
+            <section class="record-card customer-card">
+                <div class="card-heading">
+                    <span class="heading-icon"><i data-lucide="user-round"></i></span>
+                    <div><h2>Khách hàng</h2><p>Thông tin thành viên hiện tại</p></div>
+                </div>
+
+                <div class="customer-identity">
+                    <div class="customer-avatar">{{ initials }}</div>
+                    <div class="customer-identity-copy">
+                        <h3>{{ khach_hang.ho_ten }}</h3>
+                        <span>{{ khach_hang.ma_kh }}</span>
+                    </div>
+                </div>
+
+                <div class="contact-list">
+                    <div><i data-lucide="phone"></i><span>{% if tai_khoan %}{{ tai_khoan.so_dien_thoai }}{% else %}Chưa cập nhật{% endif %}</span></div>
+                    <div><i data-lucide="mail"></i><span>{% if user %}{{ user.email|default:"Chưa cập nhật" }}{% else %}Chưa cập nhật{% endif %}</span></div>
+                </div>
+
+                <div class="member-stats">
+                    <div><span>Hạng thành viên</span><strong>{{ ten_hang }}</strong></div>
+                    <div><span>Điểm hiện tại</span><strong>{{ khach_hang.diem_tich_luy_kh|default:0 }}</strong></div>
+                </div>
+            </section>
+
+            <section class="record-card summary-card">
+                <div class="card-heading">
+                    <span class="heading-icon"><i data-lucide="receipt-text"></i></span>
+                    <div><h2>Tóm tắt dịch vụ</h2><p>Thông tin sẽ được ghi nhận</p></div>
+                </div>
+
+                <dl class="summary-list">
+                    <div><dt>Dịch vụ</dt><dd id="sumService">Chưa chọn</dd></div>
+                    <div><dt>Ngày sử dụng</dt><dd id="sumDate">{{ today|date:"d/m/Y" }}</dd></div>
+                    <div><dt>Nhân viên</dt><dd id="sumStaff">Chưa chọn</dd></div>
+                    <div><dt>Giá gốc</dt><dd id="sumOriginalPrice">0 đ</dd></div>
+                    <div><dt>Giảm giá</dt><dd id="sumDiscount">0%</dd></div>
+                    <div class="summary-total"><dt>Thành tiền</dt><dd id="sumFinalPrice">0 đ</dd></div>
+                    <div class="summary-points"><dt>Điểm cộng thêm</dt><dd id="sumPoints">+0 điểm</dd></div>
+                </dl>
+
+                <p class="summary-note">
+                    Điểm được cộng khi lưu thành công. Hạng thành viên được xét lại theo logic hiện có.
+                </p>
+            </section>
+        </aside>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        const SERVICES_DATA = {{ services_json|safe }};
+        const DISCOUNT_RATE = parseFloat("{{ ty_le_giam_gia }}") || 0;
+
+        function formatMoneyVN(amount) {
+            return new Intl.NumberFormat('vi-VN').format(Math.round(amount || 0)) + ' đ';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) window.lucide.createIcons();
+
+            const form = document.getElementById('recordServiceForm');
+            const serviceSelect = document.getElementById('serviceSelect');
+            const dateInput = document.getElementById('dateInput');
+            const staffSelect = document.getElementById('staffSelect');
+
+            const elements = {
+                name: document.getElementById('detailServiceName'),
+                category: document.getElementById('detailServiceBadge'),
+                duration: document.getElementById('detailDuration'),
+                original: document.getElementById('detailPriceOriginal'),
+                description: document.getElementById('detailDescription'),
+                priceInput: document.getElementById('priceInputDisplay'),
+                final: document.getElementById('finalPriceDisplay'),
+                sumService: document.getElementById('sumService'),
+                sumDate: document.getElementById('sumDate'),
+                sumStaff: document.getElementById('sumStaff'),
+                sumOriginal: document.getElementById('sumOriginalPrice'),
+                sumDiscount: document.getElementById('sumDiscount'),
+                sumFinal: document.getElementById('sumFinalPrice'),
+                sumPoints: document.getElementById('sumPoints')
+            };
+
+            function updateService() {
+                const service = SERVICES_DATA[serviceSelect.value];
+
+                if (!service) {
+                    elements.name.textContent = 'Chưa chọn dịch vụ';
+                    elements.category.textContent = '—';
+                    elements.duration.textContent = '—';
+                    elements.original.textContent = '—';
+                    elements.description.textContent = 'Chọn một dịch vụ để xem mô tả.';
+                    elements.priceInput.value = '0 đ';
+                    elements.final.textContent = '0 đ';
+                    elements.sumService.textContent = 'Chưa chọn';
+                    elements.sumOriginal.textContent = '0 đ';
+                    elements.sumDiscount.textContent = DISCOUNT_RATE + '%';
+                    elements.sumFinal.textContent = '0 đ';
+                    elements.sumPoints.textContent = '+0 điểm';
+                    return;
+                }
+
+                const original = Number(service.gia_dich_vu) || 0;
+                const finalPrice = original * (1 - DISCOUNT_RATE / 100);
+
+                elements.name.textContent = service.ten_dich_vu || 'Dịch vụ';
+                elements.category.textContent = service.loai_dich_vu || 'Dịch vụ chăm sóc';
+                elements.duration.textContent = (service.thoi_luong || 0) + ' phút';
+                elements.original.textContent = formatMoneyVN(original);
+                elements.description.textContent = service.mo_ta || 'Không có mô tả chi tiết.';
+                elements.priceInput.value = formatMoneyVN(original);
+                elements.final.textContent = formatMoneyVN(finalPrice);
+                elements.sumService.textContent = service.ten_dich_vu || 'Dịch vụ';
+                elements.sumOriginal.textContent = formatMoneyVN(original);
+                elements.sumDiscount.textContent = DISCOUNT_RATE + '%';
+                elements.sumFinal.textContent = formatMoneyVN(finalPrice);
+                elements.sumPoints.textContent = '+' + (service.diem_tich_luy || 0) + ' điểm';
+            }
+
+            function updateDate() {
+                if (!dateInput.value) {
+                    elements.sumDate.textContent = 'Chưa chọn';
+                    return;
+                }
+                const [year, month, day] = dateInput.value.split('-');
+                elements.sumDate.textContent = `${day}/${month}/${year}`;
+            }
+
+            function updateStaff() {
+                const option = staffSelect.options[staffSelect.selectedIndex];
+                elements.sumStaff.textContent = option && option.value
+                    ? option.text.replace(/\s*\([^)]*\)\s*$/, '').trim()
+                    : 'Chưa chọn';
+            }
+
+            serviceSelect.addEventListener('change', updateService);
+            dateInput.addEventListener('change', updateDate);
+            staffSelect.addEventListener('change', updateStaff);
+
+            form.addEventListener('reset', function () {
+                window.setTimeout(function () {
+                    updateService();
+                    updateDate();
+                    updateStaff();
+                }, 0);
+            });
+
+            updateService();
+            updateDate();
+            updateStaff();
+        });
+    </script>
+{% endblock %}

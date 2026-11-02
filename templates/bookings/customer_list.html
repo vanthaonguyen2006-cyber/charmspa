@@ -1,0 +1,382 @@
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block content %}
+<meta charset="UTF-8">
+
+<!-- Bootstrap 5 & Icons CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.flatpickr/dist/themes/material_gold.css">
+
+<style>
+    :root {
+        --primary-gold: #ab8e56;
+        --bg-beige: #f9f6f0;
+        --border-color: #e5e0d8;
+    }
+
+    body {
+        background-color: var(--bg-beige) !important;
+        color: #2c2c2c;
+        font-family: 'Playfair Display', Arial, sans-serif;
+    }
+
+    .user-banner {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+    }
+
+    .avatar-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #e8ded1;
+        color: #8c734b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .profile-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 25px;
+    }
+
+    .tab-link {
+        padding: 10px 20px;
+        color: #777777;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .tab-link.active {
+        color: #2c2c2c;
+        font-weight: 600;
+        border-bottom: 2px solid var(--primary-gold);
+    }
+
+    .booking-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.2s ease;
+    }
+
+    .booking-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .filter-btn {
+        border-radius: 20px;
+        font-size: 13px;
+        padding: 5px 15px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+</style>
+
+<div class="container my-4">
+    <!-- Banner Thông tin cá nhân -->
+    <div class="user-banner d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar-circle">TN</div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <h6 class="m-0 fw-bold">Trần Nguyễn Thúy Ngân</h6>
+                    <span class="badge bg-warning text-dark" style="font-size: 10px;">Thành viên Vàng</span>
+                </div>
+                <small class="text-muted" style="font-size: 12px;">090 585 3484 · <span class="text-success">● Đang hoạt động</span></small>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'booking_customer_create' %}" class="btn btn-success btn-sm px-3 text-white text-decoration-none" style="background-color: #3b7a57; border: none;">
+                <i class="bi bi-calendar-plus me-1"></i> Đặt lịch mới
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs chuyển đổi -->
+    <div class="profile-tabs">
+        <a href="#" class="tab-link">Hồ sơ khách hàng</a>
+        <a href="#" class="tab-link">Lịch sử dịch vụ</a>
+        <a href="{% url 'booking_customer_list' %}" class="tab-link active">Lịch hẹn của bạn</a>
+        <a href="#" class="tab-link">Khiếu nại</a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold m-0" style="letter-spacing: 0.5px;">DANH SÁCH LỊCH HẸN</h5>
+        <span class="text-muted small">Quản lý các lịch hẹn trị liệu tại Charm Spa</span>
+    </div>
+
+    <!-- Thanh bộ lọc trạng thái -->
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <span class="small fw-bold text-secondary me-1"><i class="bi bi-funnel me-1"></i> Lọc:</span>
+        <a href="{% url 'booking_customer_list' %}" class="btn {% if not current_filter %}btn-dark text-white{% else %}btn-outline-secondary{% endif %} filter-btn">
+            Tất cả
+        </a>
+        <a href="{% url 'booking_customer_list' %}?trang_thai=active" class="btn {% if current_filter == 'active' %}btn-success text-white{% else %}btn-outline-success{% endif %} filter-btn">
+            Đã đặt
+        </a>
+        <a href="{% url 'booking_customer_list' %}?trang_thai=completed" class="btn {% if current_filter == 'completed' %}btn-primary text-white{% else %}btn-outline-primary{% endif %} filter-btn">
+            Hoàn thành
+        </a>
+        <a href="{% url 'booking_customer_list' %}?trang_thai=cancelled" class="btn {% if current_filter == 'cancelled' %}btn-danger text-white{% else %}btn-outline-danger{% endif %} filter-btn">
+            Đã hủy
+        </a>
+    </div>
+
+    <!-- Danh sách các Lịch Hẹn -->
+    <div class="booking-list">
+        {% if lich_hen_list %}
+            {% for lh in lich_hen_list %}
+            <div class="booking-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        {% if lh.trang_thai == 'Đã hủy' %}
+                            <span class="badge bg-danger px-3 py-2" style="font-size: 11px; border-radius: 20px;"><i class="bi bi-x-circle-fill me-1"></i> {{ lh.trang_thai }}</span>
+                        {% elif lh.trang_thai == 'Hoàn thành' %}
+                            <span class="badge bg-primary px-3 py-2" style="font-size: 11px; border-radius: 20px;"><i class="bi bi-check2-all me-1"></i> {{ lh.trang_thai }}</span>
+                        {% else %}
+                            <span class="badge bg-success px-3 py-2" style="font-size: 11px; border-radius: 20px;"><i class="bi bi-check-circle-fill me-1"></i> {{ lh.trang_thai }}</span>
+                        {% endif %}
+                        <h6 class="fw-bold mt-2 mb-1" style="color: var(--primary-gold);">
+                            {{ lh.ma_dv.ten_dv|default:lh.ma_dv.ten_dich_vu|default:"Dịch vụ Charm Spa" }}
+                        </h6>
+                        <small class="text-muted" style="font-size: 12px;">Mã lịch hẹn: <strong>#{{ lh.ma_lh }}</strong></small>
+                    </div>
+                    <div class="text-end">
+                        <strong class="d-block text-dark">
+                            {% if lh.ma_dv.gia %}{{ lh.ma_dv.gia }}{% elif lh.ma_dv.don_gia %}{{ lh.ma_dv.don_gia }}{% else %}890.000{% endif %} đ
+                        </strong>
+                        <small class="text-muted" style="font-size: 11px;">Thanh toán tại spa</small>
+                    </div>
+                </div>
+
+                <hr style="border-color: var(--border-color); margin: 12px 0;">
+
+                <div class="row align-items-center" style="font-size: 13px;">
+                    <div class="col-md-3">
+                        <i class="bi bi-calendar-event text-warning me-1"></i> Ngày: <strong>{{ lh.ngay_hen }}</strong>
+                    </div>
+                    <div class="col-md-2">
+                        <i class="bi bi-clock text-warning me-1"></i> Giờ: <strong>{% if lh.gio_hen == 'noon' %}12:00{% else %}{{ lh.gio_hen }}{% endif %}</strong>
+                    </div>
+                    <div class="col-md-2">
+                        <i class="bi bi-people text-warning me-1"></i> {{ lh.so_luong_khach }} khách
+                    </div>
+                    <div class="col-md-5 text-end d-flex justify-content-end gap-2">
+                        <a href="{% url 'booking_customer_detail' lh.ma_lh %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-eye"></i> Chi tiết
+                        </a>
+
+                        {% if lh.trang_thai != 'Đã hủy' and lh.trang_thai != 'Hoàn thành' %}
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ lh.ma_lh }}">
+                            <i class="bi bi-pencil-square"></i> Đổi lịch
+                        </button>
+
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lh.ma_lh }}">
+                            <i class="bi bi-x-circle"></i> Hủy
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL HỦY LỊCH HẸN -->
+            <div class="modal fade" id="cancelModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content" style="border-radius: 16px; border: none;">
+                        <form method="POST" action="{% url 'booking_customer_cancel' lh.ma_lh %}">
+                            {% csrf_token %}
+                            <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
+                                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Xác nhận hủy lịch hẹn #{{ lh.ma_lh }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body px-4 text-start">
+                                <div class="alert alert-warning py-2 px-3 small mb-3" style="border-radius: 8px;">
+                                    <i class="bi bi-info-circle-fill me-1"></i> Nếu bạn chỉ muốn đổi thời gian hoặc dịch vụ, hãy sử dụng nút <strong>"Đổi lịch"</strong> để giữ chỗ thay vì hủy nhé!
+                                </div>
+
+                                <p class="text-muted mb-3">Bạn có chắc chắn muốn hủy hoàn toàn lịch hẹn này không? Vui lòng chọn lý do bên dưới:</p>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-secondary">Lý do hủy *</label>
+                                    <select name="ly_do_huy" class="form-select form-select-lg fs-6">
+                                        <option value="Bận việc đột xuất/Không thể đến">Bận việc đột xuất / Không thể đến</option>
+                                        <option value="Thay đổi kế hoạch cá nhân">Thay đổi kế hoạch cá nhân</option>
+                                        <option value="Không còn nhu cầu sử dụng dịch vụ">Không còn nhu cầu sử dụng dịch vụ</option>
+                                        <option value="Khác">Lý do khác</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-secondary">Ghi chú thêm (tùy chọn)</label>
+                                    <textarea name="ghi_chu_huy" class="form-control" rows="3" placeholder="Nhập thêm chi tiết lý do hủy..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-top-0 pb-4 px-4">
+                                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                                <button type="submit" class="btn btn-danger px-4">Xác nhận hủy lịch</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL THAY ĐỔI LỊCH HẸN & DỊCH VỤ -->
+            <div class="modal fade" id="rescheduleModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12);">
+                        <form method="POST" action="{% url 'booking_customer_reschedule' lh.ma_lh %}">
+                            {% csrf_token %}
+                            <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
+                                <h5 class="modal-title fw-bold" style="color: var(--primary-gold); font-size: 18px;">
+                                    <i class="bi bi-calendar2-range me-2"></i> Thay đổi lịch hẹn & dịch vụ #{{ lh.ma_lh }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body px-4 text-start" style="max-height: 75vh; overflow-y: auto;">
+
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bold text-uppercase text-secondary mb-2">1. Chọn dịch vụ trị liệu mới</label>
+                                    <div class="row g-3">
+                                        {% if dich_vu_list %}
+                                            {% for dv in dich_vu_list %}
+                                            <div class="col-md-4">
+                                                <div class="service-option-card overflow-hidden p-2 {% if lh.ma_dv.pk == dv.pk %}selected{% endif %}"
+                                                     onclick="selectModalService(this, '{{ dv.pk }}')">
+                                                    <input type="radio" name="ma_dv_moi" value="{{ dv.pk }}" {% if lh.ma_dv.pk == dv.pk %}checked{% endif %} class="d-none service-radio">
+
+                                                    <div style="height: 110px; background-color: #e8ded1; position: relative; border-radius: 6px; overflow: hidden; margin-bottom: 8px;">
+                                                        <img src="{% static 'images/services/service' %}{{ forloop.counter }}.jpg" alt="{{ dv.ten_dich_vu }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        {% if lh.ma_dv.pk == dv.pk %}
+                                                        <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2" style="font-size: 10px;">Đang chọn</span>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="px-2 pb-1">
+                                                        <div class="fw-bold text-dark text-truncate mb-1" style="font-size: 12px;">{{ dv.ten_dich_vu }}</div>
+                                                        <small class="text-muted d-block" style="font-size: 11px;">{{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-5 mb-4">
+                                        <label class="form-label small fw-bold text-uppercase text-secondary mb-2">2. Chọn ngày hẹn mới</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white text-muted"><i class="bi bi-calendar-event"></i></span>
+                                            <input type="text" name="ngay_hen_moi" class="form-control edit-date-picker" value="{{ lh.ngay_hen }}" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-7 mb-3">
+                                        <label class="form-label small fw-bold text-uppercase text-secondary mb-2">3. Chọn khung giờ mới</label>
+                                        <div class="row g-2">
+                                            {% with "09:00 10:30 12:00 13:30 15:00 16:30 18:00 19:30 21:00" as times %}
+                                                {% for slot in times.split %}
+                                                <div class="col-3">
+                                                    <div class="time-slot-option {% if lh.gio_hen|slice:":5" == slot %}selected{% endif %}"
+                                                         onclick="selectModalTime(this, '{{ slot }}')">
+                                                        <input type="radio" name="gio_hen_moi" value="{{ slot }}" {% if lh.gio_hen|slice:":5" == slot %}checked{% endif %} class="d-none time-radio">
+                                                        <strong style="font-size: 12px;"><i class="bi bi-clock me-1 text-warning"></i>{{ slot }}</strong>
+                                                        <small class="text-success d-block" style="font-size: 9px;">Còn giường</small>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small fw-bold text-uppercase text-secondary mb-2">4. Số lượng khách</label>
+                                        <input type="number" name="so_luong_khach_moi" class="form-control" value="{{ lh.so_luong_khach }}" min="1" max="10" required>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small fw-bold text-uppercase text-secondary mb-2">5. Ghi chú thay đổi</label>
+                                        <input type="text" name="ghi_chu_moi" class="form-control" value="{{ lh.ghi_chu }}" placeholder="Yêu cầu đặc biệt...">
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="modal-footer border-top-0 pb-4 px-4">
+                                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
+                                <button type="submit" class="btn px-4" style="background-color: var(--primary-gold); color: white;">Lưu thay đổi</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5 bg-white rounded border">
+                <i class="bi bi-calendar-x text-muted fs-1 mb-2"></i>
+                <p class="text-muted m-0">Không tìm thấy lịch hẹn nào phù hợp với bộ lọc.</p>
+                <a href="{% url 'booking_customer_create' %}" class="btn btn-sm btn-warning mt-3 fw-bold">Đặt lịch ngay bây giờ</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.flatpickr/dist/l10n/vn.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr(".edit-date-picker", {
+            locale: "vn",
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            static: true
+        });
+    });
+
+    function selectModalService(element, serviceId) {
+        const parentModal = element.closest('.modal');
+        parentModal.querySelectorAll('.service-option-card').forEach(card => {
+            card.classList.remove('selected');
+            const badge = card.querySelector('.badge');
+            if (badge) badge.remove();
+            card.querySelector('.service-radio').checked = false;
+        });
+        element.classList.add('selected');
+        if (!element.querySelector('.badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-warning text-dark position-absolute top-0 end-0 m-2';
+            badge.style.fontSize = '10px';
+            badge.innerText = 'Đang chọn';
+            element.querySelector('div').style.position = 'relative';
+            element.querySelector('div').appendChild(badge);
+        }
+        element.querySelector('.service-radio').checked = true;
+    }
+
+    function selectModalTime(element, timeSlot) {
+        const parentModal = element.closest('.modal');
+        parentModal.querySelectorAll('.time-slot-option').forEach(slot => {
+            slot.classList.remove('selected');
+            slot.querySelector('.time-radio').checked = false;
+        });
+        element.classList.add('selected');
+        element.querySelector('.time-radio').checked = true;
+    }
+</script>
+{% endblock %}
