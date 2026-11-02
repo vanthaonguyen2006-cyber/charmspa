@@ -24,8 +24,9 @@ from accounts.models import NhanVien
 
 from . import chat_logic as cl
 from . import flow_utils
-from .models import BuocChatbot, PhienHoiThoai, TinNhan, YeuCauTuVan
-from .views import get_or_create_session
+from . import identity
+from .identity import customer_contact
+from .models import BuocChatbot, KichBanChatbot, PhienHoiThoai, TinNhan, YeuCauTuVan
 
 SESSION_RE = re.compile(r'^[A-Za-z0-9]{6,10}$')
 MAX_MESSAGE_LEN = 1000
@@ -78,30 +79,31 @@ def _fmt(dt, pattern):
     return _local(dt).strftime(pattern) if dt else ''
 
 
-def customer_contact(user):
-    """Thông tin khách đã đăng nhập: {fullname, phone, email}; None nếu là khách vãng lai."""
-    if not getattr(user, 'is_authenticated', False):
-        return None
-    kh = getattr(user, 'khachhang', None)
-    if kh is None:
-        return None
-    full_name = getattr(user, 'get_full_name', lambda: '')() or ''
-    return {
-        'fullname': _first(kh, 'ho_ten', 'ho_va_ten', 'ten_khach_hang', 'ten')
-                    or full_name.strip() or user.get_username(),
-        'phone': _first(kh, 'so_dien_thoai', 'sdt', 'phone'),
-        'email': _first(kh, 'email') or (getattr(user, 'email', '') or '').strip(),
-    }
-
-
 def staff_identity(user):
     """(NhanVien hoặc None, tên hiển thị) của nhân viên đang đăng nhập."""
-    nv = getattr(user, 'nhanvien', None)
+    nv = identity.get_nhan_vien(user)
     if not isinstance(nv, NhanVien):
         nv = None
-    full_name = getattr(user, 'get_full_name', lambda: '')() or ''
-    name = _first(nv, 'ho_ten', 'ho_va_ten', 'ten_nhan_vien', 'ten') or full_name.strip() or user.get_username()
-    return nv, name
+    return nv, identity.staff_display_name(user, nv)
+
+
+def get_or_create_session(session_id, user):
+    """Lấy hoặc tạo phiên hội thoại; gắn với khách hàng nếu đã đăng nhập."""
+    session_key = str(session_id)[:10]
+    script = KichBanChatbot.objects.filter(trang_thai='Đang hoạt động').order_by('pk').first()
+    if script is None:
+        script, _ = KichBanChatbot.objects.get_or_create(
+            ma_kb='KB001',
+            defaults={'ten_kich_ban': 'Kịch bản tư vấn tự động Charm Spa', 'trang_thai': 'Đang hoạt động'})
+
+    kh = identity.get_khach_hang(user)
+    phien, created = PhienHoiThoai.objects.get_or_create(
+        ma_pht=session_key,
+        defaults={'ma_kh': kh, 'ma_kb': script, 'trang_thai': 'Đang xử lý'})
+    if not created and kh is not None and phien.ma_kh_id is None:
+        phien.ma_kh = kh
+        phien.save()
+    return phien
 
 
 def _latest_request(phien):
@@ -127,7 +129,7 @@ def _can_access(request, phien):
     """Hội thoại gắn với một khách hàng thì chỉ chính khách đó được xem."""
     if phien.ma_kh_id is None:
         return True
-    kh = getattr(request.user, 'khachhang', None) if request.user.is_authenticated else None
+    kh = identity.get_khach_hang(request.user)
     return kh is not None and kh.pk == phien.ma_kh_id
 
 
@@ -241,6 +243,12 @@ def chat_state(request):
     if phien is None or not _can_access(request, phien):
         return JsonResponse({'ok': True, 'exists': False})
 
+    # Khách chat lúc chưa đăng nhập rồi đăng nhập sau: gắn hội thoại vào hồ sơ khách để hiện ở "Lịch sử hội thoại"
+    kh = identity.get_khach_hang(request.user)
+    if kh is not None and phien.ma_kh_id is None:
+        phien.ma_kh = kh
+        phien.save(update_fields=['ma_kh'])
+
     yc = _latest_request(phien)
     msgs = list(TinNhan.objects.filter(ma_pht=phien).order_by('-thoi_gian')[:200])
     msgs.reverse()
@@ -348,6 +356,8 @@ def _filter_rows(rows, q, period):
 
 def admin_conversation_list(request):
     """Quản lý hội thoại: tab trạng thái có số lượng, tìm kiếm, lọc thời gian, phân trang, xuất báo cáo."""
+    if not identity.is_staff_user(request.user):
+        return redirect('dang_nhap')
     q = (request.GET.get('q') or '').strip()[:100]
     status = request.GET.get('status') or ''
     period = request.GET.get('period') or 'all'
@@ -414,6 +424,8 @@ def _export_csv(rows):
 
 def admin_conversation_detail(request, session_id):
     """Chi tiết hội thoại: danh sách trong ngày | nội dung trao đổi | thông tin khách và lịch sử xử lý."""
+    if not identity.is_staff_user(request.user):
+        return redirect('dang_nhap')
     conv = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
     yc = _latest_request(conv)
     info = _request_summary(yc) if yc else {'fullname': '', 'phone': '', 'email': '', 'topic': ''}
@@ -481,14 +493,20 @@ def _accept(yc, user):
     return (yc.trang_thai == cl.STATUS_ACTIVE and (not owner or owner == name)), name
 
 
-def _need_login():
-    return _err('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.', 401)
+def _staff_denied(request):
+    """JsonResponse lỗi nếu người dùng không phải nhân viên / quản trị viên; None nếu hợp lệ."""
+    if not request.user.is_authenticated:
+        return _err('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.', 401)
+    if not identity.is_staff_user(request.user):
+        return _err('Bạn không có quyền thực hiện thao tác này.', 403)
+    return None
 
 
 @require_POST
 def admin_conversation_accept(request, session_id):
-    if not request.user.is_authenticated:
-        return _need_login()
+    denied = _staff_denied(request)
+    if denied:
+        return denied
     conv = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
     yc = _latest_request(conv)
     if yc is None:
@@ -504,8 +522,9 @@ def admin_conversation_accept(request, session_id):
 @require_POST
 def admin_conversation_reply(request, session_id):
     """Nhân viên nhắn cho khách. Nếu hội thoại còn chờ thì tự động tiếp nhận."""
-    if not request.user.is_authenticated:
-        return _need_login()
+    denied = _staff_denied(request)
+    if denied:
+        return denied
     data = _json(request)
     text = str((data or {}).get('message') or '').strip()
     if not text:
@@ -536,8 +555,8 @@ def admin_conversation_complete(request, session_id):
     """Xác nhận hoàn tất hội thoại từ hộp thoại (kèm ghi chú xử lý)."""
     if request.method != 'POST':
         return redirect('chatbot:admin_conversation_detail', session_id=session_id)
-    if not request.user.is_authenticated:
-        dj_messages.error(request, 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.')
+    if not identity.is_staff_user(request.user):
+        dj_messages.error(request, 'Bạn cần đăng nhập bằng tài khoản nhân viên để thực hiện thao tác này.')
         return redirect('chatbot:admin_conversation_detail', session_id=session_id)
 
     conv = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
@@ -569,6 +588,8 @@ def admin_conversation_complete(request, session_id):
 @require_GET
 def admin_conversation_messages(request, session_id):
     """Cho trang chi tiết cập nhật tin nhắn mới của khách (polling)."""
+    if not identity.is_staff_user(request.user):
+        return _err('Bạn không có quyền xem hội thoại này.', 403)
     conv = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
     yc = _latest_request(conv)
     msgs = TinNhan.objects.filter(ma_pht=conv).order_by('thoi_gian')
@@ -576,4 +597,32 @@ def admin_conversation_messages(request, session_id):
         'ok': True,
         'status': cl.derive_status(yc is not None, yc.trang_thai if yc else ''),
         'messages': [_msg_payload(m) for m in msgs],
+    })
+
+
+# ==========================================================================
+# Lịch sử hội thoại cá nhân của khách hàng (thay cho bản cũ trong views.py)
+# ==========================================================================
+def customer_chat_history(request):
+    if not request.user.is_authenticated:
+        return redirect('dang_nhap')
+
+    kh = identity.get_khach_hang(request.user)
+    if kh is not None:
+        phien_list = PhienHoiThoai.objects.filter(ma_kh=kh).order_by('-thoi_gian_bat_dau')
+    else:
+        phien_list = PhienHoiThoai.objects.none()
+
+    selected_phien = None
+    selected_id = request.GET.get('session_id')
+    if selected_id:
+        selected_phien = phien_list.filter(ma_pht=selected_id).first()
+    if selected_phien is None:
+        selected_phien = phien_list.first()
+
+    tin_nhans = TinNhan.objects.filter(ma_pht=selected_phien).order_by('thoi_gian') if selected_phien else []
+    return render(request, 'chatbot/customer_history.html', {
+        'phien_list': phien_list,
+        'selected_phien': selected_phien,
+        'tin_nhans': tin_nhans,
     })

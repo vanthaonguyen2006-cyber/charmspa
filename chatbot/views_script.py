@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from . import flow_utils
+from . import flow_utils, identity
 from .models import KichBanChatbot
 
 
@@ -78,6 +78,8 @@ def admin_script_graph_save(request, pk):
     if not request.user.is_authenticated:
         return JsonResponse(
             {'ok': False, 'error': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'}, status=401)
+    if not identity.is_staff_user(request.user):
+        return JsonResponse({'ok': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'}, status=403)
 
     script = get_object_or_404(KichBanChatbot, pk=pk)
     try:
@@ -123,6 +125,8 @@ def admin_script_image_upload(request):
     if not request.user.is_authenticated:
         return JsonResponse(
             {'ok': False, 'error': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'}, status=401)
+    if not identity.is_staff_user(request.user):
+        return JsonResponse({'ok': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'}, status=403)
 
     upload = request.FILES.get('image')
     if upload is None:

@@ -221,8 +221,8 @@
 <script>
   function continueConversation(sessionId) {
     // Lưu phiên được chọn vào localStorage và chuyển hướng về trang chủ/profile để mở Widget Chat
-    localStorage.setItem('cg_session', sessionId);
-    window.location.href = "/customer/?open_chat=true";
+       localStorage.setItem('cg_session', sessionId);
+       window.location.href = "{% url 'core:customer_home' %}?open_chat=true";
   }
 </script>
 {% endblock %}
