@@ -383,18 +383,7 @@ def admin_feedback_detail(request, feedback_id):
     if request.method == "POST":
         action = request.POST.get("action", "").strip()
 
-        # Lấy tài khoản nghiệp vụ của admin để ghi lịch sử
-        tai_khoan = _tai_khoan_hien_tai(request)
 
-        if not tai_khoan:
-            messages.error(
-                request,
-                "Tài khoản quản trị chưa được liên kết với TaiKhoan."
-            )
-            return redirect(
-                "feedback:admin_feedback_detail",
-                feedback_id=feedback_id
-            )
 
         # ==================================================
         # 1. ADMIN ĐÁNH DẤU PHIẾU KHÔNG HỢP LỆ

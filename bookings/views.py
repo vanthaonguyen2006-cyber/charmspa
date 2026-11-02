@@ -210,16 +210,20 @@ def booking_customer_success(request):
     last_code = request.session.get('last_booking_code')
 
     lich_hen = None
+
     if last_code:
         lich_hen = LichHen.objects.select_related(
-            'ma_dv', 'ma_kh'
+            'ma_dv',
+            'ma_kh',
+            'ma_kh__ma_tk'
         ).filter(
             ma_lh=last_code,
             ma_kh__ma_tk__user=request.user
         ).first()
 
     khach_hang = KhachHang.objects.select_related(
-        'ma_tk', 'ma_tv'
+        'ma_tk',
+        'ma_tv'
     ).filter(
         ma_tk__user=request.user
     ).first()

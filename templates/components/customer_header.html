@@ -2,7 +2,7 @@
 <header class="customer-header">
     <!-- 1. Cụm Logo -->
     <div class="header-logo">
-        <a href="{% url 'customers:customer_home' %}">
+        <a href="{% url 'core:customer_home' %}">
             <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="logo-icon">
             <div class="logo-text">
                 <h1 class="logo-title">CHARM GRAND</h1>
@@ -14,9 +14,9 @@
     <!-- 2. Cụm Menu Điều Hướng -->
     <nav class="header-nav">
         <ul>
-            <li><a href="{% url 'customer_home' %}">Trang Chủ</a></li>
+            <li><a href="{% url 'core:customer_home' %}">Trang Chủ</a></li>
             <li><a href="#">Về Chúng Tôi</a></li>
-            <li><a href="{% url 'lieu_trinh_page' %}">Liệu Trình</a></li>
+            <li><a href="{% url 'core:lieu_trinh_page' %}">Liệu Trình</a></li>
             <li><a href="#">Không Gian</a></li>
             <li><a href="#">Tin Tức</a></li>
             <li><a href="{% url 'core:contact' %}">Liên Hệ</a></li>
