@@ -16,7 +16,8 @@ urlpatterns = [
 
     # Quản lý tài khoản dành cho nhân viên
     path('staff/account_list/', views.staff_account_list_view, name='staff_account_list'),
-    path('staff/account/toggle/<str:ma_tk>/', views.staff_toggle_account_status_view, name='staff_toggle_account'),
     path('staff/account/add/', views.staff_account_add_staff_view, name='staff_account_add_staff'),
+    path('staff/account/<str:ma_tk>/', views.staff_account_detail_view, name='staff_account_detail'),
+    path('staff/account/toggle/<str:ma_tk>/', views.staff_toggle_account_status_view, name='staff_toggle_account'),
     path('staff/account/edit/<str:ma_tk>/', views.staff_account_edit_view, name='staff_account_edit'),
 ]

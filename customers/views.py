@@ -1,105 +1,157 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from customers.models import KhachHang
+import csv
+import json
+import datetime
+from datetime import date, timedelta
+from decimal import Decimal
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from customers.models import KhachHang
-from django.utils.dateparse import parse_date
+from django.contrib import messages
+from django.contrib.auth import logout, get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.utils.dateparse import parse_date
+from django.utils.text import slugify
+from customers.forms import (
+    ThemNhanVienForm,
+    ChinhSuaTaiKhoanForm,
+    ThemKhachHangForm,
+    ChinhSuaHoSoKhachHangForm,
+)
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from customers.models import KhachHang
-from django.utils.dateparse import parse_date
-from django.db import transaction
+from customers.models import KhachHang, HangThanhVien
+from accounts.models import TaiKhoan, NhanVien, LichSuTaiKhoan
+from customers.forms import ThemNhanVienForm, ChinhSuaTaiKhoanForm
+from services.models import DichVu, DichVuDaSuDung
+from django.conf import settings
+User = get_user_model()
+
+
+# =========================================================================
+# CÁC HÀM KIỂM TRA PHÂN QUYỀN CHUẨN (is_staff & is_superuser)
+# =========================================================================
+def is_admin_user(user):
+    """Chỉ Quản trị viên tối cao mới có quyền (is_superuser = True)"""
+    return user.is_authenticated and user.is_superuser
+
+
+def is_staff_user(user):
+    """Nhân viên hoặc Quản trị viên đều vào được (is_staff = True)"""
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+def is_customer_user(user):
+    """Khách hàng thông thường (Không phải staff, không phải superuser)"""
+    return user.is_authenticated and not user.is_staff and not user.is_superuser
+
+
+def _format_number_vn(value):
+    """Định dạng số theo kiểu Việt Nam: 1325 -> 1.325."""
+    return f"{value:,}".replace(",", ".")
+
+
+def _get_customer_initials(full_name):
+    """Lấy chữ cái đầu của hai từ cuối, ví dụ Nguyễn Minh Anh -> MA."""
+    words = (full_name or "").strip().split()
+    if not words:
+        return "KH"
+    if len(words) == 1:
+        return words[0][:2].upper()
+    return (words[-2][0] + words[-1][0]).upper()
+
 
 # =========================================================================
 # XEM VÀ CHỈNH SỬA HỒ SƠ CÁ NHÂN (DÀNH CHO KHÁCH HÀNG)
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_customer_user, login_url='/home/staff/')
 def customer_profile_view(request):
-    """
-    Xem và chỉnh sửa hồ sơ khách hàng:
-    - Nếu là Staff/Admin: điều hướng về /home/staff/.
-    - Cho phép cập nhật Email (User), Họ tên, Ngày sinh, Giới tính (KhachHang), Số điện thoại (TaiKhoan).
-    - Sử dụng chính xác related_name="thong_tin_tai_khoan" để lưu số điện thoại.
-    """
     if request.user.is_staff or request.user.is_superuser:
         return redirect('/home/staff/')
 
-    # 1. Truy xuất thông tin TaiKhoan thông qua related_name chuẩn xác
     tai_khoan = getattr(request.user, 'thong_tin_tai_khoan', None)
 
-    # 2. Truy xuất hồ sơ KhachHang liên kết
     khach_hang = None
     if tai_khoan:
         khach_hang = getattr(tai_khoan, 'ho_so_khach_hang', None)
     if not khach_hang:
         khach_hang = KhachHang.objects.filter(ma_tk__user=request.user).first()
 
-    # 3. Lịch sử dịch vụ (tạm thời để an toàn, sẽ hoàn thiện ở Giai đoạn 2)
+    # 3. Lấy lịch sử sử dụng dịch vụ của chính khách hàng đang đăng nhập
     lich_su_dich_vu = []
-    if khach_hang:
+    tong_so_dich_vu = 0
+    if khach_hang and hasattr(khach_hang, 'ma_kh'):
         try:
-            lich_su_dich_vu = khach_hang.dichvudasudung_set.select_related('ma_dv', 'ma_nv').all()[:4]
-        except Exception:
+            from services.models import DichVuDaSuDung
+            qs = (
+                DichVuDaSuDung.objects.filter(ma_kh=khach_hang)
+                .select_related('ma_dv', 'ma_nv')
+                .order_by('-ngay_su_dung')
+            )
+            tong_so_dich_vu = qs.count()
+            lich_su_dich_vu = list(qs)
+        except Exception as e:
+            print(f"Lỗi truy vấn lịch sử dịch vụ khách hàng: {e}")
             lich_su_dich_vu = []
+            tong_so_dich_vu = 0
 
-    # 4. Xử lý khi khách hàng gửi form cập nhật
-    errors = []
+    is_editing = request.GET.get('edit') == 'true' or request.method == 'POST'
+
     if request.method == 'POST':
-        ho_ten_moi = request.POST.get('ho_ten', '').strip()
-        sdt_moi = request.POST.get('so_dien_thoai', '').strip()
-        email_moi = request.POST.get('email', '').strip()
-        ngay_sinh_moi_text = request.POST.get('ngay_sinh', '').strip()
-        gioi_tinh_moi = request.POST.get('gioi_tinh', '').strip()
-
-        ngay_sinh_moi = parse_date(ngay_sinh_moi_text) if ngay_sinh_moi_text else None
-
-        # Kiểm tra trùng số điện thoại với tài khoản khác
-        if sdt_moi and tai_khoan:
-            trung_sdt = TaiKhoan.objects.filter(so_dien_thoai=sdt_moi).exclude(pk=tai_khoan.pk).exists()
-            if trung_sdt:
-                errors.append("Số điện thoại này đã được sử dụng bởi một tài khoản khác.")
-
-        # Kiểm tra trùng email với tài khoản khác
-        if email_moi:
-            trung_email = User.objects.filter(email__iexact=email_moi).exclude(pk=request.user.pk).exists()
-            if trung_email:
-                errors.append("Email này đã được sử dụng bởi một tài khoản khác.")
-
-        if not errors:
+        form = ChinhSuaHoSoKhachHangForm(
+            request.POST,
+            current_user=request.user,
+            current_tai_khoan=tai_khoan
+        )
+        if form.is_valid():
+            cleaned = form.cleaned_data
             try:
                 with transaction.atomic():
-                    # Cập nhật Email cho Django User
-                    if email_moi != request.user.email:
-                        request.user.email = email_moi
-                        request.user.save(update_fields=['email'])
+                    # 1. Cập nhật Username và Email cho Django User
+                    user = request.user
+                    user.username = cleaned['username']
+                    user.email = cleaned['email']
+                    user.save(update_fields=['username', 'email'])
 
-                    # Cập nhật thông tin KhachHang
+                    # 2. Cập nhật thông tin KhachHang (không sửa ma_kh, diem_tich_luy_kh, ma_tv)
                     if khach_hang:
-                        if ho_ten_moi:
-                            khach_hang.ho_ten = ho_ten_moi
-                        khach_hang.ngay_sinh = ngay_sinh_moi
-                        if gioi_tinh_moi in ('Nam', 'Nữ', 'Khác'):
-                            khach_hang.gioi_tinh = gioi_tinh_moi
-                        khach_hang.save()
+                        khach_hang.ho_ten = cleaned['ho_ten']
+                        khach_hang.ngay_sinh = cleaned['ngay_sinh']
+                        khach_hang.gioi_tinh = cleaned['gioi_tinh'] or None
+                        khach_hang.save(update_fields=['ho_ten', 'ngay_sinh', 'gioi_tinh'])
 
-                    # Cập nhật số điện thoại cho TaiKhoan (Sử dụng đối tượng tai_khoan đã sửa related_name)
-                    if tai_khoan and sdt_moi:
-                        tai_khoan.so_dien_thoai = sdt_moi
+                    # 3. Cập nhật số điện thoại cho TaiKhoan
+                    if tai_khoan:
+                        tai_khoan.so_dien_thoai = cleaned['so_dien_thoai']
                         tai_khoan.save(update_fields=['so_dien_thoai'])
 
+                messages.success(request, 'Cập nhật hồ sơ cá nhân thành công.')
                 return redirect('customer_profile')
 
             except Exception as e:
-                print(f"Lỗi khi cập nhật profile: {e}")
-                errors.append(f"Không thể lưu thay đổi: {e}")
+                form.add_error(None, f"Không thể lưu thay đổi: {e}")
+                is_editing = True
+        else:
+            is_editing = True
+    else:
+        initial_data = {
+            'ho_ten': khach_hang.ho_ten if khach_hang else (request.user.get_full_name() or request.user.username),
+            'username': request.user.username,
+            'so_dien_thoai': tai_khoan.so_dien_thoai if tai_khoan else '',
+            'email': request.user.email or '',
+            'ngay_sinh': khach_hang.ngay_sinh if khach_hang else None,
+            'gioi_tinh': khach_hang.gioi_tinh if khach_hang else '',
+        }
+        form = ChinhSuaHoSoKhachHangForm(
+            initial=initial_data,
+            current_user=request.user,
+            current_tai_khoan=tai_khoan
+        )
 
-    is_editing = request.GET.get('edit') == 'true'
-
-    # Tạo đối tượng tạm nếu tài khoản chưa có bản ghi KhachHang trong database
     if not khach_hang:
         class TempKhachHang:
             ho_ten = request.user.get_full_name() or request.user.username
@@ -117,71 +169,34 @@ def customer_profile_view(request):
 
         khach_hang = TempKhachHang()
 
+    viewed_services = request.session.get('viewed_services', [])
+
     context = {
         'khach_hang': khach_hang,
         'tai_khoan': tai_khoan,
         'lich_su_dich_vu': lich_su_dich_vu,
+        'tong_so_dich_vu': tong_so_dich_vu,
+        'viewed_services': viewed_services,
         'is_editing': is_editing,
-        'errors': errors,
+        'form': form,
     }
 
     return render(request, 'customer/customer_profile.html', context)
-from django.shortcuts import redirect
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-
-
-@login_required(login_url='/accounts/dang_nhap/')
-def customer_lock_account_view(request):
-    if request.method == 'POST':
-        ly_do = request.POST.get('ly_do')
-        ly_do_khac = request.POST.get('ly_do_khac', '')
-
-        # Ghi nhận lý do khóa nếu cần lưu vào log/database (tuỳ chọn)
-        # Ví dụ: thiet_lap_trang_thai_khoa(...)
-
-        # Khóa tài khoản Django User (is_active = False)
-        user = request.user
-        user.is_active = False
-        user.save()
-
-        # Nếu model TaiKhoan có trường trạng thái, cập nhật luôn ở đây
-        tai_khoan = getattr(user, 'tai_khoan', None)
-        if tai_khoan:
-            tai_khoan.trang_thai = "Đã khóa"
-            tai_khoan.save()
-
-        # Đăng xuất người dùng ngay lập tức
-        logout(request)
-
-        # Chuyển hướng về trang đăng nhập hoặc trang chủ kèm thông báo
-        return redirect('/accounts/dang_nhap/')
-
-    return redirect('customer_profile')
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-from accounts.models import LichSuTaiKhoan
-from customers.models import KhachHang
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-from accounts.models import LichSuTaiKhoan
-
 
 # =========================================================================
 # KHÁCH HÀNG TỰ KHÓA TÀI KHOẢN
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_customer_user, login_url='/home/staff/')
 def customer_lock_account_view(request):
     """
     Cho phép khách hàng chủ động yêu cầu khóa tài khoản của chính mình:
-    - Ghi nhận lý do vào bảng LICH_SU_TAI_KHOAN.
-    - Chuyển cờ is_active của User sang False.
-    - Đăng xuất phiên làm việc hiện tại và điều hướng tới trang thông báo khóa.
+- Ghi nhận lý do vào bảng LICH_SU_TAI_KHOAN.
+
+- Chuyển cờ is_active của User sang False.
+
+- Đăng xuất phiên làm việc hiện tại và điều hướng tới trang thông báo khóa.
+
     """
     if request.method == 'POST':
         ly_do_chon = request.POST.get('ly_do', '').strip()
@@ -218,63 +233,29 @@ def customer_lock_account_view(request):
 def account_locked_view(request):
     """Hiển thị giao diện thông báo khóa tài khoản thành công"""
     return render(request, 'customer/account_locked.html')
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.db.models import Q
-from .models import KhachHang
-
-# Thêm các import này ở đầu customers/views.py nếu chưa có.
-import csv
-from datetime import timedelta
-
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.http import HttpResponse
-from django.shortcuts import redirect, render
-from django.utils.text import slugify
-from django.utils import timezone
-from django.core.paginator import Paginator
-
-from customers.models import KhachHang, HangThanhVien
 
 
-def _format_number_vn(value):
-    """Định dạng số theo kiểu Việt Nam: 1325 -> 1.325."""
-    return f"{value:,}".replace(",", ".")
-
-
-def _get_customer_initials(full_name):
-    """Lấy chữ cái đầu của hai từ cuối, ví dụ Nguyễn Minh Anh -> MA."""
-    words = (full_name or "").strip().split()
-    if not words:
-        return "KH"
-    if len(words) == 1:
-        return words[0][:2].upper()
-    return (words[-2][0] + words[-1][0]).upper()
-
-import csv
-
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.http import HttpResponse
-from django.shortcuts import redirect, render
-from django.utils import timezone
-from django.utils.text import slugify
-from django.core.paginator import Paginator
-
-from customers.models import KhachHang, HangThanhVien
+# =========================================================================
+# QUẢN LÝ DANH SÁCH KHÁCH HÀNG (DÀNH CHO NHÂN VIÊN / ADMIN)
+# =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
 def staff_customer_list_view(request):
-    # 1. Phân quyền
-    if not (request.user.is_staff or request.user.is_superuser):
-        return redirect('/home/customer/')
-
     today = timezone.localdate()
 
     query = request.GET.get('q', '').strip()
     hang = request.GET.get('hang', '').strip()
     trang_thai = request.GET.get('trang_thai', '').strip()
     ngay_tham_gia = request.GET.get('ngay_tham_gia', '').strip()
+
+    # Chuẩn hóa trạng thái: loại bỏ hoàn toàn 'chua_tai_khoan', chỉ nhận 'hoat_dong' hoặc 'da_khoa'
+    if trang_thai not in ['hoat_dong', 'da_khoa']:
+        trang_thai = ''
+
+    # Danh sách các mốc thời gian lọc ngày tham gia hợp lệ
+    valid_ngay_tham_gia = ['1_tuan', '2_tuan', '1_thang', '30_ngay', '2_thang', '60_ngay', 'thang_nay']
+    if ngay_tham_gia not in valid_ngay_tham_gia:
+        ngay_tham_gia = ''
 
     # 2. Lấy danh sách khách hàng và các quan hệ liên quan
     khach_hang_list = KhachHang.objects.select_related(
@@ -296,7 +277,7 @@ def staff_customer_list_view(request):
     if hang:
         khach_hang_list = khach_hang_list.filter(ma_tv_id=hang)
 
-    # 5. Lọc trạng thái tài khoản
+    # 5. Lọc trạng thái tài khoản (chỉ lọc 'hoat_dong' hoặc 'da_khoa')
     if trang_thai == 'hoat_dong':
         khach_hang_list = khach_hang_list.filter(
             ma_tk__user__is_active=True
@@ -305,31 +286,44 @@ def staff_customer_list_view(request):
         khach_hang_list = khach_hang_list.filter(
             ma_tk__user__is_active=False
         )
-    elif trang_thai == 'chua_tai_khoan':
-        khach_hang_list = khach_hang_list.filter(
-            ma_tk__isnull=True
-        )
 
-    # 6. Lọc ngày tham gia từ TaiKhoan.ngay_tao
+    # 6. Lọc ngày tham gia dựa trên ngày tạo tài khoản (TaiKhoan.ngay_tao)
     dau_thang = today.replace(day=1)
 
-    if ngay_tham_gia == 'thang_nay':
-        khach_hang_list = khach_hang_list.filter(
-            ma_tk__ngay_tao__date__gte=dau_thang,
-            ma_tk__ngay_tao__date__lte=today,
-        )
-    elif ngay_tham_gia == '30_ngay':
-        tu_ngay = today - timezone.timedelta(days=29)
-
+    if ngay_tham_gia == '1_tuan':
+        # 1 tuần gần đây: 7 ngày gần nhất
+        tu_ngay = today - timedelta(days=7)
         khach_hang_list = khach_hang_list.filter(
             ma_tk__ngay_tao__date__gte=tu_ngay,
             ma_tk__ngay_tao__date__lte=today,
         )
-
-    khach_hang_list = khach_hang_list.order_by(
-        '-ma_tk__ngay_tao',
-        '-ma_kh',
-    )
+    elif ngay_tham_gia == '2_tuan':
+        # 2 tuần gần đây: 14 ngày gần nhất
+        tu_ngay = today - timedelta(days=14)
+        khach_hang_list = khach_hang_list.filter(
+            ma_tk__ngay_tao__date__gte=tu_ngay,
+            ma_tk__ngay_tao__date__lte=today,
+        )
+    elif ngay_tham_gia in ['1_thang', '30_ngay']:
+        # 1 tháng gần đây: 30 ngày gần nhất
+        tu_ngay = today - timedelta(days=30)
+        khach_hang_list = khach_hang_list.filter(
+            ma_tk__ngay_tao__date__gte=tu_ngay,
+            ma_tk__ngay_tao__date__lte=today,
+        )
+    elif ngay_tham_gia in ['2_thang', '60_ngay']:
+        # 2 tháng gần đây: 60 ngày gần nhất
+        tu_ngay = today - timedelta(days=60)
+        khach_hang_list = khach_hang_list.filter(
+            ma_tk__ngay_tao__date__gte=tu_ngay,
+            ma_tk__ngay_tao__date__lte=today,
+        )
+    elif ngay_tham_gia == 'thang_nay':
+        # Tháng này: từ đầu tháng hiện tại đến ngày hôm nay
+        khach_hang_list = khach_hang_list.filter(
+            ma_tk__ngay_tao__date__gte=dau_thang,
+            ma_tk__ngay_tao__date__lte=today,
+        )
 
     # 7. Thống kê tổng quan
     tong_khach_hang = KhachHang.objects.count()
@@ -337,7 +331,6 @@ def staff_customer_list_view(request):
     khach_vip = KhachHang.objects.filter(
         Q(ma_tv__ten_hang__icontains='Vàng')
         | Q(ma_tv__ten_hang__icontains='Kim cương')
-        | Q(ma_tv__ten_hang__icontains='VIP')
     ).count()
 
     # Đếm khách hàng có tài khoản được tạo trong tháng này
@@ -402,37 +395,33 @@ def staff_customer_list_view(request):
     paginator = Paginator(khach_hang_list, 6)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    # 10. Chuẩn bị dữ liệu hiển thị
-    def dinh_dang_so(value):
-        return f'{value:,}'.replace(',', '.')
-
     for kh in page_obj.object_list:
-        ten = (kh.ho_ten or '').strip().split()
-
-        kh.avatar_initials = (
-            (ten[-2][0] + ten[-1][0]).upper()
-            if len(ten) >= 2
-            else (ten[0][:2].upper() if ten else 'KH')
-        )
-
+        kh.avatar_initials = _get_customer_initials(kh.ho_ten)
         kh.tier_slug = (
             slugify(kh.ma_tv.ten_hang)
             if kh.ma_tv else 'moi'
         )
-
-        kh.points_display = dinh_dang_so(
+        kh.points_display = _format_number_vn(
             kh.diem_tich_luy_kh or 0
         )
 
-    # 11. Giữ bộ lọc khi chuyển trang
+    # 11. Giữ bộ lọc khi chuyển trang (làm sạch không để tham số cũ xuất hiện trên URL)
     query_params = request.GET.copy()
     query_params.pop('page', None)
     query_params.pop('export', None)
+    if 'trang_thai' in query_params and query_params['trang_thai'] not in ['hoat_dong', 'da_khoa']:
+        query_params.pop('trang_thai', None)
+    if 'ngay_tham_gia' in query_params and query_params['ngay_tham_gia'] not in valid_ngay_tham_gia:
+        query_params.pop('ngay_tham_gia', None)
     pagination_query = query_params.urlencode()
 
     export_params = request.GET.copy()
     export_params.pop('page', None)
     export_params['export'] = 'csv'
+    if 'trang_thai' in export_params and export_params['trang_thai'] not in ['hoat_dong', 'da_khoa']:
+        export_params.pop('trang_thai', None)
+    if 'ngay_tham_gia' in export_params and export_params['ngay_tham_gia'] not in valid_ngay_tham_gia:
+        export_params.pop('ngay_tham_gia', None)
     export_url = '?' + export_params.urlencode()
 
     # 12. Tạo danh sách số trang
@@ -481,11 +470,11 @@ def staff_customer_list_view(request):
             'diem_toi_thieu'
         ),
 
-        'tong_khach_hang_display': dinh_dang_so(
+        'tong_khach_hang_display': _format_number_vn(
             tong_khach_hang
         ),
-        'khach_vip_display': dinh_dang_so(khach_vip),
-        'khach_moi_thang_nay_display': dinh_dang_so(
+        'khach_vip_display': _format_number_vn(khach_vip),
+        'khach_moi_thang_nay_display': _format_number_vn(
             khach_moi_thang_nay
         ),
 
@@ -504,7 +493,7 @@ def staff_customer_list_view(request):
         'showing_end': (
             page_obj.end_index() if paginator.count else 0
         ),
-        'filtered_count_display': dinh_dang_so(
+        'filtered_count_display': _format_number_vn(
             paginator.count
         ),
     }
@@ -515,33 +504,77 @@ def staff_customer_list_view(request):
         context,
     )
 
-
-# Add these imports to customers/views.py if they are not already present:
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
-from customers.models import KhachHang
-
-
-
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
-from django.utils.dateparse import parse_date
-from django.db import transaction
-
-from customers.models import KhachHang
-from accounts.models import TaiKhoan
-
-
+# =========================================================================
+# XEM CHI TIẾT TÀI KHOẢN VÀ LỊCH SỬ KHÓA / MỞ KHÓA (CHỈ ADMIN)
+# =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
-def staff_customer_detail_view(request, ma_kh):
-    # 1. Kiểm tra quyền nhân viên
-    if not (request.user.is_staff or request.user.is_superuser):
-        return redirect('/home/customer/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
+def staff_account_detail_view(request, ma_tk):
+    if not is_admin_user(request.user):
+        raise PermissionDenied("Chức năng Quản trị người dùng chỉ dành cho Quản trị viên.")
 
-    # 2. Lấy hồ sơ khách hàng cùng tài khoản liên kết
+    tai_khoan = get_object_or_404(
+        TaiKhoan.objects.select_related('user', 'ho_so_nhan_vien', 'ho_so_khach_hang'),
+        ma_tk=ma_tk
+    )
+    user_obj = tai_khoan.user
+
+    # Xác định họ và tên hiển thị từ hồ sơ liên kết
+    nhan_vien = getattr(tai_khoan, 'ho_so_nhan_vien', None)
+    khach_hang = getattr(tai_khoan, 'ho_so_khach_hang', None)
+    if nhan_vien and nhan_vien.ho_ten:
+        ho_ten = nhan_vien.ho_ten
+    elif khach_hang and khach_hang.ho_ten:
+        ho_ten = khach_hang.ho_ten
+    elif user_obj:
+        ho_ten = user_obj.get_full_name() or user_obj.username
+    else:
+        ho_ten = tai_khoan.ma_tk
+
+    # Truy vấn toàn bộ lịch sử khóa và mở khóa của tài khoản đang xem
+    lich_su_list = (
+        LichSuTaiKhoan.objects.filter(ma_tk=tai_khoan)
+        .select_related(
+            'ma_tk_thuc_hien',
+            'ma_tk_thuc_hien__user',
+            'ma_tk_thuc_hien__ho_so_nhan_vien',
+            'ma_tk_thuc_hien__ho_so_khach_hang'
+        )
+        .order_by('-thoi_gian')
+    )
+
+    for ls in lich_su_list:
+        th = ls.ma_tk_thuc_hien
+        if th:
+            nv_th = getattr(th, 'ho_so_nhan_vien', None)
+            kh_th = getattr(th, 'ho_so_khach_hang', None)
+            if nv_th and nv_th.ho_ten:
+                ls.ten_nguoi_thuc_hien = nv_th.ho_ten
+            elif kh_th and kh_th.ho_ten:
+                ls.ten_nguoi_thuc_hien = kh_th.ho_ten
+            elif th.user:
+                ls.ten_nguoi_thuc_hien = th.user.get_full_name() or th.user.username
+            else:
+                ls.ten_nguoi_thuc_hien = th.ma_tk
+        else:
+            ls.ten_nguoi_thuc_hien = "Hệ thống"
+
+    avatar_initials = user_obj.username[:2].upper() if (user_obj and user_obj.username) else "TK"
+
+    context = {
+        'tai_khoan': tai_khoan,
+        'user_obj': user_obj,
+        'ho_ten': ho_ten,
+        'avatar_initials': avatar_initials,
+        'lich_su_list': lich_su_list,
+    }
+    return render(request, 'customer/staff_account_detail.html', context)
+# =========================================================================
+# XEM VÀ CHỈNH SỬA HỒ SƠ KHÁCH HÀNG (DÀNH CHO NHÂN VIÊN)
+# =========================================================================
+@login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
+def staff_customer_detail_view(request, ma_kh):
     khach_hang = get_object_or_404(
         KhachHang.objects.select_related(
             'ma_tk',
@@ -554,7 +587,6 @@ def staff_customer_detail_view(request, ma_kh):
     tai_khoan = khach_hang.ma_tk
     user = tai_khoan.user if tai_khoan else None
 
-    # 3. Xác định trạng thái tài khoản
     if not tai_khoan:
         trang_thai_tai_khoan = 'Chưa có tài khoản'
         trang_thai_class = 'neutral'
@@ -565,71 +597,38 @@ def staff_customer_detail_view(request, ma_kh):
         trang_thai_tai_khoan = 'Đã khóa'
         trang_thai_class = 'danger'
 
-    # 4. Xử lý chỉnh sửa hồ sơ
     is_editing = (
         request.GET.get('edit') == '1'
         or request.GET.get('edit') == 'true'
         or request.method == 'POST'
     )
-    errors = []
 
     if request.method == 'POST':
-        ho_ten = request.POST.get('ho_ten', '').strip()
-        so_dien_thoai = request.POST.get(
-            'so_dien_thoai', ''
-        ).strip()
-        email = request.POST.get('email', '').strip()
-        ngay_sinh_text = request.POST.get('ngay_sinh', '').strip()
-        gioi_tinh = request.POST.get('gioi_tinh', '').strip()
-
-        ngay_sinh = parse_date(ngay_sinh_text) if ngay_sinh_text else None
-
-        # Kiểm tra dữ liệu
-        if not ho_ten:
-            errors.append('Họ và tên không được để trống.')
-
-        if not so_dien_thoai:
-            errors.append('Số điện thoại không được để trống.')
-
-        if ngay_sinh_text and ngay_sinh is None:
-            errors.append('Ngày sinh không hợp lệ.')
-
-        if gioi_tinh not in ('Nam', 'Nữ', 'Khác', ''):
-            errors.append('Giới tính không hợp lệ.')
-
-        # Kiểm tra số điện thoại đã được tài khoản khác sử dụng chưa
-        if so_dien_thoai:
-            tk_trung = TaiKhoan.objects.filter(
-                so_dien_thoai=so_dien_thoai
-            )
-
-            if tai_khoan:
-                tk_trung = tk_trung.exclude(pk=tai_khoan.pk)
-
-            if tk_trung.exists():
-                errors.append(
-                    'Số điện thoại đã được sử dụng bởi tài khoản khác.'
-                )
-
-        # Chỉ lưu khi dữ liệu hợp lệ
-        if not errors:
+        form = ChinhSuaHoSoKhachHangForm(
+            request.POST,
+            current_user=user,
+            current_tai_khoan=tai_khoan
+        )
+        if form.is_valid():
+            cleaned = form.cleaned_data
             try:
                 with transaction.atomic():
-                    khach_hang.ho_ten = ho_ten
-                    khach_hang.ngay_sinh = ngay_sinh
+                    # 1. Cập nhật thông tin KhachHang (không sửa ma_kh, diem_tich_luy_kh, ma_tv)
+                    khach_hang.ho_ten = cleaned['ho_ten']
+                    khach_hang.ngay_sinh = cleaned['ngay_sinh']
+                    khach_hang.gioi_tinh = cleaned['gioi_tinh'] or None
+                    khach_hang.save(update_fields=['ho_ten', 'ngay_sinh', 'gioi_tinh'])
 
-                    if gioi_tinh:
-                        khach_hang.gioi_tinh = gioi_tinh
-
-                    khach_hang.save()
-
+                    # 2. Cập nhật số điện thoại cho TaiKhoan
                     if tai_khoan:
-                        tai_khoan.so_dien_thoai = so_dien_thoai
+                        tai_khoan.so_dien_thoai = cleaned['so_dien_thoai']
                         tai_khoan.save(update_fields=['so_dien_thoai'])
 
-                        if user:
-                            user.email = email
-                            user.save(update_fields=['email'])
+                    # 3. Cập nhật Username và Email cho Django User
+                    if user:
+                        user.username = cleaned['username']
+                        user.email = cleaned['email']
+                        user.save(update_fields=['username', 'email'])
 
                 messages.success(
                     request,
@@ -640,19 +639,31 @@ def staff_customer_detail_view(request, ma_kh):
                     ma_kh=khach_hang.ma_kh,
                 )
 
-            except Exception:
-                errors.append(
-                    'Không thể lưu thông tin. '
-                    'Vui lòng kiểm tra dữ liệu và thử lại.'
-                )
+            except Exception as e:
+                form.add_error(None, f'Không thể lưu thông tin: {e}')
+                is_editing = True
+        else:
+            is_editing = True
+    else:
+        initial_data = {
+            'ho_ten': khach_hang.ho_ten,
+            'username': user.username if user else '',
+            'so_dien_thoai': tai_khoan.so_dien_thoai if tai_khoan else '',
+            'email': user.email if user else '',
+            'ngay_sinh': khach_hang.ngay_sinh,
+            'gioi_tinh': khach_hang.gioi_tinh or '',
+        }
+        form = ChinhSuaHoSoKhachHangForm(
+            initial=initial_data,
+            current_user=user,
+            current_tai_khoan=tai_khoan
+        )
 
-
-    # 5. Lấy lịch sử sử dụng dịch vụ trực tiếp từ bảng DichVuDaSuDung
     from services.models import DichVuDaSuDung
 
     danh_sach_su_dung = DichVuDaSuDung.objects.filter(
         ma_kh=khach_hang
-    ).select_related('ma_dv', 'ma_nv').order_by('-ngay_su_dung')
+    ).select_related('ma_dv', 'ma_nv').order_by('-ngay_su_dung')[:50]
 
     lich_su_dich_vu = []
     ty_le_giam_ap_dung = khach_hang.ma_tv.ty_le_giam_gia if khach_hang.ma_tv else Decimal('0.00')
@@ -662,22 +673,23 @@ def staff_customer_detail_view(request, ma_kh):
         thanh_tien = float(gia_goc) * (1 - float(ty_le_giam_ap_dung) / 100) if gia_goc else None
 
         lich_su_dich_vu.append({
+            'ma_sd': sd.ma_sd,
             'ngay': sd.ngay_su_dung,
             'dich_vu': sd.ma_dv.ten_dich_vu if sd.ma_dv else 'Dịch vụ đã sử dụng',
+            'loai_dich_vu': sd.ma_dv.loai_dich_vu if sd.ma_dv else 'Dịch vụ chăm sóc',
+            'mo_ta': sd.ma_dv.mo_ta if sd.ma_dv and sd.ma_dv.mo_ta else 'Không có mô tả chi tiết.',
+            'thoi_luong': sd.ma_dv.thoi_luong if sd.ma_dv else 0,
             'nhan_vien': sd.ma_nv.ho_ten if sd.ma_nv else '—',
+            'khach_hang': khach_hang.ho_ten,
+            'gia_goc': gia_goc,
+            'ty_le_giam_gia': ty_le_giam_ap_dung,
             'gia_tri': thanh_tien,
             'diem': sd.ma_dv.diem_tich_luy_dich_vu if sd.ma_dv else 0,
             'trang_thai': 'Đã hoàn thành',
         })
 
     so_luot_su_dung = len(lich_su_dich_vu)
-
-    # 6. Chuẩn bị dữ liệu hiển thị
-    ten_parts = (khach_hang.ho_ten or '').strip().split()
-    initials = (
-        ''.join(part[0] for part in ten_parts[-2:]).upper()
-        if ten_parts else 'KH'
-    )
+    initials = _get_customer_initials(khach_hang.ho_ten)
 
     context = {
         'khach_hang': khach_hang,
@@ -690,8 +702,7 @@ def staff_customer_detail_view(request, ma_kh):
         'lich_su_dich_vu': lich_su_dich_vu,
         'so_luot_su_dung': so_luot_su_dung,
         'is_editing': is_editing,
-        'errors': errors,
-        'form_data': request.POST if request.method == 'POST' else None,
+        'form': form,
     }
 
     return render(
@@ -700,134 +711,96 @@ def staff_customer_detail_view(request, ma_kh):
         context,
     )
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import KhachHang, HangThanhVien
-from accounts.models import TaiKhoan # Điều chỉnh import tùy theo cấu trúc app accounts của bạn
-
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.shortcuts import redirect
-from django.utils.dateparse import parse_date
-
-from customers.models import KhachHang, HangThanhVien
-from accounts.models import TaiKhoan
-
-User = get_user_model()
-
-
+# =========================================================================
+# THÊM MỚI KHÁCH HÀNG (TRANG RIÊNG BIỆT)
+# =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
 def staff_customer_add_view(request):
-    if not (request.user.is_staff or request.user.is_superuser):
-        return redirect('/home/customer/')
+    if request.method == 'POST':
+        form = ThemKhachHangForm(request.POST)
+        if form.is_valid():
+            cleaned = form.cleaned_data
+            ho_ten = cleaned['ho_ten']
+            so_dien_thoai = cleaned['so_dien_thoai']
+            email = cleaned['email']
+            ngay_sinh = cleaned['ngay_sinh']
+            gioi_tinh = cleaned['gioi_tinh']
 
-    if request.method != 'POST':
-        return redirect('staff_customer_list')
+            try:
+                with transaction.atomic():
+                    # Lấy hạng thành viên mặc định
+                    hang_mac_dinh = HangThanhVien.objects.order_by(
+                        'diem_toi_thieu', 'ma_tv'
+                    ).first()
+                    if hang_mac_dinh is None:
+                        messages.error(
+                            request,
+                            'Chưa có hạng thành viên trong hệ thống. Không thể thêm khách hàng.'
+                        )
+                        return render(request, 'customer/staff_customer_add.html', {'form': form})
 
-    ho_ten = request.POST.get('ho_ten', '').strip()
-    so_dien_thoai = request.POST.get('so_dien_thoai', '').strip()
-    email = request.POST.get('email', '').strip()
-    ngay_sinh_text = request.POST.get('ngay_sinh', '').strip()
-    gioi_tinh = request.POST.get('gioi_tinh', 'Nam')
+                    # 1. Tạo User Django cho khách hàng
+                    username_moi = f'kh_{so_dien_thoai}'
+                    if User.objects.filter(username=username_moi).exists():
+                        form.add_error('so_dien_thoai', 'Tên đăng nhập theo số điện thoại này đã tồn tại.')
+                        return render(request, 'customer/staff_customer_add.html', {'form': form})
 
-    ngay_sinh = parse_date(ngay_sinh_text) if ngay_sinh_text else None
+                    user_moi = User(
+                        username=username_moi,
+                        email=email,
+                    )
+                    user_moi._so_dien_thoai_dang_ky = so_dien_thoai
+                    user_moi.set_password('Password123@')
+                    user_moi.save()
 
-    if not ho_ten or not so_dien_thoai:
-        messages.error(request, 'Vui lòng nhập họ tên và số điện thoại.')
-        return redirect('staff_customer_list')
+                    # 2. Lấy TaiKhoan vừa được Signal tạo tự động
+                    tai_khoan_moi = TaiKhoan.objects.get(user=user_moi)
 
-    if ngay_sinh_text and ngay_sinh is None:
-        messages.error(request, 'Ngày sinh không hợp lệ.')
-        return redirect('staff_customer_list')
+                    # 3. Sinh mã khách hàng tự động tăng (dạng KH-00001)
+                    ma_kh_moi = None
+                    for kh_cu in KhachHang.objects.filter(ma_kh__startswith='KH-').only('ma_kh'):
+                        try:
+                            so_thu_tu = int(kh_cu.ma_kh.split('-')[-1])
+                            if ma_kh_moi is None or so_thu_tu > ma_kh_moi:
+                                ma_kh_moi = so_thu_tu
+                        except (ValueError, IndexError):
+                            continue
 
-    if TaiKhoan.objects.filter(so_dien_thoai=so_dien_thoai).exists():
-        messages.error(request, 'Số điện thoại đã được sử dụng.')
-        return redirect('staff_customer_list')
+                    ma_kh_moi = f'KH-{(ma_kh_moi or 0) + 1:05d}'
 
-    try:
-        with transaction.atomic():
-            # 1. Tạo User của Django
-            username_moi = f'kh_{so_dien_thoai}'
+                    # 4. Tạo hồ sơ khách hàng
+                    KhachHang.objects.create(
+                        ma_kh=ma_kh_moi,
+                        ma_tk=tai_khoan_moi,
+                        ma_tv=hang_mac_dinh,
+                        ho_ten=ho_ten,
+                        ngay_sinh=ngay_sinh,
+                        gioi_tinh=gioi_tinh,
+                        diem_tich_luy_kh=0
+                    )
 
-            if User.objects.filter(username=username_moi).exists():
-                messages.error(
-                    request,
-                    'Tên đăng nhập đã tồn tại. Vui lòng kiểm tra lại số điện thoại.'
-                )
+                messages.success(request, f'Đã thêm khách hàng "{ho_ten}" thành công!')
                 return redirect('staff_customer_list')
 
-            user_moi = User.objects.create_user(
-                username=username_moi,
-                email=email,
-                password='Password123@'
-            )
+            except Exception as e:
+                form.add_error(None, f"Lỗi khi lưu dữ liệu khách hàng: {e}")
+                return render(request, 'customer/staff_customer_add.html', {'form': form})
+        else:
+            return render(request, 'customer/staff_customer_add.html', {'form': form})
 
-            # 2. Tạo hồ sơ TaiKhoan theo model của dự án
-            tai_khoan_moi = TaiKhoan.objects.create(
-                ma_tk=f'TK{user_moi.pk}',
-                user=user_moi,
-                so_dien_thoai=so_dien_thoai,
-                vai_tro='Khách hàng'
-            )
-
-            # 3. Sinh mã khách hàng mới
-            # Dựa vào số thứ tự lớn nhất của các mã dạng KH-00001
-            ma_kh_moi = None
-            for kh_cu in KhachHang.objects.filter(
-                ma_kh__startswith='KH-'
-            ).only('ma_kh'):
-                try:
-                    so_thu_tu = int(kh_cu.ma_kh.split('-')[-1])
-                    if ma_kh_moi is None or so_thu_tu > ma_kh_moi:
-                        ma_kh_moi = so_thu_tu
-                except (ValueError, IndexError):
-                    continue
-
-            ma_kh_moi = f'KH-{(ma_kh_moi or 0) + 1:05d}'
-
-            # 4. Lấy hạng thành viên mặc định
-            hang_mac_dinh = HangThanhVien.objects.order_by(
-                'diem_toi_thieu'
-            ).first()
-
-            # 5. Tạo hồ sơ khách hàng
-            KhachHang.objects.create(
-                ma_kh=ma_kh_moi,
-                ma_tk=tai_khoan_moi,
-                ma_tv=hang_mac_dinh,
-                ho_ten=ho_ten,
-                ngay_sinh=ngay_sinh,
-                gioi_tinh=gioi_tinh,
-                diem_tich_luy_kh=0
-            )
-
-        messages.success(
-            request,
-            f'Đã thêm khách hàng {ho_ten} thành công.'
-        )
-
-
-    except Exception as e:
-
-        import traceback
-
-        traceback.print_exc()
-
-        messages.error(request, f"Lỗi khi thêm khách hàng: {e}")
-
-    return redirect('staff_customer_list')
-
+    # GET: mở trang thêm mới với form rỗng
+    form = ThemKhachHangForm()
+    return render(request, 'customer/staff_customer_add.html', {'form': form})
 
 # =========================================================================
-# 1. QUẢN LÝ DANH SÁCH TÀI KHOẢN TOÀN HỆ THỐNG
+# 1. QUẢN LÝ DANH SÁCH TÀI KHOẢN TOÀN HỆ THỐNG (CHỈ ADMIN)
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
-def staff_account_list_view(request):
-    if not (request.user.is_staff or request.user.is_superuser):
-        return redirect('/home/customer/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
+def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
+    if not is_admin_user(request.user):
+        raise PermissionDenied("Chức năng Quản trị người dùng chỉ dành cho Quản trị viên.")
 
     # 1. Lấy điều kiện tìm kiếm và lọc
     query = request.GET.get('q', '').strip()
@@ -867,7 +840,7 @@ def staff_account_list_view(request):
             ngay_tao__date__lte=today,
         )
     elif ngay_tao_loc == '30_ngay':
-        tu_ngay = today - timezone.timedelta(days=29)
+        tu_ngay = today - timedelta(days=29)
         tai_khoan_list = tai_khoan_list.filter(
             ngay_tao__date__gte=tu_ngay,
             ngay_tao__date__lte=today,
@@ -892,24 +865,25 @@ def staff_account_list_view(request):
             'Ngày tạo'
         ])
 
-        for tk in tai_khoan_list:
-            trang_thai_text = 'Đang hoạt động' if tk.user.is_active else 'Đã khóa'
-            ngay_tao_text = timezone.localtime(tk.ngay_tao).strftime('%d/%m/%Y %H:%M') if tk.ngay_tao else ''
+        # NẠP TÊN, GIỚI TÍNH, NGÀY SINH VÀ AVATAR CHO TỪNG DÒNG HIỂN THỊ
+        for tk in page_obj.object_list:
+            username = tk.user.username if tk.user else 'TK'
+            tk.avatar_initials = username[:2].upper()
 
-            nv = getattr(tk, 'ho_so_nhan_vien', None)
-            kh = getattr(tk, 'ho_so_khach_hang', None)
-            ho_ten_xuat = nv.ho_ten if (nv and nv.ho_ten) else (kh.ho_ten if (kh and kh.ho_ten) else tk.user.username)
-
-            writer.writerow([
-                tk.ma_tk,
-                tk.user.username,
-                ho_ten_xuat,
-                tk.so_dien_thoai,
-                tk.user.email,
-                tk.vai_tro,
-                trang_thai_text,
-                ngay_tao_text,
-            ])
+            nhan_vien = getattr(tk, 'ho_so_nhan_vien', None)
+            khach_hang = getattr(tk, 'ho_so_khach_hang', None)
+            if nhan_vien and nhan_vien.ho_ten:
+                tk.display_ho_ten = nhan_vien.ho_ten
+                tk.display_gioi_tinh = nhan_vien.gioi_tinh or 'Nam'
+                tk.display_ngay_sinh = nhan_vien.ngay_sinh.strftime('%Y-%m-%d') if nhan_vien.ngay_sinh else ''
+            elif khach_hang and khach_hang.ho_ten:
+                tk.display_ho_ten = khach_hang.ho_ten
+                tk.display_gioi_tinh = khach_hang.gioi_tinh or 'Nam'
+                tk.display_ngay_sinh = khach_hang.ngay_sinh.strftime('%Y-%m-%d') if khach_hang.ngay_sinh else ''
+            else:
+                tk.display_ho_ten = tk.user.get_full_name() or tk.user.username
+                tk.display_gioi_tinh = 'Nam'
+                tk.display_ngay_sinh = ''
         return response
 
     # 4. Thống kê 4 ô
@@ -989,48 +963,40 @@ def staff_account_list_view(request):
         'showing_start': page_obj.start_index() if paginator.count else 0,
         'showing_end': page_obj.end_index() if paginator.count else 0,
         'filtered_count_display': _format_number_vn(paginator.count),
+        'add_staff_form': add_staff_form or ThemNhanVienForm(),
+        'show_add_modal': show_add_modal,
     }
 
     return render(request, 'customer/staff_account_list.html', context)
 
 
 # =========================================================================
-# 2. XỬ LÝ THÊM MỚI NHÂN VIÊN TỪ POPUP
+# 2. XỬ LÝ THÊM MỚI NHÂN VIÊN (TRANG RIÊNG BIỆT - CHỈ ADMIN)
 # =========================================================================
-from django.contrib import messages
-from django.db import transaction
-from django.contrib.auth.models import User
-from accounts.models import TaiKhoan, NhanVien, LichSuTaiKhoan
-from customers.models import KhachHang, HangThanhVien
-from accounts.forms import ThemNhanVienForm, ChinhSuaTaiKhoanForm
-from datetime import date
-
-
 @login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
 def staff_account_add_staff_view(request):
-    # Kiểm tra quyền: Là superuser HOẶC tài khoản có vai trò Quản trị viên / Admin
-    is_admin = request.user.is_superuser or (
-        hasattr(request.user, 'thong_tin_tai_khoan') and
-        request.user.thong_tin_tai_khoan.vai_tro in ['Quản trị viên', 'Admin']
-    )
-    if not is_admin:
-        messages.error(request, "Bạn không có quyền thực hiện thao tác này. Chỉ Quản trị viên mới được thêm nhân viên.")
-        return redirect('staff_account_list')
+    if not is_admin_user(request.user):
+        raise PermissionDenied("Chỉ Quản trị viên mới được phép thêm nhân viên mới.")
+
     if request.method == 'POST':
         form = ThemNhanVienForm(request.POST)
         if form.is_valid():
             cleaned = form.cleaned_data
+            vai_tro = cleaned['vai_tro']
+            ho_ten = cleaned['ho_ten']
+            gioi_tinh = cleaned['gioi_tinh']
+            ngay_sinh = cleaned['ngay_sinh'] or date(2000, 1, 1)
+
             try:
                 with transaction.atomic():
-                    is_active = (cleaned['trang_thai'] == 'Hoạt động')
-                    is_admin = (cleaned['vai_tro'] == 'Quản trị viên')
-
+                    is_admin_role = (vai_tro == 'Quản trị viên')
                     user = User(
                         username=cleaned['username'],
                         email=cleaned['email'],
-                        is_active=is_active,
+                        is_active=True,
                         is_staff=True,
-                        is_superuser=is_admin
+                        is_superuser=is_admin_role
                     )
                     user.set_password(cleaned['password'])
                     user._so_dien_thoai_dang_ky = cleaned['so_dien_thoai']
@@ -1042,74 +1008,82 @@ def staff_account_add_staff_view(request):
                         defaults={
                             'ma_tk': ma_tk_str,
                             'so_dien_thoai': cleaned['so_dien_thoai'],
-                            'vai_tro': cleaned['vai_tro']
+                            'vai_tro': vai_tro
                         }
                     )
                     tai_khoan.so_dien_thoai = cleaned['so_dien_thoai']
-                    tai_khoan.vai_tro = cleaned['vai_tro']
+                    tai_khoan.vai_tro = vai_tro
                     tai_khoan.save(update_fields=['so_dien_thoai', 'vai_tro'])
 
                     ma_nv_str = f"NV{user.id:03d}"
-                    ngay_sinh = cleaned['ngay_sinh'] or date(2000, 1, 1)
+                    while NhanVien.objects.filter(ma_nv=ma_nv_str).exists():
+                        import random
+                        ma_nv_str = f"NV{user.id:03d}_{random.randint(10, 99)}"
 
                     NhanVien.objects.create(
                         ma_nv=ma_nv_str,
                         ma_tk=tai_khoan,
-                        ho_ten=cleaned['ho_ten'],
-                        gioi_tinh="Khác",
+                        ho_ten=ho_ten,
+                        gioi_tinh=gioi_tinh,
                         ngay_sinh=ngay_sinh,
-                        vi_tri=cleaned['vai_tro']
+                        vi_tri=vai_tro
                     )
+                    messages.success(request, f"Đã thêm mới nhân viên '{ho_ten}' ({vai_tro}) thành công!")
 
-                messages.success(request,
-                                 f"Đã thêm mới nhân viên '{cleaned['ho_ten']}' ({cleaned['vai_tro']}) thành công!")
+                return redirect('staff_account_list')
+
             except Exception as e:
-                messages.error(request, f"Lỗi khi thêm nhân viên: {e}")
+                form.add_error(None, f"Lỗi hệ thống khi lưu: {e}")
+                return render(request, 'customer/staff_staff_add.html', {'form': form})
+
         else:
-            first_error = next(iter(form.errors.values()))[0]
-            messages.error(request, f"Không thể thêm nhân viên: {first_error}")
+            # Khi form có lỗi: render lại trang thêm nhân viên kèm lỗi và giá trị đã nhập
+            return render(request, 'customer/staff_staff_add.html', {'form': form})
 
-    return redirect('staff_account_list')
-
-
+    # GET request: Hiển thị form thêm mới nhân viên rỗng
+    form = ThemNhanVienForm()
+    return render(request, 'customer/staff_staff_add.html', {'form': form})# =========================================================================
 # =========================================================================
-# 3. XỬ LÝ CHỈNH SỬA TÀI KHOẢN VÀ PHÂN QUYỀN TỪ POPUP
+# 3. XỬ LÝ CHỈNH SỬA TÀI KHOẢN VÀ PHÂN QUYỀN TỪ POPUP (CHỈ ADMIN)
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
-@login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
 def staff_account_edit_view(request, ma_tk):
-    # Kiểm tra quyền: Là superuser HOẶC tài khoản có vai trò Quản trị viên / Admin
-    is_admin = request.user.is_superuser or (
-        hasattr(request.user, 'thong_tin_tai_khoan') and
-        request.user.thong_tin_tai_khoan.vai_tro in ['Quản trị viên', 'Admin']
-    )
-    if not is_admin:
-        messages.error(request, "Bạn không có quyền thực hiện thao tác này. Chỉ Quản trị viên mới được phân quyền.")
-        return redirect('staff_account_list')
+    if not is_admin_user(request.user):
+        raise PermissionDenied("Chỉ Quản trị viên mới được phép chỉnh sửa phân quyền.")
 
     tai_khoan = get_object_or_404(TaiKhoan.objects.select_related('user'), ma_tk=ma_tk)
     user_bi_tac_dong = tai_khoan.user
+    is_ajax = (request.headers.get('x-requested-with') == 'XMLHttpRequest')
 
     if request.method == 'POST':
         form = ChinhSuaTaiKhoanForm(request.POST)
         if form.is_valid():
             cleaned = form.cleaned_data
-            ho_ten_moi = cleaned['ho_ten'].strip()
-            sdt_moi = cleaned['so_dien_thoai'].strip()
-            email_moi = cleaned['email'].strip()
+            ho_ten_moi = cleaned['ho_ten']
+            sdt_moi = cleaned['so_dien_thoai']
+            email_moi = cleaned['email'].strip().lower()
             vai_tro_moi = cleaned['vai_tro']
-            trang_thai_moi = cleaned['trang_thai']
-            is_active_moi = (trang_thai_moi == 'Hoạt động')
+            gioi_tinh_moi = cleaned.get('gioi_tinh') or 'Nam'
+            ngay_sinh_moi = cleaned.get('ngay_sinh')
 
+            # 1. Kiểm tra trùng số điện thoại
             if TaiKhoan.objects.filter(so_dien_thoai=sdt_moi).exclude(pk=tai_khoan.pk).exists():
-                messages.error(request, f"Số điện thoại '{sdt_moi}' đã được sử dụng bởi tài khoản khác.")
+                err_msg = f"Số điện thoại '{sdt_moi}' đã được sử dụng bởi tài khoản khác."
+                if is_ajax:
+                    return JsonResponse({'success': False, 'errors': {'so_dien_thoai': [err_msg]}}, status=400)
+                messages.error(request, err_msg)
                 return redirect('staff_account_list')
 
-            if email_moi and User.objects.filter(email__iexact=email_moi).exclude(pk=user_bi_tac_dong.pk).exists():
-                messages.error(request, f"Email '{email_moi}' đã được sử dụng bởi tài khoản khác.")
+            # 2. Kiểm tra trùng Email
+            if User.objects.filter(email__iexact=email_moi).exclude(pk=user_bi_tac_dong.pk).exists():
+                err_msg = f"Email '{email_moi}' đã được sử dụng bởi tài khoản khác."
+                if is_ajax:
+                    return JsonResponse({'success': False, 'errors': {'email': [err_msg]}}, status=400)
+                messages.error(request, err_msg)
                 return redirect('staff_account_list')
 
-            # Chống khóa/hạ quyền admin duy nhất
+            # 3. Chống hạ quyền Quản trị viên duy nhất của hệ thống
             is_currently_admin = user_bi_tac_dong.is_superuser or tai_khoan.vai_tro in ['Admin', 'Quản trị viên']
             admin_count = TaiKhoan.objects.filter(
                 Q(vai_tro__in=['Admin', 'Quản trị viên']) | Q(user__is_superuser=True),
@@ -1117,19 +1091,17 @@ def staff_account_edit_view(request, ma_tk):
             ).count()
 
             if is_currently_admin and admin_count <= 1:
-                if not is_active_moi:
-                    messages.error(request,
-                                   "Không thể khóa tài khoản Quản trị viên cuối cùng đang hoạt động của hệ thống!")
-                    return redirect('staff_account_list')
                 if vai_tro_moi not in ['Admin', 'Quản trị viên']:
-                    messages.error(request, "Không thể hạ quyền Quản trị viên cuối cùng của hệ thống!")
+                    err_msg = "Không thể hạ quyền Quản trị viên cuối cùng đang hoạt động của hệ thống!"
+                    if is_ajax:
+                        return JsonResponse({'success': False, 'errors': {'__all__': [err_msg]}}, status=400)
+                    messages.error(request, err_msg)
                     return redirect('staff_account_list')
 
             try:
                 with transaction.atomic():
+                    # Cập nhật Email và Vai trò của Django User (KHÔNG thay đổi is_active)
                     user_bi_tac_dong.email = email_moi
-                    trang_thai_thay_doi = (user_bi_tac_dong.is_active != is_active_moi)
-                    user_bi_tac_dong.is_active = is_active_moi
 
                     if vai_tro_moi in ['Admin', 'Quản trị viên']:
                         user_bi_tac_dong.is_staff = True
@@ -1144,29 +1116,33 @@ def staff_account_edit_view(request, ma_tk):
                         user_bi_tac_dong.is_superuser = False
                         vai_tro_db = "Khách hàng"
 
-                    user_bi_tac_dong.save(update_fields=['email', 'is_active', 'is_staff', 'is_superuser'])
+                    user_bi_tac_dong.save(update_fields=['email', 'is_staff', 'is_superuser'])
 
+                    # Cập nhật Số điện thoại và Vai trò trong TAI_KHOAN
                     tai_khoan.so_dien_thoai = sdt_moi
                     tai_khoan.vai_tro = vai_tro_db
                     tai_khoan.save(update_fields=['so_dien_thoai', 'vai_tro'])
 
-                    if vai_tro_db in ['Quản trị viên', 'Nhân viên CSKH', 'Chuyên viên', 'Nhân viên']:
+                    # Cập nhật Họ và tên, Giới tính, Ngày sinh vào hồ sơ tương ứng
+                    if vai_tro_db in ['Quản trị viên', 'Nhân viên CSKH', 'Chuyên viên']:
                         nhan_vien = getattr(tai_khoan, 'ho_so_nhan_vien', None)
                         if not nhan_vien:
                             nhan_vien = NhanVien.objects.filter(ma_tk=tai_khoan).first()
 
                         if nhan_vien:
-                            if ho_ten_moi:
-                                nhan_vien.ho_ten = ho_ten_moi
+                            nhan_vien.ho_ten = ho_ten_moi
                             nhan_vien.vi_tri = vai_tro_moi
-                            nhan_vien.save(update_fields=['ho_ten', 'vi_tri'])
+                            nhan_vien.gioi_tinh = gioi_tinh_moi
+                            if ngay_sinh_moi:
+                                nhan_vien.ngay_sinh = ngay_sinh_moi
+                            nhan_vien.save(update_fields=['ho_ten', 'vi_tri', 'gioi_tinh', 'ngay_sinh'])
                         else:
                             NhanVien.objects.create(
                                 ma_nv=f"NV{user_bi_tac_dong.id:03d}",
                                 ma_tk=tai_khoan,
-                                ho_ten=ho_ten_moi or user_bi_tac_dong.username,
-                                gioi_tinh="Khác",
-                                ngay_sinh=date(2000, 1, 1),
+                                ho_ten=ho_ten_moi,
+                                gioi_tinh=gioi_tinh_moi,
+                                ngay_sinh=ngay_sinh_moi or date(2000, 1, 1),
                                 vi_tri=vai_tro_moi
                             )
                     else:
@@ -1175,48 +1151,46 @@ def staff_account_edit_view(request, ma_tk):
                             khach_hang = KhachHang.objects.filter(ma_tk=tai_khoan).first()
 
                         if khach_hang:
-                            if ho_ten_moi:
-                                khach_hang.ho_ten = ho_ten_moi
-                            khach_hang.save(update_fields=['ho_ten'])
+                            khach_hang.ho_ten = ho_ten_moi
+                            khach_hang.gioi_tinh = gioi_tinh_moi
+                            if ngay_sinh_moi:
+                                khach_hang.ngay_sinh = ngay_sinh_moi
+                            khach_hang.save(update_fields=['ho_ten', 'gioi_tinh', 'ngay_sinh'])
                         else:
                             hang_mac_dinh = HangThanhVien.objects.order_by('diem_toi_thieu').first()
                             KhachHang.objects.create(
                                 ma_kh=f"KH{user_bi_tac_dong.id:03d}",
                                 ma_tk=tai_khoan,
-                                ho_ten=ho_ten_moi or user_bi_tac_dong.username,
+                                ho_ten=ho_ten_moi,
+                                gioi_tinh=gioi_tinh_moi,
+                                ngay_sinh=ngay_sinh_moi,
                                 ma_tv=hang_mac_dinh,
                                 diem_tich_luy_kh=0
                             )
 
-                    if trang_thai_thay_doi:
-                        hanh_dong_str = "Mở khóa" if is_active_moi else "Khóa"
-                        tai_khoan_admin = getattr(request.user, 'thong_tin_tai_khoan', None)
-                        count_ls = LichSuTaiKhoan.objects.count() + 1
-                        LichSuTaiKhoan.objects.create(
-                            ma_ls=f"LS{count_ls:03d}",
-                            ma_tk=tai_khoan,
-                            ma_tk_thuc_hien=tai_khoan_admin if tai_khoan_admin else tai_khoan,
-                            hanh_dong=hanh_dong_str,
-                            ly_do=f"Quản trị viên cập nhật trạng thái trong popup phân quyền ({hanh_dong_str})."
-                        )
-
                 messages.success(request, f"Cập nhật tài khoản '{user_bi_tac_dong.username}' thành công!")
+                if is_ajax:
+                    return JsonResponse({'success': True})
             except Exception as e:
-                messages.error(request, f"Lỗi khi cập nhật tài khoản: {e}")
+                err_msg = f"Lỗi khi cập nhật tài khoản: {e}"
+                if is_ajax:
+                    return JsonResponse({'success': False, 'errors': {'__all__': [err_msg]}}, status=400)
+                messages.error(request, err_msg)
         else:
+            if is_ajax:
+                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
             first_error = next(iter(form.errors.values()))[0]
             messages.error(request, f"Không thể lưu thay đổi: {first_error}")
 
     return redirect('staff_account_list')
-
-
 # =========================================================================
-# 4. KHÓA / MỞ KHÓA NHANH TÀI KHOẢN
+# 4. KHÓA / MỞ KHÓA NHANH TÀI KHOẢN (CHỈ ADMIN)
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
 def staff_toggle_account_status_view(request, ma_tk):
-    if not (request.user.is_staff or request.user.is_superuser):
-        return redirect('/home/customer/')
+    if not is_admin_user(request.user):
+        raise PermissionDenied("Chỉ Quản trị viên mới được phép khóa hoặc mở khóa tài khoản.")
 
     tai_khoan = get_object_or_404(TaiKhoan.objects.select_related('user'), ma_tk=ma_tk)
     user_bi_tac_dong = tai_khoan.user
@@ -1250,36 +1224,17 @@ def staff_toggle_account_status_view(request, ma_tk):
 # =========================================================================
 # CẬP NHẬT DỊCH VỤ ĐÃ SỬ DỤNG CHO KHÁCH HÀNG
 # =========================================================================
-import json
-from decimal import Decimal
-from django.utils import timezone
-from django.db import transaction
-from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from customers.models import KhachHang, HangThanhVien
-from accounts.models import NhanVien
-from services.models import DichVu, DichVuDaSuDung
-
-
 @login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_staff_user, login_url='/home/customer/')
 def staff_customer_record_service_view(request, ma_kh):
     """
     Ghi nhận dịch vụ đã sử dụng cho khách hàng:
     - Hiển thị thông tin dịch vụ và khách hàng theo layout 2 cột.
+    - Chỉ cho phép chọn nhân viên có vai trò Chuyên viên và tài khoản đang hoạt động.
     - Tự động tính giá và giảm giá theo hạng thành viên.
     - Lưu vào bảng DichVuDaSuDung qua transaction.atomic.
     - Tự động cộng điểm tích lũy và nâng hạng thành viên nếu đủ điều kiện.
     """
-    # 1. Kiểm tra quyền nhân viên hoặc quản trị viên
-    vai_tro = ''
-    tai_khoan_hien_tai = getattr(request.user, 'thong_tin_tai_khoan', None)
-    if tai_khoan_hien_tai:
-        vai_tro = tai_khoan_hien_tai.vai_tro
-
-    if not (request.user.is_staff or request.user.is_superuser or vai_tro in ['Nhân viên', 'Quản trị viên']):
-        return redirect('/home/customer/')
-
     # 2. Lấy hồ sơ khách hàng
     khach_hang = get_object_or_404(
         KhachHang.objects.select_related('ma_tk', 'ma_tk__user', 'ma_tv'),
@@ -1289,9 +1244,16 @@ def staff_customer_record_service_view(request, ma_kh):
     tai_khoan = khach_hang.ma_tk
     user = tai_khoan.user if tai_khoan else None
 
-    # 3. Lấy danh sách dịch vụ và nhân viên từ CSDL
+    # 3. Lấy danh sách dịch vụ và chỉ lọc chuyên viên đang hoạt động
     dich_vu_list = DichVu.objects.all().order_by('ten_dich_vu')
-    nhan_vien_list = NhanVien.objects.all().order_by('ho_ten')
+    nhan_vien_list = (
+        NhanVien.objects.select_related('ma_tk__user')
+        .filter(ma_tk__user__is_active=True)
+        .filter(Q(vi_tri='Chuyên viên') | Q(ma_tk__vai_tro='Chuyên viên'))
+        .exclude(vi_tri__in=['Quản trị viên', 'Nhân viên CSKH'])
+        .exclude(ma_tk__vai_tro__in=['Quản trị viên', 'Admin', 'Nhân viên CSKH', 'Khách hàng'])
+        .order_by('ho_ten')
+    )
 
     # Hạng thành viên & tỷ lệ giảm giá hiện tại
     hang_tv = khach_hang.ma_tv
@@ -1328,12 +1290,21 @@ def staff_customer_record_service_view(request, ma_kh):
             errors.append('Vui lòng chọn nhân viên thực hiện.')
 
         dich_vu = DichVu.objects.filter(ma_dv=ma_dv).first()
-        nhan_vien = NhanVien.objects.filter(ma_nv=ma_nv).first()
+
+        # Kiểm tra nhân viên phải có vai trò Chuyên viên và tài khoản đang hoạt động
+        nhan_vien = (
+            NhanVien.objects.select_related('ma_tk__user')
+            .filter(ma_nv=ma_nv, ma_tk__user__is_active=True)
+            .filter(Q(vi_tri='Chuyên viên') | Q(ma_tk__vai_tro='Chuyên viên'))
+            .exclude(vi_tri__in=['Quản trị viên', 'Nhân viên CSKH'])
+            .exclude(ma_tk__vai_tro__in=['Quản trị viên', 'Admin', 'Nhân viên CSKH', 'Khách hàng'])
+            .first()
+        )
 
         if not dich_vu:
             errors.append('Dịch vụ đã chọn không tồn tại trên hệ thống.')
         if not nhan_vien:
-            errors.append('Nhân viên thực hiện đã chọn không tồn tại trên hệ thống.')
+            errors.append('Nhân viên thực hiện không hợp lệ hoặc không phải là Chuyên viên đang hoạt động.')
 
         ngay_su_dung_val = parse_date(ngay_su_dung_str) if ngay_su_dung_str else None
 
@@ -1357,7 +1328,6 @@ def staff_customer_record_service_view(request, ma_kh):
 
                     # Cập nhật ngày sử dụng thực tế do nhân viên chọn
                     if ngay_su_dung_val:
-                        import datetime
                         ngay_gio = timezone.make_aware(
                             datetime.datetime.combine(ngay_su_dung_val, datetime.time(9, 0, 0))
                         )
@@ -1392,8 +1362,7 @@ def staff_customer_record_service_view(request, ma_kh):
                 errors.append(f"Không thể lưu thông tin dịch vụ: {e}")
 
     # Chữ cái đại diện avatar khách hàng
-    ten_parts = (khach_hang.ho_ten or '').strip().split()
-    initials = ''.join(part[0] for part in ten_parts[-2:]).upper() if ten_parts else 'KH'
+    initials = _get_customer_initials(khach_hang.ho_ten)
 
     context = {
         'khach_hang': khach_hang,

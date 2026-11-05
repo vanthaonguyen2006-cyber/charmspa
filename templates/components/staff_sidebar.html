@@ -192,15 +192,11 @@
 
         <div class="user-dropdown" id="userDropdown" style="display: none;">
             <div class="user-dropdown-heading">Tài khoản của tôi</div>
-            <a href="/admin/password_change/" class="user-dropdown-item">
+            <a href="{% url 'staff_change_password' %}" class="user-dropdown-item">
                 <i data-lucide="user-round"></i>
                 <span>Đổi mật khẩu</span>
             </a>
             <a href="/admin/logout/" class="user-dropdown-item text-danger">
-                <i data-lucide="log-out"></i>
-                <span>Đăng xuất</span>
-            </a>
-            <a href="{% url 'dang_xuat' %}" class="user-dropdown-item text-danger">
                 <i data-lucide="log-out"></i>
                 <span>Đăng xuất</span>
             </a>

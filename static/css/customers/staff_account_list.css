@@ -2,6 +2,75 @@
    CSS DÀNH RIÊNG CHO TRANG QUẢN TRỊ TÀI KHOẢN VÀ POPUP (CHARM SPA GRAND)
    ========================================================================== */
 
+/* Flash Messages Thông báo */
+.account-flash-wrap {
+    margin-bottom: 16px;
+}
+
+.account-flash-msg {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-flash-msg.success {
+    background-color: #e6f4ea;
+    color: #137333;
+    border: 1px solid #ceead6;
+}
+
+.account-flash-msg.error {
+    background-color: #fce8e6;
+    color: #c5221f;
+    border: 1px solid #fad2cf;
+}
+
+/* Huy hiệu bảo mật trên tiêu đề */
+.security-badge {
+    background-color: #e6f4ea;
+    color: #137333;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Lưới 4 thẻ thống kê */
+.customer-stats-4col {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+
+.stat-icon-purple-soft {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
+.stat-text-blue {
+    color: #1a73e8;
+}
+
+.stat-text-green {
+    color: #137333;
+}
+
+/* Thanh tìm kiếm & bộ lọc */
+.search-box-flex {
+    flex: 1;
+}
+
+.tools-flex-gap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 /* Nút thêm mới nhân viên (Nâu vàng sang trọng) */
 .btn-gold-action {
     background-color: #8C6D4F;
@@ -47,6 +116,30 @@
     border-color: #c4baa9;
 }
 
+/* Chi tiết dòng người dùng trong bảng */
+.user-subinfo-small {
+    font-size: 11px;
+}
+
+.tier-badge-role {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.tier-badge-active {
+    background: #e6f4ea;
+    color: #137333;
+}
+
+.tier-badge-locked {
+    background: #fce8e6;
+    color: #c5221f;
+}
+
+/* ==========================================================================
+   POPUP MODAL & OVERLAY
+   ========================================================================== */
+
 /* Khung nền mờ phủ toàn màn hình (Modal Backdrop) */
 .modal-overlay {
     display: none;
@@ -61,6 +154,7 @@
     align-items: center;
     padding: 16px;
     box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
 }
 
 /* Thẻ popup chính */
@@ -74,20 +168,9 @@
     display: flex;
     flex-direction: column;
     animation: modalFadeIn 0.22s ease-out forwards;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
 }
 
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.96) translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-/* Header Modal */
 .modal-header {
     padding: 20px 24px 16px;
     border-bottom: 1px solid #f0e9df;
@@ -97,19 +180,21 @@
 }
 
 .modal-title {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    font-size: 19px;
     font-weight: 700;
     color: #2b2118;
     margin: 0;
+    line-height: 1.35;
 }
 
 .modal-subtitle {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
     font-size: 13px;
     color: #7a6e62;
-    margin: 4px 0 0;
+    margin: 5px 0 0;
+    line-height: 1.4;
 }
-
 .modal-close-btn {
     background: none;
     border: none;
@@ -131,6 +216,18 @@
     overflow-y: auto;
 }
 
+/* Thông báo lỗi chung trong Modal */
+.modal-general-error {
+    display: none;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: #fce8e6;
+    color: #c5221f;
+    border: 1px solid #fad2cf;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
 /* Lưới 2 cột cho các ô nhập liệu */
 .form-grid-2 {
     display: grid;
@@ -150,6 +247,11 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.form-group-dynamic {
+    display: none;
+    margin-top: 14px;
 }
 
 .form-label {
@@ -182,6 +284,34 @@
     box-shadow: 0 0 0 2px rgba(140, 109, 79, 0.15);
 }
 
+/* Trạng thái lỗi cho ô nhập liệu */
+.form-input.is-invalid,
+.form-select.is-invalid,
+.form-input.input-error,
+.form-select.input-error {
+    border: 1.5px solid #dc3545 !important;
+    background-color: #fff8f8 !important;
+}
+
+.form-input.is-invalid:focus,
+.form-select.is-invalid:focus,
+.form-input.input-error:focus,
+.form-select.input-error:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.18) !important;
+}
+
+/* Text thông báo lỗi ngay dưới từng ô nhập */
+.field-error-text,
+.field-error-msg {
+    display: none;
+    color: #dc3545;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
 /* Wrapper chứa ô mật khẩu và icon mắt */
 .password-field-wrapper {
     position: relative;
@@ -205,6 +335,42 @@
     font-size: 11.5px;
     color: #8c7e70;
     margin-top: 4px;
+}
+
+/* Khung hiển thị thông tin người dùng trong modal mở khóa */
+.user-unlock-preview {
+    background: #fdfbf7;
+    border: 1px solid #f0e6d2;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.user-unlock-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e6dfd3;
+    color: #5c4a32;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.user-unlock-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+.user-unlock-email {
+    font-size: 12px;
+    color: #666666;
 }
 
 /* Chân Modal chứa nút bấm */
@@ -246,4 +412,20 @@
 
 .modal-btn-submit:hover {
     background: #755a40;
+}
+
+.modal-btn-danger {
+    padding: 9px 20px;
+    background: #993D3D;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.modal-btn-danger:hover {
+    background: #802f2f;
 }

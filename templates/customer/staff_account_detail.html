@@ -1,0 +1,182 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Chi tiết tài khoản {{ tai_khoan.ma_tk }} | Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/customers/staff_account_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="account-detail-page">
+
+    <!-- Điều hướng breadcrumb -->
+    <nav class="account-detail-breadcrumb" aria-label="Điều hướng">
+        <a href="{% url 'staff_account_list' %}">Quản trị người dùng</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Chi tiết tài khoản ({{ tai_khoan.ma_tk }})</span>
+    </nav>
+
+    <!-- Tiêu đề trang -->
+    <div class="account-page-heading">
+        <div class="heading-left">
+            <a class="account-back-button" href="{% url 'staff_account_list' %}" title="Quay lại danh sách tài khoản" aria-label="Quay lại danh sách">
+                <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </a>
+            <div>
+                <h1>Chi tiết tài khoản người dùng</h1>
+                <p>Hồ sơ định danh tài khoản và nhật ký lịch sử quản trị hệ thống.</p>
+            </div>
+        </div>
+        <a class="account-back-button btn-back-text" href="{% url 'staff_account_list' %}">
+            <i data-lucide="list" style="width: 16px; height: 16px;"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <!-- Thẻ tóm tắt tài khoản -->
+    <div class="account-summary-card">
+        <div class="summary-user-wrap">
+            <div class="summary-avatar">{{ avatar_initials }}</div>
+            <div class="summary-info">
+                <h2>{{ ho_ten }}</h2>
+                <div class="summary-subline">
+                    <span><strong>Mã TK:</strong> {{ tai_khoan.ma_tk }}</span>
+                    <span>·</span>
+                    <span><strong>Username:</strong> @{{ user_obj.username }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-badges-wrap">
+            <span class="badge-role">{{ tai_khoan.vai_tro }}</span>
+            {% if user_obj.is_active %}
+                <span class="badge-status active">
+                    <span class="status-dot"></span> Đang hoạt động
+                </span>
+            {% else %}
+                <span class="badge-status locked">
+                    <span class="status-dot"></span> Đã khóa
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Thẻ 1: Thông tin chi tiết tài khoản -->
+    <div class="detail-card">
+        <div class="section-title-wrap">
+            <h3>Thông tin tài khoản</h3>
+            <p>Dữ liệu thông tin liên lạc và định danh đã đồng bộ với hệ thống</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Mã tài khoản</label>
+                <div class="value">{{ tai_khoan.ma_tk }}</div>
+            </div>
+
+            <div class="info-item">
+                <label>Họ và tên</label>
+                <div class="value">{{ ho_ten }}</div>
+            </div>
+
+            <div class="info-item">
+                <label>Tên đăng nhập (Username)</label>
+                <div class="value">{{ user_obj.username }}</div>
+            </div>
+
+            <div class="info-item">
+                <label>Số điện thoại</label>
+                <div class="value">{{ tai_khoan.so_dien_thoai|default:"Chưa cập nhật" }}</div>
+            </div>
+
+            <div class="info-item">
+                <label>Địa chỉ Email</label>
+                <div class="value">{{ user_obj.email|default:"Chưa cập nhật" }}</div>
+            </div>
+
+            <div class="info-item">
+                <label>Vai trò hệ thống</label>
+                <div class="value">{{ tai_khoan.vai_tro }}</div>
+            </div>
+
+            <div class="info-item">
+                <label>Trạng thái tài khoản</label>
+                <div class="value">
+                    {% if user_obj.is_active %}
+                        <span class="status-text-active">Đang hoạt động</span>
+                    {% else %}
+                        <span class="status-text-locked">Đã khóa</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="info-item">
+                <label>Ngày tạo tài khoản</label>
+                <div class="value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i:s" }}</div>
+            </div>
+
+            <div class="info-item">
+                <label>Ngày cập nhật gần nhất</label>
+                <div class="value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i:s" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thẻ 2: Lịch sử khóa và mở khóa tài khoản -->
+    <div class="detail-card">
+        <div class="section-title-wrap">
+            <h3>Lịch sử khóa và mở khóa tài khoản</h3>
+            <p>Nhật ký toàn bộ các thao tác thay đổi trạng thái khóa/mở khóa của tài khoản này</p>
+        </div>
+
+        {% if lich_su_list %}
+            <div class="table-responsive-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>MÃ LỊCH SỬ</th>
+                            <th>HÀNH ĐỘNG</th>
+                            <th>LÝ DO</th>
+                            <th>NGƯỜI THỰC HIỆN</th>
+                            <th>THỜI GIAN THỰC HIỆN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ls in lich_su_list %}
+                            <tr>
+                                <td class="col-code">{{ ls.ma_ls }}</td>
+                                <td>
+                                    {% if ls.hanh_dong == "Khóa" %}
+                                        <span class="badge-action lock">🔒 Khóa</span>
+                                    {% else %}
+                                        <span class="badge-action unlock">🔓 Mở khóa</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ls.ly_do }}</td>
+                                <td><strong>{{ ls.ten_nguoi_thuc_hien }}</strong></td>
+                                <td>{{ ls.thoi_gian|date:"d/m/Y H:i:s" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-history">
+                <i data-lucide="shield-alert" class="empty-icon"></i>
+                <p class="empty-text">Tài khoản chưa có lịch sử khóa hoặc mở khóa</p>
+            </div>
+        {% endif %}
+    </div>
+
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) window.lucide.createIcons();
+        });
+    </script>
+{% endblock %}
