@@ -75,9 +75,9 @@
   <div class="detail-top">
     <h1>CHI TIẾT LỊCH HẸN</h1>
     <div class="top-actions">
-      <a class="detail-btn" href="{% url 'staff_booking_list' %}"><i class="bi bi-arrow-left"></i> Quay lại</a>
+      <a class="detail-btn" href="{% url 'bookings:staff_booking_list' %}"><i class="bi bi-arrow-left"></i> Quay lại</a>
       {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
-      <form method="POST" action="{% url 'staff_booking_complete' lich_hen.ma_lh %}" class="m-0" onsubmit="return confirm('Xác nhận hoàn thành lịch hẹn này?');">
+      <form method="POST" action="{% url 'bookings:staff_booking_complete' lich_hen.ma_lh %}" class="m-0" onsubmit="return confirm('Xác nhận hoàn thành lịch hẹn này?');">
         {% csrf_token %}<button type="submit" class="detail-btn dark"><i class="bi bi-check-circle"></i> Hoàn thành</button>
       </form>
       {% endif %}
@@ -135,7 +135,7 @@
         {% endif %}
         {% if request.user.is_staff or request.user.is_superuser %}
           {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Đã xóa' and lich_hen.trang_thai != 'Hoàn thành' %}
-          <form method="POST" action="{% url 'assign_staff' lich_hen.ma_lh %}" class="assign-controls">
+          <form method="POST" action="{% url 'bookings:assign_staff' lich_hen.ma_lh %}" class="assign-controls">
             {% csrf_token %}
             <label for="assignedEmployee">{% if lich_hen.ma_nv %}Đổi / hủy phân công nhân viên{% else %}Chọn nhân viên thực hiện dịch vụ{% endif %}</label>
             <select id="assignedEmployee" name="nhan_vien_id">
@@ -167,7 +167,7 @@
 <div class="modal fade" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px; border: none;">
-            <form method="POST" action="{% url 'booking_admin_delete' lich_hen.ma_lh %}">
+            <form method="POST" action="{% url 'bookings:booking_admin_delete' lich_hen.ma_lh %}">
                 {% csrf_token %}
                 <div class="modal-header bg-warning text-dark border-bottom-0 py-3 px-4" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
                     <h5 class="modal-title fw-bold fs-6"><i class="bi bi-exclamation-triangle-fill me-2"></i> Xác nhận xóa lịch hẹn #{{ lich_hen.ma_lh }}</h5>

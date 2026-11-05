@@ -17,9 +17,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from . import flow_utils, identity
+from .permissions import admin_required
 from .models import KichBanChatbot
 
-
+@admin_required
 def admin_script_create(request):
     """Tạo kịch bản mới với sơ đồ khởi tạo: Bắt đầu -> Chào mừng."""
     if request.method != 'POST':
@@ -44,7 +45,7 @@ def admin_script_create(request):
     messages.success(request, 'Tạo kịch bản thành công!')
     return redirect('chatbot:admin_script_edit', pk=script.pk)
 
-
+@admin_required
 def admin_script_detail(request, pk):
     """Chi tiết kịch bản: sơ đồ chỉ xem."""
     script = get_object_or_404(KichBanChatbot, pk=pk)
@@ -53,7 +54,7 @@ def admin_script_detail(request, pk):
         'graph': flow_utils.load_graph(script),
     })
 
-
+@admin_required
 def admin_script_edit(request, pk):
     """Chỉnh sửa kịch bản: trình dựng kéo thả. Việc lưu dữ liệu đi qua admin_script_graph_save."""
     script = get_object_or_404(KichBanChatbot, pk=pk)
@@ -62,7 +63,7 @@ def admin_script_edit(request, pk):
         'graph': flow_utils.load_graph(script),
     })
 
-
+@admin_required
 def admin_script_preview(request, pk):
     """Xem trước: mô phỏng chatbot chạy theo sơ đồ đã lưu."""
     script = get_object_or_404(KichBanChatbot, pk=pk)
@@ -78,7 +79,7 @@ def admin_script_graph_save(request, pk):
     if not request.user.is_authenticated:
         return JsonResponse(
             {'ok': False, 'error': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'}, status=401)
-    if not identity.is_staff_user(request.user):
+    if not identity.is_admin(request.user):
         return JsonResponse({'ok': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'}, status=403)
 
     script = get_object_or_404(KichBanChatbot, pk=pk)
@@ -125,7 +126,7 @@ def admin_script_image_upload(request):
     if not request.user.is_authenticated:
         return JsonResponse(
             {'ok': False, 'error': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'}, status=401)
-    if not identity.is_staff_user(request.user):
+    if not identity.is_admin(request.user):
         return JsonResponse({'ok': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'}, status=403)
 
     upload = request.FILES.get('image')

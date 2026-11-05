@@ -10,7 +10,6 @@ accounts / customers; nếu hồ sơ không tồn tại thì trả về None tha
 """
 from . import chat_logic
 
-
 def first_attr(obj, *names):
     """Giá trị chuỗi không rỗng đầu tiên trong các thuộc tính của obj."""
     if obj is None:
@@ -68,3 +67,18 @@ def staff_display_name(user, nhan_vien=None):
     nv = nhan_vien if nhan_vien is not None else get_nhan_vien(user)
     full_name = getattr(user, 'get_full_name', lambda: '')() or ''
     return first_attr(nv, 'ho_ten') or full_name.strip() or user.get_username()
+
+ADMIN_ROLES = ('Quản trị viên', 'Admin', 'admin')
+ADMIN_ROLE = 'Quản trị viên'
+
+def is_admin(user):
+    """Chỉ quản trị viên được sửa kịch bản chatbot."""
+    if not getattr(user, 'is_authenticated', False):
+        return False
+    if user.is_superuser:
+        return True
+    return first_attr(get_taikhoan(user), 'vai_tro') == ADMIN_ROLE   # đổi 'vai_tro' nếu field thật tên khác
+
+
+def is_staff_or_admin(user):
+    return is_staff_user(user)

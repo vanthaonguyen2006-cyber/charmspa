@@ -29,7 +29,7 @@
 
     <header class="customer-detail-page-head">
         <h1>CHI TIẾT LỊCH HẸN</h1>
-        <a href="{% url 'booking_customer_list' %}" class="customer-detail-back"><i class="bi bi-arrow-left"></i> Quay lại</a>
+        <a href="{% url 'bookings:booking_customer_list' %}" class="customer-detail-back"><i class="bi bi-arrow-left"></i> Quay lại</a>
     </header>
 
     <section class="customer-detail-summary">
@@ -98,7 +98,7 @@
             <button type="button" class="customer-detail-cancel" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lich_hen.ma_lh }}"><i class="bi bi-x-circle"></i> Hủy lịch</button>
             <p class="customer-detail-policy">Chỉ được đổi hoặc hủy lịch trước giờ hẹn ít nhất 12 tiếng, theo quy định của spa.</p>
             {% else %}
-            <a class="customer-detail-change" href="{% url 'booking_customer_create' %}"><i class="bi bi-calendar-plus"></i> Đặt lịch mới</a>
+            <a class="customer-detail-change" href="{% url 'bookings:booking_customer_create' %}"><i class="bi bi-calendar-plus"></i> Đặt lịch mới</a>
             {% endif %}
         </aside>
     </div>

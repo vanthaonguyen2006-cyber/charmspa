@@ -83,7 +83,7 @@
                 </a>
 
                 <!-- Mục 3: Lịch hẹn -->
-                <a href="{% url 'booking_customer_list' %}"
+                <a href="{% url 'bookings:booking_customer_list' %}"
                    class="flex-1 text-center py-4 px-6 border-b-2 transition
                    {% if 'booking' in request.resolver_match.url_name %}
                        border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50

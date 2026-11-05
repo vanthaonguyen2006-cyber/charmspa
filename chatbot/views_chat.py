@@ -181,7 +181,9 @@ def chat_flow(request):
 
     phien = get_or_create_session(sid, request.user)
     if not _can_access(request, phien):
-        return _err('Không có quyền truy cập hội thoại này.', 403)
+        # Mã phiên cũ thuộc người khác: cấp mã mới thay vì báo lỗi
+        sid = 'P' + uuid.uuid4().hex[:9].upper()
+        phien = get_or_create_session(sid, request.user)
     graph = _graph_of(phien)
 
     node_id = str(data.get('node_id') or '')[:40]
@@ -199,7 +201,8 @@ def chat_flow(request):
         if target is not None:
             _log(phien, 'Chatbot', cl.node_log_text(target), target)
 
-    return JsonResponse({'ok': True, 'node': cl.public_node(target) if target else None})
+    return JsonResponse({'ok': True, 'session_id': sid,
+                         'node': cl.public_node(target) if target else None})
 
 
 @require_POST
@@ -240,8 +243,11 @@ def chat_state(request):
     """Trạng thái hội thoại + tin nhắn, widget gọi định kỳ khi đang tư vấn trực tiếp."""
     sid = _sid(request.GET.get('session_id'))
     phien = PhienHoiThoai.objects.filter(pk=sid).first() if sid else None
-    if phien is None or not _can_access(request, phien):
+    if phien is None:
         return JsonResponse({'ok': True, 'exists': False})
+    if not _can_access(request, phien):
+        # Phiên thuộc người khác: báo cho widget tự cấp mã phiên mới
+        return JsonResponse({'ok': True, 'exists': False, 'forbidden': True})
 
     # Khách chat lúc chưa đăng nhập rồi đăng nhập sau: gắn hội thoại vào hồ sơ khách để hiện ở "Lịch sử hội thoại"
     kh = identity.get_khach_hang(request.user)

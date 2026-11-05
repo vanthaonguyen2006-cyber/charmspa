@@ -90,7 +90,7 @@ def booking_customer_create(request):
 
             if ngay_check in locked_dates_str:
                 messages.error(request, "Ngày bạn chọn hiện đang đóng cửa (Nghỉ lễ/Bảo trì). Vui lòng chọn ngày khác.")
-                return redirect('booking_customer_create')
+                return redirect('bookings:booking_customer_create')
 
             so_luong_int = int(so_luong) if so_luong else 1
 
@@ -124,13 +124,12 @@ def booking_customer_create(request):
             )
 
             request.session['last_booking_code'] = ma_lh_moi
-            return redirect('booking_customer_success')
+            return redirect('bookings:booking_customer_success')
 
         except Exception as e:
             print("LỖI KHI ĐẶT LỊCH:", e)
             traceback.print_exc()
             messages.error(request, f"Có lỗi xảy ra khi đặt lịch: {e}")
-
 
     # Lấy thông tin tài khoản khách hàng đang đăng nhập
     tai_khoan = TaiKhoan.objects.filter(
@@ -169,6 +168,7 @@ def booking_customer_create(request):
 
     return render(request, 'bookings/customer_create.html', context)
 
+
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_list(request):
     trang_thai_filter = request.GET.get('trang_thai', '')
@@ -206,7 +206,7 @@ def booking_customer_list(request):
         'dich_vu_list': dich_vu_list,
         'current_filter': trang_thai_filter,
         'khach_hang': khach_hang,
-        'locked_dates_json': locked_dates_str,  # <-- Bổ sung dòng này vào context
+        'locked_dates_json': locked_dates_str,
         **get_staff_context(request)
     })
 
@@ -235,6 +235,7 @@ def booking_customer_detail(request, ma_lh):
         ]),
         **get_staff_context(request)
     })
+
 
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_success(request):
@@ -265,11 +266,12 @@ def booking_customer_success(request):
         **get_staff_context(request)
     })
 
+
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_cancel(request, ma_lh):
     """Đổi trạng thái lịch thành Đã hủy, giữ bản ghi trong database."""
     if request.method != 'POST':
-        return redirect('booking_customer_list')
+        return redirect('bookings:booking_customer_list')
 
     lich_hen = get_object_or_404(
         LichHen, ma_lh=ma_lh, ma_kh__ma_tk__user=request.user
@@ -277,7 +279,7 @@ def booking_customer_cancel(request, ma_lh):
 
     if lich_hen.trang_thai in ('Đã hủy', 'Hoàn thành', 'Đã xóa'):
         messages.error(request, 'Lịch hẹn này không thể hủy.')
-        return redirect('booking_customer_list')
+        return redirect('bookings:booking_customer_list')
 
     ngay_gio_hen = datetime.combine(lich_hen.ngay_hen, lich_hen.gio_hen)
     if timezone.is_naive(ngay_gio_hen):
@@ -289,30 +291,30 @@ def booking_customer_cancel(request, ma_lh):
         messages.error(
             request, 'Không thể hủy! Chỉ được hủy trước giờ hẹn ít nhất 12 tiếng.'
         )
-        return redirect('booking_customer_list')
+        return redirect('bookings:booking_customer_list')
 
     ly_do = request.POST.get('ly_do_huy', '').strip()
     if ly_do == 'Khác':
         ly_do = request.POST.get('ly_do_khac', '').strip()
     if not ly_do:
         messages.error(request, 'Vui lòng nhập lý do hủy lịch.')
-        return redirect('booking_customer_list')
+        return redirect('bookings:booking_customer_list')
 
     lich_hen.trang_thai = 'Đã hủy'
     lich_hen.ly_do_huy = ly_do
     lich_hen.save(update_fields=['trang_thai', 'ly_do_huy'])
 
     messages.success(request, f'Đã hủy lịch #{lich_hen.ma_lh} thành công.')
-    return redirect(reverse('booking_customer_list') + '?trang_thai=cancelled')
+    return redirect(reverse('bookings:booking_customer_list') + '?trang_thai=cancelled')
 
-@login_required(login_url='/accounts/dang_nhap/')
+
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_reschedule(request, ma_lh):
     # Quay về đúng giao diện của người đang thực hiện đổi lịch.
     redirect_url = (
-        'staff_booking_list'
+        'bookings:staff_booking_list'
         if request.user.is_staff or request.user.is_superuser
-        else 'booking_customer_list'
+        else 'bookings:booking_customer_list'
     )
     if request.method == "POST":
         lich_hen_qs = LichHen.objects.all()
@@ -352,7 +354,7 @@ def booking_customer_reschedule(request, ma_lh):
             if dich_vu_moi:
                 dich_vu_hien_tai = dich_vu_moi
 
-        ngay_str = lich_hen.ngay_hen
+        ngay_str = str(lich_hen.ngay_hen)
         if ngay_hen_moi:
             try:
                 if '/' in ngay_hen_moi:
@@ -380,7 +382,7 @@ def booking_customer_reschedule(request, ma_lh):
 
         query = LichHen.objects.filter(ngay_hen=ngay_str).exclude(trang_thai='Đã hủy').exclude(ma_lh=lich_hen.ma_lh)
 
-        gio_clean = gio_str.strip().lower()
+        gio_clean = str(gio_str).strip().lower()
         target_hour_str = gio_clean.split(':')[0] if ':' in gio_clean else '12'
 
         matched_bookings = []
@@ -508,7 +510,7 @@ def manage_activity_days(request):
                         ngay_hd.ly_do_khoa = ly_do
                         ngay_hd.save()
 
-                return redirect('quan_ly_ngay_hoat_dong')
+                return redirect('bookings:quan_ly_ngay_hoat_dong')
 
     context = {
         'ngay_da_khoa': ngay_da_khoa,
@@ -532,7 +534,7 @@ def unlock_activity_day(request, pk):
     ngay_hd.trang_thai = 'Hoạt động'
     ngay_hd.ly_do_khoa = None
     ngay_hd.save()
-    return redirect('quan_ly_ngay_hoat_dong')
+    return redirect('bookings:quan_ly_ngay_hoat_dong')
 
 
 def api_check_bed_availability(request):
@@ -547,7 +549,7 @@ def api_check_bed_availability(request):
     if '/' in ngay:
         try:
             ngay_str = datetime.strptime(ngay.strip(), '%d/%m/%Y').date().strftime('%Y-%m-%d')
-        except:
+        except (ValueError, TypeError):
             pass
 
     gio_clean = gio.strip().lower()
@@ -649,33 +651,33 @@ def booking_staff_create(request):
                 dich_vu = DichVu.objects.first()
             if not dich_vu:
                 messages.error(request, "Lỗi tạo lịch: Không tìm thấy dịch vụ nào trong hệ thống.")
-                return redirect('staff_booking_create')
+                return redirect('bookings:staff_booking_create')
 
             date_obj = datetime.strptime(ngay_hen.strip(), '%d/%m/%Y').date()
             ngay_check = date_obj.strftime('%Y-%m-%d')
 
             if ngay_check in locked_dates_str:
                 messages.error(request, "Ngày bạn chọn hiện đang đóng cửa (Nghỉ lễ/Bảo trì).")
-                return redirect('staff_booking_create')
+                return redirect('bookings:staff_booking_create')
 
             # Không tìm khách bằng họ tên: một tên có thể thuộc nhiều hồ sơ.
             if ma_kh_chon:
                 khach_hang = KhachHang.objects.filter(pk=ma_kh_chon).first()
                 if khach_hang is None:
                     messages.error(request, 'Khách hàng đã chọn không còn tồn tại. Vui lòng chọn lại.')
-                    return redirect('staff_booking_create')
+                    return redirect('bookings:staff_booking_create')
                 so_khach = getattr(getattr(khach_hang, 'ma_tk', None), 'so_dien_thoai', '')
                 if so_khach and sdt != so_khach:
                     messages.error(request, 'Số điện thoại không khớp khách hàng đã chọn. Vui lòng chọn lại.')
-                    return redirect('staff_booking_create')
+                    return redirect('bookings:staff_booking_create')
             else:
                 if not sdt:
                     messages.error(request, 'Vui lòng chọn khách hàng hoặc nhập số điện thoại.')
-                    return redirect('staff_booking_create')
+                    return redirect('bookings:staff_booking_create')
                 khach_hang = KhachHang.objects.filter(ma_tk__so_dien_thoai=sdt).first()
                 if khach_hang is None:
                     messages.error(request, 'Không tìm thấy tài khoản khách hàng với số điện thoại này. Vui lòng tạo hồ sơ khách hàng trước khi đặt lịch.')
-                    return redirect('staff_booking_create')
+                    return redirect('bookings:staff_booking_create')
 
             ngay_hd, _ = NgayHoatDong.objects.get_or_create(
                 ngay=ngay_check,
@@ -697,7 +699,7 @@ def booking_staff_create(request):
             )
 
             messages.success(request, f"Đã tạo thành công lịch hẹn #{ma_lh_moi} cho khách {khach_hang.ho_ten}!")
-            return redirect('staff_booking_list')
+            return redirect('bookings:staff_booking_list')
 
         except Exception as e:
             print("LỖI NHÂN VIÊN TẠO LỊCH:", e)
@@ -747,6 +749,7 @@ def booking_staff_list(request):
         **get_staff_context(request)
     })
 
+
 @staff_member_required(login_url='/accounts/dang_nhap/')
 def booking_staff_detail(request, ma_lh):
     lich_hen = get_object_or_404(LichHen.objects.select_related('ma_dv', 'ma_kh', 'ma_nv'), ma_lh=ma_lh)
@@ -768,7 +771,7 @@ def booking_staff_complete(request, ma_lh):
         lich_hen.trang_thai = 'Hoàn thành'
         lich_hen.save()
         messages.success(request, f"Đã cập nhật lịch hẹn #{lich_hen.ma_lh} thành Hoàn thành thành công!")
-    return redirect('staff_booking_detail', ma_lh=ma_lh)
+    return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
 
 @user_passes_test(is_admin, login_url='/accounts/dang_nhap/')
@@ -781,7 +784,7 @@ def booking_admin_delete(request, ma_lh):
         lich_hen.save()
         messages.success(request, f"Đã chuyển lịch hẹn #{ma_hien_tai} sang trạng thái Đã xóa thành công.")
 
-    return redirect('staff_booking_list')
+    return redirect('bookings:staff_booking_list')
 
 
 @user_passes_test(is_admin, login_url='/accounts/dang_nhap/')
@@ -801,7 +804,7 @@ def assign_staff_to_booking(request, ma_lh):
             if trung_lich:
                 messages.error(request,
                                f"Không thể phân công! Nhân viên {nhan_vien.ho_ten} đã có lịch làm việc vào lúc {lich_hen.gio_hen} ngày {lich_hen.ngay_hen} rồi.")
-                return redirect('staff_booking_detail', ma_lh=lich_hen.ma_lh)
+                return redirect('bookings:staff_booking_detail', ma_lh=lich_hen.ma_lh)
 
             lich_hen.ma_nv = nhan_vien
             lich_hen.save()
@@ -812,7 +815,7 @@ def assign_staff_to_booking(request, ma_lh):
             lich_hen.save()
             messages.success(request, f"Đã hủy phân công nhân viên cho lịch hẹn #{ma_lh}.")
 
-    return redirect('staff_booking_detail', ma_lh=ma_lh)
+    return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
 
 @staff_member_required(login_url='/accounts/dang_nhap/')

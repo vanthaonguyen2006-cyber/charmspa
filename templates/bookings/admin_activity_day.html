@@ -66,7 +66,7 @@
                         <td class="py-4 px-6 font-medium">{{ item.ngay|date:"d/m/Y" }}</td>
                         <td class="py-4 px-6">{{ item.ly_do_khoa }}</td>
                         <td class="py-4 px-6"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Đã khóa</span></td>
-                        <td class="py-4 px-6 text-right"><a href="{% url 'mo_khoa_ngay' item.ma_nhd %}" class="text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</a></td>
+                        <td class="py-4 px-6 text-right"><a href="{% url 'bookings:mo_khoa_ngay' item.ma_nhd %}" class="text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</a></td>
                     </tr>
                     {% empty %}<tr><td colspan="4" class="py-6 text-center text-stone-400">Chưa có ngày nào bị khóa trong hệ thống.</td></tr>{% endfor %}
                 </tbody>

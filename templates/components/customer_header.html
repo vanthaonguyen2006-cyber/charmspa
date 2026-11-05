@@ -25,7 +25,7 @@
 
     <!-- 3. Cụm Hành động -->
     <div class="header-actions">
-        <a href="{% url 'booking_customer_create' %}" class="btn-booking">ĐẶT LỊCH NGAY</a>
+        <a href="{% url 'bookings:booking_customer_create' %}" class="btn-booking">ĐẶT LỊCH NGAY</a>
 
         <!-- Kiểm tra trạng thái đăng nhập chuẩn Django -->
         {% if request.user.is_authenticated %}

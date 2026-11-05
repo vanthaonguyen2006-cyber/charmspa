@@ -26,7 +26,7 @@
     <!-- MENU -->
     <nav class="sidebar-menu">
 
-        <a href="{% url 'staff_home' %}" title="Tổng quan"
+        <a href="{% url 'core:staff_dashboard' %}" title="Tổng quan"
            class="sidebar-item {% if active_menu == 'dashboard' %}active{% endif %}">
             <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
             <span class="sidebar-label">Tổng quan</span>
@@ -38,7 +38,7 @@
             <span class="sidebar-label">Khách hàng</span>
         </a>
 
-        <a href="{% url 'staff_booking_list' %}" title="Lịch hẹn"
+        <a href="{% url 'bookings:staff_booking_list' %}" title="Lịch hẹn"
            class="sidebar-item {% if active_menu == 'bookings' %}active{% endif %}">
             <i data-lucide="calendar-days" class="sidebar-icon"></i>
             <span class="sidebar-label">Lịch hẹn</span>
@@ -47,7 +47,7 @@
             {% endif %}
         </a>
 
-        <a href="{% url 'quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
+        <a href="{% url 'bookings:quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
            class="sidebar-item {% if active_menu == 'working_days' %}active{% endif %}">
             <i data-lucide="calendar-check-2" class="sidebar-icon"></i>
             <span class="sidebar-label">Ngày hoạt động</span>
@@ -151,10 +151,12 @@
                 Quản lý hội thoại
             </a>
 
+            {% if request.user.is_superuser or request.user.thong_tin_tai_khoan.vai_tro == 'Quản trị viên' %}
             <a href="{% url 'chatbot:admin_script_list' %}"
                class="sidebar-subitem {% if active_menu == 'chatbot_scripts' %}active-sub{% endif %}">
                 Quản lý kịch bản
             </a>
+            {% endif %}
         </div>
 
     </nav>
@@ -196,10 +198,7 @@
                 <i data-lucide="user-round"></i>
                 <span>Đổi mật khẩu</span>
             </a>
-            <a href="/admin/logout/" class="user-dropdown-item text-danger">
-                <i data-lucide="log-out"></i>
-                <span>Đăng xuất</span>
-            </a>
+
             <a href="{% url 'dang_xuat' %}" class="user-dropdown-item text-danger">
                 <i data-lucide="log-out"></i>
                 <span>Đăng xuất</span>

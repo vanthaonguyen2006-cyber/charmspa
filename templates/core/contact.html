@@ -4,9 +4,9 @@
 {% block title %}Liên Hệ | Charm Spa Grand{% endblock %}
 
 {% block extra_css %}
-<!-- NHÚNG BOOTSTRAP 5 & LUCIDE ICONS NẾU BASE CHƯA CÓ -->
+<!-- BOOTSTRAP 5 & FONT AWESOME 6 (ĐẦY ĐỦ ICON THƯƠNG HIỆU) -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
     :root {
@@ -33,6 +33,10 @@
         padding: 20px;
         height: 100%;
         box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease;
+    }
+    .info-card:hover {
+        transform: translateY(-3px);
     }
     .icon-box {
         width: 44px;
@@ -44,34 +48,65 @@
         align-items: center;
         justify-content: center;
         margin-bottom: 12px;
+        font-size: 18px;
     }
-    .form-control, .form-select {
+    .contact-details-box {
+        background: #ffffff;
         border: 1px solid #EAE6DF;
-        padding: 10px 14px;
-        border-radius: 8px;
+        border-radius: 12px;
+        padding: 32px;
+        height: 100%;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--spa-gold);
-        box-shadow: 0 0 0 0.25rem rgba(197, 160, 89, 0.15);
+    .contact-detail-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 22px;
     }
-    .btn-gold {
-        background-color: var(--spa-gold);
-        color: #fff;
-        font-weight: 600;
-        padding: 12px 24px;
-        border-radius: 8px;
-        border: none;
-    }
-    .btn-gold:hover {
-        background-color: #b08d48;
-        color: #fff;
+    .contact-detail-icon {
+        width: 42px;
+        height: 42px;
+        background: #faf7f2;
+        border: 1px solid #f0e6d2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--spa-gold);
+        flex-shrink: 0;
+        font-size: 18px;
     }
     .map-container iframe {
         width: 100%;
         height: 100%;
-        min-height: 380px;
+        min-height: 440px;
         border-radius: 12px;
         border: 0;
+    }
+    /* NÚT MẠNG XÃ HỘI MÀU VÀNG ĐỒNG SANG TRỌNG */
+    .social-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: var(--spa-gold);
+        color: #ffffff !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        margin-right: 6px;
+        font-size: 15px;
+        transition: all 0.2s ease;
+    }
+    .social-btn:hover {
+        background-color: var(--spa-dark);
+        transform: translateY(-2px);
+    }
+    .zalo-badge {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
     }
 </style>
 {% endblock %}
@@ -88,97 +123,122 @@
 <div class="bg-light py-5">
     <div class="container">
 
-        <!-- HIỂN THỊ THÔNG BÁO HỆ THỐNG GỌN GÀNG (CÓ NÚT TẮT X) -->
-        {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show rounded-3 mb-2 shadow-sm" role="alert">
-                        <small>{{ message }}</small>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <!-- THÔNG TIN LIÊN HỆ (4 CỘT) -->
+        <!-- 4 THẺ THÔNG TIN TÓM TẮT PHÍA TRÊN -->
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <div class="info-card">
-                    <div class="icon-box"><i data-lucide="map-pin" style="width: 20px;"></i></div>
+                    <div class="icon-box"><i class="fa-solid fa-location-dot"></i></div>
                     <h6 class="fw-bold text-dark mb-1">Địa chỉ</h6>
                     <p class="text-muted small mb-0">38 Võ Nguyên Giáp, Sơn Trà, Đà Nẵng</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="info-card">
-                    <div class="icon-box"><i data-lucide="phone-call" style="width: 20px;"></i></div>
+                    <div class="icon-box"><i class="fa-solid fa-phone"></i></div>
                     <h6 class="fw-bold text-dark mb-1">Hotline tư vấn</h6>
                     <p class="text-muted small mb-0"><strong>1900 6789</strong><br>0901 234 567</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="info-card">
-                    <div class="icon-box"><i data-lucide="mail" style="width: 20px;"></i></div>
+                    <div class="icon-box"><i class="fa-solid fa-envelope"></i></div>
                     <h6 class="fw-bold text-dark mb-1">Email gửi thư</h6>
                     <p class="text-muted small mb-0">booking@charmgrand.vn<br>info@charmgrand.vn</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="info-card">
-                    <div class="icon-box"><i data-lucide="clock" style="width: 20px;"></i></div>
+                    <div class="icon-box"><i class="fa-solid fa-clock"></i></div>
                     <h6 class="fw-bold text-dark mb-1">Giờ mở cửa</h6>
                     <p class="text-muted small mb-0">Thứ 2 - Chủ Nhật<br><strong>09:00 - 22:00</strong></p>
                 </div>
             </div>
         </div>
 
-        <!-- FORM GỬI PHẢN HỒI & BẢN ĐỒ -->
+        <!-- KHỐI THÔNG TIN CHI TIẾT VÀ BẢN ĐỒ -->
         <div class="row g-4">
-            <!-- FORM LIÊN HỆ -->
+            <!-- CỘT TRÁI: THÔNG TIN CHI TIẾT SPA -->
             <div class="col-lg-6">
-                <div class="bg-white p-4 rounded-3 border shadow-sm h-100">
-                    <h4 class="fw-bold mb-1 text-dark" style="font-family: 'Playfair Display', Georgia, serif;">Gửi tin nhắn trực tiếp</h4>
-                    <p class="text-muted small mb-4">Vui lòng điền thông tin bên dưới, chuyên viên tư vấn sẽ liên hệ lại ngay.</p>
+                <div class="contact-details-box">
+                    <h4 class="fw-bold text-uppercase mb-2" style="font-family: 'Playfair Display', Georgia, serif; color: var(--spa-gold);">
+                        THÔNG TIN LIÊN HỆ
+                    </h4>
+                    <h5 class="fw-bold text-dark mb-3">CHARM GRAND LUXURY SPA & WELLNESS</h5>
+                    <p class="text-muted small mb-4">
+                        Nơi khởi nguồn hạnh phúc từ sự tĩnh lặng của cơ thể và sự tự tại trong tâm hồn. Quý khách có thể liên hệ trực tiếp hoặc đến trải nghiệm dịch vụ tại địa chỉ của chúng tôi:
+                    </p>
 
-                    <form method="POST" action="{% url 'core:contact' %}">
-                        {% csrf_token %}
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold text-secondary">Họ và tên *</label>
-                                <input type="text" name="ho_ten" class="form-control" placeholder="Nguyễn Văn A" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold text-secondary">Số điện thoại *</label>
-                                <input type="tel" name="so_dien_thoai" class="form-control" placeholder="0905 xxx xxx" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold text-secondary">Địa chỉ Email</label>
-                                <input type="email" name="email" class="form-control" placeholder="email@example.com">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold text-secondary">Chủ đề cần hỗ trợ</label>
-                                <select name="chu_de" class="form-select">
-                                    <option value="Tư vấn dịch vụ">Tư vấn dịch vụ & gói trị liệu</option>
-                                    <option value="Hỏi về khuyến mãi">Hỏi về chương trình khuyến mãi</option>
-                                    <option value="Góp ý dịch vụ">Góp ý chất lượng dịch vụ</option>
-                                    <option value="Khác">Khác</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold text-secondary">Lời nhắn / Yêu cầu *</label>
-                                <textarea name="noi_dung" rows="4" class="form-control" placeholder="Nhập nội dung lời nhắn..." required></textarea>
-                            </div>
-                            <div class="col-12 pt-2">
-                                <button type="submit" class="btn btn-gold w-100 shadow-sm d-flex align-items-center justify-content-center gap-2">
-                                    <i data-lucide="send" style="width: 18px;"></i> GỬI YÊU CẦU LIÊN HỆ
-                                </button>
-                            </div>
+                    <div class="contact-detail-item">
+                        <div class="contact-detail-icon">
+                            <i class="fa-solid fa-location-dot"></i>
                         </div>
-                    </form>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Địa chỉ trụ sở</h6>
+                            <p class="text-muted small mb-0">38 Võ Nguyên Giáp, Quận Sơn Trà, Thành phố Đà Nẵng</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-detail-item">
+                        <div class="contact-detail-icon">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Hotline tư vấn & Đặt lịch</h6>
+                            <p class="text-muted small mb-0">
+                                Tổng đài: <strong class="text-dark">1900 6789</strong> — Hotline: <strong class="text-dark">0901 234 567</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="contact-detail-item">
+                        <div class="contact-detail-icon">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Email gửi thư</h6>
+                            <p class="text-muted small mb-0">
+                                booking@charmgrand.vn | info@charmgrand.vn
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="contact-detail-item">
+                        <div class="contact-detail-icon">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Giờ mở cửa</h6>
+                            <p class="text-muted small mb-0">09:00 - 22:00 (Thứ 2 - Chủ Nhật, bao gồm cả ngày Lễ)</p>
+                        </div>
+                    </div>
+
+                    <!-- THỜI LƯỢNG VÀ KHÔNG GIAN SPA -->
+                    <div class="d-flex align-items-center gap-3 my-4">
+                        <img src="{% static 'images/core/spa_interior.jpg' %}"
+                             alt="Không gian Charm Spa"
+                             class="img-fluid rounded-3 shadow-sm"
+                             style="width: 140px; height: 85px; object-fit: cover;"
+                             onerror="this.style.display='none'">
+                        <span class="fst-italic text-secondary small">"Hân hạnh được đón tiếp Quý khách!"</span>
+                    </div>
+
+                    <hr class="my-3" style="border-color: #EAE6DF;">
+
+                    <!-- KHU VỰC LOGO MẠNG XÃ HỘI -->
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <span class="fw-bold small text-secondary text-uppercase">KẾT NỐI VỚI CHÚNG TÔI</span>
+                        <div>
+                            <a href="#" class="social-btn" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" class="social-btn" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="social-btn" title="Youtube"><i class="fa-brands fa-youtube"></i></a>
+                            <a href="#" class="social-btn" title="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                            <a href="#" class="social-btn" title="Zalo"><span class="zalo-badge">Zalo</span></a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- BẢN ĐỒ GOOGLE MAPS -->
+            <!-- CỘT PHẢI: BẢN ĐỒ GOOGLE MAPS -->
             <div class="col-lg-6">
                 <div class="map-container bg-white p-2 rounded-3 border shadow-sm h-100">
                     <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3834.113063236054!2d108.2435!3d16.0598!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3142177f1f000000%3A0x0!2zMzggVsO1IE5ndXnhu4VuIEdpw6FwLCBTxqFuIFRyw6AsIMSQw6AgTuG6t25n!5e0!3m2!1svi!2svn!4v1700000000000" allowfullscreen="" loading="lazy"></iframe>
@@ -190,11 +250,4 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-    });
-</script>
 {% endblock %}
