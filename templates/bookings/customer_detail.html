@@ -1,20 +1,17 @@
 {% extends 'layouts/customer_base_pro.html' %}
 {% load static %}
-{% block title %}Chi tiết lịch hẹn - Charm Grand Spa{% endblock %}
-
 {% block extra_css %}
     {{ block.super }}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://npmcdn.flatpickr/dist/themes/material_gold.css">
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=20261102fontboth2">
+    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=font_sync_30px_v2">
+    <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
 {% endblock %}
-
 {% block profile_content %}
+
 <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=20261102fontboth2">
+<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=font_sync_30px_v2">
+<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <div class="booking-customer-detail">
     {% if messages %}
     <div class="mb-3">
@@ -106,7 +103,7 @@
 
 {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
                 <!-- MODAL HỦY LỊCH HẸN (Đã mở rộng chiều dài ngang max-width 950px) -->
-                <div class="modal fade" id="cancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+                <div class="modal fade booking-ui-modal" id="cancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 950px;">
                         <div class="modal-content" style="border-radius: 16px; border: none; padding: 10px;">
                             <form method="POST" action="{% url 'booking_customer_cancel' lich_hen.ma_lh %}">
@@ -143,7 +140,7 @@
                 </div>
 
                 <!-- MODAL THAY ĐỔI LỊCH HẸN -->
-                <div class="modal fade booking-reschedule-modal" id="rescheduleModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+                <div class="modal fade booking-ui-modal booking-reschedule-modal" id="rescheduleModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl">
                         <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12); background-color: #f9f6f0;">
                             <form method="POST" class="customer-reschedule-form"
@@ -270,7 +267,7 @@
     {{ block.super }}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.flatpickr/dist/l10n/vn.js"></script>
+
     <script>
     // Hàm ẩn/hiện ô nhập lý do khác
     function toggleLyDoKhac(bookingId) {
@@ -451,7 +448,6 @@
             const name = selectedCard?.textContent?.toLowerCase() || '';
             form.dataset.originalType = name.includes('shampoo') || name.includes('gội') ? 'shampoo' : 'massage';
             const fp = flatpickr(dateInput, {
-                locale: 'vn',
                 dateFormat: 'd/m/Y',
                 minDate: 'today',
                 defaultDate: form.dataset.originalDate,
@@ -476,3 +472,5 @@
     });
     </script>
 {% endblock %}
+
+```

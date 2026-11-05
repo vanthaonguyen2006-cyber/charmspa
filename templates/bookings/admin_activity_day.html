@@ -8,17 +8,73 @@
 {% endblock %}
 {% block content %}
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* ========================================================
+   NGAY HOAT DONG - CHINH FONT VA KHOANG CACH RIENG TRANG
+   Khong anh huong Header, Sidebar, Create, List, Detail.
+   ======================================================== */
+:root {
+    --activity-top-gap: 20px;        /* Header -> vung noi dung */
+    --activity-title-size: 28px;     /* QUAN LY NGAY HOAT DONG */
+    --activity-section-size: 18px;   /* Thang + Danh sach ngay khoa */
+    --activity-body-size: 14px;      /* Chu noi dung */
+}
+
+/* Giam khoang trong do .staff-content (30px) + pt-4 (16px) cong lai */
+.staff-content:has(> .booking-admin-activity) {
+    padding-top: var(--activity-top-gap) !important;
+}
+.staff-content > .booking-admin-activity {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Dong bo Arial, loai font-serif cua Tailwind chi trong trang nay */
+.booking-admin-activity,
+.booking-admin-activity :is(h1,h2,h3,h4,h5,h6,p,span,div,button,a,table,th,td,label,input,select,textarea) {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+.booking-admin-activity > div:first-child h1 {
+    font-size: var(--activity-title-size) !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0 !important;
+    margin: 0 !important;
+}
+.booking-admin-activity > div:first-child p {
+    font-size: var(--activity-body-size) !important;
+}
+.booking-admin-activity > .bg-white h3 {
+    font-size: var(--activity-section-size) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+}
+.booking-admin-activity > div:first-child {
+    margin-bottom: 22px !important;
+}
+.booking-admin-activity .booking-activity-calendar {
+    margin-bottom: 20px !important;
+}
+@media (max-width: 650px) {
+    .booking-admin-activity > div:first-child h1 {
+        font-size: 23px !important;
+    }
+}
+</style>
 <div class="booking-admin-activity pt-4 px-8 pb-8 max-w-7xl w-full mx-auto">
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-serif text-stone-900 tracking-wide">QUẢN LÝ NGÀY HOẠT ĐỘNG</h1>
+            <h1 class="text-3xl font-sans text-stone-900 tracking-wide">QUẢN LÝ NGÀY HOẠT ĐỘNG</h1>
             <p class="text-sm text-stone-600 mt-1">Thiết lập ngày đóng cửa và quản lý khả năng đặt lịch của spa.</p>
         </div>
-        <button onclick="toggleModal(true)" class="bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md transition flex items-center gap-2">+ Khóa ngày</button>
+        {% if request.user.is_superuser %}
+        <button type="button" onclick="toggleModal(true)" class="bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md transition flex items-center gap-2">+ Khóa ngày</button>
+        {% endif %}
     </div>
+
     <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-8 booking-activity-calendar">
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-serif font-semibold text-stone-900">{{ current_month_year }}</h3>
+            <h3 class="text-xl font-sans font-semibold text-stone-900">{{ current_month_year }}</h3>
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
                     <a href="?month={{ prev_month }}&year={{ prev_year }}" class="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-medium text-stone-700 hover:bg-stone-100 transition">&larr; Tháng trước</a>
@@ -34,51 +90,75 @@
             <div>Thứ 2</div><div>Thứ 3</div><div>Thứ 4</div><div>Thứ 5</div><div>Thứ 6</div><div>Thứ 7</div><div>Chủ nhật</div>
         </div>
         <div class="grid grid-cols-7 gap-2">
-            {% for week in calendar_matrix %}{% for day in week %}
-                {% if day.is_locked %}
-                    <div class="booking-day-cell h-24 border border-amber-300 rounded-lg p-2 bg-amber-50/80 flex flex-col justify-between shadow-xs">
-                        <span class="font-bold text-amber-900 text-sm">{{ day.day_number }}</span>
-                        <div class="text-[10px] bg-amber-200/80 text-amber-900 rounded px-1.5 py-0.5 font-medium truncate" title="{{ day.ly_do }}">🔒 {{ day.ly_do|default:"Đã khóa" }}</div>
-                    </div>
-                {% elif day.is_current_month %}
-                    <div class="booking-day-cell h-24 border border-stone-200 rounded-lg p-2 bg-white flex flex-col justify-between hover:border-stone-400 transition">
-                        <span class="font-medium text-stone-800 text-sm">{{ day.day_number }}</span><span class="text-[10px] text-emerald-600 font-medium">Hoạt động</span>
-                    </div>
-                {% else %}
-                    <div class="booking-day-cell h-24 border border-stone-100 rounded-lg p-2 bg-stone-50/50 text-stone-300 flex flex-col justify-between"><span class="text-sm">{{ day.day_number }}</span></div>
-                {% endif %}
-            {% endfor %}{% endfor %}
+            {% for week in calendar_matrix %}
+                {% for day in week %}
+                    {% if day.is_locked %}
+                        <div class="booking-day-cell h-24 border border-amber-300 rounded-lg p-2 bg-amber-50/80 flex flex-col justify-between shadow-xs">
+                            <span class="font-bold text-amber-900 text-sm">{{ day.day_number }}</span>
+                            <div class="text-[10px] bg-amber-200/80 text-amber-900 rounded px-1.5 py-0.5 font-medium truncate" title="{{ day.ly_do }}">🔒 {{ day.ly_do|default:"Đã khóa" }}</div>
+                        </div>
+                    {% elif day.is_current_month %}
+                        <div class="booking-day-cell h-24 border border-stone-200 rounded-lg p-2 bg-white flex flex-col justify-between hover:border-stone-400 transition">
+                            <span class="font-medium text-stone-800 text-sm">{{ day.day_number }}</span>
+                            <span class="text-[10px] text-emerald-600 font-medium">Hoạt động</span>
+                        </div>
+                    {% else %}
+                        <div class="booking-day-cell h-24 border border-stone-100 rounded-lg p-2 bg-stone-50/50 text-stone-300 flex flex-col justify-between">
+                            <span class="text-sm">{{ day.day_number }}</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
         </div>
     </div>
+
     <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-stone-200 flex justify-between items-center">
-            <h3 class="font-serif font-semibold text-lg">Danh sách ngày đã khóa</h3>
+            <h3 class="font-sans font-semibold text-lg">Danh sách ngày đã khóa</h3>
             <span class="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">{{ ngay_da_khoa.count }} ngày</span>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-sm">
-                <thead><tr class="bg-stone-50 text-stone-500 uppercase text-xs tracking-wider border-b border-stone-200">
-                    <th class="py-3 px-6">Ngày</th><th class="py-3 px-6">Lý do</th><th class="py-3 px-6">Trạng thái</th><th class="py-3 px-6 text-right">Thao tác</th>
-                </tr></thead>
+                <thead>
+                    <tr class="bg-stone-50 text-stone-500 uppercase text-xs tracking-wider border-b border-stone-200">
+                        <th class="py-3 px-6">Ngày</th>
+                        <th class="py-3 px-6">Lý do</th>
+                        <th class="py-3 px-6">Trạng thái</th>
+                        <th class="py-3 px-6 text-right">Thao tác</th>
+                    </tr>
+                </thead>
                 <tbody class="divide-y divide-stone-100 text-stone-700">
                     {% for item in ngay_da_khoa %}
                     <tr class="hover:bg-stone-50/50">
                         <td class="py-4 px-6 font-medium">{{ item.ngay|date:"d/m/Y" }}</td>
                         <td class="py-4 px-6">{{ item.ly_do_khoa }}</td>
                         <td class="py-4 px-6"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Đã khóa</span></td>
-                        <td class="py-4 px-6 text-right"><a href="{% url 'mo_khoa_ngay' item.ma_nhd %}" class="text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</a></td>
+                        <td class="py-4 px-6 text-right">
+                            {% if request.user.is_superuser %}
+                            <form method="POST" action="{% url 'mo_khoa_ngay' item.ma_nhd %}" class="inline-block m-0" onsubmit="return confirm('Mở khóa ngày {{ item.ngay|date:'d/m/Y' }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</button>
+                            </form>
+                            {% else %}
+                            <span class="text-xs text-stone-400">Chỉ quản trị viên</span>
+                            {% endif %}
+                        </td>
                     </tr>
-                    {% empty %}<tr><td colspan="4" class="py-6 text-center text-stone-400">Chưa có ngày nào bị khóa trong hệ thống.</td></tr>{% endfor %}
+                    {% empty %}
+                    <tr><td colspan="4" class="py-6 text-center text-stone-400">Chưa có ngày nào bị khóa trong hệ thống.</td></tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+{% if request.user.is_superuser %}
 <div id="khoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-stone-100">
         <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
-            <h3 class="text-xl font-serif font-semibold text-stone-900">Khóa ngày</h3>
-            <button onclick="toggleModal(false)" class="text-stone-400 hover:text-stone-600 text-xl font-bold">&times;</button>
+            <h3 class="text-xl font-sans font-semibold text-stone-900">Khóa ngày</h3>
+            <button type="button" onclick="toggleModal(false)" class="text-stone-400 hover:text-stone-600 text-xl font-bold">&times;</button>
         </div>
         <form method="POST" class="space-y-4">
             {% csrf_token %}
@@ -95,11 +175,12 @@
         </form>
     </div>
 </div>
+{% endif %}
 <script>
 function toggleModal(show) {
     const modal = document.getElementById('khoaNgayModal');
-    if (show) modal.classList.remove('hidden');
-    else modal.classList.add('hidden');
+    if (!modal) return;
+    modal.classList.toggle('hidden', !show);
 }
 </script>
 {% endblock %}

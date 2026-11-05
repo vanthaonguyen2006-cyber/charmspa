@@ -1,3 +1,4 @@
+
 /* STAFF BOOKING STYLES
    Có page scope để staff_create và staff_list không ghi đè nhau. */
 
@@ -5,7 +6,7 @@
 body:has(.booking-staff-create) {
         background-color: var(--bg-beige) !important;
         color: var(--text-dark);
-        font-family: "Playfair Display", Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
     }
 
 body:has(.booking-staff-create) .service-card {
@@ -192,7 +193,7 @@ body:has(.booking-staff-create) .customer-option-item:hover {
 body:has(.booking-staff-list) {
         background-color: var(--bg-beige) !important;
         color: var(--text-dark);
-        font-family: "Playfair Display", Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
     }
 
 body:has(.booking-staff-list) .table th {
@@ -347,7 +348,7 @@ body:has(.booking-staff-list) .flatpickr-calendar {
    Giữ style cũ để không làm mất giao diện và hành vi bộ lọc.
    ========================================================== */
 .staff-booking-page{background:#f7f1e9;min-height:100vh;padding:26px 28px 50px;color:#302c29;font-family:Arial,sans-serif}
-.staff-booking-page .staff-title{font-family:Georgia,serif;font-size:30px;color:#242c36;font-weight:700;margin:0}
+.staff-booking-page .staff-title{font-family:Arial,Helvetica,sans-serif;font-size:30px;color:#242c36;font-weight:700;margin:0}
 .staff-booking-page .staff-sub{color:#77706a;margin:8px 0 0;font-size:14px}
 .staff-booking-page .staff-btn-dark{background:#262626;color:#fff;border:0;border-radius:9px;padding:12px 17px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap}
 .staff-booking-page .staff-btn-dark:hover{color:#fff;background:#574a3d}
@@ -361,7 +362,7 @@ body:has(.booking-staff-list) .flatpickr-calendar {
 .staff-booking-page .filters input[type=search]{flex:2 1 240px;min-width:200px}.staff-booking-page .filters select{flex:1 1 140px}
 .staff-booking-page .staff-btn-light{padding:9px 14px;border:1px solid #e4d8cb;background:#faf7f3;border-radius:9px;color:#6b5b4d;font-size:13px}
 .staff-booking-page .table-frame{padding:0;overflow:hidden}
-.staff-booking-page .table-heading{padding:17px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-family:Georgia,serif;font-weight:700;font-size:18px}
+.staff-booking-page .table-heading{padding:17px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:18px}
 .staff-booking-page .count-label{font-family:Arial,sans-serif;font-size:12px;color:#a48a65;font-weight:500}
 .staff-booking-page .table-scroll{overflow-x:auto}
 .staff-booking-page table{width:100%;min-width:1020px;border-collapse:collapse;font-size:13px}
@@ -447,7 +448,7 @@ body:has(.booking-staff-list) .flatpickr-calendar {
 .staff-detail-page{background:#f7f0e8;min-height:100vh;padding:28px clamp(16px,3vw,42px) 55px;color:#302d2a;font-family:Arial,sans-serif}
 .staff-detail-page *{box-sizing:border-box}
 .staff-detail-page .detail-top{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-.staff-detail-page .detail-top h1{font-family:Georgia,serif;font-size:30px;letter-spacing:.3px;font-weight:600;color:#272725;margin:0}
+.staff-detail-page .detail-top h1{font-family:Arial,Helvetica,sans-serif;font-size:30px;letter-spacing:.3px;font-weight:600;color:#272725;margin:0}
 .staff-detail-page .top-actions{display:flex;gap:9px;flex-wrap:wrap}
 .staff-detail-page .detail-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #e7dacc;background:#fff;padding:11px 17px;border-radius:9px;text-decoration:none;color:#4b4138;font-size:13px;font-weight:600;cursor:pointer}
 .staff-detail-page .detail-btn.dark{background:#262523;color:#fff;border-color:#262523}
@@ -469,7 +470,7 @@ body:has(.booking-staff-list) .flatpickr-calendar {
 .staff-detail-page .detail-column{min-width:0;display:grid;gap:18px}
 .staff-detail-page .detail-grid > .detail-column:first-child > .detail-card{height:100%}
 .staff-detail-page .detail-card{background:#fff;border:1px solid #eee2d7;border-radius:15px;padding:22px 24px;box-shadow:0 2px 8px rgba(57,37,19,.035)}
-.staff-detail-page .card-head{font-family:Georgia,serif;font-size:19px;font-weight:700;margin:0 0 18px;color:#292825}
+.staff-detail-page .card-head{font-family:Arial,Helvetica,sans-serif;font-size:19px;font-weight:700;margin:0 0 18px;color:#292825}
 .staff-detail-page .booking-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:21px 24px}
 .staff-detail-page .fact-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9a8c7c;margin-bottom:6px;font-weight:700}
 .staff-detail-page .fact-value{font-size:14px;color:#302c28;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
@@ -505,3 +506,255 @@ body:has(.staff-detail-page) {
 
 /* Giữ các hàng đã lọc thực sự ẩn, kể cả khi CSS bảng dùng display riêng. */
 .staff-booking-page [hidden] { display: none !important; }
+
+/* ==============================================================
+   BANG CHINH FONT SIZE - STAFF BOOKINGS (CREATE / LIST / DETAIL)
+   Chi sua so px ben duoi; KHONG sua CSS layout static/css/staff.css.
+   =============================================================== */
+:root {
+    /* CREATE */
+    --sb-create-title: 28px;
+    --sb-create-section: 15px;
+    --sb-create-description: 14px;
+    --sb-create-service-name: 13px;
+    --sb-create-service-info: 12px;
+    --sb-create-form: 14px;
+    --sb-create-label: 13px;
+    --sb-create-summary: 14px;
+
+    /* LIST */
+    --sb-list-title: 28px;
+    --sb-list-section: 18px;
+    --sb-list-description: 14px;
+    --sb-list-filter: 13px;
+    --sb-list-table-head: 11px;
+    --sb-list-table-body: 13px;
+    --sb-list-note: 12px;
+
+    /* DETAIL */
+    --sb-detail-title: 28px;
+    --sb-detail-section: 18px;
+    --sb-detail-text: 14px;
+    --sb-detail-label: 11px;
+    --sb-detail-code: 19px;
+    --sb-detail-button: 13px;
+}
+
+/* Font Arial cho 3 trang. Gioi han scope; khong thay sidebar/header. */
+.booking-staff-create,
+.staff-booking-page,
+.staff-detail-page,
+.booking-staff-create :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,small,button,input,select,textarea,a),
+.staff-booking-page :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,small,button,input,select,textarea,a,table,th,td),
+.staff-detail-page :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,small,button,input,select,textarea,a) {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+
+/* CREATE - tieu de chinh + cac muc */
+.booking-staff-create > .d-flex:first-child h3,
+.booking-staff-create > .d-flex:first-child h3.staff-create-inline-1 {
+    font-size: var(--sb-create-title) !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0 !important;
+}
+.booking-staff-create > .d-flex:first-child p {
+    font-size: var(--sb-create-description) !important;
+}
+.booking-staff-create h6.fw-bold,
+.booking-staff-create .summary-card > h6 {
+    font-size: var(--sb-create-section) !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+}
+/* Ten dich vu dung div.fw-bold, KHONG phai h5/h6. */
+body:has(.booking-staff-create) .booking-staff-create #main_service_container .service-card > div.fw-bold {
+    font-size: var(--sb-create-service-name) !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    overflow-wrap: break-word;
+}
+.booking-staff-create #main_service_container .service-card > small {
+    font-size: var(--sb-create-service-info) !important;
+}
+.booking-staff-create :is(.form-control,.form-control-custom,.form-control-custom-date,.customer-dropdown-toggle,.customer-search-input) {
+    font-size: var(--sb-create-form) !important;
+}
+.booking-staff-create label {font-size: var(--sb-create-label) !important;}
+.booking-staff-create #summary_service_name {font-size: var(--sb-create-summary) !important;}
+
+/* LIST */
+.staff-booking-page :is(.staff-title,.booking-page-title) {
+    font-size: var(--sb-list-title) !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+}
+.staff-booking-page .staff-sub {font-size: var(--sb-list-description) !important;}
+.staff-booking-page .table-heading,
+.staff-booking-page .table-heading > span:first-child {
+    font-size: var(--sb-list-section) !important;
+    font-weight: 700 !important;
+}
+.staff-booking-page .table-heading small {
+    font-size: var(--sb-list-note) !important;
+    font-weight: 400 !important;
+}
+.staff-booking-page .filters :is(input,select,button) {font-size: var(--sb-list-filter) !important;}
+.staff-booking-page .table-scroll thead th {font-size: var(--sb-list-table-head) !important;}
+.staff-booking-page .table-scroll tbody td {font-size: var(--sb-list-table-body) !important;}
+
+/* DETAIL */
+.staff-detail-page .detail-top h1 {
+    font-size: var(--sb-detail-title) !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+}
+.staff-detail-page .card-head {
+    font-size: var(--sb-detail-section) !important;
+    font-weight: 700 !important;
+}
+.staff-detail-page :is(.fact-value,.summary-value,.person-name) {
+    font-size: var(--sb-detail-text) !important;
+}
+.staff-detail-page :is(.fact-label,.summary-label) {
+    font-size: var(--sb-detail-label) !important;
+}
+.staff-detail-page .summary-code {font-size: var(--sb-detail-code) !important;}
+.staff-detail-page .detail-btn {font-size: var(--sb-detail-button) !important;}
+
+@media (max-width: 650px) {
+    .booking-staff-create > .d-flex:first-child h3,
+    .staff-booking-page :is(.staff-title,.booking-page-title),
+    .staff-detail-page .detail-top h1 {font-size: 23px !important;}
+}
+
+/* STAFF_BOOKINGS_FONT_RESTORED_20261103 */
+
+/* ==================================================
+   CHINH KHOANG CACH HEADER -> TIEU DE CHINH
+   DUNG CHUNG CHO CREATE - LIST - DETAIL
+   ================================================== */
+
+/* CHI CAN DOI SO NAY */
+:root {
+    --sb-page-top-spacing: 25px;
+}
+
+/* Khoang cach chung tu header xuong noi dung */
+.staff-content:has(
+    .booking-staff-create,
+    .staff-booking-page,
+    .staff-detail-page
+) {
+    padding-top: var(--sb-page-top-spacing) !important;
+}
+
+/* Bo khoang cach thua cua tung trang */
+.staff-content .booking-staff-create,
+.staff-content .staff-booking-page,
+.staff-content .staff-detail-page {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Bo margin phia tren cua tieu de */
+.booking-staff-create > .d-flex:first-child,
+.staff-booking-page .staff-title,
+.staff-detail-page .detail-top {
+    margin-top: 0 !important;
+}
+
+
+/* === STAFF DETAIL: PHAN CONG NHIEU NHAN VIEN (CSS RIENG CHO BOOKINGS) === */
+.staff-detail-page .staff-assignee-row {padding: 9px 0; border-bottom: 1px solid #f0e7dc;}
+.staff-detail-page .staff-assignee-row .assignee-name {font-size: 14px; margin: 0 0 3px;}
+.staff-detail-page .staff-assignee-slot {margin: 12px 0 16px;}
+.staff-detail-page .staff-assignee-slot label {display: block; margin-bottom: 6px;}
+.staff-detail-page .staff-clear-assign {margin-top: 10px;}
+.staff-detail-page .staff-clear-assign .staff-clear-assign-button {
+    background: #fff3f0; color: #b84e45; border: 1px solid #e9cbc5;
+    font-size: 13px; font-weight: 600;
+}
+.staff-detail-page .staff-clear-assign .staff-clear-assign-button:hover {background: #fbe2de;}
+
+
+/* === STAFF DETAIL: PHAN CONG NHIEU NHAN VIEN (CSS RIENG CHO BOOKINGS) === */
+.staff-detail-page .staff-assignee-row {padding: 9px 0; border-bottom: 1px solid #f0e7dc;}
+.staff-detail-page .staff-assignee-row .assignee-name {font-size: 14px; margin: 0 0 3px;}
+.staff-detail-page .staff-assignee-slot {margin: 12px 0 16px;}
+.staff-detail-page .staff-assignee-slot label {display: block; margin-bottom: 6px;}
+.staff-detail-page .staff-clear-assign {margin-top: 10px;}
+.staff-detail-page .staff-clear-assign .staff-clear-assign-button {
+    background: #fff3f0; color: #b84e45; border: 1px solid #e9cbc5;
+    font-size: 13px; font-weight: 600;
+}
+.staff-detail-page .staff-clear-assign .staff-clear-assign-button:hover {background: #fbe2de;}
+
+/* ============ LIST - HOP XO XEM NHAN VIEN ============ */
+.staff-booking-page .staff-assignees-cell { min-width: 155px; }
+.staff-booking-page .staff-assignees-trigger {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border: 1px solid #d6c4a9;
+    background: #faf6ee; color: #80623b;
+    border-radius: 8px; font: 600 12px Arial, Helvetica, sans-serif;
+    white-space: nowrap; cursor: pointer;
+}
+.staff-booking-page .staff-assignees-trigger:hover,
+.staff-booking-page .staff-assignees-trigger[aria-expanded="true"] {
+    border-color: #b08d56; background: #f3eada;
+}
+.staff-booking-page .staff-assignees-trigger.staff-assignees-partial {
+    background: #fff7e8; color: #a2762f; border-color: #e9c47a;
+}
+.staff-booking-page .staff-assignees-trigger .staff-assignees-chevron { font-size: 10px; }
+/* Bootstrap gắn popover trực tiếp vào body để vượt overflow-x:auto của table-scroll. */
+.staff-assignees-popover { --bs-popover-max-width: 285px; --bs-popover-border-color: #e8ded0; --bs-popover-border-radius: 12px; --bs-popover-body-padding-x: 14px; --bs-popover-body-padding-y: 13px; font-family: Arial, Helvetica, sans-serif; box-shadow: 0 8px 26px rgba(44, 31, 17, .13); }
+.staff-assignees-popover .staff-assignees-popover-heading { color: #302c29; font-size: 14px; font-weight: 700; }
+.staff-assignees-popover .staff-assignees-popover-subheading { color: #9b8260; font-size: 11px; margin-top: 3px; margin-bottom: 8px; }
+.staff-assignees-popover .staff-assignees-person { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-top: 1px solid #f1eae1; }
+.staff-assignees-popover .staff-assignees-person > i { color: #ad905f; font-size: 18px; }
+.staff-assignees-popover .staff-assignees-person span { display: flex; flex-direction: column; gap: 2px; }
+.staff-assignees-popover .staff-assignees-person strong { color: #302c29; font-size: 12px; font-weight: 600; }
+.staff-assignees-popover .staff-assignees-person small { color: #9b9389; font-size: 10px; }
+.staff-assignees-popover .staff-assignees-missing { border-top: 1px solid #f1eae1; padding-top: 9px; color: #a77727; font-size: 12px; font-weight: 600; }
+
+
+/* === STAFF DETAIL: PHAN CONG NHIEU NHAN VIEN (CSS RIENG CHO BOOKINGS) === */
+.staff-detail-page .staff-assignee-row {padding: 9px 0; border-bottom: 1px solid #f0e7dc;}
+.staff-detail-page .staff-assignee-row .assignee-name {font-size: 14px; margin: 0 0 3px;}
+.staff-detail-page .staff-assignee-slot {margin: 12px 0 16px;}
+.staff-detail-page .staff-assignee-slot label {display: block; margin-bottom: 6px;}
+.staff-detail-page .staff-clear-assign {margin-top: 10px;}
+.staff-detail-page .staff-clear-assign .staff-clear-assign-button {
+    background: #fff3f0; color: #b84e45; border: 1px solid #e9cbc5;
+    font-size: 13px; font-weight: 600;
+}
+.staff-detail-page .staff-clear-assign .staff-clear-assign-button:hover {background: #fbe2de;}
+
+/* ============ LIST - HOP XO XEM NHAN VIEN ============ */
+.staff-booking-page .staff-assignees-cell { min-width: 155px; }
+.staff-booking-page .staff-assignees-trigger {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border: 1px solid #d6c4a9;
+    background: #faf6ee; color: #80623b;
+    border-radius: 8px; font: 600 12px Arial, Helvetica, sans-serif;
+    white-space: nowrap; cursor: pointer;
+}
+.staff-booking-page .staff-assignees-trigger:hover,
+.staff-booking-page .staff-assignees-trigger[aria-expanded="true"] {
+    border-color: #b08d56; background: #f3eada;
+}
+.staff-booking-page .staff-assignees-trigger.staff-assignees-partial {
+    background: #fff7e8; color: #a2762f; border-color: #e9c47a;
+}
+.staff-booking-page .staff-assignees-trigger .staff-assignees-chevron { font-size: 10px; }
+/* Bootstrap gắn popover trực tiếp vào body để vượt overflow-x:auto của table-scroll. */
+.staff-assignees-popover { --bs-popover-max-width: 285px; --bs-popover-border-color: #e8ded0; --bs-popover-border-radius: 12px; --bs-popover-body-padding-x: 14px; --bs-popover-body-padding-y: 13px; font-family: Arial, Helvetica, sans-serif; box-shadow: 0 8px 26px rgba(44, 31, 17, .13); }
+.staff-assignees-popover .staff-assignees-popover-heading { color: #302c29; font-size: 14px; font-weight: 700; }
+.staff-assignees-popover .staff-assignees-popover-subheading { color: #9b8260; font-size: 11px; margin-top: 3px; margin-bottom: 8px; }
+.staff-assignees-popover .staff-assignees-person { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-top: 1px solid #f1eae1; }
+.staff-assignees-popover .staff-assignees-person > i { color: #ad905f; font-size: 18px; }
+.staff-assignees-popover .staff-assignees-person span { display: flex; flex-direction: column; gap: 2px; }
+.staff-assignees-popover .staff-assignees-person strong { color: #302c29; font-size: 12px; font-weight: 600; }
+.staff-assignees-popover .staff-assignees-person small { color: #9b9389; font-size: 10px; }
+.staff-assignees-popover .staff-assignees-missing { border-top: 1px solid #f1eae1; padding-top: 9px; color: #a77727; font-size: 12px; font-weight: 600; }

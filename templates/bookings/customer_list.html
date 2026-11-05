@@ -1,20 +1,18 @@
 {% extends 'layouts/customer_base_pro.html' %}
 {% load static %}
-{% block title %}Lịch hẹn - Charm Grand Spa{% endblock %}
 {% block extra_css %}
     {{ block.super }}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" type="text/css" href="https://npmcdn.flatpickr/dist/themes/material_gold.css">
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=20261102fontboth2">
+    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=filter_restore_v2">
+    <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
 {% endblock %}
-
 {% block profile_content %}
+
 {# Nạp CSS tại block thực sự được render bởi trang hồ sơ khách hàng. #}
 <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=20261102fontboth2">
+<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=filter_restore_v2">
+<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 
 <div class="booking-customer-list customer-profile-layout container">
@@ -32,10 +30,27 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="booking-list-title fw-bold m-0">DANH SÁCH LỊCH HẸN</h2>
-            <span class="text-muted small">Quản lý các lịch hẹn trị liệu tại Charm Spa</span>
-        </div>
+
+<div style="display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+            margin-bottom: 16px;">
+
+    <h2 class="booking-list-title"
+        style="margin: 0; flex-shrink: 0;">
+        DANH SÁCH LỊCH HẸN
+    </h2>
+
+    <span style="margin-left: auto;
+                 text-align: right;
+                 color: #6b7280;
+                 font-size: 14px;">
+        Quản lý các lịch hẹn trị liệu tại Charm Spa
+    </span>
+
+</div>
 
         <!-- BỘ LỌC DẠNG BẢNG - KHÔNG ĐỔI URL DJANGO -->
         <section class="customer-booking-toolbar" aria-label="Bộ lọc danh sách lịch hẹn">
@@ -85,7 +100,7 @@
                     </div>
                 </div>
                 <!-- MODAL HỦY LỊCH HẸN (Đã mở rộng chiều dài ngang max-width 950px) -->
-                <div class="modal fade" id="cancelModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
+                <div class="modal fade booking-ui-modal" id="cancelModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 950px;">
                         <div class="modal-content" style="border-radius: 16px; border: none; padding: 10px;">
                             <form method="POST" action="{% url 'booking_customer_cancel' lh.ma_lh %}">
@@ -122,7 +137,7 @@
                 </div>
 
                 <!-- MODAL THAY ĐỔI LỊCH HẸN -->
-                <div class="modal fade booking-reschedule-modal" id="rescheduleModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
+                <div class="modal fade booking-ui-modal booking-reschedule-modal" id="rescheduleModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl">
                         <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12); background-color: #f9f6f0;">
                             <form method="POST" class="customer-reschedule-form"
@@ -261,7 +276,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://npmcdn.flatpickr/dist/l10n/vn.js"></script>
+
 
 <script>
 (function () {
@@ -499,7 +514,6 @@
             const name = selectedCard?.textContent?.toLowerCase() || '';
             form.dataset.originalType = name.includes('shampoo') || name.includes('gội') ? 'shampoo' : 'massage';
             const fp = flatpickr(dateInput, {
-                locale: 'vn',
                 dateFormat: 'd/m/Y',
                 minDate: 'today',
                 defaultDate: form.dataset.originalDate,
