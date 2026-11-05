@@ -1,0 +1,239 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Thêm mới nhân viên | Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+    <style>
+        /* ÉP BUỘC IN ĐỎ VIỀN VÀ NỀN Ô KHI CÓ LỖI */
+        .is-invalid,
+        input.is-invalid,
+        select.is-invalid {
+            border: 1.5px solid #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
+        .is-invalid:focus,
+        input.is-invalid:focus,
+        select.is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+            outline: none !important;
+        }
+        .invalid-feedback {
+            display: block !important;
+            color: #dc3545 !important;
+            font-size: 12.5px !important;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+        .password-field-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #887b6d;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<section class="customer-page">
+    <!-- Header trang -->
+    <div class="customer-page-heading mb-4">
+        <div>
+            <h1>Thêm mới nhân viên</h1>
+            <p>Nhập thông tin chi tiết và cấp quyền tài khoản nhân viên mới trong hệ thống.</p>
+        </div>
+        <a class="btn btn-outline-secondary px-3 py-2" href="{% url 'staff_account_list' %}" style="border-radius: 8px; font-size: 14px;">
+            <i data-lucide="arrow-left" class="me-1" style="width: 16px; height: 16px;"></i> Quay lại danh sách tài khoản
+        </a>
+    </div>
+
+    <!-- Thông báo lỗi chung (nếu có) -->
+    {% if form.non_field_errors %}
+        <div class="mb-4">
+            <div class="alert alert-danger" role="alert" style="border-radius: 8px;">
+                {% for err in form.non_field_errors %}
+                    <div>{{ err }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Card Form Nhập Liệu -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+        <form method="POST" action="{% url 'staff_account_add_staff' %}" novalidate>
+            {% csrf_token %}
+            <div class="row g-4">
+                
+                <!-- Họ và tên -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" name="ho_ten"
+                           class="form-control py-2 px-3 {% if form.ho_ten.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập họ và tên nhân viên" required
+                           value="{{ form.ho_ten.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.ho_ten.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Giới tính -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Giới tính <span class="text-danger">*</span></label>
+                    <select name="gioi_tinh" class="form-select py-2 px-3 {% if form.gioi_tinh.errors %}is-invalid{% endif %}"
+                            style="border-radius: 8px; font-size: 14px;" required>
+                        <option value="Nữ" {% if form.gioi_tinh.value == 'Nữ' or not form.gioi_tinh.value %}selected{% endif %}>Nữ</option>
+                        <option value="Nam" {% if form.gioi_tinh.value == 'Nam' %}selected{% endif %}>Nam</option>
+                        <option value="Khác" {% if form.gioi_tinh.value == 'Khác' %}selected{% endif %}>Khác</option>
+                    </select>
+                    {% for error in form.gioi_tinh.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Số điện thoại -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Số điện thoại <span class="text-danger">*</span></label>
+                    <input type="tel" name="so_dien_thoai"
+                           class="form-control py-2 px-3 {% if form.so_dien_thoai.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập số điện thoại liên lạc" required
+                           value="{{ form.so_dien_thoai.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.so_dien_thoai.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email"
+                           class="form-control py-2 px-3 {% if form.email.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập địa chỉ email" required
+                           value="{{ form.email.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Ngày sinh -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Ngày sinh</label>
+                    <input type="date" name="ngay_sinh"
+                           class="form-control py-2 px-3 {% if form.ngay_sinh.errors %}is-invalid{% endif %}"
+                           value="{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.ngay_sinh.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Vai trò -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Vai trò <span class="text-danger">*</span></label>
+                    <select name="vai_tro" class="form-select py-2 px-3 {% if form.vai_tro.errors %}is-invalid{% endif %}"
+                            style="border-radius: 8px; font-size: 14px;" required>
+                        <option value="Nhân viên CSKH" {% if form.vai_tro.value == 'Nhân viên CSKH' or not form.vai_tro.value %}selected{% endif %}>Nhân viên CSKH</option>
+                        <option value="Chuyên viên" {% if form.vai_tro.value == 'Chuyên viên' %}selected{% endif %}>Chuyên viên</option>
+                        <option value="Quản trị viên" {% if form.vai_tro.value == 'Quản trị viên' %}selected{% endif %}>Quản trị viên</option>
+                    </select>
+                    {% for error in form.vai_tro.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Tên đăng nhập -->
+                <div class="col-12">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Tên đăng nhập (Username) <span class="text-danger">*</span></label>
+                    <input type="text" name="username"
+                           class="form-control py-2 px-3 {% if form.username.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập tên đăng nhập vào hệ thống" required
+                           value="{{ form.username.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.username.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Mật khẩu -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Mật khẩu <span class="text-danger">*</span></label>
+                    <div class="password-field-wrapper">
+                        <input type="password" name="password" id="staffPassword"
+                               class="form-control py-2 px-3 {% if form.password.errors %}is-invalid{% endif %}"
+                               placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required
+                               style="border-radius: 8px; font-size: 14px; padding-right: 40px;">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('staffPassword', this)" title="Ẩn/Hiện mật khẩu">
+                            <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
+                        </button>
+                    </div>
+                    {% for error in form.password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Xác nhận mật khẩu -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                    <div class="password-field-wrapper">
+                        <input type="password" name="password_confirm" id="staffPasswordConfirm"
+                               class="form-control py-2 px-3 {% if form.password_confirm.errors %}is-invalid{% endif %}"
+                               placeholder="Nhập lại mật khẩu" required
+                               style="border-radius: 8px; font-size: 14px; padding-right: 40px;">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('staffPasswordConfirm', this)" title="Ẩn/Hiện mật khẩu">
+                            <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
+                        </button>
+                    </div>
+                    {% for error in form.password_confirm.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="col-12 text-end mt-4 pt-3 border-top">
+                    <a href="{% url 'staff_account_list' %}" class="btn btn-light px-4 py-2 me-2 border" style="border-radius: 8px; font-size: 14px;">Hủy bỏ</a>
+                    <button type="submit" class="btn text-white px-4 py-2" style="background-color: #8C6D4F; border-radius: 8px; font-size: 14px; font-weight: 500;">
+                        Lưu thông tin nhân viên
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) window.lucide.createIcons();
+        });
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<i data-lucide="eye-off" style="width: 17px; height: 17px;"></i>';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<i data-lucide="eye" style="width: 17px; height: 17px;"></i>';
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
+    </script>
+{% endblock %}

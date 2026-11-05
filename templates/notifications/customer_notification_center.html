@@ -1,0 +1,85 @@
+{% extends "layouts/customer_base.html" %}
+{% load static %}
+
+{% block title %}Trung tâm thông báo | Charm Spa Grand{% endblock %}
+
+{% block content %}
+<div class="notification-page">
+    <div class="notification-heading">
+        <div>
+            <span class="eyebrow">CHARM SPA GRAND</span>
+            <h1>Trung tâm thông báo</h1>
+            <p>Những thông tin dành riêng cho hành trình chăm sóc của bạn.</p>
+        </div>
+    </div>
+
+    <div class="notification-summary">
+        <div class="summary-card">
+            <span class="summary-icon">♧</span>
+            <div>
+                <p>Tổng thông báo</p>
+                <h2>{{ notifications|length }}</h2>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <span class="summary-icon">♡</span>
+            <div>
+                <p>Chưa đọc</p>
+                <h2>{{ unread_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification-toolbar">
+        <h2>Thông báo của bạn</h2>
+        <div class="notification-filters">
+            <a href="?type=all" class="filter-link {% if active_tab != 'unread' %}active{% endif %}">Tất cả</a>
+            <a href="?type=unread" class="filter-link {% if active_tab == 'unread' %}active{% endif %}">Chưa đọc</a>
+        </div>
+    </div>
+
+    <div class="notification-list">
+        {% for item in notifications %}
+        <article class="notification-item {% if item.trang_thai_gui == 'Chưa đọc' %}is-unread{% endif %}">
+
+            <div class="notification-icon">
+                {% if item.loai_thong_bao == "Lịch hẹn" %}
+                    ◷
+                {% elif item.loai_thong_bao == "Ưu đãi" %}
+                    ♡
+                {% else %}
+                    ✿
+                {% endif %}
+            </div>
+
+            <div class="notification-content">
+                <div class="notification-meta">
+                    <span>{{ item.loai_thong_bao|default:"Thông báo" }}</span>
+                    <time>{{ item.thoi_gian_gui|date:"d/m/Y H:i" }}</time>
+                </div>
+
+                <h3>{{ item.tieu_de }}</h3>
+                <p>{{ item.noi_dung }}</p>
+
+                {% if item.trang_thai_gui == 'Chưa đọc' %}
+                <a href="{% url 'notifications:danh_dau_da_doc' item.ma_tbkh %}" class="notification-detail">
+                    Đánh dấu đã đọc ✓
+                </a>
+                {% endif %}
+            </div>
+
+            {% if item.trang_thai_gui == 'Chưa đọc' %}
+            <span class="unread-dot" title="Chưa đọc"></span>
+            {% endif %}
+        </article>
+        {% empty %}
+        <div class="notification-empty">
+            <div class="empty-icon">♡</div>
+            <h3>Bạn chưa có thông báo nào</h3>
+            <p>Thông báo lịch hẹn, ưu đãi và chăm sóc sẽ xuất hiện tại đây.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

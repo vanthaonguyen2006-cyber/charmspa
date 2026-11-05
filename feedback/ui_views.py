@@ -383,7 +383,18 @@ def admin_feedback_detail(request, feedback_id):
     if request.method == "POST":
         action = request.POST.get("action", "").strip()
 
+        # Lấy tài khoản nghiệp vụ của admin để ghi lịch sử
+        tai_khoan = _tai_khoan_hien_tai(request)
 
+        if not tai_khoan:
+            messages.error(
+                request,
+                "Tài khoản quản trị chưa được liên kết với TaiKhoan."
+            )
+            return redirect(
+                "feedback:admin_feedback_detail",
+                feedback_id=feedback_id
+            )
 
         # ==================================================
         # 1. ADMIN ĐÁNH DẤU PHIẾU KHÔNG HỢP LỆ
@@ -461,9 +472,10 @@ def admin_feedback_detail(request, feedback_id):
         elif action == "assign":
             ma_nv = request.POST.get("ma_nv", "").strip()
 
-            # Chỉ cho phép chọn nhân viên tồn tại
+            # Chỉ cho phép phân công cho nhân viên có vai trò Nhân viên CSKH
             nhan_vien = NhanVien.objects.filter(
-                ma_nv=ma_nv
+                ma_nv=ma_nv,
+                ma_tk__vai_tro="Nhân viên CSKH"
             ).first()
 
             if not ma_nv or not nhan_vien:
@@ -690,10 +702,10 @@ def admin_feedback_detail(request, feedback_id):
         "-thoi_gian_pc"
     ).first()
 
-    # Danh sách nhân viên
-    danh_sach_nhan_vien = NhanVien.objects.all().order_by(
-        "ho_ten"
-    )
+    # Chỉ lấy nhân viên có vai trò Nhân viên CSKH để phân công
+    danh_sach_nhan_vien = NhanVien.objects.filter(
+        ma_tk__vai_tro="Nhân viên CSKH"
+    ).order_by("ho_ten")
 
     # Context giao diện
     context = _layout_context(request, True)

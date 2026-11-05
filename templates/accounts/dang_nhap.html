@@ -53,22 +53,21 @@
             </div>
             {% endif %}
 
-            <!-- Hiển thị lỗi nếu có -->
-            {% if form.errors %}
-                <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; text-align: center;">
-                    Tên đăng nhập hoặc mật khẩu không chính xác.
-                </div>
-            {% endif %}
-
             <form method="POST">
                 {% csrf_token %}
 
-                <!-- Trường Email hoặc số điện thoại kèm icon -->
+                                <!-- Trường Email/SĐT/Username kèm icon (giữ lại dữ liệu đã nhập khi đăng nhập lỗi) -->
                 <div class="form-group">
-                    <label>Email hoặc số điện thoại</label>
+                    <label>Tên đăng nhập</label>
                     <div class="input-with-icon">
                         <span class="input-icon">👤</span>
-                        <input type="text" name="username" class="form-control" placeholder="Nhập thông tin đăng nhập" autocomplete="off" required>
+                        <input type="text"
+                               name="username"
+                               value="{{ login_input|default:'' }}"
+                               class="form-control"
+                               placeholder="Bạn có thể sử dụng Username, SĐT hoặc Email"
+                               autocomplete="username"
+                               required>
                     </div>
                 </div>
 
@@ -77,16 +76,24 @@
                     <label>Mật khẩu</label>
                     <div class="input-with-icon">
                         <span class="input-icon">🔒</span>
-                        <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu" autocomplete="new-password" required>
+                        <input type="password"
+                               name="password"
+                               class="form-control"
+                               placeholder="Nhập mật khẩu"
+                               autocomplete="current-password"
+                               required>
                     </div>
                 </div>
 
-                <!-- Ghi nhớ đăng nhập & Quên mật khẩu -->
+                <!-- Ghi nhớ đăng nhập (sửa lỗi thẻ label và giữ trạng thái tích chọn nếu lỗi) -->
                 <div class="form-extra">
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                        <input type="checkbox" name="remember_me" style="accent-color: #1a1a1a;"> Ghi nhớ đăng nhập
+                        <input type="checkbox"
+                               name="remember_me"
+                               {% if remember_me %}checked{% endif %}
+                               style="accent-color: #1a1a1a;">
+                        <span>Ghi nhớ đăng nhập</span>
                     </label>
-                    <a href="#">Quên mật khẩu?</a>
                 </div>
 
                 <!-- Nút Đăng nhập màu đen bo góc -->

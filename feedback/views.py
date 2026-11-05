@@ -371,24 +371,3 @@ def customer_feedback_detail(request, feedback_id):
     )
 
 
-# ============================================================
-# 8. TRANG KIỂM THỬ GIAO DIỆN NHÂN VIÊN
-# Giữ các tên view để tương thích URL hiện có
-# ============================================================
-
-def staff_feedback_test(request):
-    # Hiển thị trang kiểm thử giao diện nhân viên
-    return render(
-        request,
-        "feedback/test_staff.html"
-    )
-
-
-# Tương thích với URL cũ nếu vẫn dùng tên test_staff
-def test_staff(request):
-    return staff_feedback_test(request)
-
-
-# Tương thích với URL cũ nếu vẫn dùng tên gui_phan_hoi
-def gui_phan_hoi(request):
-    return customer_feedback_create(request)

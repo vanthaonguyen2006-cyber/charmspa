@@ -1,4 +1,27 @@
+/* ==========================================
+   FONT CHỮ CHUNG TOÀN BỘ MODULE
+   ========================================== */
 
+.feedback-page,
+.feedback-page *,
+.staff-detail-page,
+.staff-detail-page *,
+.customer-feedback-list-page,
+.customer-feedback-list-page * {
+    font-family: "Segoe UI", Arial, Tahoma, sans-serif !important;
+}
+
+/* Đồng bộ font cho các thành phần nhập liệu */
+.feedback-page input,
+.feedback-page select,
+.feedback-page textarea,
+.feedback-page button,
+.staff-detail-page input,
+.staff-detail-page select,
+.staff-detail-page textarea,
+.staff-detail-page button {
+    font-family: "Segoe UI", Arial, Tahoma, sans-serif !important;
+}
 /* =========================================
    1. KHUNG CHUNG CỦA TRANG DANH SÁCH
    ========================================= */

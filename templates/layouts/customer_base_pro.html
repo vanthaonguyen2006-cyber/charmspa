@@ -61,24 +61,31 @@
             </div>
         </div>
 
-        <!-- SECTION 2: THANH MENU TAB ĐIỀU HƯỚNG -->
+                <!-- SECTION 2: THANH MENU TAB ĐIỀU HƯỚNG -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
             <nav class="flex flex-col sm:flex-row justify-around text-sm font-medium text-gray-500">
 
-                <!-- Mục 1: Hồ sơ khách hàng -->
-                <a href="/customer/profile/"
+                <!-- Mục 1: Hồ sơ khách hàng (Chỉ active khi ở customer_profile và KHÔNG có ?tab=history) -->
+                <a href="{% url 'customer_profile' %}"
+                   id="tabNavProfile"
                    class="flex-1 text-center py-4 px-6 border-b-2 transition
-                   {% if request.resolver_match.url_name == 'customer_profile' %}
+                   {% if request.resolver_match.url_name == 'customer_profile' and request.GET.tab != 'history' %}
                        border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
                    {% else %}
-                       border-transparent hover:text-gray-700
+                       border-transparent text-gray-500 hover:text-gray-700
                    {% endif %}">
                     1. Hồ sơ khách hàng
                 </a>
 
-                <!-- Mục 2: Lịch sử dịch vụ -->
-                <a href="#"
-                   class="flex-1 text-center py-4 px-6 border-b-2 border-transparent hover:text-gray-700 transition">
+                <!-- Mục 2: Lịch sử dịch vụ (Chỉ active khi ở customer_profile và CÓ ?tab=history) -->
+                <a href="{% url 'customer_profile' %}?tab=history"
+                   id="tabNavHistory"
+                   class="flex-1 text-center py-4 px-6 border-b-2 transition
+                   {% if request.resolver_match.url_name == 'customer_profile' and request.GET.tab == 'history' %}
+                       border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
+                   {% else %}
+                       border-transparent text-gray-500 hover:text-gray-700
+                   {% endif %}">
                     2. Lịch sử dịch vụ
                 </a>
 
@@ -88,18 +95,19 @@
                    {% if 'booking' in request.resolver_match.url_name %}
                        border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
                    {% else %}
-                       border-transparent hover:text-gray-700
+                       border-transparent text-gray-500 hover:text-gray-700
                    {% endif %}">
                     3. Lịch hẹn
                 </a>
 
-                <!-- Mục 4: Khiếu nại -->
+                <!-- Mục 4: Khiếu nại (Chỉ active khi ở các trang feedback) -->
                 <a href="{% url 'feedback:customer_feedback_list' %}"
+                   id="tabNavFeedback"
                    class="flex-1 text-center py-4 px-6 border-b-2 transition
                    {% if request.resolver_match.url_name == 'customer_feedback_list' or request.resolver_match.url_name == 'customer_feedback_create' %}
                        border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
                    {% else %}
-                       border-transparent hover:text-gray-700
+                       border-transparent text-gray-500 hover:text-gray-700
                    {% endif %}">
                     4. Khiếu nại
                 </a>

@@ -11,6 +11,7 @@ urlpatterns = [
     path('lieu_trinh/', views.lieu_trinh_page, name='lieu_trinh_page'),
     path('customer/profile/', views.customer_profile_view, name='customer_profile'),
     path('contact/', views.contact_view, name='contact'),
+    path('khong-gian/', views.khong_gian_view, name='khong_gian'),
 # Đường dẫn trang Tổng quan dành cho Nhân viên/Admin thuộc app core
     path('staff/dashboard/', views.staff_dashboard_view, name='staff_dashboard'),
 ]
