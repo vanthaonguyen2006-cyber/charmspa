@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=font20261101">
+    <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=staff_assignee_dropdown_20261103">
 
 
 <style>
@@ -49,6 +49,7 @@
   {% endfor %}{% endif %}
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
     <div><h1 class="staff-title booking-page-title">QUẢN LÝ LỊCH HẸN</h1><p class="staff-sub">Theo dõi, kiểm tra và cập nhật trạng thái các lịch trị liệu của khách hàng.</p></div>
+    <!-- Đã sửa chuẩn namespace bookings: -->
     <a href="{% url 'bookings:staff_booking_create' %}" class="staff-btn-dark"><i class="bi bi-plus-circle"></i> Tạo lịch thủ công</a>
   </div>
   <div class="stats-grid">
@@ -87,13 +88,43 @@
     <div class="table-scroll"><table><thead><tr><th>Mã lịch hẹn</th><th>Khách hàng</th><th>Dịch vụ</th><th>Ngày hẹn</th><th>Giờ</th><th>Số khách</th><th>Nhân viên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
       <tbody id="staffBookingRows">
         {% for lh in lich_hen_list %}
-        <tr class="staff-booking-row" data-date="{{ lh.ngay_hen|date:'Y-m-d' }}" data-service="{{ lh.ma_dv.ten_dich_vu }}" data-status="{{ lh.trang_thai }}" data-staff="{{ lh.ma_nv.ho_ten|default:'Chưa phân công' }}" data-assigned="{% if lh.ma_nv_id %}1{% else %}0{% endif %}" data-search="{{ lh.ma_lh }} {{ lh.ma_kh.ho_ten }} {{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:'' }}">
+        <tr class="staff-booking-row" data-date="{{ lh.ngay_hen|date:'Y-m-d' }}" data-service="{{ lh.ma_dv.ten_dich_vu }}" data-status="{{ lh.trang_thai }}" data-staff="{{ lh.staff_assignees_names|escape }}" data-assigned="{% if lh.staff_fully_assigned %}1{% else %}0{% endif %}" data-search="{{ lh.ma_lh }} {{ lh.ma_kh.ho_ten }} {{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:'' }}">
           <td class="code">#{{ lh.ma_lh }}</td>
           <td><div class="name">{{ lh.ma_kh.ho_ten }}</div><div class="phone">{{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:'---' }}</div></td>
           <td>{{ lh.ma_dv.ten_dich_vu }}</td><td>{{ lh.ngay_hen|date:'d/m/Y' }}</td><td><i class="bi bi-clock" style="color:#ac8c5e"></i> {{ lh.gio_hen|time:'H:i' }}</td><td>{{ lh.so_luong_khach }} khách</td>
-          <td>{% if lh.ma_nv %}{{ lh.ma_nv.ho_ten }}{% else %}<span class="unassigned">Chưa phân công</span>{% endif %}</td>
+          <td class="staff-assignees-cell">
+            {% if lh.staff_assignees_count %}
+              <button type="button" class="staff-assignees-trigger {% if lh.staff_assignees_missing %}staff-assignees-partial{% endif %}"
+                    data-assignee-popover="assignees-{{ forloop.counter }}"
+                    aria-label="Xem danh sách {{ lh.staff_assignees_count }} nhân viên lịch {{ lh.ma_lh }}"
+                    aria-expanded="false">
+                <i class="bi bi-people"></i>
+                {{ lh.staff_assignees_count }}/{{ lh.so_luong_khach }} nhân viên
+                <i class="bi bi-chevron-down staff-assignees-chevron"></i>
+              </button>
+              <div class="staff-assignees-popover-source" id="assignees-{{ forloop.counter }}" hidden>
+                <div class="staff-assignees-popover-heading">Nhân viên phụ trách</div>
+                <div class="staff-assignees-popover-subheading">
+                  Đã phân công {{ lh.staff_assignees_count }}/{{ lh.so_luong_khach }} nhân viên
+                </div>
+                {% for nv in lh.staff_assignees %}
+                  <div class="staff-assignees-person">
+                    <i class="bi bi-person-circle"></i>
+                    <span><strong>{{ nv.ho_ten }}</strong><small>Nhân viên {{ forloop.counter }}</small></span>
+                  </div>
+                {% endfor %}
+                {% if lh.staff_assignees_missing %}
+                  <div class="staff-assignees-missing">Còn thiếu {{ lh.staff_assignees_missing }} nhân viên</div>
+                {% endif %}
+              </div>
+            {% else %}
+              <span class="unassigned">Chưa phân công</span>
+            {% endif %}
+          </td>
           <td><span class="state {% if lh.trang_thai == 'Đã hủy' %}cancelled{% elif lh.trang_thai == 'Hoàn thành' %}completed{% elif lh.trang_thai == 'Đang thực hiện' %}progress{% endif %}">{{ lh.trang_thai }}</span></td>
-          <td style="white-space:nowrap"><a class="tiny-action" title="Xem chi tiết" href="{% url 'bookings:staff_booking_detail' lh.ma_lh %}"><i class="bi bi-eye"></i></a>
+          <td style="white-space:nowrap">
+            <!-- Đã sửa chuẩn namespace bookings: -->
+            <a class="tiny-action" title="Xem chi tiết" href="{% url 'bookings:staff_booking_detail' lh.ma_lh %}"><i class="bi bi-eye"></i></a>
           {% if lh.trang_thai != 'Đã hủy' and lh.trang_thai != 'Hoàn thành' %}
           <button class="tiny-action blue" title="Đổi lịch" type="button" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ forloop.counter }}"><i class="bi bi-calendar2-range"></i></button>
           {% endif %}</td>
@@ -364,12 +395,12 @@
                         {% for dv in dich_vu_list %}
                         <div class="col-6 col-md-4 col-lg-3">
                             <div class="service-card all-service-option"
-                                 data-service-id="{{ dv.pk }}"
-                                 data-service-name="{{ dv.ten_dich_vu|escape }}"
-                                 data-duration="{{ dv.thoi_luong|default:150 }}"
-                                 data-price="{{ dv.gia_dich_vu|default:0 }}"
-                                 data-image="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
-                                 onclick="chooseServiceFromAll(this, '{{ forloop.parentloop.counter }}')">
+                                   data-service-id="{{ dv.pk }}"
+                                   data-service-name="{{ dv.ten_dich_vu|escape }}"
+                                   data-duration="{{ dv.thoi_luong|default:150 }}"
+                                   data-price="{{ dv.gia_dich_vu|default:0 }}"
+                                   data-image="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
+                                   onclick="chooseServiceFromAll(this, '{{ forloop.parentloop.counter }}')">
 
                                 <img src="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
                                      alt="{{ dv.ten_dich_vu }}">
@@ -402,6 +433,9 @@
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
@@ -674,6 +708,7 @@
                 status = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
             } else {
                 try {
+                    // Đã sửa chuẩn namespace bookings:
                     const url =
                         `{% url 'bookings:api_kiem_tra_giuong' %}?ngay=` +
                         encodeURIComponent(dateValue) +
@@ -962,14 +997,14 @@
       service.add(new Option(item, item));
     }
   }
- for(const item of unique('staff')) staff.add(new Option(item,item));
+ for (const item of [...new Set(rows.flatMap(r => (r.dataset.staff || '').split(' | ').map(s => s.trim()).filter(Boolean)))].sort((a,b)=>a.localeCompare(b,'vi'))) staff.add(new Option(item,item));
  let page=1;const perPage=5;
  const today=new Date(),todayStr=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
  el('statToday').textContent=rows.filter(r=>r.dataset.date===todayStr).length;
   el('statUnassigned').textContent=rows.filter(r=>r.dataset.assigned==='0').length;
  function refresh(){
   const q=applied.q;
-  const matched=rows.filter(r=>(!cardFilter || (cardFilter==='today' ? r.dataset.date===todayStr : r.dataset.assigned==='0'))&&(!q||r.dataset.search.toLocaleLowerCase('vi').includes(q))&&(!applied.date||r.dataset.date===applied.date)&&(!applied.service||serviceMatches(r.dataset.service,applied.service))&&(!applied.status||r.dataset.status===applied.status)&&(!applied.staff||r.dataset.staff===applied.staff));
+  const matched=rows.filter(r=>(!cardFilter || (cardFilter==='today' ? r.dataset.date===todayStr : r.dataset.assigned==='0'))&&(!q||r.dataset.search.toLocaleLowerCase('vi').includes(q))&&(!applied.date||r.dataset.date===applied.date)&&(!applied.service||serviceMatches(r.dataset.service,applied.service))&&(!applied.status||r.dataset.status===applied.status)&&(!applied.staff||(r.dataset.staff || '').split(' | ').includes(applied.staff)));
   const pages=Math.max(1,Math.ceil(matched.length/perPage));page=Math.min(page,pages);
   rows.forEach(r=>{ r.hidden=true; r.style.setProperty('display','none','important'); });
   matched.slice((page-1)*perPage,page*perPage).forEach(r=>{ r.hidden=false; r.style.removeProperty('display'); });
@@ -985,25 +1020,62 @@
   el('prevPage').disabled=page<=1;el('nextPage').disabled=page>=pages;
  }
  const applyCurrentFilters=()=>{
-   applied={q:search.value.trim().toLocaleLowerCase('vi'),date:date.value,service:service.value,status:status.value,staff:staff.value};
-   cardFilter='';page=1;refresh();
+    applied={q:search.value.trim().toLocaleLowerCase('vi'),date:date.value,service:service.value,status:status.value,staff:staff.value};
+    cardFilter='';page=1;refresh();
  };
  el('applyFilters').addEventListener('click',applyCurrentFilters);
  search.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();applyCurrentFilters();}});
  el('resetFilters').addEventListener('click',()=>{cardFilter='';applied={q:'',date:'',service:'',status:'',staff:''};search.value='';date.value='';service.value='';status.value='';staff.value='';page=1;refresh()});
  for (const [name,id] of [['today','filterTodayCard'],['unassigned','filterUnassignedCard']]) {
-   el(id).addEventListener('click', () => {
-     cardFilter = cardFilter === name ? '' : name;
-     // Chuyển nhóm thống kê: xóa các lọc cũ để kết quả không bị rỗng ngoài ý muốn.
-     search.value='';date.value='';service.value='';status.value='';staff.value='';
-     applied={q:'',date:'',service:'',status:'',staff:''};
-     page=1;refresh();
-     document.querySelector('.staff-booking-page .table-frame').scrollIntoView({behavior:'smooth',block:'start'});
-   });
+    el(id).addEventListener('click', () => {
+      cardFilter = cardFilter === name ? '' : name;
+      // Chuyển nhóm thống kê: xóa các lọc cũ để kết quả không bị rỗng ngoài ý muốn.
+      search.value='';date.value='';service.value='';status.value='';staff.value='';
+      applied={q:'',date:'',service:'',status:'',staff:''};
+      page=1;refresh();
+      document.querySelector('.staff-booking-page .table-frame').scrollIntoView({behavior:'smooth',block:'start'});
+    });
  }
  el('prevPage').addEventListener('click',()=>{page--;refresh()});
  el('nextPage').addEventListener('click',()=>{page++;refresh()});
  refresh();
 })();
+</script>
+
+<script>
+/* Xổ danh sách nhân viên: popover gắn lên body để không bị bảng cuộn cắt. */
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.bootstrap || !bootstrap.Popover) return;
+  const triggers = document.querySelectorAll('[data-assignee-popover]');
+  triggers.forEach(button => {
+    const source = document.getElementById(button.dataset.assigneePopover);
+    if (!source) return;
+    const popover = new bootstrap.Popover(button, {
+      container: 'body',
+      trigger: 'click',
+      placement: 'bottom',
+      boundary: 'viewport',
+      customClass: 'staff-assignees-popover',
+      html: true,
+      sanitize: true,
+      content: () => {
+        const element = document.createElement('div');
+        element.className = 'staff-assignees-popover-body';
+        element.innerHTML = source.innerHTML;
+        return element;
+      }
+    });
+    button.addEventListener('shown.bs.popover', () => button.setAttribute('aria-expanded', 'true'));
+    button.addEventListener('hidden.bs.popover', () => button.setAttribute('aria-expanded', 'false'));
+  });
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-assignee-popover], .staff-assignees-popover')) return;
+    triggers.forEach(button => bootstrap.Popover.getInstance(button)?.hide());
+  });
+  // Thay trang lọc hoặc mở popup đổi lịch thì đóng hộp xổ cho gọn.
+  document.querySelectorAll('#applyFilters, #resetFilters, #prevPage, #nextPage, #filterTodayCard, #filterUnassignedCard, [data-bs-toggle="modal"]').forEach(el => {
+    el.addEventListener('click', () => triggers.forEach(button => bootstrap.Popover.getInstance(button)?.hide()));
+  });
+});
 </script>
 {% endblock %}

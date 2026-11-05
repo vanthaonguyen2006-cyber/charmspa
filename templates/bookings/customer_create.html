@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=create_compact_original_submit_v3">
+    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=font_sync_30px_v2">
 {% endblock %}
 
 {% block content %}
@@ -18,7 +18,7 @@
         <p class="text-muted small">Trải nghiệm dịch vụ chăm sóc sức khỏe & làm đẹp cao cấp tại Charm Spa Grand Đà Nẵng</p>
     </div>
 
-    <!-- Form gửi dữ liệu về hàm views xử lý lưu database -->
+    <!-- Form gửi dữ liệu về hàm views xử lý lưu database (đã thêm namespace 'bookings:') -->
     <form method="POST" action="{% url 'bookings:booking_customer_create' %}" onsubmit="return validateBookingForm(event)">
         {% csrf_token %}
 
@@ -43,7 +43,7 @@
                                 {% if forloop.counter <= 3 %}
                                 <div class="col-md-4">
                                     <div class="service-card {% if forloop.first %}selected{% endif %}" data-service-id="{{ dv.pk }}" onclick="selectService(this, '{{ dv.pk }}', '{{ dv.ten_dich_vu|escapejs }}', '{{ dv.thoi_luong }} phút', '{{ dv.gia_dich_vu }}đ')">
-                                        <img src="{% static 'images/services/service' %}{{ forloop.counter }}.jpg" alt="Dịch vụ">
+                                        <img src="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg" alt="Dịch vụ">
                                         <div class="fw-bold" style="font-size: 11px;">{{ dv.ten_dich_vu }}</div>
                                         <small class="text-muted d-block mt-1" style="font-size: 11px;">{{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ</small>
                                         <small class="status-badge {% if forloop.first %}text-warning fw-bold{% else %}text-muted{% endif %}" style="font-size: 11px;">
@@ -86,7 +86,7 @@
             <div class="col-lg-4">
                 <div class="summary-card">
                     <h6 class="fw-bold mb-1">4. Thông tin khách hàng</h6>
-                    <p class="text-muted small mb-3" style="font-size: 11px;">Thông tin được điền sẵn từ tài khoản đang đăng nhập; bạn có thể kiểm tra và chỉnh nếu cần.</p>
+                    <p class=""></p>
 
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_ho_ten">Họ và tên *</label>
@@ -120,8 +120,6 @@
                     <input type="submit" value="Xác nhận đặt lịch"
                            class="btn btn-confirm text-center"
                            style="cursor: pointer;">
-
-
                 </div>
             </div>
         </div>
@@ -209,14 +207,12 @@
         container.innerHTML = '<div class="col-12 text-center text-muted small py-3">Vui lòng chọn ngày hẹn để xem khung giờ trống.</div>';
     });
 
-    // Hàm hiển thị Popup Modal thông báo giữa màn hình
     fnShowAlert = function(message) {
         document.getElementById('customAlertMessage').innerText = message;
         const alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
         alertModal.show();
     }
 
-    // Hàm kiểm tra form trước khi submit
     function validateBookingForm(event) {
         const ngayHen = document.getElementById('input_ngay_hen').value;
         const timeSlot = document.getElementById('input_time_slot').value;
@@ -241,7 +237,6 @@
         const container = document.getElementById('main_service_container');
         const selectedColumn = element.closest('.col-md-4');
 
-        // Chuyển thẻ được chọn lên đầu mà không tạo bản sao.
         if (selectedColumn && container.firstElementChild !== selectedColumn) {
             container.prepend(selectedColumn);
         }
@@ -265,7 +260,6 @@
         currentDuration = duration;
         currentServiceType = serviceName.toLowerCase().includes('shampoo') ? 'shampoo' : 'massage';
 
-        // Dịch vụ thay đổi thì bỏ giờ cũ để kiểm tra lại số giường.
         document.getElementById('input_time_slot').value = '';
         updateFullSummary();
         if (document.getElementById('input_ngay_hen').value) {
@@ -282,10 +276,8 @@
         let selectedCard;
 
         if (sameServiceColumn) {
-            // Dịch vụ vốn nằm trong 3 ô: di chuyển ô hiện có, không nhân đôi.
             selectedCard = sameServiceColumn.querySelector('.service-card');
         } else {
-            // Dịch vụ mới: thay ô đầu bằng thẻ mới, 2 ô còn lại giữ nguyên.
             const firstColumn = columns[0];
             if (!firstColumn) return;
             const card = document.createElement('div');
@@ -374,6 +366,7 @@
                 statusText = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
             } else {
                 try {
+                    <!-- Đã cập nhật namespace cho URL API kiểm tra giường -->
                     const response = await fetch(`{% url 'bookings:api_kiem_tra_giuong' %}?ngay=${encodeURIComponent(ngayVal)}&gio=${encodeURIComponent(time)}&loai=${encodeURIComponent(loaiDv)}`);
                     const data = await response.json();
                     remaining = data.con_lai;
