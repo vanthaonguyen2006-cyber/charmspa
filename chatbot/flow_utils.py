@@ -271,3 +271,37 @@ def detect_image_ext(head):
     if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
         return 'webp'
     return None
+
+
+# --------------------------------------------------------------------------
+# Khôi phục kịch bản từ file SQLite cũ (ví dụ db.sqlite3.bak) - chỉ dùng thư viện chuẩn
+# --------------------------------------------------------------------------
+RESTORE_TABLES = ('chatbot_kichbanchatbot', 'chatbot_buocchatbot', 'chatbot_sodokichban')
+
+
+def restore_scripts_from_sqlite(new_path, old_path):
+    """
+    Chép dữ liệu kịch bản (kịch bản, các bước, sơ đồ kéo thả) từ DB cũ sang DB hiện tại.
+    Chỉ chép các cột có ở cả hai bên, bỏ qua dòng đã tồn tại. Không đụng tới bảng khác.
+    Trả về {tên bảng: số dòng đã chép, hoặc None nếu bảng không có ở một trong hai DB}.
+    """
+    import sqlite3
+
+    result = {}
+    con = sqlite3.connect(str(new_path))
+    try:
+        con.execute("ATTACH DATABASE ? AS old", (str(old_path),))
+        for table in RESTORE_TABLES:
+            old_cols = [r[1] for r in con.execute(f'PRAGMA old.table_info("{table}")')]
+            new_cols = [r[1] for r in con.execute(f'PRAGMA main.table_info("{table}")')]
+            if not old_cols or not new_cols:
+                result[table] = None
+                continue
+            cols = ', '.join(f'"{c}"' for c in new_cols if c in old_cols)
+            before = con.execute(f'SELECT COUNT(*) FROM main."{table}"').fetchone()[0]
+            con.execute(f'INSERT OR IGNORE INTO main."{table}" ({cols}) SELECT {cols} FROM old."{table}"')
+            result[table] = con.execute(f'SELECT COUNT(*) FROM main."{table}"').fetchone()[0] - before
+        con.commit()
+    finally:
+        con.close()
+    return result

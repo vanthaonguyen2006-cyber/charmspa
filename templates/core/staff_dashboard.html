@@ -1,0 +1,372 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Tổng quan Quản lý - Charm Spa Grand{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 18px 20px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .kpi-icon-box {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .chart-container-card {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 24px;
+    }
+    .badge-soft-warning { background-color: #fff8dd; color: #b58105; }
+    .badge-soft-danger { background-color: #ffeef0; color: #f1416c; }
+    .badge-soft-success { background-color: #e8fff3; color: #50cd89; }
+    .badge-soft-info { background-color: #f1faff; color: #009ef7; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- TIÊU ĐỀ HỆ THỐNG -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1" style="font-family: 'Playfair Display', serif;">TỔNG QUAN HOẠT ĐỘNG MANAGEMENT</h4>
+            <p class="text-muted small mb-0">Theo dõi tất cả chỉ số kinh doanh, hỗ trợ khách hàng và vận hành spa theo thời gian thực.</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary btn-sm px-3 rounded-3 d-flex align-items-center gap-1" disabled>
+                <i data-lucide="calendar" style="width: 16px;"></i> Hôm nay: {% now "d/m/Y" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- HÀNG 1: 6 THẺ KPI TỪ TOÀN BỘ CÁC APP -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Lịch hẹn hôm nay -->
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="kpi-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold text-uppercase small" style="font-size: 0.7rem;">Lịch hẹn hôm nay</span>
+                    <div class="kpi-icon-box bg-danger bg-opacity-10 text-danger">
+                        <i data-lucide="calendar-check" style="width: 20px;"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">{{ so_lich_hen_hom_nay }} <span class="fs-6 text-muted fw-normal">lượt</span></h4>
+            </div>
+        </div>
+
+        <!-- 2. Lịch hẹn chờ duyệt -->
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="kpi-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold text-uppercase small" style="font-size: 0.7rem;">Chờ duyệt / Phân công</span>
+                    <div class="kpi-icon-box bg-warning bg-opacity-10 text-warning">
+                        <i data-lucide="clock" style="width: 20px;"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">{{ lich_hen_cho_duyet }} <span class="fs-6 text-muted fw-normal">lịch</span></h4>
+            </div>
+        </div>
+
+        <!-- 3. Doanh thu dịch vụ -->
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="kpi-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold text-uppercase small" style="font-size: 0.7rem;">Doanh thu hôm nay</span>
+                    <div class="kpi-icon-box bg-success bg-opacity-10 text-success">
+                        <i data-lucide="dollar-sign" style="width: 20px;"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">{{ doanh_thu_hom_nay }} <span class="fs-6 text-muted fw-normal">đ</span></h4>
+            </div>
+        </div>
+
+        <!-- 4. Khách hàng -->
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="kpi-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold text-uppercase small" style="font-size: 0.7rem;">Tổng khách hàng</span>
+                    <div class="kpi-icon-box bg-primary bg-opacity-10 text-primary">
+                        <i data-lucide="users" style="width: 20px;"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">{{ tong_khach_hang }} <span class="fs-6 text-muted fw-normal">người</span></h4>
+            </div>
+        </div>
+
+        <!-- 5. Phản hồi / Khiếu nại -->
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="kpi-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold text-uppercase small" style="font-size: 0.7rem;">Phản hồi / Khiếu nại</span>
+                    <div class="kpi-icon-box bg-secondary bg-opacity-10 text-dark">
+                        <i data-lucide="alert-circle" style="width: 20px;"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">{{ phan_hoi_cho_xu_ly }} <span class="fs-6 text-muted fw-normal">phiếu</span></h4>
+            </div>
+        </div>
+
+        <!-- 6. Tư vấn Chatbot -->
+        <div class="col-xl-2 col-md-4 col-6">
+            <div class="kpi-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold text-uppercase small" style="font-size: 0.7rem;">Chatbot chờ tư vấn</span>
+                    <div class="kpi-icon-box bg-info bg-opacity-10 text-info">
+                        <i data-lucide="message-square" style="width: 20px;"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">{{ yeu_cau_tu_van_cho }} <span class="fs-6 text-muted fw-normal">yêu cầu</span></h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- HÀNG 2: BIỂU ĐỒ HOẠT ĐỘNG THỰC TẾ -->
+    <div class="row g-3 mb-4">
+        <!-- Biểu đồ Cột & Đường: Tăng trưởng 7 ngày -->
+        <div class="col-lg-8">
+            <div class="chart-container-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">Tăng trưởng Lịch hẹn & Doanh thu</h6>
+                        <small class="text-muted">So sánh dữ liệu thực tế 7 ngày hoạt động gần nhất</small>
+                    </div>
+                </div>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="mainTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ Tròn: Tỷ lệ sử dụng Dịch vụ -->
+        <div class="col-lg-4">
+            <div class="chart-container-card h-100">
+                <div class="mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Top Dịch vụ sử dụng</h6>
+                    <small class="text-muted">Phân bổ theo dữ liệu thực tế dịch vụ đã dùng</small>
+                </div>
+                <div style="position: relative; height: 240px;" class="d-flex justify-content-center align-items-center">
+                    <canvas id="servicesPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HÀNG 3: BẢNG LỊCH HẸN & KHU VỰC HỖ TRỢ KHÁCH HÀNG -->
+    <div class="row g-3">
+        <!-- Cột trái: Bảng Lịch hẹn hôm nay -->
+        <div class="col-lg-7">
+            <div class="chart-container-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">Lịch hẹn cần tiếp nhận hôm nay</h6>
+                        <small class="text-muted">Danh sách khách hàng đặt lịch trong ngày</small>
+                    </div>
+                    <a href="{% url 'bookings:staff_booking_list' %}" class="text-decoration-none small fw-semibold text-danger">Xem tất cả <i data-lucide="chevron-right" style="width: 14px;"></i></a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th>Mã lịch</th>
+                                <th>Khách hàng</th>
+                                <th>Gói trị liệu</th>
+                                <th>Giờ hẹn</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_bookings %}
+                            <tr>
+                                <!-- Dòng 195: Đã sửa thành item.ma_lh -->
+                                <td class="fw-bold text-dark">{{ item.ma_lh }}</td>
+                                <td>{{ item.ma_kh.ho_ten|default:"Khách vãng lai" }}</td>
+                                <td>{{ item.ma_dv.ten_dich_vu|default:"Dịch vụ Spa" }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <i data-lucide="clock" style="width: 12px;" class="me-1"></i>{{ item.gio_hen|time:"H:i"|default:item.gio_hen }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-soft-info px-2 py-1">{{ item.get_trang_thai_display|default:item.trang_thai }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <!-- Dòng 201: Đã sửa tham số URL thành item.ma_lh -->
+                                    <a href="{% url 'bookings:staff_booking_detail' item.ma_lh %}" class="btn btn-sm btn-outline-dark rounded-2 py-1 px-2">Chi tiết</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Chưa có lịch hẹn nào hôm nay.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Phản hồi/Khiếu nại & Yêu cầu Chatbot -->
+        <div class="col-lg-5">
+            <div class="chart-container-card h-100">
+                <!-- Tab Tiêu đề -->
+                <ul class="nav nav-pills mb-3 border-bottom pb-2" id="supportTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-1 px-3 fs-6 fw-bold text-dark" id="feedback-tab" data-bs-toggle="pill" data-bs-target="#feedback-panel" type="button" role="tab">Phản hồi / Khiếu nại</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-1 px-3 fs-6 fw-bold text-dark" id="chatbot-tab" data-bs-toggle="pill" data-bs-target="#chatbot-panel" type="button" role="tab">Tư vấn Chatbot</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="supportTabContent">
+                    <!-- Panel 1: Phản hồi khiếu nại (feedback) -->
+                    <div class="tab-pane fade show active" id="feedback-panel" role="tabpanel">
+                        <div class="list-group list-group-flush">
+                            {% for fb in recent_feedbacks %}
+                            <div class="list-group-item px-0 py-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold text-dark small">{{ fb.ma_kh.ho_ten }}</span>
+                                    <span class="badge {% if fb.loai_ph == 'Khiếu nại' %}badge-soft-danger{% else %}badge-soft-info{% endif %} px-2">{{ fb.loai_ph }}</span>
+                                </div>
+                                <div class="fw-semibold text-secondary small mb-1">{{ fb.tieu_de }}</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ fb.ngay_gui|timesince }} trước</small>
+                                    <span class="badge badge-soft-warning px-2">{{ fb.trang_thai_xu_ly }}</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center text-muted py-4 small">Không có phản hồi/khiếu nại nào cần xử lý.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Panel 2: Tư vấn Chatbot -->
+                    <div class="tab-pane fade" id="chatbot-panel" role="tabpanel">
+                        <div class="list-group list-group-flush">
+                            {% for req in recent_chatbot_requests %}
+                            <div class="list-group-item px-0 py-2 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold text-dark small">Yêu cầu #{{ req.ma_yctv }}</span>
+                                    <span class="badge badge-soft-warning px-2">Chờ tiếp nhận</span>
+                                </div>
+                                <div class="text-muted text-truncate small mb-1" style="max-width: 280px;">{{ req.noi_dung }}</div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">{{ req.thoi_gian_yeu_cau|timesince }} trước</small>
+                            </div>
+                            {% empty %}
+                            <div class="text-center text-muted py-4 small">Không có yêu cầu tư vấn chatbot nào đang chờ.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Đặt các thẻ json_script BÊN TRONG block extra_js để Django xuất ra HTML -->
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_data_bookings|json_script:"chart-bookings-data" }}
+{{ chart_data_revenue|json_script:"chart-revenue-data" }}
+{{ pie_labels|json_script:"pie-labels-data" }}
+{{ pie_data|json_script:"pie-data-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // Hàm đọc JSON an toàn (chống lỗi crash JS nếu thiếu thẻ HTML)
+    function getJsonData(id) {
+        const el = document.getElementById(id);
+        try {
+            return el ? JSON.parse(el.textContent) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    const chartLabels = getJsonData('chart-labels-data');
+    const chartDataBookings = getJsonData('chart-bookings-data');
+    const chartDataRevenue = getJsonData('chart-revenue-data');
+    const pieLabels = getJsonData('pie-labels-data');
+    const pieData = getJsonData('pie-data-data');
+
+    // 1. Biểu đồ Cột & Đường (Tăng trưởng 7 ngày)
+    const ctxMain = document.getElementById('mainTrendsChart');
+    if (ctxMain) {
+        new Chart(ctxMain.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [
+                    {
+                        label: 'Số lượt hẹn',
+                        data: chartDataBookings,
+                        backgroundColor: 'rgba(139, 21, 21, 0.85)',
+                        borderRadius: 6,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Doanh thu (Triệu VNĐ)',
+                        data: chartDataRevenue,
+                        type: 'line',
+                        borderColor: '#C5A059',
+                        backgroundColor: 'rgba(197, 160, 89, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { type: 'linear', position: 'left', title: { display: true, text: 'Lượt hẹn' } },
+                    y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Triệu VNĐ' } }
+                }
+            }
+        });
+    }
+
+    // 2. Biểu đồ Tròn (Top Dịch vụ sử dụng)
+    const ctxPie = document.getElementById('servicesPieChart');
+    if (ctxPie) {
+        new Chart(ctxPie.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieData,
+                    backgroundColor: ['#8B1515', '#C5A059', '#3B82F6', '#10B981', '#94A3B8']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

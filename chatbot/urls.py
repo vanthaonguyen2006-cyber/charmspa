@@ -15,7 +15,7 @@ urlpatterns = [
     path('api/chat/state/', views_chat.chat_state, name='chat_state'),
     path('api/chat/send/', views_chat.chat_send, name='chat_send'),
     path('media/<str:name>', views_script.script_media, name='script_media'),
-    path('history/', views.customer_chat_history, name='customer_history'),
+    path('history/', views_chat.customer_chat_history, name='customer_history'),
 
     # --- CHATBOARD & APIs DÀNH CHO NHÂN VIÊN CSKH ---
     path('staff/', views.staff_chat_dashboard, name='staff_dashboard'),
