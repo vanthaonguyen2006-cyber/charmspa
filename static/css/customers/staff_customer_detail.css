@@ -72,3 +72,24 @@
         padding: 0 17px;
     }
 }
+.btn-detail-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: 1px solid #EADBCC;
+    background-color: #FAF7F0;
+    color: #8C6D4F;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-detail-view:hover {
+    background-color: #8C6D4F;
+    color: #ffffff;
+    border-color: #8C6D4F;
+    transform: translateY(-1px);
+}

@@ -76,3 +76,23 @@ def contact_view(request):
         return redirect('core:contact')
 
     return render(request, 'core/contact.html')
+
+
+from django.shortcuts import render
+
+
+def khong_gian_view(request):
+    danh_sach_khong_gian = [
+        {"ten": "Khu Vực Trị Liệu", "hinh_anh": "images/khong_gian/khu_vuc_tri_lieu.jpg"},
+        {"ten": "Lễ Tân", "hinh_anh": "images/khong_gian/le_tan.jpg"},
+        {"ten": "Ngâm Chân Thảo Dược", "hinh_anh": "images/khong_gian/ngam_chan_thao_duoc.jpg"},
+        {"ten": "Nhà Hàng", "hinh_anh": "images/khong_gian/nha_hang.jpg"},
+        {"ten": "Phòng Gia Đình", "hinh_anh": "images/khong_gian/phong_gia_dinh.jpg"},
+        {"ten": "Phòng Massage", "hinh_anh": "images/khong_gian/phong_massage.jpg"},
+        {"ten": "Phòng VIP", "hinh_anh": "images/khong_gian/phong_vip.jpg"},
+    ]
+
+    context = {
+        'khong_gian_list': danh_sach_khong_gian
+    }
+    return render(request, 'core/khong_gian.html', context)

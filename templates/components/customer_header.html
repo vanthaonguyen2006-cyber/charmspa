@@ -2,7 +2,7 @@
 <header class="customer-header">
     <!-- 1. Cụm Logo -->
     <div class="header-logo">
-        <a href="{% url 'core:customer_home' %}">
+        <a href="{% url 'core:home' %}">
             <img src="{% static 'images/logo_tach_nen.png' %}" alt="Charm Spa Logo" class="logo-icon">
             <div class="logo-text">
                 <h1 class="logo-title">CHARM GRAND</h1>
@@ -14,11 +14,10 @@
     <!-- 2. Cụm Menu Điều Hướng -->
     <nav class="header-nav">
         <ul>
-            <li><a href="{% url 'core:customer_home' %}">Trang Chủ</a></li>
+            <li><a href="{% url 'core:home' %}">Trang Chủ</a></li>
             <li><a href="#">Về Chúng Tôi</a></li>
             <li><a href="{% url 'core:lieu_trinh_page' %}">Liệu Trình</a></li>
-            <li><a href="#">Không Gian</a></li>
-            <li><a href="#">Tin Tức</a></li>
+            <li><a href="{% url 'core:khong_gian' %}">Không Gian</a></li>
             <li><a href="{% url 'core:contact' %}">Liên Hệ</a></li>
         </ul>
     </nav>
@@ -50,7 +49,7 @@
                     <!-- Menu xổ xuống (Dropdown) -->
                     <div id="myDropdownMenu" class="dropdown-menu-custom" style="display: none; position: absolute; right: 0; top: 50px; background: #fff; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-radius: 8px; overflow: hidden; z-index: 99999; border: 1px solid #f0e9e1; text-align: left;">
                         <a href="{% url 'customer_profile' %}" style="display: block; padding: 12px 16px; color: #3b2d24; text-decoration: none; font-size: 14px; border-bottom: 1px solid #f7f3ee;">👤 Xem hồ sơ</a>
-                        <a href="#" style="display: block; padding: 12px 16px; color: #3b2d24; text-decoration: none; font-size: 14px; border-bottom: 1px solid #f7f3ee;">🔑 Đổi mật khẩu</a>
+                        <a href="{% url 'account_change_password' %}" style="display: block; padding: 12px 16px; color: #3b2d24; text-decoration: none; font-size: 14px; border-bottom: 1px solid #f7f3ee;">🔑 Đổi mật khẩu</a>
                         <a href="{% url 'dang_xuat' %}" style="display: block; padding: 12px 16px; color: #d9534f; text-decoration: none; font-size: 14px;">🚪 Đăng xuất</a>
                     </div>
                 </div>
@@ -77,7 +76,7 @@
                 <!-- Nếu tài khoản là Staff hoặc Admin lỡ ghé trang này, hiển thị nút quay lại trang quản trị và nút đăng xuất -->
                 <div style="display: flex; align-items: center; gap: 10px;">
                     {% if request.user.is_superuser %}
-                        <a href="/admin/" class="btn-login-pill" style="padding: 6px 12px; background: #8C6D4F; color: white; border-radius: 8px; text-decoration: none; font-size: 13px;">Quản trị Admin</a>
+                        <a href="/home/staff/" class="btn-login-pill" style="padding: 6px 12px; background: #8C6D4F; color: white; border-radius: 8px; text-decoration: none; font-size: 13px;">Quản trị Admin</a>
                     {% else %}
                         <a href="/bookings/staff/dashboard/" class="btn-login-pill" style="padding: 6px 12px; background: #8C6D4F; color: white; border-radius: 8px; text-decoration: none; font-size: 13px;">Trang Nhân viên</a>
                     {% endif %}

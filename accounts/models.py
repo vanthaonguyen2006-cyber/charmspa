@@ -79,7 +79,7 @@ def dong_bo_tai_khoan_va_vai_tro(sender, instance, created, **kwargs):
     if instance.is_superuser:
         vai_tro_moi = "Quản trị viên"
     elif instance.is_staff:
-        vai_tro_moi = "Nhân viên"
+        vai_tro_moi = "Nhân viên CSKH"
     else:
         vai_tro_moi = "Khách hàng"
 

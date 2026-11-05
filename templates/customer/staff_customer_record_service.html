@@ -11,7 +11,7 @@
 {% block content %}
 <div class="record-service-page">
     <nav class="record-breadcrumbs" aria-label="Điều hướng">
-        <a href="{% url 'staff_customer_list' %}">Khách hàng</a>
+        <a href="{% url 'staff_customer_list' %}>Khách hàng</a>
         <span aria-hidden="true">/</span>
         <a href="{% url 'staff_customer_detail' khach_hang.ma_kh %}">{{ khach_hang.ma_kh }}</a>
         <span aria-hidden="true">/</span>
@@ -57,7 +57,7 @@
                         <select name="ma_dv" id="serviceSelect" class="form-control" required>
                             <option value="">-- Chọn dịch vụ --</option>
                             {% for dv in dich_vu_list %}
-                                <option value="{{ dv.ma_dv }}">{{ dv.ten_dich_vu }}</option>
+                                <option value="{{ dv.ma_dv }}" {% if request.POST.ma_dv == dv.ma_dv %}selected{% endif %}>{{ dv.ten_dich_vu }}</option>
                             {% empty %}
                                 <option value="" disabled>Chưa có dịch vụ trong cơ sở dữ liệu</option>
                             {% endfor %}
@@ -67,7 +67,7 @@
                     <div class="form-field">
                         <label for="dateInput">Ngày sử dụng <span class="required">*</span></label>
                         <input type="date" name="ngay_su_dung" id="dateInput" class="form-control"
-                               value="{{ today|date:'Y-m-d' }}" required>
+                               value="{{ request.POST.ngay_su_dung|default:today|date:'Y-m-d' }}" required>
                     </div>
 
                     <div class="form-field form-field-wide">
@@ -75,9 +75,9 @@
                         <select name="ma_nv" id="staffSelect" class="form-control" required>
                             <option value="">-- Chọn nhân viên --</option>
                             {% for nv in nhan_vien_list %}
-                                <option value="{{ nv.ma_nv }}">{{ nv.ho_ten }} ({{ nv.vi_tri }})</option>
+                                <option value="{{ nv.ma_nv }}" {% if request.POST.ma_nv == nv.ma_nv %}selected{% endif %}>{{ nv.ho_ten }}</option>
                             {% empty %}
-                                <option value="" disabled>Chưa có nhân viên trong cơ sở dữ liệu</option>
+                                <option value="" disabled>Chưa có chuyên viên nào khả dụng</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -117,7 +117,7 @@
                 <div class="form-field">
                     <label for="noteInput">Ghi chú (tùy chọn)</label>
                     <textarea name="ghi_chu" id="noteInput" class="form-control note-field" rows="3"
-                              placeholder="Ghi chú về lần sử dụng dịch vụ"></textarea>
+                              placeholder="Ghi chú về lần sử dụng dịch vụ">{{ request.POST.ghi_chu|default:'' }}</textarea>
                     <small class="field-hint">Ghi chú hiện không được lưu trong model lịch sử dịch vụ.</small>
                 </div>
             </section>

@@ -15,11 +15,10 @@
             <h1>Khách hàng</h1>
             <p>Quản lý hồ sơ, hạng thành viên và hành trình chăm sóc tại Charm Spa.</p>
         </div>
-        {# Thay dấu # bằng URL trang thêm khách hàng khi bạn tạo view/URL đó. #}
-        <button type="button" id="btnThemKhachHang" class="customer-primary-button">
-            <i data-lucide="plus"></i>
-            <span>Thêm mới khách hàng</span>
-        </button>
+      <a href="{% url 'staff_customer_add' %}" class="customer-primary-button" style="text-decoration: none;">
+          <i data-lucide="plus"></i>
+          <span>Thêm mới khách hàng</span>
+      </a>
     </div>
 
     <div class="customer-stats">
@@ -36,7 +35,7 @@
             <div class="stat-copy">
                 <span class="stat-label">Khách VIP</span>
                 <strong>{{ khach_vip_display }}</strong>
-                <small>Hạng Vàng, Kim cương và VIP</small>
+                <small>Hạng Vàng, Kim cương</small>
             </div>
         </article>
         <article class="customer-stat-card">
@@ -70,17 +69,21 @@
                 {% endfor %}
             </select>
 
+            <!-- Lọc trạng thái tài khoản (đã bỏ lựa chọn Chưa có tài khoản) -->
             <select name="trang_thai" aria-label="Lọc theo trạng thái tài khoản">
-                <option value="">Trạng thái</option>
+                <option value="">Tất cả trạng thái</option>
                 <option value="hoat_dong" {% if trang_thai_selected == 'hoat_dong' %}selected{% endif %}>Đang hoạt động</option>
                 <option value="da_khoa" {% if trang_thai_selected == 'da_khoa' %}selected{% endif %}>Đã khóa</option>
-                <option value="chua_tai_khoan" {% if trang_thai_selected == 'chua_tai_khoan' %}selected{% endif %}>Chưa có tài khoản</option>
             </select>
 
+            <!-- Lọc theo ngày tham gia (bổ sung đầy đủ các khoảng thời gian) -->
             <select name="ngay_tham_gia" aria-label="Lọc theo ngày tham gia">
-                <option value="">Ngày tham gia</option>
+                <option value="">Tất cả thời gian</option>
+                <option value="1_tuan" {% if ngay_tham_gia_selected == '1_tuan' %}selected{% endif %}>1 tuần gần đây</option>
+                <option value="2_tuan" {% if ngay_tham_gia_selected == '2_tuan' %}selected{% endif %}>2 tuần gần đây</option>
+                <option value="1_thang" {% if ngay_tham_gia_selected == '1_thang' or ngay_tham_gia_selected == '30_ngay' %}selected{% endif %}>1 tháng gần đây</option>
+                <option value="2_thang" {% if ngay_tham_gia_selected == '2_thang' or ngay_tham_gia_selected == '60_ngay' %}selected{% endif %}>2 tháng gần đây</option>
                 <option value="thang_nay" {% if ngay_tham_gia_selected == 'thang_nay' %}selected{% endif %}>Tháng này</option>
-                <option value="30_ngay" {% if ngay_tham_gia_selected == '30_ngay' %}selected{% endif %}>30 ngày gần đây</option>
             </select>
 
             <button class="customer-filter-button" type="submit">
@@ -215,89 +218,6 @@
         </div>
     </section>
 </section>
-<!-- Modal Thêm Mới Khách Hàng (Dùng JS thuần, không sợ xung đột Bootstrap) -->
-<div id="addCustomerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: #ffffff; width: 100%; max-width: 650px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; margin: 20px;">
-
-        <!-- Header Modal -->
-        <div style="padding: 20px 24px; border-bottom: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h3 style="font-size: 18px; font-weight: bold; color: #1a1a1a; margin: 0;">Thêm mới khách hàng</h3>
-                <p style="font-size: 13px; color: #666; margin: 4px 0 0 0;">Nhập thông tin để tạo hồ sơ khách hàng mới.</p>
-            </div>
-            <button type="button" onclick="dongModalThemKhachHang()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #666;">&times;</button>
-        </div>
-
-        <!-- Form Nhập Liệu -->
-        <form method="POST" action="{% url 'staff_customer_add' %}">
-            {% csrf_token %}
-            <div style="padding: 24px; max-height: 70vh; overflow-y: auto;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Họ và tên <span style="color: red;">*</span></label>
-                        <input type="text" name="ho_ten" placeholder="Nhập họ và tên" required style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Số điện thoại <span style="color: red;">*</span></label>
-                        <input type="tel" name="so_dien_thoai" placeholder="Nhập số điện thoại" required style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Email</label>
-                        <input type="email" name="email" placeholder="Nhập địa chỉ email" style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
-                    </div>
-
-                    <div>
-                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Ngày sinh</label>
-                        <input type="date" name="ngay_sinh" style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
-                    </div>
-
-                    <!-- Giới tính -->
-                    <div style="grid-column: span 2; margin-top: 8px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Giới tính</label>
-                        <div style="display: flex; gap: 24px;">
-                            <label style="font-size: 14px; cursor: pointer;"><input type="radio" name="gioi_tinh" value="Nam" checked style="margin-right: 6px;"> Nam</label>
-                            <label style="font-size: 14px; cursor: pointer;"><input type="radio" name="gioi_tinh" value="Nữ" style="margin-right: 6px;"> Nữ</label>
-                            <label style="font-size: 14px; cursor: pointer;"><input type="radio" name="gioi_tinh" value="Khác" style="margin-right: 6px;"> Khác</label>
-                        </div>
-                    </div>
-
-                    <!-- Thông tin thành viên mẫu -->
-                    <div style="grid-column: span 2; margin-top: 8px; background: #f8f9fa; border: 1px solid #e9ecef; padding: 14px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span style="display: block; font-size: 13px; font-weight: bold; color: #333;">Thông tin thành viên khởi tạo</span>
-                            <span style="font-size: 12px; color: #666;">Hạng mặc định: <b>Thành viên mới</b></span>
-                        </div>
-                        <div style="text-align: right;">
-                            <span style="font-size: 12px; color: #666;">Điểm tích lũy:</span>
-                            <strong style="color: #31572c; font-size: 14px;">0 điểm</strong>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Footer Modal -->
-            <div style="padding: 16px 24px; background: #f8f9fa; border-top: 1px solid #eaeaea; display: flex; justify-content: flex-end; gap: 12px;">
-                <button type="button" onclick="dongModalThemKhachHang()" style="padding: 10px 20px; border: 1px solid #ccc; background: #fff; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">Hủy</button>
-                <button type="submit" style="padding: 10px 20px; background: #31572c; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">Thêm khách hàng</button>
-            </div>
-        </form>
-
-    </div>
-</div>
-
-<!-- Đoạn Script điều khiển đóng/mở Modal thuần -->
-<script>
-    function moModalThemKhachHang() {
-        document.getElementById('addCustomerModal').style.display = 'flex';
-    }
-    function dongModalThemKhachHang() {
-        document.getElementById('addCustomerModal').style.display = 'none';
-    }
-</script>
 {% endblock %}
 
 {% block extra_js %}
@@ -305,28 +225,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             if (window.lucide) window.lucide.createIcons();
-
-            // Lấy các phần tử
-            const btnThem = document.getElementById('btnThemKhachHang');
-            const modal = document.getElementById('addCustomerModal');
-
-            // Kiểm tra xem có tìm thấy nút và modal không
-            if (btnThem && modal) {
-                // Khi bấm vào nút Thêm mới -> Hiện modal
-                btnThem.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    modal.style.setProperty('display', 'flex', 'important');
-                });
-            }
         });
-
-        // Hàm đóng modal
-        function dongModalThemKhachHang() {
-            const modal = document.getElementById('addCustomerModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
     </script>
 {% endblock %}
-

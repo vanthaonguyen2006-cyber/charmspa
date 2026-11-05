@@ -1,4 +1,3 @@
-
 {% extends "layouts/staff_base.html" %}
 {% load static %}
 
@@ -7,6 +6,20 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/customers/staff_customer_detail.css' %}?v=2">
+    <style>
+        .profile-edit-form .info-field input.is-invalid,
+        .profile-edit-form .info-field select.is-invalid {
+            border: 1.5px solid #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
+        .field-error-text {
+            color: #dc3545;
+            font-size: 11.5px;
+            margin-top: 4px;
+            display: block;
+            font-weight: 500;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -63,6 +76,7 @@
                     </span>
 
                     <span>{{ khach_hang.ma_kh }}</span>
+                    {% if user and user.username %}<span>@{{ user.username }}</span>{% endif %}
                     {% if user and user.email %}<span>{{ user.email }}</span>{% endif %}
 
                     <span class="account-status
@@ -95,10 +109,9 @@
             </strong>
         </div>
 
-                <div class="summary-actions">
+        <div class="summary-actions">
             <a class="btn btn-gold"
-               href="{% url 'staff_customer_record_service' khach_hang.ma_kh %}"
-               >
+               href="{% url 'staff_customer_record_service' khach_hang.ma_kh %}">
                 <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
                 + Cập nhật dịch vụ đã sử dụng
             </a>
@@ -139,10 +152,10 @@
             </div>
         {% endif %}
 
-        <!-- THÔNG BÁO LỖI -->
-        {% if errors %}
+        <!-- THÔNG BÁO LỖI CHUNG -->
+        {% if form.non_field_errors %}
             <div class="profile-messages">
-                {% for error in errors %}
+                {% for error in form.non_field_errors %}
                     <div class="profile-message error">
                         {{ error }}
                     </div>
@@ -155,30 +168,53 @@
             <!-- FORM CHỈNH SỬA THÔNG TIN -->
             <form method="post"
                   action="{% url 'staff_customer_detail' khach_hang.ma_kh %}"
-                  class="profile-edit-form">
+                  class="profile-edit-form"
+                  novalidate>
 
                 {% csrf_token %}
 
                 <div class="personal-grid">
 
                     <div class="info-field">
-                        <label for="ho_ten">Họ và tên</label>
+                        <label for="ho_ten">Họ và tên <span style="color: #dc3545;">*</span></label>
                         <input
                             id="ho_ten"
                             name="ho_ten"
                             type="text"
-                            value="{% if form_data %}{{ form_data.ho_ten }}{% else %}{{ khach_hang.ho_ten }}{% endif %}"
+                            class="{% if form.ho_ten.errors %}is-invalid{% endif %}"
+                            value="{{ form.ho_ten.value|default:'' }}"
                             required>
+                        {% for error in form.ho_ten.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
                     </div>
 
                     <div class="info-field">
-                        <label for="so_dien_thoai">Số điện thoại</label>
+                        <label for="username">Tên đăng nhập (Username) <span style="color: #dc3545;">*</span></label>
+                        <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            class="{% if form.username.errors %}is-invalid{% endif %}"
+                            value="{{ form.username.value|default:'' }}"
+                            required>
+                        {% for error in form.username.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="info-field">
+                        <label for="so_dien_thoai">Số điện thoại <span style="color: #dc3545;">*</span></label>
                         <input
                             id="so_dien_thoai"
                             name="so_dien_thoai"
                             type="text"
-                            value="{% if form_data %}{{ form_data.so_dien_thoai }}{% elif tai_khoan %}{{ tai_khoan.so_dien_thoai }}{% endif %}"
+                            class="{% if form.so_dien_thoai.errors %}is-invalid{% endif %}"
+                            value="{{ form.so_dien_thoai.value|default:'' }}"
                             required>
+                        {% for error in form.so_dien_thoai.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
                     </div>
 
                     <div class="info-field">
@@ -187,7 +223,11 @@
                             id="email"
                             name="email"
                             type="email"
-                            value="{% if form_data %}{{ form_data.email }}{% elif user %}{{ user.email }}{% endif %}">
+                            class="{% if form.email.errors %}is-invalid{% endif %}"
+                            value="{{ form.email.value|default:'' }}">
+                        {% for error in form.email.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
                     </div>
 
                     <div class="info-field">
@@ -196,32 +236,32 @@
                             id="ngay_sinh"
                             name="ngay_sinh"
                             type="date"
-                            value="{% if form_data %}{{ form_data.ngay_sinh }}{% elif khach_hang.ngay_sinh %}{{ khach_hang.ngay_sinh|date:'Y-m-d' }}{% endif %}">
+                            class="{% if form.ngay_sinh.errors %}is-invalid{% endif %}"
+                            value="{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:'' }}">
+                        {% for error in form.ngay_sinh.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
                     </div>
 
                     <div class="info-field">
                         <label for="gioi_tinh">Giới tính</label>
-                        <select id="gioi_tinh" name="gioi_tinh">
-                            <option value=""
-                                {% if not form_data.gioi_tinh and not khach_hang.gioi_tinh %}selected{% endif %}>
+                        <select id="gioi_tinh" name="gioi_tinh" class="{% if form.gioi_tinh.errors %}is-invalid{% endif %}">
+                            <option value="" {% if not form.gioi_tinh.value %}selected{% endif %}>
                                 Chưa cập nhật
                             </option>
-
-                            <option value="Nam"
-                                {% if form_data.gioi_tinh == 'Nam' or not form_data and khach_hang.gioi_tinh == 'Nam' %}selected{% endif %}>
+                            <option value="Nam" {% if form.gioi_tinh.value == 'Nam' %}selected{% endif %}>
                                 Nam
                             </option>
-
-                            <option value="Nữ"
-                                {% if form_data.gioi_tinh == 'Nữ' or not form_data and khach_hang.gioi_tinh == 'Nữ' %}selected{% endif %}>
+                            <option value="Nữ" {% if form.gioi_tinh.value == 'Nữ' %}selected{% endif %}>
                                 Nữ
                             </option>
-
-                            <option value="Khác"
-                                {% if form_data.gioi_tinh == 'Khác' or not form_data and khach_hang.gioi_tinh == 'Khác' %}selected{% endif %}>
+                            <option value="Khác" {% if form.gioi_tinh.value == 'Khác' %}selected{% endif %}>
                                 Khác
                             </option>
                         </select>
+                        {% for error in form.gioi_tinh.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
                     </div>
 
                     <div class="info-field">
@@ -279,6 +319,17 @@
                     <label>Họ và tên</label>
                     <div class="info-value">
                         {{ khach_hang.ho_ten|default:'Chưa cập nhật' }}
+                    </div>
+                </div>
+
+                <div class="info-field">
+                    <label>Tên đăng nhập (Username)</label>
+                    <div class="info-value">
+                        {% if user and user.username %}
+                            {{ user.username }}
+                        {% else %}
+                            Chưa có tài khoản
+                        {% endif %}
                     </div>
                 </div>
 
@@ -358,78 +409,79 @@
 
     </section>
 
-    <!-- LỊCH SỬ SỬ DỤNG DỊCH VỤ -->
+        <!-- LỊCH SỬ DỊCH VỤ -->
     <section class="detail-card history-card">
 
-        <div class="section-heading history-heading">
+        <div class="history-heading">
             <div class="history-title-wrap">
-                <h3>Lịch sử sử dụng dịch vụ</h3>
-                <span class="count-pill">
-                    {{ so_luot_su_dung }} lượt sử dụng
-                </span>
+                <div class="history-title-line">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #302D27;">Lịch sử dịch vụ</h3>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #898276;">Các lần trị liệu và chăm sóc tại Charm Spa</p>
+                </div>
+                <span class="count-pill">{{ so_luot_su_dung }} lượt</span>
             </div>
-
-            <a href="{% url 'staff_customer_record_service' khach_hang.ma_kh %}"
-               class="btn-edit btn-update-service">
-                <i data-lucide="plus-circle"></i>
-                + Cập nhật dịch vụ đã sử dụng
-            </a>
         </div>
 
         <div class="history-table-wrap">
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th>THỜI GIAN</th>
+                        <th>NGÀY SỬ DỤNG</th>
                         <th>DỊCH VỤ</th>
-                        <th>CHUYÊN VIÊN</th>
-                        <th>GIÁ TRỊ</th>
-                        <th>ĐIỂM</th>
+                        <th>KỸ THUẬT VIÊN</th>
+                        <th style="text-align: right;">GIÁ TRỊ</th>
+                        <th style="text-align: right;">ĐIỂM</th>
                         <th>TRẠNG THÁI</th>
+                        <th style="text-align: center;">THAO TÁC</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     {% for item in lich_su_dich_vu %}
                         <tr>
-                            <td>
-                                {% if item.ngay %}
-                                    {{ item.ngay|date:'d/m/Y · H:i' }}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </td>
-
+                            <td>{{ item.ngay|date:'d/m/Y H:i' }}</td>
                             <td class="service-name">{{ item.dich_vu }}</td>
                             <td>{{ item.nhan_vien }}</td>
-
-                            <td>
-                                {% if item.gia_tri != None %}
+                            <td style="text-align: right;">
+                                {% if item.gia_tri %}
                                     {{ item.gia_tri|floatformat:0 }} đ
                                 {% else %}
                                     —
                                 {% endif %}
                             </td>
-
-                            <td class="points-cell">
-                                {% if item.diem != None %}
-                                    {{ item.diem }}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </td>
-
+                            <td class="points-cell" style="text-align: right;">+{{ item.diem }}</td>
                             <td>
                                 <span class="history-status">
                                     {{ item.trang_thai }}
                                 </span>
                             </td>
+                            <td style="text-align: center;">
+                                <button type="button"
+                                        class="btn-detail-view"
+                                        onclick="openStaffServiceModal({
+                                            ma_sd: '{{ item.ma_sd|escapejs }}',
+                                            ten_dv: '{{ item.dich_vu|escapejs }}',
+                                            loai_dv: '{{ item.loai_dich_vu|escapejs }}',
+                                            mo_ta: '{{ item.mo_ta|escapejs }}',
+                                            thoi_luong: '{{ item.thoi_luong }}',
+                                            ngay: '{{ item.ngay|date:'d/m/Y H:i' }}',
+                                            khach_hang: '{{ item.khach_hang|escapejs }}',
+                                            nhan_vien: '{{ item.nhan_vien|escapejs }}',
+                                            gia_goc: '{{ item.gia_goc|floatformat:0 }}',
+                                            ty_le_giam: '{{ item.ty_le_giam_gia }}',
+                                            thanh_tien: '{% if item.gia_tri %}{{ item.gia_tri|floatformat:0 }}{% else %}{{ item.gia_goc|floatformat:0 }}{% endif %}',
+                                            diem: '{{ item.diem }}',
+                                            trang_thai: '{{ item.trang_thai|escapejs }}'
+                                        })"
+                                        title="Xem chi tiết dịch vụ">
+                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                    <span>Chi tiết</span>
+                                </button>
+                            </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="6" class="empty-history">
-                                Chưa có dữ liệu lịch sử dịch vụ để hiển thị
-                                cho khách hàng này.
+                            <td colspan="7" class="empty-history">
+                                Khách hàng chưa có lịch sử sử dụng dịch vụ.
                             </td>
                         </tr>
                     {% endfor %}
@@ -438,23 +490,129 @@
         </div>
 
         <div class="history-footer">
-            <span>
-                Lịch sử sử dụng dịch vụ của {{ khach_hang.ho_ten }}
-            </span>
+            Hiển thị tối đa 50 lượt sử dụng gần nhất
         </div>
 
     </section>
 
 </div>
-{% endblock %}
 
-{% block extra_js %}
-    {{ block.super }}
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            if (window.lucide) {
-                window.lucide.createIcons();
-            }
-        });
-    </script>
+<!-- ===================================================================== -->
+<!-- MODAL XEM CHI TIẾT DỊCH VỤ (STAFF VIEW)                              -->
+<!-- ===================================================================== -->
+<div id="staffServiceDetailModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: #ffffff; width: 100%; max-width: 540px; border-radius: 16px; border: 1px solid #e8dec8; box-shadow: 0 12px 36px rgba(48, 45, 39, 0.16); padding: 24px; position: relative; margin: 16px; font-family: Inter, Arial, sans-serif;">
+        <!-- Nút đóng (X) -->
+        <button type="button" onclick="closeStaffServiceModal()" style="position: absolute; top: 18px; right: 20px; background: none; border: none; font-size: 20px; color: #898276; cursor: pointer; padding: 4px; line-height: 1;">✕</button>
+
+        <!-- Tiêu đề Modal -->
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #f0e7d5;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: #FAF7F0; border: 1px solid #E6D8BA; display: flex; align-items: center; justify-content: center; color: #8C6D4F; font-size: 20px;">
+                ✨
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #302D27;">Chi tiết lượt sử dụng dịch vụ</h3>
+                <p style="margin: 3px 0 0; font-size: 12px; color: #898276;">Mã sử dụng: <strong id="staffModalMaSd" style="color: #8C6D4F;"></strong></p>
+            </div>
+        </div>
+
+        <!-- Khối Dịch vụ & Mô tả -->
+        <div style="background: #FAF7F0; border: 1px solid #EADBCC; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
+            <div id="staffModalLoaiDv" style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #8C6D4F; letter-spacing: 0.5px; margin-bottom: 4px;"></div>
+            <h4 id="staffModalTenDv" style="margin: 0 0 6px; font-size: 16px; font-weight: 700; color: #302D27;"></h4>
+            <p id="staffModalMoTa" style="margin: 0; font-size: 12.5px; color: #696256; line-height: 1.5;"></p>
+        </div>
+
+        <!-- Lưới 4 thông tin: Thời gian, Thời lượng, Khách hàng, Kỹ thuật viên -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; font-size: 13px;">
+            <div style="background: #FDFBF8; border: 1px solid #F0EADB; border-radius: 10px; padding: 10px 12px;">
+                <span style="display: block; font-size: 11px; color: #898276; margin-bottom: 2px;">Thời gian sử dụng:</span>
+                <strong id="staffModalNgay" style="color: #302D27;"></strong>
+            </div>
+            <div style="background: #FDFBF8; border: 1px solid #F0EADB; border-radius: 10px; padding: 10px 12px;">
+                <span style="display: block; font-size: 11px; color: #898276; margin-bottom: 2px;">Thời lượng:</span>
+                <strong id="staffModalThoiLuong" style="color: #302D27;"></strong>
+            </div>
+            <div style="background: #FDFBF8; border: 1px solid #F0EADB; border-radius: 10px; padding: 10px 12px;">
+                <span style="display: block; font-size: 11px; color: #898276; margin-bottom: 2px;">Khách hàng sử dụng:</span>
+                <strong id="staffModalKhachHang" style="color: #302D27;"></strong>
+            </div>
+            <div style="background: #FDFBF8; border: 1px solid #F0EADB; border-radius: 10px; padding: 10px 12px;">
+                <span style="display: block; font-size: 11px; color: #898276; margin-bottom: 2px;">Kỹ thuật viên thực hiện:</span>
+                <strong id="staffModalNhanVien" style="color: #302D27;"></strong>
+            </div>
+        </div>
+
+        <!-- Chi tiết tài chính: Giá gốc, Giảm giá theo hạng, Thành tiền thực tế, Điểm cộng -->
+        <div style="background: #FFFFFF; border: 1px solid #EADBCC; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                <span style="color: #898276;">Giá dịch vụ niêm yết:</span>
+                <span id="staffModalGiaGoc" style="font-weight: 600; color: #302D27;"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                <span style="color: #898276;">Giảm giá hạng thành viên:</span>
+                <span id="staffModalGiamGia" style="font-weight: 600; color: #B99552;"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                <span style="color: #898276;">Điểm tích lũy nhận được:</span>
+                <span id="staffModalDiem" style="font-weight: 700; color: #137333;"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+                <span style="color: #898276;">Trạng thái:</span>
+                <span id="staffModalTrangThai" style="display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11.5px; font-weight: 600; background: #e6f4ea; color: #137333;"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 14.5px; font-weight: 700; padding-top: 10px; border-top: 1px dashed #EADBCC;">
+                <span style="color: #302D27;">Thành tiền thanh toán:</span>
+                <span id="staffModalThanhTien" style="color: #8C6D4F; font-size: 16px;"></span>
+            </div>
+        </div>
+
+        <!-- Chân Modal -->
+        <div style="display: flex; justify-content: flex-end;">
+            <button type="button" onclick="closeStaffServiceModal()"
+                    style="padding: 9px 22px; background: #8C6D4F; color: #ffffff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                Đóng
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openStaffServiceModal(data) {
+        document.getElementById('staffModalMaSd').textContent = data.ma_sd || '—';
+        document.getElementById('staffModalLoaiDv').textContent = data.loai_dv || 'Dịch vụ chăm sóc';
+        document.getElementById('staffModalTenDv').textContent = data.ten_dv || '—';
+        document.getElementById('staffModalMoTa').textContent = data.mo_ta || 'Không có mô tả chi tiết.';
+        document.getElementById('staffModalNgay').textContent = data.ngay || '—';
+        document.getElementById('staffModalThoiLuong').textContent = (data.thoi_luong > 0 ? data.thoi_luong + ' phút' : 'Theo liệu trình');
+        document.getElementById('staffModalKhachHang').textContent = data.khach_hang || '—';
+        document.getElementById('staffModalNhanVien').textContent = data.nhan_vien || '—';
+
+        const fmt = new Intl.NumberFormat('vi-VN');
+        const giaGocVal = Number(data.gia_goc) || 0;
+        const thanhTienVal = Number(data.thanh_tien) || giaGocVal;
+        const tyLeGiam = Number(data.ty_le_giam) || 0;
+
+        document.getElementById('staffModalGiaGoc').textContent = fmt.format(giaGocVal) + ' đ';
+        document.getElementById('staffModalGiamGia').textContent = tyLeGiam > 0 ? ('-' + tyLeGiam + '%') : '0%';
+        document.getElementById('staffModalThanhTien').textContent = fmt.format(thanhTienVal) + ' đ';
+        document.getElementById('staffModalDiem').textContent = '+' + (data.diem || 0) + ' điểm';
+        document.getElementById('staffModalTrangThai').textContent = data.trang_thai || 'Đã hoàn thành';
+
+        const modal = document.getElementById('staffServiceDetailModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeStaffServiceModal() {
+        document.getElementById('staffServiceDetailModal').style.display = 'none';
+    }
+
+    // Đóng khi click ngoài backdrop modal
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('staffServiceDetailModal');
+        if (modal && e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+</script>
 {% endblock %}
