@@ -1,13 +1,90 @@
+<!-- Thay khoi style + header + script Header cu bang doan nay trong staff_base.html. -->
+<style>
+    /* Header day du chieu ngang, giam CHIEU CAO (chieu doc) */
+    .staff-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        width: 100% !important;
+        max-width: none !important;
+        height: 64px !important;
+        min-height: 64px !important;
+        margin: 0;
+        padding: 0 20px !important;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: #fffefa;
+        border: 1px solid #eae5dc;
+        border-radius: 0 0 12px 12px;
+    }
+    .staff-header .header-welcome { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .staff-header .header-welcome-title { font: 700 16px Arial, sans-serif; letter-spacing: .4px; color: #292724; }
+    .staff-header .header-welcome-subtitle { font: 12px Arial, sans-serif; color: #9a8c7e; }
+    .staff-header .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+    .staff-header .header-info-box { display: flex; align-items: center; gap: 7px; padding: 5px 10px; background: #faf7f3; border: 1px solid #eadfd2; border-radius: 8px; white-space: nowrap; }
+    .staff-header .header-info-box svg { width: 17px; height: 17px; color: #a48454; flex-shrink: 0; }
+    .staff-header .header-info-text { display: flex; flex-direction: column; gap: 2px; }
+    .staff-header .header-info-text strong { font: 700 12px Arial, sans-serif; color: #37312c; }
+    .staff-header .header-info-text small { font: 10px Arial, sans-serif; color: #9a8c7e; }
+    @media (max-width: 700px) {
+        .staff-header { width: 100% !important; padding: 0 10px !important; gap: 8px; }
+        .staff-header .header-welcome-title { font-size: 12px; }
+        .staff-header .header-welcome-subtitle { display: none; }
+        .staff-header .header-right { gap: 5px; }
+        .staff-header .header-info-box { padding: 6px; gap: 5px; }
+        .staff-header .header-info-box svg { width: 14px; height: 14px; }
+        .staff-header .header-info-text strong { font-size: 10px; }
+        .staff-header .header-info-text small { display: none; }
+    }
+    @media (max-width: 420px) {
+        .staff-header .header-welcome-title { font-size: 10px; }
+        .staff-header .header-info-box svg { display: none; }
+    }
+</style>
+
 <header class="staff-header">
-
-    <div class="header-search">
-        <i data-lucide="search" class="search-icon"></i>
-        <input type="text" name="search" placeholder="Tìm kiếm theo mã phiếu, khách hàng hoặc số điện thoại..." autocomplete="off">
+    <div class="header-welcome">
+        <div class="header-welcome-title">KHÔNG GIAN LÀM VIỆC</div>
+        <div class="header-welcome-subtitle">Nơi mỗi trải nghiệm được chăm chút.</div>
     </div>
-
-    <button type="button" class="notification-button">
-        <i data-lucide="bell"></i>
-        {% if notification_count %}<span class="notification-dot"></span>{% endif %}
-    </button>
-
+    <div class="header-right">
+        <div class="header-info-box">
+            <i data-lucide="calendar-days"></i>
+            <div class="header-info-text">
+                <strong id="staffCurrentDate">--/--/----</strong>
+                <small>Ngày làm việc</small>
+            </div>
+        </div>
+        <div class="header-info-box">
+            <i data-lucide="clock-3"></i>
+            <div class="header-info-text">
+                <strong id="staffCurrentTime">--:--:--</strong>
+                <small>Giờ hiện tại</small>
+            </div>
+        </div>
+    </div>
 </header>
+
+<script>
+    // Chi giu mot ban script cap nhat ngay gio trong staff_base.html.
+    function updateStaffDateTime() {
+        const now = new Date();
+        const dateElement = document.getElementById('staffCurrentDate');
+        const timeElement = document.getElementById('staffCurrentTime');
+        if (dateElement) {
+            dateElement.textContent = now.toLocaleDateString('vi-VN', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+        }
+        if (timeElement) {
+            timeElement.textContent = now.toLocaleTimeString('vi-VN', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            });
+        }
+    }
+    updateStaffDateTime();
+    setInterval(updateStaffDateTime, 1000);
+</script>
