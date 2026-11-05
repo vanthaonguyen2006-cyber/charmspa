@@ -1,0 +1,208 @@
+
+{% extends 'layouts/customer_base_pro.html' %}
+{% load static %}
+
+{% block title %}
+Phản hồi & khiếu nại của tôi | Charm Grand Spa
+{% endblock %}
+
+{% block extra_css %}
+<!-- CSS riêng cho trang danh sách phản hồi/khiếu nại -->
+<link rel="stylesheet"
+      href="{% static 'css/customer_feedback_list.css' %}">
+{% endblock %}
+
+{% block profile_content %}
+<!-- Nội dung riêng của mục 4: Khiếu nại -->
+<div class="customer-feedback-list-page">
+
+    <!-- Tiêu đề trang và nút tạo phiếu mới -->
+    <div class="feedback-list-heading">
+        <div>
+            <h1>PHẢN HỒI & KHIẾU NẠI CỦA TÔI</h1>
+            <p>Theo dõi mọi yêu cầu chăm sóc và phản hồi tới Charm Grand.</p>
+        </div>
+
+        <!-- Chuyển sang trang tạo phản hồi/khiếu nại -->
+        <a href="{% url 'feedback:customer_feedback_create' %}"
+           class="feedback-create-button">
+            + Gửi phản hồi/khiếu nại
+        </a>
+    </div>
+
+    <!-- Bộ lọc loại phiếu và trạng thái -->
+    <form method="get"
+          action="{% url 'feedback:customer_feedback_list' %}"
+          class="feedback-filter-form">
+
+        <div class="feedback-filter-controls">
+            <label for="feedback-type">BỘ LỌC</label>
+
+            <!-- Lọc theo loại phản hồi/khiếu nại -->
+            <select id="feedback-type"
+                    name="type"
+                    onchange="this.form.submit()">
+                <option value="">Tất cả loại</option>
+
+                {% for value, label in loai_ph_choices %}
+                    <option value="{{ value }}"
+                        {% if selected_type == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- Lọc theo trạng thái xử lý -->
+            <select id="feedback-status"
+                    name="status"
+                    onchange="this.form.submit()">
+                <option value="">Tất cả trạng thái</option>
+
+                {% for value, label in trang_thai_choices %}
+                    <option value="{{ value }}"
+                        {% if selected_status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Số phiếu hiện có sau khi lọc -->
+        <p class="feedback-total">
+            {{ total_count }} phiếu · Sắp xếp mới nhất
+        </p>
+    </form>
+
+    <!-- Bảng danh sách phiếu -->
+    <div class="feedback-table-wrapper">
+        <table class="feedback-table">
+            <thead>
+                <tr>
+                    <th>MÃ PHIẾU</th>
+                    <th>LOẠI</th>
+                    <th>TIÊU ĐỀ</th>
+                    <th>NGÀY GỬI</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>CHI TIẾT</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <!-- Lặp qua danh sách phiếu lấy từ database -->
+                {% for phieu in page_obj %}
+                    <tr>
+                        <!-- Mã phiếu -->
+                        <td>
+                            <span class="feedback-code">
+                                #{{ phieu.ma_ph }}
+                            </span>
+                        </td>
+
+                        <!-- Phân biệt phản hồi và khiếu nại -->
+                        <td>
+                            <span class="feedback-type
+                                {% if phieu.loai_ph == 'Khiếu nại' %}
+                                    type-complaint
+                                {% else %}
+                                    type-feedback
+                                {% endif %}">
+                                {{ phieu.loai_ph }}
+                            </span>
+                        </td>
+
+                        <!-- Tiêu đề phiếu -->
+                        <td class="feedback-subject">
+                            {{ phieu.tieu_de }}
+                        </td>
+
+                        <!-- Ngày và giờ gửi -->
+                        <td class="feedback-date">
+                            {{ phieu.ngay_gui|date:"d/m/Y - H:i" }}
+                        </td>
+
+                        <!-- Hiển thị trạng thái bằng nhãn màu -->
+                        <td>
+                            <span class="feedback-status
+                                {% if phieu.trang_thai_xu_ly == 'Đã giải quyết' %}
+                                    status-resolved
+                                {% elif phieu.trang_thai_xu_ly == 'Đang xử lý' %}
+                                    status-processing
+                                {% else %}
+                                    status-received
+                                {% endif %}">
+                                <span class="status-dot"></span>
+                                {{ phieu.trang_thai_xu_ly }}
+                            </span>
+                        </td>
+
+                        <!-- Liên kết chi tiết sẽ được nối khi làm trang chi tiết -->
+                        <td>
+                            <a href="{% url 'feedback:customer_feedback_detail' phieu.ma_ph %}">
+                                Xem chi tiết →
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <!-- Thông báo khi chưa có phiếu phù hợp -->
+                    <tr>
+                        <td colspan="6" class="feedback-empty">
+                            {% if khach_hang %}
+                                Chưa có phiếu phản hồi/khiếu nại phù hợp.
+                            {% else %}
+                                Chưa có dữ liệu khách hàng để hiển thị phiếu.
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Chân bảng và phân trang -->
+    <div class="feedback-table-footer">
+        <p>
+            {% if total_count > 0 %}
+                Hiển thị {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                trong tổng số {{ total_count }} phiếu
+            {% else %}
+                Hiển thị 0 phiếu
+            {% endif %}
+        </p>
+
+        <div class="feedback-pagination">
+            <!-- Nút về trang trước -->
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if selected_type %}&type={{ selected_type|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status|urlencode }}{% endif %}"
+                   aria-label="Trang trước">
+                    ‹
+                </a>
+            {% else %}
+                <span class="page-disabled">‹</span>
+            {% endif %}
+
+            <!-- Trang hiện tại -->
+            <span class="page-current">
+                {{ page_obj.number }}
+            </span>
+
+            <!-- Nút sang trang tiếp theo -->
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if selected_type %}&type={{ selected_type|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status|urlencode }}{% endif %}"
+                   aria-label="Trang tiếp theo">
+                    ›
+                </a>
+            {% else %}
+                <span class="page-disabled">›</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Thông báo cuối trang -->
+    <div class="feedback-care-note">
+        <span>✦</span>
+        Charm Grand phản hồi trong vòng 24 giờ làm việc.
+        Với trường hợp khẩn cấp, vui lòng gọi 1900 2688.
+    </div>
+
+</div>
+{% endblock %}

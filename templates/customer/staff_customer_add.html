@@ -6,6 +6,19 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+    <style>
+        .is-invalid {
+            border-color: #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
+        .invalid-feedback {
+            display: block;
+            color: #dc3545;
+            font-size: 12.5px;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -21,65 +34,97 @@
         </a>
     </div>
 
-    <!-- Thông báo lỗi/thành công -->
-    {% if messages %}
+    <!-- Thông báo lỗi chung nếu có -->
+    {% if form.non_field_errors %}
         <div class="mb-4">
-            {% for message in messages %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
+            <div class="alert alert-danger" role="alert" style="border-radius: 8px;">
+                {% for err in form.non_field_errors %}
+                    <div>{{ err }}</div>
+                {% endfor %}
+            </div>
         </div>
     {% endif %}
 
     <!-- Form Nhập Liệu -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-        <form method="POST" action="">
+        <form method="POST" action="{% url 'staff_customer_add' %}" novalidate>
             {% csrf_token %}
             <div class="row g-4">
-                
+
                 <!-- Họ và tên -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size: 14px;">Họ và tên <span class="text-danger">*</span></label>
-                    <input type="text" name="ho_ten" class="form-control py-2 px-3" placeholder="Nhập họ và tên khách hàng" required style="border-radius: 8px; font-size: 14px;">
+                    <input type="text" name="ho_ten"
+                           class="form-control py-2 px-3 {% if form.ho_ten.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập họ và tên khách hàng" required
+                           value="{{ form.ho_ten.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.ho_ten.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
 
                 <!-- Số điện thoại -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size: 14px;">Số điện thoại <span class="text-danger">*</span></label>
-                    <input type="tel" name="so_dien_thoai" class="form-control py-2 px-3" placeholder="Nhập số điện thoại liên lạc" required style="border-radius: 8px; font-size: 14px;">
+                    <input type="tel" name="so_dien_thoai"
+                           class="form-control py-2 px-3 {% if form.so_dien_thoai.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập số điện thoại liên lạc" required
+                           value="{{ form.so_dien_thoai.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.so_dien_thoai.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
 
                 <!-- Email -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size: 14px;">Email</label>
-                    <input type="email" name="email" class="form-control py-2 px-3" placeholder="Nhập địa chỉ email (nếu có)" style="border-radius: 8px; font-size: 14px;">
+                    <input type="email" name="email"
+                           class="form-control py-2 px-3 {% if form.email.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập địa chỉ email (nếu có)"
+                           value="{{ form.email.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
 
                 <!-- Ngày sinh -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size: 14px;">Ngày sinh</label>
-                    <input type="date" name="ngay_sinh" class="form-control py-2 px-3" style="border-radius: 8px; font-size: 14px;">
+                    <input type="date" name="ngay_sinh"
+                           class="form-control py-2 px-3 {% if form.ngay_sinh.errors %}is-invalid{% endif %}"
+                           value="{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.ngay_sinh.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
 
-                <!-- Giới tính (Thay thế nguồn khách hàng) -->
+                <!-- Giới tính -->
                 <div class="col-12 mt-3">
                     <label class="form-label fw-semibold mb-2" style="font-size: 14px;">Giới tính</label>
                     <div class="d-flex gap-5">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhNam" value="Nam" checked>
+                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhNam" value="Nam"
+                                   {% if form.gioi_tinh.value == 'Nam' or not form.gioi_tinh.value %}checked{% endif %}>
                             <label class="form-check-label" for="gioiTinhNam" style="font-size: 14px;">Nam</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhNu" value="Nữ">
+                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhNu" value="Nữ"
+                                   {% if form.gioi_tinh.value == 'Nữ' %}checked{% endif %}>
                             <label class="form-check-label" for="gioiTinhNu" style="font-size: 14px;">Nữ</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhKhac" value="Khác">
+                            <input class="form-check-input" type="radio" name="gioi_tinh" id="gioiTinhKhac" value="Khác"
+                                   {% if form.gioi_tinh.value == 'Khác' %}checked{% endif %}>
                             <label class="form-check-label" for="gioiTinhKhac" style="font-size: 14px;">Khác</label>
                         </div>
                     </div>
+                    {% for error in form.gioi_tinh.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
                 </div>
 
                 <!-- Khung thông tin thành viên mặc định -->
@@ -91,7 +136,7 @@
                             </div>
                             <div>
                                 <span class="d-block fw-bold text-dark" style="font-size: 14px;">Thông tin thành viên khởi tạo</span>
-                                <span class="text-muted" style="font-size: 12px;">Hạng mặc định: <strong class="text-dark">Thành viên mới</strong></span>
+                                <span class="text-muted" style="font-size: 12px;">Hệ thống tự gán hạng có điểm tối thiểu thấp nhất.</span>
                             </div>
                         </div>
                         <div class="text-end">

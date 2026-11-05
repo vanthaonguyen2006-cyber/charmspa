@@ -1,5 +1,77 @@
 {% load static %}
+
+
+
 <aside class="staff-sidebar" id="staffSidebar">
+
+    <!-- ACTIVE MENU: chỉ tô mục đang mở, không đổi layout sidebar -->
+    <style>
+        #staffSidebar .sidebar-menu > .sidebar-item.active,
+        #staffSidebar .sidebar-menu > a.sidebar-item.active,
+        #staffSidebar .sidebar-menu > button.sidebar-parent.active {
+            background: #f3e4c9 !important;
+            color: #956b2c !important;
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+        }
+        #staffSidebar .sidebar-menu > .sidebar-item.active .sidebar-label,
+        #staffSidebar .sidebar-menu > .sidebar-item.active .sidebar-icon,
+        #staffSidebar .sidebar-menu > .sidebar-item.active .sidebar-chevron,
+        #staffSidebar .sidebar-menu > .sidebar-item.active svg {
+            color: #956b2c !important;
+            stroke: #956b2c !important;
+        }
+        #staffSidebar .sidebar-submenu .sidebar-subitem.active-sub {
+            background: #f3e4c9 !important;
+            color: #956b2c !important;
+            font-weight: 700 !important;
+            border-radius: 10px !important;
+        }
+        #staffSidebar .sidebar-menu > .sidebar-item:not(.active):hover {
+            background: rgba(243, 228, 201, .14);
+            border-radius: 12px;
+        }
+        /* MENU CHA CO MENU CON: giu nen toi, khong to 2 o mau be */
+        #staffSidebar .sidebar-menu > button.sidebar-parent.active,
+        #staffSidebar .sidebar-menu > button.sidebar-parent.active:hover {
+            background: transparent !important;
+            color: #f5eee3 !important;
+            font-weight: 600 !important;
+            border-radius: 10px !important;
+        }
+        #staffSidebar .sidebar-menu > button.sidebar-parent.active .sidebar-label,
+        #staffSidebar .sidebar-menu > button.sidebar-parent.active .sidebar-icon,
+        #staffSidebar .sidebar-menu > button.sidebar-parent.active .sidebar-chevron,
+        #staffSidebar .sidebar-menu > button.sidebar-parent.active svg {
+            color: #f5eee3 !important;
+            stroke: #f5eee3 !important;
+        }
+
+        /* MENU CON: thut vao nhe, kich thuoc dong bo */
+        #staffSidebar .sidebar-submenu {
+            padding: 3px 0 5px 18px !important;
+            margin: 0 !important;
+            box-sizing: border-box;
+        }
+        #staffSidebar .sidebar-submenu .sidebar-subitem {
+            display: block;
+            box-sizing: border-box;
+            padding: 10px 12px !important;
+            margin: 2px 0 !important;
+            border-radius: 9px !important;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        #staffSidebar .sidebar-submenu .sidebar-subitem.active-sub {
+            background: #f3e4c9 !important;
+            color: #956b2c !important;
+            font-weight: 700 !important;
+        }
+        #staffSidebar .sidebar-submenu .sidebar-subitem:not(.active-sub):hover {
+            background: rgba(243, 228, 201, 0.12) !important;
+        }
+    </style>
+
 
     <!-- LOGO -->
     <div class="sidebar-logo">
@@ -53,12 +125,22 @@
             <span class="sidebar-label">Ngày hoạt động</span>
         </a>
 
-        <a href="/admin/feedback/phanhoikhieunai/" title="Phản hồi & Khiếu nại"
-           class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}">
+        <!-- PHẢN HỒI & KHIẾU NẠI -->
+        <a
+            href="{% if request.user.is_superuser %}{% url 'feedback:admin_feedback_list' %}{% else %}{% url 'feedback:staff_feedback_list' %}{% endif %}"
+            title="Phản hồi & Khiếu nại"
+            class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}"
+        >
             <i data-lucide="message-square-text" class="sidebar-icon"></i>
-            <span class="sidebar-label">Phản hồi & Khiếu nại</span>
+
+            <span class="sidebar-label">
+                Phản hồi & Khiếu nại
+            </span>
+
             {% if feedback_count %}
-                <span class="menu-badge">{{ feedback_count }}</span>
+                <span class="menu-badge">
+                    {{ feedback_count }}
+                </span>
             {% endif %}
         </a>
 
@@ -99,11 +181,6 @@
             <span class="sidebar-label">Dịch vụ</span>
         </a>
 
-        <a href="/admin/accounts/nhanvien/" title="Nhân viên"
-           class="sidebar-item {% if active_menu == 'staff' %}active{% endif %}">
-            <i data-lucide="contact-round" class="sidebar-icon"></i>
-            <span class="sidebar-label">Nhân viên</span>
-        </a>
 
         <a href="/admin/inventory/sanpham/" title="Kho & sản phẩm"
            class="sidebar-item {% if active_menu == 'inventory' %}active{% endif %}">
@@ -183,15 +260,11 @@
 
         <div class="user-dropdown" id="userDropdown" style="display: none;">
             <div class="user-dropdown-heading">Tài khoản của tôi</div>
-            <a href="/admin/password_change/" class="user-dropdown-item">
+            <a href="{% url 'staff_change_password' %}" class="user-dropdown-item">
                 <i data-lucide="user-round"></i>
                 <span>Đổi mật khẩu</span>
             </a>
             <a href="/admin/logout/" class="user-dropdown-item text-danger">
-                <i data-lucide="log-out"></i>
-                <span>Đăng xuất</span>
-            </a>
-            <a href="{% url 'dang_xuat' %}" class="user-dropdown-item text-danger">
                 <i data-lucide="log-out"></i>
                 <span>Đăng xuất</span>
             </a>
@@ -242,6 +315,59 @@ document.addEventListener('DOMContentLoaded', function() {
             userDropdown.style.display = 'none';
             if (userToggle) userToggle.setAttribute('aria-expanded', 'false');
         });
+    }
+
+
+    // ACTIVE MENU: ưu tiên đường dẫn đang mở; fallback active_menu từ view.
+    const sidebarRoot = document.getElementById('staffSidebar');
+    if (sidebarRoot) {
+        const currentPath = window.location.pathname.replace(/\/+$/, '') + '/';
+        const navLinks = Array.from(sidebarRoot.querySelectorAll(
+            '.sidebar-menu a.sidebar-item[href], .sidebar-menu a.sidebar-subitem[href]'
+        ));
+        let bestLink = null;
+        let bestLength = -1;
+
+        navLinks.forEach(function(link) {
+            let path;
+            try {
+                const url = new URL(link.getAttribute('href'), window.location.href);
+                if (url.origin !== window.location.origin) return;
+                path = url.pathname.replace(/\/+$/, '') + '/';
+            } catch (error) {
+                return;
+            }
+            if (path === '/' || path === '/admin/') return;
+            if ((currentPath === path || currentPath.startsWith(path)) && path.length > bestLength) {
+                bestLink = link;
+                bestLength = path.length;
+            }
+        });
+
+        // Các trang con có đường dẫn khác trang list (ví dụ tạo lịch hẹn)
+        // vẫn được đánh dấu ở chức năng chính.
+        if (!bestLink && currentPath.startsWith('/bookings/staff/bookings/')) {
+            bestLink = navLinks.find(link => link.getAttribute('href')?.includes('/staff/bookings/')) || null;
+        }
+        if (bestLink) {
+            sidebarRoot.querySelectorAll('.sidebar-menu .active, .sidebar-menu .active-sub')
+                .forEach(item => item.classList.remove('active', 'active-sub'));
+            if (bestLink.classList.contains('sidebar-subitem')) {
+                bestLink.classList.add('active-sub');
+                const submenu = bestLink.closest('.sidebar-submenu');
+                const parent = submenu?.previousElementSibling;
+                if (submenu) {
+                    submenu.classList.add('show', 'open');
+                    submenu.style.display = 'block';
+                }
+                if (parent?.classList.contains('sidebar-parent')) {
+                    parent.classList.add('active');
+                    parent.setAttribute('aria-expanded', 'true');
+                }
+            } else {
+                bestLink.classList.add('active');
+            }
+        }
     }
 
     if (typeof lucide !== 'undefined') {

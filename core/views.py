@@ -6,14 +6,22 @@ from services.models import DichVu
 from django.core.paginator import Paginator
 
 
+# Trang chủ khách hàng
 def customer_home(request):
     return render(request, 'core/customer_home.html')
 
 
+# Trang chủ nhân viên
 def staff_home(request):
     return render(request, 'core/staff_home.html')
 
 
+# Trang chủ Charm Spa Grand (AMy)
+def home(request):
+    return render(request, "core/home.html")
+
+
+# Trang liệu trình (main)
 def lieu_trinh_page(request):
     dich_vu_list = list(DichVu.objects.all().order_by('pk'))
 
@@ -33,6 +41,7 @@ def lieu_trinh_page(request):
     })
 
 
+# Trang hồ sơ khách hàng (main)
 @login_required(login_url='/accounts/dang_nhap/')
 def customer_profile_view(request):
     # Chỉ lấy hồ sơ thuộc tài khoản đang đăng nhập.
@@ -47,6 +56,7 @@ def customer_profile_view(request):
     })
 
 
+# Trang liên hệ (main)
 def contact_view(request):
     if request.method == 'POST':
         ho_ten = request.POST.get('ho_ten', '').strip()
@@ -66,3 +76,23 @@ def contact_view(request):
         return redirect('core:contact')
 
     return render(request, 'core/contact.html')
+
+
+from django.shortcuts import render
+
+
+def khong_gian_view(request):
+    danh_sach_khong_gian = [
+        {"ten": "Khu Vực Trị Liệu", "hinh_anh": "images/khong_gian/khu_vuc_tri_lieu.jpg"},
+        {"ten": "Lễ Tân", "hinh_anh": "images/khong_gian/le_tan.jpg"},
+        {"ten": "Ngâm Chân Thảo Dược", "hinh_anh": "images/khong_gian/ngam_chan_thao_duoc.jpg"},
+        {"ten": "Nhà Hàng", "hinh_anh": "images/khong_gian/nha_hang.jpg"},
+        {"ten": "Phòng Gia Đình", "hinh_anh": "images/khong_gian/phong_gia_dinh.jpg"},
+        {"ten": "Phòng Massage", "hinh_anh": "images/khong_gian/phong_massage.jpg"},
+        {"ten": "Phòng VIP", "hinh_anh": "images/khong_gian/phong_vip.jpg"},
+    ]
+
+    context = {
+        'khong_gian_list': danh_sach_khong_gian
+    }
+    return render(request, 'core/khong_gian.html', context)
