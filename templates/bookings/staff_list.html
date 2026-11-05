@@ -49,7 +49,6 @@
   {% endfor %}{% endif %}
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
     <div><h1 class="staff-title booking-page-title">QUẢN LÝ LỊCH HẸN</h1><p class="staff-sub">Theo dõi, kiểm tra và cập nhật trạng thái các lịch trị liệu của khách hàng.</p></div>
-    <!-- Đã sửa chuẩn namespace bookings: -->
     <a href="{% url 'bookings:staff_booking_create' %}" class="staff-btn-dark"><i class="bi bi-plus-circle"></i> Tạo lịch thủ công</a>
   </div>
   <div class="stats-grid">
@@ -95,9 +94,9 @@
           <td class="staff-assignees-cell">
             {% if lh.staff_assignees_count %}
               <button type="button" class="staff-assignees-trigger {% if lh.staff_assignees_missing %}staff-assignees-partial{% endif %}"
-                    data-assignee-popover="assignees-{{ forloop.counter }}"
-                    aria-label="Xem danh sách {{ lh.staff_assignees_count }} nhân viên lịch {{ lh.ma_lh }}"
-                    aria-expanded="false">
+                      data-assignee-popover="assignees-{{ forloop.counter }}"
+                      aria-label="Xem danh sách {{ lh.staff_assignees_count }} nhân viên lịch {{ lh.ma_lh }}"
+                      aria-expanded="false">
                 <i class="bi bi-people"></i>
                 {{ lh.staff_assignees_count }}/{{ lh.so_luong_khach }} nhân viên
                 <i class="bi bi-chevron-down staff-assignees-chevron"></i>
@@ -122,9 +121,7 @@
             {% endif %}
           </td>
           <td><span class="state {% if lh.trang_thai == 'Đã hủy' %}cancelled{% elif lh.trang_thai == 'Hoàn thành' %}completed{% elif lh.trang_thai == 'Đang thực hiện' %}progress{% endif %}">{{ lh.trang_thai }}</span></td>
-          <td style="white-space:nowrap">
-            <!-- Đã sửa chuẩn namespace bookings: -->
-            <a class="tiny-action" title="Xem chi tiết" href="{% url 'bookings:staff_booking_detail' lh.ma_lh %}"><i class="bi bi-eye"></i></a>
+          <td style="white-space:nowrap"><a class="tiny-action" title="Xem chi tiết" href="{% url 'bookings:staff_booking_detail' lh.ma_lh %}"><i class="bi bi-eye"></i></a>
           {% if lh.trang_thai != 'Đã hủy' and lh.trang_thai != 'Hoàn thành' %}
           <button class="tiny-action blue" title="Đổi lịch" type="button" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ forloop.counter }}"><i class="bi bi-calendar2-range"></i></button>
           {% endif %}</td>
@@ -260,102 +257,102 @@
                                                        required>
                                                 <i class="bi bi-calendar3 custom-date-icon"></i>
                                             </div>
-                                        </div>
                                     </div>
+                                </div>
 
-                                    <div class="col-md-7">
-                                        <div class="time-box">
-                                            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
-                                                <h6 class="fw-bold m-0" style="font-size: 14px;">
-                                                    3. Khung giờ trống
-                                                </h6>
-                                                <span class="badge bg-light text-success border"
-                                                      id="bed_capacity_info_{{ forloop.counter }}"
-                                                      style="font-size: 10px;">
-                                                    Kiểm tra sức chứa
-                                                </span>
-                                            </div>
+                                <div class="col-md-7">
+                                    <div class="time-box">
+                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                            <h6 class="fw-bold m-0" style="font-size: 14px;">
+                                                3. Khung giờ trống
+                                            </h6>
+                                            <span class="badge bg-light text-success border"
+                                                    id="bed_capacity_info_{{ forloop.counter }}"
+                                                    style="font-size: 10px;">
+                                                Kiểm tra sức chứa
+                                            </span>
+                                        </div>
 
-                                            <div class="row g-2"
-                                                 id="time_slots_container_{{ forloop.counter }}">
+                                        <div class="row g-2"
+                                                id="time_slots_container_{{ forloop.counter }}">
                                                 <div class="col-12 text-center text-muted small py-2">
                                                     Chọn ngày để kiểm tra khung giờ.
                                                 </div>
                                             </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- CỘT PHẢI: THÔNG TIN VÀ TÓM TẮT -->
-                            <div class="col-lg-4">
-                                <div class="summary-card">
-                                    <h6 class="fw-bold mb-1">4. Thông tin lịch hẹn</h6>
-                                    <p class="text-muted small mb-3" style="font-size: 11px;">
-                                        Kiểm tra thông tin trước khi lưu thay đổi.
-                                    </p>
+                        <!-- CỘT PHẢI: THÔNG TIN VÀ TÓM TẮT -->
+                        <div class="col-lg-4">
+                            <div class="summary-card">
+                                <h6 class="fw-bold mb-1">4. Thông tin lịch hẹn</h6>
+                                <p class="text-muted small mb-3" style="font-size: 11px;">
+                                    Kiểm tra thông tin trước khi lưu thay đổi.
+                                </p>
 
-                                    <div class="mb-3">
-                                        <label class="small fw-bold">Khách hàng</label>
-                                        <input type="text"
-                                               class="form-control form-control-custom"
-                                               value="{{ lh.ma_kh.ho_ten }}"
-                                               readonly>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="small fw-bold">Khách hàng</label>
+                                    <input type="text"
+                                           class="form-control form-control-custom"
+                                           value="{{ lh.ma_kh.ho_ten }}"
+                                           readonly>
+                                </div>
 
-                                    <div class="mb-3">
-                                        <label class="small fw-bold">Số điện thoại</label>
-                                        <input type="text"
-                                               class="form-control form-control-custom"
-                                               value="{{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:"---" }}"
-                                               readonly>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="small fw-bold">Số điện thoại</label>
+                                    <input type="text"
+                                           class="form-control form-control-custom"
+                                           value="{{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:"---" }}"
+                                           readonly>
+                                </div>
 
-                                    <div class="mb-3">
-                                        <label class="small fw-bold"
-                                               for="input_so_luong_{{ forloop.counter }}">
+                                <div class="mb-3">
+                                    <label class="small fw-bold"
+                                           for="input_so_luong_{{ forloop.counter }}">
                                             Số lượng khách
-                                        </label>
-                                        <input type="number"
-                                               name="so_luong_khach_moi"
-                                               id="input_so_luong_{{ forloop.counter }}"
-                                               class="form-control form-control-custom"
-                                               value="{{ lh.so_luong_khach }}"
-                                               min="1" max="10" required
-                                               onchange="updateAvailableSlots('{{ forloop.counter }}')">
-                                    </div>
+                                    </label>
+                                    <input type="number"
+                                           name="so_luong_khach_moi"
+                                           id="input_so_luong_{{ forloop.counter }}"
+                                           class="form-control form-control-custom"
+                                           value="{{ lh.so_luong_khach }}"
+                                           min="1" max="10" required
+                                           onchange="updateAvailableSlots('{{ forloop.counter }}')">
+                                </div>
 
-                                    <div class="p-3 mb-3 rounded"
-                                         style="background-color: #faf6f0;">
-                                        <small class="text-muted d-block text-uppercase"
-                                               style="font-size: 10px;">
+                                <div class="p-3 mb-3 rounded"
+                                     style="background-color: #faf6f0;">
+                                    <small class="text-muted d-block text-uppercase"
+                                           style="font-size: 10px;">
                                             TÓM TẮT LỊCH HẸN MỚI
-                                        </small>
+                                    </small>
 
-                                        <strong class="d-block mt-1"
-                                                id="summary_service_{{ forloop.counter }}"
-                                                style="font-size: 12px; line-height: 1.5;">
+                                    <strong class="d-block mt-1"
+                                            id="summary_service_{{ forloop.counter }}"
+                                            style="font-size: 12px; line-height: 1.5;">
                                             {{ lh.ma_dv.ten_dich_vu }}
-                                        </strong>
+                                    </strong>
 
-                                        <small class="text-muted d-block mt-1"
-                                               id="summary_details_{{ forloop.counter }}"
-                                               style="font-size: 11px;">
+                                    <small class="text-muted d-block mt-1"
+                                           id="summary_details_{{ forloop.counter }}"
+                                           style="font-size: 11px;">
                                             {{ lh.ngay_hen|date:'d/m/Y' }} ·
                                             {{ lh.gio_hen|time:"H:i" }} ·
                                             {{ lh.ma_dv.thoi_luong }} phút ·
                                             {{ lh.so_luong_khach }} khách
-                                        </small>
-                                    </div>
+                                    </small>
+                                </div>
 
-                                    <div class="alert alert-light border small mb-0">
-                                        <i class="bi bi-info-circle me-1 text-warning"></i>
-                                        Hệ thống sẽ kiểm tra khung giờ theo dịch vụ và ngày bạn chọn.
-                                    </div>
+                                <div class="alert alert-light border small mb-0">
+                                    <i class="bi bi-info-circle me-1 text-warning"></i>
+                                    Hệ thống sẽ kiểm tra khung giờ theo dịch vụ và ngày bạn chọn.
                                 </div>
                             </div>
-
                         </div>
+
+                    </div>
                     </div>
 
                     <div class="modal-footer border-top-0 px-4 pb-4">
@@ -395,12 +392,12 @@
                         {% for dv in dich_vu_list %}
                         <div class="col-6 col-md-4 col-lg-3">
                             <div class="service-card all-service-option"
-                                   data-service-id="{{ dv.pk }}"
-                                   data-service-name="{{ dv.ten_dich_vu|escape }}"
-                                   data-duration="{{ dv.thoi_luong|default:150 }}"
-                                   data-price="{{ dv.gia_dich_vu|default:0 }}"
-                                   data-image="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
-                                   onclick="chooseServiceFromAll(this, '{{ forloop.parentloop.counter }}')">
+                                 data-service-id="{{ dv.pk }}"
+                                 data-service-name="{{ dv.ten_dich_vu|escape }}"
+                                 data-duration="{{ dv.thoi_luong|default:150 }}"
+                                 data-price="{{ dv.gia_dich_vu|default:0 }}"
+                                 data-image="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
+                                 onclick="chooseServiceFromAll(this, '{{ forloop.parentloop.counter }}')">
 
                                 <img src="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"
                                      alt="{{ dv.ten_dich_vu }}">
@@ -433,9 +430,6 @@
     </div>
     {% endfor %}
 </div>
-{% endblock %}
-
-{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
@@ -708,7 +702,6 @@
                 status = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
             } else {
                 try {
-                    // Đã sửa chuẩn namespace bookings:
                     const url =
                         `{% url 'bookings:api_kiem_tra_giuong' %}?ngay=` +
                         encodeURIComponent(dateValue) +
@@ -1020,21 +1013,21 @@
   el('prevPage').disabled=page<=1;el('nextPage').disabled=page>=pages;
  }
  const applyCurrentFilters=()=>{
-    applied={q:search.value.trim().toLocaleLowerCase('vi'),date:date.value,service:service.value,status:status.value,staff:staff.value};
-    cardFilter='';page=1;refresh();
+   applied={q:search.value.trim().toLocaleLowerCase('vi'),date:date.value,service:service.value,status:status.value,staff:staff.value};
+   cardFilter='';page=1;refresh();
  };
  el('applyFilters').addEventListener('click',applyCurrentFilters);
  search.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();applyCurrentFilters();}});
  el('resetFilters').addEventListener('click',()=>{cardFilter='';applied={q:'',date:'',service:'',status:'',staff:''};search.value='';date.value='';service.value='';status.value='';staff.value='';page=1;refresh()});
  for (const [name,id] of [['today','filterTodayCard'],['unassigned','filterUnassignedCard']]) {
-    el(id).addEventListener('click', () => {
-      cardFilter = cardFilter === name ? '' : name;
-      // Chuyển nhóm thống kê: xóa các lọc cũ để kết quả không bị rỗng ngoài ý muốn.
-      search.value='';date.value='';service.value='';status.value='';staff.value='';
-      applied={q:'',date:'',service:'',status:'',staff:''};
-      page=1;refresh();
-      document.querySelector('.staff-booking-page .table-frame').scrollIntoView({behavior:'smooth',block:'start'});
-    });
+   el(id).addEventListener('click', () => {
+     cardFilter = cardFilter === name ? '' : name;
+     // Chuyển nhóm thống kê: xóa các lọc cũ để kết quả không bị rỗng ngoài ý muốn.
+     search.value='';date.value='';service.value='';status.value='';staff.value='';
+     applied={q:'',date:'',service:'',status:'',staff:''};
+     page=1;refresh();
+     document.querySelector('.staff-booking-page .table-frame').scrollIntoView({behavior:'smooth',block:'start'});
+   });
  }
  el('prevPage').addEventListener('click',()=>{page--;refresh()});
  el('nextPage').addEventListener('click',()=>{page++;refresh()});

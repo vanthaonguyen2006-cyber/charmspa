@@ -1,14 +1,11 @@
 {% extends 'layouts/staff_base.html' %}
 {% load static %}
-
 {% block title %}Chi tiết lịch hẹn - Charm Spa{% endblock %}
-
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
 <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=phan_cong_nhieu_nv_1">
-
 <div class="staff-detail-page">
   {% if messages %}
     {% for message in messages %}
@@ -17,7 +14,6 @@
       </div>
     {% endfor %}
   {% endif %}
-
   <div class="detail-top">
     <h1>CHI TIẾT LỊCH HẸN</h1>
     <div class="top-actions">
@@ -34,27 +30,15 @@
       {% endif %}
     </div>
   </div>
-
   <div class="summary-strip">
-    <div class="summary-booking">
-      <div class="summary-icon"><i class="bi bi-calendar2-check"></i></div>
-      <div>
-        <div class="summary-code">#{{ lich_hen.ma_lh }}</div>
+    <div class="summary-booking"><div class="summary-icon"><i class="bi bi-calendar2-check"></i></div>
+      <div><div class="summary-code">#{{ lich_hen.ma_lh }}</div>
         <span class="status-pill {% if lich_hen.trang_thai == 'Đã hủy' %}cancelled{% elif lich_hen.trang_thai == 'Hoàn thành' %}completed{% elif lich_hen.trang_thai == 'Đã xóa' %}deleted{% endif %}">{{ lich_hen.trang_thai }}</span>
       </div>
     </div>
-    <div>
-      <span class="summary-label">Dịch vụ</span>
-      <div class="summary-value">{{ lich_hen.ma_dv.ten_dich_vu }}</div>
-      <span class="staff-detail-inline-1">{{ lich_hen.ma_dv.thoi_luong|default:'150' }} phút · {{ lich_hen.so_luong_khach }} khách</span>
-    </div>
-    <div>
-      <span class="summary-label">Ngày & giờ hẹn</span>
-      <div class="summary-value">{{ lich_hen.ngay_hen|date:'d/m/Y' }}</div>
-      <div class="summary-value">{{ lich_hen.gio_hen|time:'H:i' }}</div>
-    </div>
+    <div><span class="summary-label">Dịch vụ</span><div class="summary-value">{{ lich_hen.ma_dv.ten_dich_vu }}</div><span class="staff-detail-inline-1">{{ lich_hen.ma_dv.thoi_luong|default:'150' }} phút · {{ lich_hen.so_luong_khach }} khách</span></div>
+    <div><span class="summary-label">Ngày & giờ hẹn</span><div class="summary-value">{{ lich_hen.ngay_hen|date:'d/m/Y' }}</div><div class="summary-value">{{ lich_hen.gio_hen|time:'H:i' }}</div></div>
   </div>
-
   <div class="detail-grid">
     <div class="detail-column">
       <section class="detail-card">
@@ -73,23 +57,15 @@
         {% endif %}
       </section>
     </div>
-
     <aside class="detail-column">
       <section class="detail-card">
         <h2 class="card-head">Thông tin khách hàng</h2>
-        <div class="person-row">
-          <div class="avatar"><i class="bi bi-person"></i></div>
-          <div>
-            <div class="person-name">{{ lich_hen.ma_kh.ho_ten|default:'Khách hàng' }}</div>
-            <div class="person-sub">Khách hàng Charm Spa</div>
-          </div>
-        </div>
+        <div class="person-row"><div class="avatar"><i class="bi bi-person"></i></div><div><div class="person-name">{{ lich_hen.ma_kh.ho_ten|default:'Khách hàng' }}</div><div class="person-sub">Khách hàng Charm Spa</div></div></div>
         <div class="person-details">
           <div><div class="fact-label">Số điện thoại</div><div class="fact-value">{{ lich_hen.so_dien_thoai_lien_he|default:lich_hen.ma_kh.ma_tk.so_dien_thoai|default:'Chưa cập nhật' }}</div></div>
           <div><div class="fact-label">Email</div><div class="fact-value">{{ lich_hen.ma_kh.ma_tk.user.email|default:'Chưa cập nhật' }}</div></div>
         </div>
       </section>
-
       <section class="detail-card">
         <h2 class="card-head">Nhân viên phụ trách</h2>
         <div class="assignee-label">
@@ -104,7 +80,6 @@
         {% empty %}
           <div class="unassigned-message"><i class="bi bi-person-exclamation me-1"></i> Lịch hẹn chưa được phân công nhân viên.</div>
         {% endfor %}
-
         {% if request.user.is_superuser %}
           {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Đã xóa' and lich_hen.trang_thai != 'Hoàn thành' %}
           <form method="POST" action="{% url 'bookings:assign_staff' lich_hen.ma_lh %}" class="assign-controls">
@@ -130,7 +105,6 @@
               <i class="bi bi-person-check me-2"></i> Lưu phân công {{ lich_hen.so_luong_khach }} nhân viên
             </button>
           </form>
-
           {% if so_nhan_vien_da_phan_cong %}
           <form method="POST" action="{% url 'bookings:assign_staff' lich_hen.ma_lh %}" class="assign-controls staff-clear-assign"
                 onsubmit="return confirm('Hủy toàn bộ nhân viên đã phân công cho lịch này?');">
@@ -139,7 +113,6 @@
             <button type="submit" class="staff-clear-assign-button"><i class="bi bi-x-circle me-1"></i> Hủy toàn bộ phân công</button>
           </form>
           {% endif %}
-
           {% else %}
             <p class="section-note mb-0">Lịch đã kết thúc hoặc hủy, không thể phân công thêm.</p>
           {% endif %}
@@ -173,11 +146,8 @@
         </div>
     </div>
 </div>
+
 {% endif %}
 
-{% endblock %}
-
-{% block extra_js %}
-    {{ block.super }}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

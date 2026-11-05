@@ -1,440 +1,186 @@
-{% extends 'layouts/customer_base_pro.html' %}
+{% extends 'layouts/staff_base.html' %}
 {% load static %}
-
+{% block title %}Quản lý ngày hoạt động - Charm Spa Grand{% endblock %}
 {% block extra_css %}
     {{ block.super }}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=font_sync_30px_v2">
+    <link rel="stylesheet" href="{% static 'css/bookings/admin.css' %}">
 {% endblock %}
-
 {% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* ========================================================
+   NGAY HOAT DONG - CHINH FONT VA KHOANG CACH RIENG TRANG
+   Khong anh huong Header, Sidebar, Create, List, Detail.
+   ======================================================== */
+:root {
+    --activity-top-gap: 20px;        /* Header -> vung noi dung */
+    --activity-title-size: 28px;     /* QUAN LY NGAY HOAT DONG */
+    --activity-section-size: 18px;   /* Thang + Danh sach ngay khoa */
+    --activity-body-size: 14px;      /* Chu noi dung */
+}
 
-<div class="booking-customer-create pt-4 px-8 pb-5 max-w-7xl w-full mx-auto">
-    <div class="text-center mb-4">
-        <h3 class="booking-create-title fw-bold text-uppercase">Đặt Lịch Hẹn Trực Tuyến</h3>
-        <p class="text-muted small">Trải nghiệm dịch vụ chăm sóc sức khỏe & làm đẹp cao cấp tại Charm Spa Grand Đà Nẵng</p>
+/* Giam khoang trong do .staff-content (30px) + pt-4 (16px) cong lai */
+.staff-content:has(> .booking-admin-activity) {
+    padding-top: var(--activity-top-gap) !important;
+}
+.staff-content > .booking-admin-activity {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Dong bo Arial, loai font-serif cua Tailwind chi trong trang nay */
+.booking-admin-activity,
+.booking-admin-activity :is(h1,h2,h3,h4,h5,h6,p,span,div,button,a,table,th,td,label,input,select,textarea) {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+.booking-admin-activity > div:first-child h1 {
+    font-size: var(--activity-title-size) !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0 !important;
+    margin: 0 !important;
+}
+.booking-admin-activity > div:first-child p {
+    font-size: var(--activity-body-size) !important;
+}
+.booking-admin-activity > .bg-white h3 {
+    font-size: var(--activity-section-size) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+}
+.booking-admin-activity > div:first-child {
+    margin-bottom: 22px !important;
+}
+.booking-admin-activity .booking-activity-calendar {
+    margin-bottom: 20px !important;
+}
+@media (max-width: 650px) {
+    .booking-admin-activity > div:first-child h1 {
+        font-size: 23px !important;
+    }
+}
+</style>
+<div class="booking-admin-activity pt-4 px-8 pb-8 max-w-7xl w-full mx-auto">
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-sans text-stone-900 tracking-wide">QUẢN LÝ NGÀY HOẠT ĐỘNG</h1>
+            <p class="text-sm text-stone-600 mt-1">Thiết lập ngày đóng cửa và quản lý khả năng đặt lịch của spa.</p>
+        </div>
+        {% if request.user.is_superuser %}
+        <button type="button" onclick="toggleModal(true)" class="bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md transition flex items-center gap-2">+ Khóa ngày</button>
+        {% endif %}
     </div>
 
-    <!-- Form gửi dữ liệu về hàm views xử lý lưu database -->
-    <form method="POST" action="{% url 'bookings:booking_customer_create' %}" onsubmit="return validateBookingForm(event)">
-        {% csrf_token %}
-
-        <input type="hidden" name="ma_dv" id="input_ma_dv" value="{{ dich_vu_list.first.pk }}">
-        <input type="hidden" name="time_slot" id="input_time_slot" value="">
-
-        <div class="row g-4">
-            <!-- CỘT TRÁI -->
-            <div class="col-lg-8">
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold m-0">1. Chọn dịch vụ</h6>
-                        <button type="button" class="btn-all-services" data-bs-toggle="modal" data-bs-target="#modalAllServices">
-                            Xem tất cả dịch vụ &rarr;
-                        </button>
-                    </div>
-
-                    <!-- Hiển thị danh sách 3 dịch vụ đầu tiên -->
-                    <div class="row g-3" id="main_service_container">
-                        {% if dich_vu_list %}
-                            {% for dv in dich_vu_list %}
-                                {% if forloop.counter <= 3 %}
-                                <div class="col-md-4">
-                                    <div class="service-card {% if forloop.first %}selected{% endif %}" data-service-id="{{ dv.pk }}" onclick="selectService(this, '{{ dv.pk }}', '{{ dv.ten_dich_vu|escapejs }}', '{{ dv.thoi_luong }} phút', '{{ dv.gia_dich_vu }}đ')">
-                                        <img src="{% static 'images/services/service' %}{{ forloop.counter }}.jpg" alt="Dịch vụ">
-                                        <div class="fw-bold" style="font-size: 11px;">{{ dv.ten_dich_vu }}</div>
-                                        <small class="text-muted d-block mt-1" style="font-size: 11px;">{{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ</small>
-                                        <small class="status-badge {% if forloop.first %}text-warning fw-bold{% else %}text-muted{% endif %}" style="font-size: 11px;">
-                                            {% if forloop.first %}<i class="bi bi-check-circle-fill"></i> Đã chọn{% else %}<i class="bi bi-circle"></i> Chọn dịch vụ{% endif %}
-                                        </small>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        {% else %}
-                            <div class="col-12 text-muted text-center">Chưa có dịch vụ nào trong hệ thống.</div>
-                        {% endif %}
-                    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-8 booking-activity-calendar">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-sans font-semibold text-stone-900">{{ current_month_year }}</h3>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-medium text-stone-700 hover:bg-stone-100 transition">&larr; Tháng trước</a>
+                    <a href="?month={{ next_month }}&year={{ next_year }}" class="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-medium text-stone-700 hover:bg-stone-100 transition">Tháng sau &rarr;</a>
                 </div>
-
-                <!-- Ngày & Khung Giờ -->
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <div class="calendar-box">
-                            <h6 class="fw-bold mb-2" style="font-size: 14px;">2. Chọn ngày hẹn *</h6>
-                            <div class="custom-date-container">
-                                <input type="text" name="ngay_hen" id="input_ngay_hen" class="form-control form-control-custom-date" placeholder="Chọn ngày hẹn">
-                                <i class="bi bi-calendar3 custom-date-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-7">
-                        <div class="time-box">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="fw-bold m-0" style="font-size: 14px;">3. Khung giờ trống *</h6>
-                                <span class="badge bg-light text-success border" id="bed_capacity_info" style="font-size: 10px;">Quỹ giường: 6 giường gội</span>
-                            </div>
-                            <div class="row g-2" id="time_slots_container"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CỘT PHẢI: THÔNG TIN KHÁCH HÀNG & TÓM TẮT -->
-            <div class="col-lg-4">
-                <div class="summary-card">
-                    <h6 class="fw-bold mb-1">4. Thông tin khách hàng</h6>
-                    <p class=""></p>
-
-                    <div class="mb-2">
-                        <label class="small fw-bold" for="input_ho_ten">Họ và tên *</label>
-                        <input type="text" id="input_ho_ten" name="ho_ten" class="form-control form-control-custom" placeholder="Nhập họ và tên..." value="{{ booking_customer_name }}" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="small fw-bold" for="input_sdt">Số điện thoại *</label>
-                        <input type="text" id="input_sdt" name="sdt" class="form-control form-control-custom" placeholder="Nhập số điện thoại..." value="{{ booking_customer_phone }}" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="small fw-bold" for="input_email">Email</label>
-                        <input type="email" id="input_email" name="email" class="form-control form-control-custom" placeholder="Nhập email..." value="{{ booking_customer_email }}">
-                    </div>
-                    <div class="mb-2">
-                        <label class="small fw-bold" for="input_so_luong">Số lượng khách *</label>
-                        <input type="number" name="so_luong" id="input_so_luong" class="form-control form-control-custom" value="1" min="1" max="10" onchange="updateFullSummary()">
-                    </div>
-                    <div class="mb-3">
-                        <label class="small fw-bold" for="input_ghi_chu">Ghi chú</label>
-                        <textarea id="input_ghi_chu" name="ghi_chu" class="form-control form-control-custom" rows="2" placeholder="Yêu cầu đặc biệt..."></textarea>
-                    </div>
-
-                    <div class="p-3 mb-3 rounded" style="background-color: #faf6f0;">
-                        <small class="text-muted d-block text-uppercase" style="font-size: 10px;">TÓM TẮT LỊCH HẸN</small>
-                        <strong class="d-block" id="summary_service_name" style="font-size: 11px; line-height: 1.3;">
-                            {% if dich_vu_list %}{{ dich_vu_list.first.ten_dich_vu }}{% endif %}
-                        </strong>
-                        <small class="text-muted" id="summary_details" style="font-size: 11px;">Chưa chọn ngày hẹn · Chưa chọn giờ · 150 phút · 1 khách</small>
-                    </div>
-                    <!-- Giữ nút xác nhận ở vị trí ban đầu: sau Ghi chú và Tóm tắt -->
-                    <input type="submit" value="Xác nhận đặt lịch"
-                           class="btn btn-confirm text-center"
-                           style="cursor: pointer;">
-
+                <div class="hidden md:flex gap-3 text-xs font-medium text-stone-600 items-center border-l pl-4 border-stone-200">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-white border border-stone-300"></span> Hoạt động</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-300"></span> Đã khóa</span>
                 </div>
             </div>
         </div>
-    </form>
-</div>
-
-<!-- Modal Chọn Dịch Vụ -->
-<div class="modal fade" id="modalAllServices" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius: 12px;">
-            <div class="modal-header" style="background-color: var(--bg-beige);">
-                <h5 class="modal-title fw-bold">DANH SÁCH DỊCH VỤ CHARM SPA</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4" style="background-color: #faf8f5;">
-                <div class="row g-3">
-                    {% if dich_vu_list %}
-                        {% for dv in dich_vu_list %}
-                        <div class="col-md-4">
-                            <div class="service-card" onclick="chooseFromModal('{{ dv.pk }}', '{{ dv.ten_dich_vu|escapejs }}', '{{ dv.thoi_luong }} phút', '{{ dv.gia_dich_vu }}đ', '{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg')">
-                                <img src="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg" alt="Dịch vụ">
-                                <div class="fw-bold" style="font-size: 11px;">{{ dv.ten_dich_vu }}</div>
-                                <small class="text-muted d-block">{{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ</small>
-                            </div>
+        <div class="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase text-stone-400 mb-2">
+            <div>Thứ 2</div><div>Thứ 3</div><div>Thứ 4</div><div>Thứ 5</div><div>Thứ 6</div><div>Thứ 7</div><div>Chủ nhật</div>
+        </div>
+        <div class="grid grid-cols-7 gap-2">
+            {% for week in calendar_matrix %}
+                {% for day in week %}
+                    {% if day.is_locked %}
+                        <div class="booking-day-cell h-24 border border-amber-300 rounded-lg p-2 bg-amber-50/80 flex flex-col justify-between shadow-xs">
+                            <span class="font-bold text-amber-900 text-sm">{{ day.day_number }}</span>
+                            <div class="text-[10px] bg-amber-200/80 text-amber-900 rounded px-1.5 py-0.5 font-medium truncate" title="{{ day.ly_do }}">🔒 {{ day.ly_do|default:"Đã khóa" }}</div>
                         </div>
-                        {% endfor %}
+                    {% elif day.is_current_month %}
+                        <div class="booking-day-cell h-24 border border-stone-200 rounded-lg p-2 bg-white flex flex-col justify-between hover:border-stone-400 transition">
+                            <span class="font-medium text-stone-800 text-sm">{{ day.day_number }}</span>
+                            <span class="text-[10px] text-emerald-600 font-medium">Hoạt động</span>
+                        </div>
                     {% else %}
-                        <div class="col-md-12 text-center text-muted py-4">
-                            <p>Chưa có dịch vụ nào trong hệ thống.</p>
+                        <div class="booking-day-cell h-24 border border-stone-100 rounded-lg p-2 bg-stone-50/50 text-stone-300 flex flex-col justify-between">
+                            <span class="text-sm">{{ day.day_number }}</span>
                         </div>
                     {% endif %}
-                </div>
-            </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-stone-200 flex justify-between items-center">
+            <h3 class="font-sans font-semibold text-lg">Danh sách ngày đã khóa</h3>
+            <span class="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">{{ ngay_da_khoa.count }} ngày</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-stone-50 text-stone-500 uppercase text-xs tracking-wider border-b border-stone-200">
+                        <th class="py-3 px-6">Ngày</th>
+                        <th class="py-3 px-6">Lý do</th>
+                        <th class="py-3 px-6">Trạng thái</th>
+                        <th class="py-3 px-6 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100 text-stone-700">
+                    {% for item in ngay_da_khoa %}
+                    <tr class="hover:bg-stone-50/50">
+                        <td class="py-4 px-6 font-medium">{{ item.ngay|date:"d/m/Y" }}</td>
+                        <td class="py-4 px-6">{{ item.ly_do_khoa }}</td>
+                        <td class="py-4 px-6"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Đã khóa</span></td>
+                        <td class="py-4 px-6 text-right">
+                            {% if request.user.is_superuser %}
+                            <form method="POST" action="{% url 'bookings:mo_khoa_ngay' item.ma_nhd %}" class="inline-block m-0" onsubmit="return confirm('Mở khóa ngày {{ item.ngay|date:'d/m/Y' }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</button>
+                            </form>
+                            {% else %}
+                            <span class="text-xs text-stone-400">Chỉ quản trị viên</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-6 text-center text-stone-400">Chưa có ngày nào bị khóa trong hệ thống.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- MODAL THÔNG BÁO TÙY CHỈNH ĐẸP MẮT (GIỮA MÀN HÌNH) -->
-<div class="modal fade" id="customAlertModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
-            <div class="modal-body text-center p-4">
-                <div class="mb-3">
-                    <i class="bi bi-exclamation-circle-fill text-warning" style="font-size: 45px;"></i>
-                </div>
-                <h5 class="fw-bold text-dark mb-2">Thông báo</h5>
-                <p id="customAlertMessage" class="text-muted mb-4" style="font-size: 14px;"></p>
-                <button type="button" class="btn text-white px-4 py-2 fw-bold" style="background-color: var(--primary-gold); border-radius: 8px;" data-bs-dismiss="modal">Đã hiểu</button>
-            </div>
+{% if request.user.is_superuser %}
+<div id="khoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-stone-100">
+        <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
+            <h3 class="text-xl font-sans font-semibold text-stone-900">Khóa ngày</h3>
+            <button type="button" onclick="toggleModal(false)" class="text-stone-400 hover:text-stone-600 text-xl font-bold">&times;</button>
         </div>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Ngày bắt đầu</label>{{ form.ngay_bat_dau }}</div>
+                <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Ngày kết thúc</label>{{ form.ngay_ket_thuc }}</div>
+            </div>
+            <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Lý do</label>{{ form.ly_do }}</div>
+            <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Nhập lý do chi tiết</label>{{ form.nhap_ly_do }}</div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-stone-100">
+                <button type="button" onclick="toggleModal(false)" class="px-4 py-2 rounded-lg text-sm font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 transition">Hủy</button>
+                <button type="submit" name="btn_khoa_ngay" class="px-5 py-2 rounded-lg text-sm font-medium bg-stone-900 hover:bg-stone-800 text-white transition shadow-sm">Khóa ngày</button>
+            </div>
+        </form>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
+{% endif %}
 <script>
-    let currentDuration = "{% if dich_vu_list %}{{ dich_vu_list.first.thoi_luong }}{% else %}150{% endif %} phút";
-    let currentServiceType = "shampoo";
-
-    const disabledDates = {{ locked_dates_json|safe }};
-
-    document.addEventListener('DOMContentLoaded', function() {
-        flatpickr("#input_ngay_hen", {
-            dateFormat: "d/m/Y",
-            minDate: "today",
-            disable: [
-                function(date) {
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const dateString = `${year}-${month}-${day}`;
-                    return disabledDates.includes(dateString);
-                }
-            ],
-            static: true,
-            onChange: function(selectedDates, dateStr) {
-                if (dateStr) {
-                    updateAvailableSlots();
-                }
-            }
-        });
-
-        const container = document.getElementById('time_slots_container');
-        container.innerHTML = '<div class="col-12 text-center text-muted small py-3">Vui lòng chọn ngày hẹn để xem khung giờ trống.</div>';
-    });
-
-    // Hàm hiển thị Popup Modal thông báo giữa màn hình
-    fnShowAlert = function(message) {
-        document.getElementById('customAlertMessage').innerText = message;
-        const alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
-        alertModal.show();
-    }
-
-    // Hàm kiểm tra form trước khi submit
-    function validateBookingForm(event) {
-        const ngayHen = document.getElementById('input_ngay_hen').value;
-        const timeSlot = document.getElementById('input_time_slot').value;
-
-        if (!ngayHen) {
-            fnShowAlert('Vui lòng chọn ngày hẹn trước khi xác nhận đặt lịch!');
-            document.getElementById('input_ngay_hen').focus();
-            event.preventDefault();
-            return false;
-        }
-
-        if (!timeSlot) {
-            fnShowAlert('Vui lòng chọn khung giờ hẹn cụ thể!');
-            event.preventDefault();
-            return false;
-        }
-
-        return true;
-    }
-
-    function selectService(element, serviceId, serviceName, duration, price) {
-        const container = document.getElementById('main_service_container');
-        const selectedColumn = element.closest('.col-md-4');
-
-        // Chuyển thẻ được chọn lên đầu mà không tạo bản sao.
-        if (selectedColumn && container.firstElementChild !== selectedColumn) {
-            container.prepend(selectedColumn);
-        }
-
-        container.querySelectorAll('.service-card').forEach(card => {
-            const isSelected = card === element;
-            card.classList.toggle('selected', isSelected);
-            const badge = card.querySelector('.status-badge');
-            if (badge) {
-                badge.className = isSelected
-                    ? 'status-badge text-warning fw-bold'
-                    : 'status-badge text-muted';
-                badge.innerHTML = isSelected
-                    ? '<i class="bi bi-check-circle-fill"></i> Đã chọn'
-                    : '<i class="bi bi-circle"></i> Chọn dịch vụ';
-            }
-        });
-
-        document.getElementById('input_ma_dv').value = serviceId;
-        document.getElementById('summary_service_name').textContent = serviceName;
-        currentDuration = duration;
-        currentServiceType = serviceName.toLowerCase().includes('shampoo') ? 'shampoo' : 'massage';
-
-        // Dịch vụ thay đổi thì bỏ giờ cũ để kiểm tra lại số giường.
-        document.getElementById('input_time_slot').value = '';
-        updateFullSummary();
-        if (document.getElementById('input_ngay_hen').value) {
-            updateAvailableSlots();
-        }
-    }
-
-    function chooseFromModal(serviceId, serviceName, duration, price, imgUrl) {
-        const container = document.getElementById('main_service_container');
-        const columns = Array.from(container.querySelectorAll(':scope > .col-md-4'));
-        const sameServiceColumn = columns.find(col =>
-            col.querySelector('.service-card')?.dataset.serviceId === String(serviceId)
-        );
-        let selectedCard;
-
-        if (sameServiceColumn) {
-            // Dịch vụ vốn nằm trong 3 ô: di chuyển ô hiện có, không nhân đôi.
-            selectedCard = sameServiceColumn.querySelector('.service-card');
-        } else {
-            // Dịch vụ mới: thay ô đầu bằng thẻ mới, 2 ô còn lại giữ nguyên.
-            const firstColumn = columns[0];
-            if (!firstColumn) return;
-            const card = document.createElement('div');
-            card.className = 'service-card';
-            card.dataset.serviceId = String(serviceId);
-
-            const img = document.createElement('img');
-            img.src = imgUrl;
-            img.alt = serviceName;
-            card.appendChild(img);
-
-            const name = document.createElement('div');
-            name.className = 'fw-bold';
-            name.style.fontSize = '11px';
-            name.style.lineHeight = '1.3';
-            name.textContent = serviceName;
-            card.appendChild(name);
-
-            const meta = document.createElement('small');
-            meta.className = 'text-muted d-block mt-1';
-            meta.style.fontSize = '11px';
-            meta.textContent = `${duration} · ${price}`;
-            card.appendChild(meta);
-
-            const badge = document.createElement('small');
-            badge.className = 'status-badge text-muted';
-            badge.style.fontSize = '11px';
-            card.appendChild(badge);
-
-            card.addEventListener('click', () =>
-                selectService(card, serviceId, serviceName, duration, price)
-            );
-            firstColumn.replaceChildren(card);
-            selectedCard = card;
-        }
-
-        selectService(selectedCard, serviceId, serviceName, duration, price);
-        const modal = document.getElementById('modalAllServices');
-        bootstrap.Modal.getInstance(modal)?.hide();
-    }
-
-    async function updateAvailableSlots() {
-        const ngayVal = document.getElementById('input_ngay_hen').value;
-        const container = document.getElementById('time_slots_container');
-
-        if (!ngayVal) {
-            container.innerHTML = '<div class="col-12 text-center text-muted small py-3">Vui lòng chọn ngày hẹn để xem khung giờ trống.</div>';
-            return;
-        }
-
-        const loaiDv = currentServiceType;
-        const infoBadge = document.getElementById('bed_capacity_info');
-        infoBadge.innerText = loaiDv === 'shampoo' ? 'Phòng gội riêng: 6 giường' : 'Hệ thống massage: 30 giường';
-
-        const timeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00'];
-        container.innerHTML = '<div class="col-12 text-center text-muted small py-2">Đang tải số giường trống...</div>';
-
-        const now = new Date();
-        const todayStr = String(now.getDate()).padStart(2, '0') + '/' +
-                         String(now.getMonth() + 1).padStart(2, '0') + '/' +
-                         now.getFullYear();
-        const isToday = (ngayVal === todayStr);
-
-        const currentHour = now.getHours();
-        const currentMinute = now.getMinutes();
-        const currentTotalMinutes = (currentHour * 60) + currentMinute;
-
-        let defaultSlot = '';
-        let isFirstSelected = false;
-        let slotsHTML = '';
-        let availableSlotsCount = 0;
-
-        for (let i = 0; i < timeSlots.length; i++) {
-            const time = timeSlots[i];
-            const [hStr, mStr] = time.split(':');
-            const slotTotalMinutes = (parseInt(hStr) * 60) + parseInt(mStr || 0);
-            let isPastTime = isToday && (slotTotalMinutes <= currentTotalMinutes);
-
-            let remaining = loaiDv === 'shampoo' ? 6 : 30;
-            let disabledClass = '';
-            let statusText = '';
-            let selectedClass = '';
-
-            if (isPastTime) {
-                disabledClass = 'disabled';
-                statusText = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
-            } else {
-                try {
-                    const response = await fetch(`{% url 'bookings:api_kiem_tra_giuong' %}?ngay=${encodeURIComponent(ngayVal)}&gio=${encodeURIComponent(time)}&loai=${encodeURIComponent(loaiDv)}`);
-                    const data = await response.json();
-                    remaining = data.con_lai;
-                } catch (error) {
-                    console.error("Lỗi kết nối API lấy số giường:", error);
-                }
-
-                if (remaining === 0) {
-                    disabledClass = 'disabled';
-                    statusText = '<small class="text-danger" style="font-size:10px;">Kín giường</small>';
-                } else {
-                    statusText = `<small class="text-success" style="font-size:10px;">Còn ${remaining} giường</small>`;
-                    availableSlotsCount++;
-                    if (!isFirstSelected) {
-                        selectedClass = 'selected';
-                        defaultSlot = time;
-                        isFirstSelected = true;
-                    }
-                }
-            }
-
-            slotsHTML += `
-                <div class="col-6 col-md-3">
-                    <div class="time-slot ${disabledClass} ${selectedClass}" onclick="selectTime(this, '${time}')">
-                        <strong style="font-size:13px;">${time}</strong><br>${statusText}
-                    </div>
-                </div>
-            `;
-        }
-
-        if (availableSlotsCount === 0) {
-            slotsHTML = `
-                <div class="col-12 text-center py-3">
-                    <div class="alert alert-warning py-2 mb-0" style="font-size: 12px; border-radius: 8px;">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Ngày này đã hết khung giờ khả dụng. <strong>Vui lòng chọn ngày khác!</strong>
-                    </div>
-                </div>
-            ` + slotsHTML;
-        }
-
-        container.innerHTML = slotsHTML;
-        if (defaultSlot) {
-            document.getElementById('input_time_slot').value = defaultSlot;
-        } else {
-            document.getElementById('input_time_slot').value = '';
-        }
-        updateFullSummary();
-    }
-
-    function selectTime(element, timeStr) {
-        if (element.classList.contains('disabled')) return;
-        document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
-        element.classList.add('selected');
-        document.getElementById('input_time_slot').value = timeStr;
-        updateFullSummary();
-    }
-
-    function updateFullSummary() {
-        const dateVal = document.getElementById('input_ngay_hen').value || 'Chưa chọn ngày hẹn';
-        const timeVal = document.getElementById('input_time_slot').value || 'Chưa chọn giờ';
-        const guestVal = document.getElementById('input_so_luong').value || '1';
-        document.getElementById('summary_details').innerText = `${dateVal} · ${timeVal} · ${currentDuration} · ${guestVal} khách`;
-    }
+function toggleModal(show) {
+    const modal = document.getElementById('khoaNgayModal');
+    if (!modal) return;
+    modal.classList.toggle('hidden', !show);
+}
 </script>
 {% endblock %}

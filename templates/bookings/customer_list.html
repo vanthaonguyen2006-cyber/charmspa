@@ -1,18 +1,24 @@
 {% extends 'layouts/customer_base_pro.html' %}
 {% load static %}
-
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
     <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=filter_restore_v2">
     <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 {% endblock %}
-
 {% block profile_content %}
+
+{# Nạp CSS tại block thực sự được render bởi trang hồ sơ khách hàng. #}
+<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
+<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=filter_restore_v2">
+<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
 <div class="booking-customer-list customer-profile-layout container">
-    <!-- SECTION 3: DANH SÁCH LỊCH HẸN -->
+        <!-- SECTION 3: DANH SÁCH LỊCH HẸN -->
     <div class="booking-content-area">
+        {# Hiển thị rõ kết quả hủy lịch do views.py gửi về #}
         {% if messages %}
             <div class="mb-3" aria-live="polite">
                 {% for message in messages %}
@@ -25,16 +31,28 @@
             </div>
         {% endif %}
 
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 20px; margin-bottom: 16px;">
-            <h2 class="booking-list-title" style="margin: 0; flex-shrink: 0;">
-                DANH SÁCH LỊCH HẸN
-            </h2>
-            <span style="margin-left: auto; text-align: right; color: #6b7280; font-size: 14px;">
-                Quản lý các lịch hẹn trị liệu tại Charm Spa
-            </span>
-        </div>
+<div style="display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+            margin-bottom: 16px;">
 
-        <!-- BỘ LỌC DẠNG BẢNG -->
+    <h2 class="booking-list-title"
+        style="margin: 0; flex-shrink: 0;">
+        DANH SÁCH LỊCH HẸN
+    </h2>
+
+    <span style="margin-left: auto;
+                 text-align: right;
+                 color: #6b7280;
+                 font-size: 14px;">
+        Quản lý các lịch hẹn trị liệu tại Charm Spa
+    </span>
+
+</div>
+
+        <!-- BỘ LỌC DẠNG BẢNG - KHÔNG ĐỔI URL DJANGO -->
         <section class="customer-booking-toolbar" aria-label="Bộ lọc danh sách lịch hẹn">
             <form id="customerBookingFilter" method="GET" action="{% url 'bookings:booking_customer_list' %}" class="customer-booking-filter-form">
                 <div class="customer-filter-field customer-filter-lead"><i class="bi bi-funnel"></i><span>BỘ LỌC</span></div>
@@ -54,7 +72,7 @@
             <div class="customer-filter-summary" id="customerFilterSummary">{{ lich_hen_list|length }} lịch hẹn · Sắp xếp mới nhất</div>
         </section>
 
-        <!-- DANH SÁCH DẠNG BẢNG -->
+        <!-- DANH SÁCH DẠNG BẢNG, GIỮ NGUYÊN MODAL ĐỔI/HỦY BÊN DƯỚI -->
         <div class="customer-booking-table" id="customerBookingTable">
             <div class="customer-booking-table-head" aria-hidden="true">
                 <span>Mã lịch hẹn</span><span>Dịch vụ</span><span>Ngày hẹn</span>
@@ -81,8 +99,7 @@
                         {% endif %}
                     </div>
                 </div>
-
-                <!-- MODAL HỦY LỊCH HẸN -->
+                <!-- MODAL HỦY LỊCH HẸN (Đã mở rộng chiều dài ngang max-width 950px) -->
                 <div class="modal fade booking-ui-modal" id="cancelModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 950px;">
                         <div class="modal-content" style="border-radius: 16px; border: none; padding: 10px;">
@@ -137,18 +154,21 @@
                                     </h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                                <div class="modal-body px-4 text-start">
+                                <div class="modal-body px-4 text-start" >
+
                                     <input type="hidden" name="ma_dv_moi" id="input_ma_dv_moi_{{ lh.ma_lh }}" value="{{ lh.ma_dv.pk }}">
                                     <input type="hidden" name="gio_hen_moi" id="input_time_slot_{{ lh.ma_lh }}" value="{{ lh.gio_hen|time:'H:i' }}">
 
                                     <div class="row g-3">
                                         <!-- CỘT TRÁI: CHỌN DỊCH VỤ & NGÀY HẸN -->
                                         <div class="col-lg-8">
+                                            <!-- 1. Chọn dịch vụ trị liệu -->
                                             <div class="mb-4">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <label class="form-label fw-bold text-uppercase text-secondary m-0" style="font-size: 13px; letter-spacing: 0.5px;">
                                                         1. Chọn dịch vụ trị liệu mới
                                                     </label>
+                                                    <!-- Nút bấm bật/tắt hiển thị toàn bộ dịch vụ ngay trong modal -->
                                                     <button type="button" class="btn text-warning fw-bold p-0 border-0 bg-transparent small" onclick="toggleAllServices('{{ lh.ma_lh }}')" id="btn_toggle_services_{{ lh.ma_lh }}">
                                                         Xem tất cả dịch vụ &rarr;
                                                     </button>
@@ -175,6 +195,7 @@
                                                 </div>
                                             </div>
 
+                                            <!-- 2. Chọn ngày & 3. Khung giờ -->
                                             <div class="row g-3">
                                                 <div class="col-md-5">
                                                     <div class="bg-white border rounded p-3 booking-reschedule-panel" style="border-color: var(--border-color) !important;">
@@ -224,6 +245,7 @@
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                                 <div class="modal-footer border-top-0 pb-4 px-4 bg-white">
                                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
@@ -249,13 +271,12 @@
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
-{{ block.super }}
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 
 <script>
 (function () {
@@ -314,6 +335,7 @@
 </script>
 
 <script>
+    // Hàm ẩn/hiện ô nhập lý do khác
     function toggleLyDoKhac(bookingId) {
         const selectEl = document.getElementById(`select_ly_do_${bookingId}`);
         const boxEl = document.getElementById(`box_ly_do_khac_${bookingId}`);
@@ -326,6 +348,7 @@
         }
     }
 
+    // Dữ liệu khóa ngày từ Django: một chuỗi JSON hoặc danh sách ngày YYYY-MM-DD.
     const disabledDates = {{ locked_dates_json|default:"[]"|safe }}.map(String);
     const bookingTimeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00'];
     const availabilityUrl = "{% url 'bookings:api_kiem_tra_giuong' %}";
@@ -378,11 +401,14 @@
         document.getElementById('summary_service_name_' + id).textContent = serviceName;
         container.dataset.currentDuration = duration;
 
+        // Đưa thẻ vừa chọn lên đầu danh sách mà không tạo lại HTML.
+        // Giữ nguyên ảnh, thông tin, sự kiện và dữ liệu lịch hẹn gốc.
         const selectedItem = element.closest('.service-item-col');
         if (selectedItem && container.firstElementChild !== selectedItem) {
             container.insertBefore(selectedItem, container.firstElementChild);
         }
 
+        // Tự thu về ba dịch vụ đầu tiên sau khi chọn.
         container.querySelectorAll('.service-item-col').forEach((item, index) => {
             item.classList.toggle('d-none', index >= 3);
         });
@@ -443,6 +469,10 @@
                 const data = await response.json();
                 let remaining = Number(data.con_lai);
                 if (!Number.isFinite(remaining)) throw new Error('Không hợp lệ');
+                // API hiện tại chưa loại lịch đang sửa. Hoàn lại chỗ cũ CHỈ khi cùng ngày/giờ/loại phòng.
+                const originalServiceId = form.dataset.originalService;
+                const currentServiceId = document.getElementById('input_ma_dv_moi_' + id).value;
+                const currentOriginalCard = document.querySelector('#service_container_' + id + ' .service-card-modal[data-original-service="true"]');
                 const originalType = form.dataset.originalType;
                 if (date === form.dataset.originalDate && time === form.dataset.originalTime && type === originalType) {
                     remaining += Number(form.dataset.originalGuests || 0);
@@ -494,6 +524,7 @@
                     updateModalSlots(id);
                 }
             });
+            // Nếu lịch cũ trước hôm nay hoặc ngày bị khóa, yêu cầu khách chọn ngày hợp lệ.
             if (fp.selectedDates.length === 0) dateInput.value = '';
             form.addEventListener('submit', event => {
                 if (!dateInput.value || !document.getElementById('input_time_slot_' + id).value) {
