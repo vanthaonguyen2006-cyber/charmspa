@@ -144,8 +144,9 @@
             {% endif %}
         </a>
 
-        <a href="/admin/promotions/uudai/" title="Quản lý ưu đãi"
-           class="sidebar-item {% if active_menu == 'promotions' %}active{% endif %}">
+        <!-- Đã sửa href trỏ đúng đường dẫn quản lý ưu đãi tùy chỉnh -->
+        <a href="{% url 'notifications:admin_promotion_list' %}" title="Quản lý ưu đãi"
+           class="sidebar-item {% if active_menu == 'promotions' or request.resolver_match.namespace == 'notifications' %}active{% endif %}">
             <i data-lucide="tickets" class="sidebar-icon"></i>
             <span class="sidebar-label">Quản lý ưu đãi</span>
         </a>
@@ -174,8 +175,8 @@
             </a>
         </div>
 
-        <a href="/admin/services/dichvu/" title="Dịch vụ"
-           class="sidebar-item {% if active_menu == 'services' %}active{% endif %}">
+        <a href="{% url 'services:staff_services' %}" title="Dịch vụ"
+           class="sidebar-item {% if active_menu == 'services' or active_menu == 'dich_vu' %}active{% endif %}">
             <i data-lucide="sparkles" class="sidebar-icon"></i>
             <span class="sidebar-label">Dịch vụ</span>
         </a>
@@ -276,7 +277,6 @@
 <!-- JS KÍCH HOẠT SỰ KIỆN XỔ XUỐNG CHO CÁC MENU -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Hàm thiết lập sự kiện bật/tắt menu con
     function setupSubmenu(toggleId, submenuId) {
         const toggle = document.getElementById(toggleId);
         const submenu = document.getElementById(submenuId);
@@ -298,11 +298,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Kích hoạt cho Menu Chăm sóc khách hàng và Chatbot
     setupSubmenu('careMenuToggle', 'careSubmenu');
     setupSubmenu('chatbotMenuToggle', 'chatbotSubmenu');
 
-    // Menu tùy chọn người dùng (Footer Sidebar)
     const userToggle = document.getElementById('userMoreToggle');
     const userDropdown = document.getElementById('userDropdown');
     if (userToggle && userDropdown) {
