@@ -1,10 +1,323 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Quản lý chương trình ưu đãi - Charm Spa Management{% endblock %}
+
+{% block content %}
+<div style="padding: 28px 36px; background-color: #f7f4ee; min-height: 100vh; font-family: 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    
+    <!-- Top Header Bar (Hiển thị ngày động theo hệ thống) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <span style="font-size: 0.85rem; color: #666;">NHỮNG ĐẶC QUYỀN CHĂM SÓC</span>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="font-size: 0.85rem; color: #555; background: #fff; padding: 6px 14px; border-radius: 20px; border: 1px solid #efeae2;">
+                📅 {% now "l, d/m/Y" %}
+            </span>
+            <span style="font-size: 1.2rem; cursor: pointer;">🔔</span>
+        </div>
+    </div>
+
+    <!-- Title & Add Button -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-family: serif; font-size: 2.2rem; color: #2c2420; margin: 0 0 6px 0; font-weight: 700;">Quản lý chương trình ưu đãi</h1>
+            <p style="color: #777; font-size: 0.9rem; margin: 0;">Quản lý các chương trình theo mùa, dành riêng cho hành trình chăm sóc tại Charm.</p>
+        </div>
+        <button onclick="openModalForAdd()" style="background: #a33838; color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(163, 56, 56, 0.25);">
+            + Thêm mới
+        </button>
+    </div>
+
+    <!-- Stat Cards Bar -->
+    <div style="display: grid; grid-template-columns: 2fr 2fr 2fr; gap: 20px; margin-bottom: 28px;">
+        <div style="background: #2c2420; color: #fff; padding: 22px 24px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-size: 0.8rem; color: #c5a880; letter-spacing: 0.5px; margin-bottom: 6px;">Đang áp dụng</div>
+                <div style="font-size: 0.8rem; color: #aaa;">Ưu đãi đang hiển thị cho khách</div>
+            </div>
+            <div style="font-size: 2.2rem; font-weight: 700; font-family: serif;">{{ dang_ap_dung_count|stringformat:"02d" }}</div>
+        </div>
+        <div style="background: #fff; border: 1px solid #efeae2; padding: 22px 24px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-size: 0.8rem; color: #666; margin-bottom: 6px;">Sắp diễn ra</div>
+                <div style="font-size: 0.8rem; color: #999;">Bắt đầu trong tháng</div>
+            </div>
+            <div style="font-size: 2.2rem; font-weight: 700; font-family: serif; color: #2c2420;">{{ sap_dien_ra_count|stringformat:"02d" }}</div>
+        </div>
+        <div style="background: #fff; border: 1px solid #efeae2; padding: 22px 24px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-size: 0.8rem; color: #666; margin-bottom: 6px;">Lượt sử dụng tháng này</div>
+                <div style="font-size: 0.8rem; color: #999;">Trên các chương trình đang áp dụng</div>
+            </div>
+            <div style="font-size: 2.2rem; font-weight: 700; font-family: serif; color: #2c2420;">128</div>
+        </div>
+    </div>
+
+    <!-- Main Table Container -->
+    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #efeae2; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+
+        <div style="padding: 16px 24px; border-bottom: 1px solid #f5eee9; display: flex; gap: 12px; align-items: center;">
+            <div style="font-weight: 700; color: #2c2420;">Chương trình ưu đãi <span style="background: #f5eee9; color: #8c6d4f; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; margin-left: 6px;">{{ ds_uu_dai|length }}</span></div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+            <thead>
+                <tr style="background: #faf7f2; color: #777; border-bottom: 1px solid #efeae2;">
+                    <th style="padding: 14px 20px; font-weight: 600;">Banner thumbnail</th>
+                    <th style="padding: 14px 20px; font-weight: 600;">Tên chương trình</th>
+                    <th style="padding: 14px 20px; font-weight: 600;">Thời gian áp dụng</th>
+                    <th style="padding: 14px 20px; font-weight: 600;">Giá ưu đãi</th>
+                    <th style="padding: 14px 20px; font-weight: 600; text-align: center;">Trạng thái</th>
+                    <th style="padding: 14px 20px; font-weight: 600; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ds_uu_dai %}
+                <tr style="border-bottom: 1px solid #f7f3ee;">
+                    <td style="padding: 14px 20px;">
+                        {% if item.hinh_anh %}
+                            <img src="{{ item.hinh_anh }}" alt="Banner" style="width: 70px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
+                        {% else %}
+                            <div style="width: 70px; height: 42px; background: #eee; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #888;">No image</div>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 20px;">
+                        <div style="font-weight: 700; color: #2c2420;">{{ item.ten_chuong_trinh }}</div>
+                        <div style="font-size: 0.78rem; color: #888; margin-top: 2px;">{{ item.ma_ctud }} · {{ item.mo_ta|truncatechars:40 }}</div>
+                    </td>
+                    <td style="padding: 14px 20px; color: #555; font-size: 0.85rem;">
+                        <div>{{ item.ngay_bat_dau|date:"d/m/Y" }} – {{ item.ngay_ket_thuc|date:"d/m/Y" }}</div>
+                        <div style="font-size: 0.78rem; color: #888;">Toàn bộ khung giờ mở cửa</div>
+                    </td>
+                    <td style="padding: 14px 20px; font-weight: 700; color: #a33838; font-size: 1.05rem;">
+                        {{ item.gia_tri_uu_dai|floatformat:0 }} đ
+                    </td>
+                    <td style="padding: 14px 20px; text-align: center;">
+                        {% if item.trang_thai == 'Đang áp dụng' %}
+                            <span style="background: #e8f5e9; color: #2e7d32; font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 12px;">● Đang áp dụng</span>
+                        {% elif item.trang_thai == 'Sắp diễn ra' %}
+                            <span style="background: #fff8e1; color: #f57f17; font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 12px;">● Sắp diễn ra</span>
+                        {% else %}
+                            <span style="background: #ffebee; color: #c62828; font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 12px;">● Đã kết thúc</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 14px 20px; text-align: right; white-space: nowrap;">
+                        <!-- Nút Gửi thông báo ưu đãi -->
+                        <button type="button"
+                                onclick="openSendPromoModal('{{ item.pk }}', '{{ item.ten_chuong_trinh|escapejs }}')"
+                                style="background: #2c2420; border: none; color: #fff; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem; margin-right: 4px;" title="Gửi ưu đãi vào thông báo khách hàng">
+                            📢 Gửi
+                        </button>
+
+                        <!-- Nút Chỉnh sửa -->
+                        <button type="button"
+                                class="btn-edit"
+                                data-id="{{ item.pk }}"
+                                data-tieu-de="{{ item.ten_chuong_trinh }}"
+                                data-mo-ta="{{ item.mo_ta|default:'' }}"
+                                data-ngay-bd="{{ item.ngay_bat_dau|date:'Y-m-d' }}"
+                                data-ngay-kt="{{ item.ngay_ket_thuc|date:'Y-m-d' }}"
+                                data-gia-tri="{{ item.gia_tri_uu_dai }}"
+                                data-gia-goc="{{ item.gia_goc|default:0 }}"
+                                data-thoi-luong="{{ item.thoi_luong|default:'90 phút' }}"
+                                data-doi-tuong="{{ item.doi_tuong_ap_dung|default:'Tất cả khách hàng' }}"
+                                data-quyen-loi="{{ item.quyen_loi|default:'' }}"
+                                data-dieu-kien="{{ item.dieu_kien|default:'' }}"
+                                data-trang-thai="{{ item.trang_thai }}"
+                                data-hinh-anh="{{ item.hinh_anh|default:'' }}"
+                                style="background: #fdf8f2; border: 1px solid #e0d8ce; color: #a33838; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
+                            ✏ Edit
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #888;">Chưa có chương trình ưu đãi nào.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- POPUP MODAL THÊM / SỬA -->
+<div id="promoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #ffffff; width: 680px; border-radius: 16px; padding: 32px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); position: relative; max-height: 90vh; overflow-y: auto;">
+        <button type="button" onclick="closePromoModal()" style="position: absolute; top: 24px; right: 24px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888;">✕</button>
+        <h2 id="modalTitle" style="font-family: serif; color: #2c2420; margin-top: 0; margin-bottom: 24px; font-size: 1.4rem; font-weight: 700;">Thêm mới ưu đãi</h2>
+
+        <form id="promoForm">
+            {% csrf_token %}
+            <input type="hidden" name="id" id="promo_id">
+
+            <div style="margin-bottom: 16px;">
+                <label for="promo_tieu_de" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Tên chương trình ưu đãi *</label>
+                <input type="text" name="tieu_de" id="promo_tieu_de" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="promo_mo_ta" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Mô tả chi tiết</label>
+                <textarea name="mo_ta" id="promo_mo_ta" rows="2" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label for="promo_ngay_bd" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Ngày bắt đầu</label>
+                    <input type="date" name="ngay_bat_dau" id="promo_ngay_bd" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="promo_ngay_kt" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Ngày kết thúc</label>
+                    <input type="date" name="ngay_ket_thuc" id="promo_ngay_kt" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label for="promo_gia_tri" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Giá ưu đãi (đ)</label>
+                    <input type="number" name="gia_tri_uu_dai" id="promo_gia_tri" value="899000" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="promo_gia_goc" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Giá gốc (đ)</label>
+                    <input type="number" name="gia_goc" id="promo_gia_goc" value="1200000" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label for="promo_thoi_luong" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Thời lượng liệu trình</label>
+                    <input type="text" name="thoi_luong" id="promo_thoi_luong" value="90 phút" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="promo_doi_tuong" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Đối tượng áp dụng</label>
+                    <input type="text" name="doi_tuong_ap_dung" id="promo_doi_tuong" value="Tất cả khách hàng" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="promo_quyen_loi" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Quyền lợi khách hàng</label>
+                <textarea name="quyen_loi" id="promo_quyen_loi" rows="2" placeholder="Nhập quyền lợi..." style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="promo_dieu_kien" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Điều kiện áp dụng</label>
+                <textarea name="dieu_kien" id="promo_dieu_kien" rows="2" placeholder="Nhập điều kiện..." style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label for="promo_trang_thai" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Trạng thái</label>
+                    <select name="trang_thai" id="promo_trang_thai" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; background: #fff; outline: none;">
+                        <option value="Đang áp dụng">Đang áp dụng</option>
+                        <option value="Sắp diễn ra">Sắp diễn ra</option>
+                        <option value="Đã kết thúc">Đã kết thúc</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label for="promo_hinh_anh" style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Link ảnh Banner (URL)</label>
+                    <input type="text" name="hinh_anh" id="promo_hinh_anh" placeholder="Nhập URL ảnh..." style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; outline: none;">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #f0eae1; padding-top: 20px; margin-top: 20px;">
+                <button type="button" onclick="closePromoModal()" style="padding: 10px 20px; border: 1px solid #dcd6cd; background: #fff; color: #555; border-radius: 8px; font-weight: 600; cursor: pointer;">Hủy</button>
+                <button type="submit" style="padding: 10px 24px; background: #a33838; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Lưu chương trình</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- POPUP MODAL GỬI ƯU ĐÃI CHO KHÁCH HÀNG (Theo hạng thành viên) -->
+<div id="sendPromoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #ffffff; width: 500px; border-radius: 16px; padding: 28px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); position: relative;">
+        <button type="button" onclick="closeSendPromoModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888;">✕</button>
+        <h3 style="font-family: serif; color: #2c2420; margin-top: 0; margin-bottom: 16px; font-size: 1.2rem; font-weight: 700;">Gửi thông báo ưu đãi</h3>
+        <p style="font-size: 0.88rem; color: #666; margin-bottom: 16px;">Đang gửi chương trình: <strong id="sendPromoName" style="color: #a33838;"></strong></p>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Chọn đối tượng nhận theo hạng mức:</label>
+            <select id="doiTuongGui" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; background: #fff; outline: none;">
+                <option value="tat_ca">Tất cả khách hàng thành viên</option>
+                <option value="dong">Khách hàng Hạng Đồng</option>
+                <option value="bac">Khách hàng Hạng Bạc</option>
+                <option value="vang">Khách hàng Hạng Vàng</option>
+                <option value="kim_cuong">Khách hàng Hạng Kim Cương</option>
+                <option value="thanh_vien_moi">Thành viên mới</option>
+            </select>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #f0eae1; padding-top: 16px; margin-top: 20px;">
+            <button type="button" onclick="closeSendPromoModal()" style="padding: 8px 16px; border: 1px solid #dcd6cd; background: #fff; color: #555; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Hủy</button>
+            <button type="button" onclick="submitSendPromo()" style="padding: 8px 20px; background: #2c2420; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Xác nhận gửi thông báo</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModalForAdd() {
+    document.getElementById('promo_id').value = '';
+    document.getElementById('promoForm').reset();
+    document.getElementById('modalTitle').innerText = 'Thêm mới chương trình ưu đãi';
+    document.getElementById('promoModal').style.display = 'flex';
+}
+
+document.querySelectorAll('.btn-edit').forEach(button => {
+    button.addEventListener('click', function() {
+        document.getElementById('promo_id').value = this.dataset.id;
+        document.getElementById('promo_tieu_de').value = this.dataset.tieuDe;
+        document.getElementById('promo_mo_ta').value = this.dataset.moTa;
+        document.getElementById('promo_ngay_bd').value = this.dataset.ngayBd;
+        document.getElementById('promo_ngay_kt').value = this.dataset.ngayKt;
+        document.getElementById('promo_gia_tri').value = this.dataset.giaTri;
+        document.getElementById('promo_gia_goc').value = this.dataset.giaGoc;
+        document.getElementById('promo_thoi_luong').value = this.dataset.thoiLuong;
+        document.getElementById('promo_doi_tuong').value = this.dataset.doiTuong;
+        document.getElementById('promo_quyen_loi').value = this.dataset.quyenLoi;
+        document.getElementById('promo_dieu_kien').value = this.dataset.dieuKien;
+        document.getElementById('promo_trang_thai').value = this.dataset.trangThai;
+        document.getElementById('promo_hinh_anh').value = this.dataset.hinhAnh;
+
+        document.getElementById('modalTitle').innerText = 'Cập nhật chương trình ưu đãi';
+        document.getElementById('promoModal').style.display = 'flex';
+    });
+});
+
+function closePromoModal() {
+    document.getElementById('promoModal').style.display = 'none';
+}
+
+// Modal gửi thông báo
+let currentSendingPromoId = null;
+function openSendPromoModal(promoId, promoName) {
+    currentSendingPromoId = promoId;
+    document.getElementById('sendPromoName').innerText = promoName;
+    document.getElementById('sendPromoModal').style.display = 'flex';
+}
+
+function closeSendPromoModal() {
+    document.getElementById('sendPromoModal').style.display = 'none';
+}
+
+function submitSendPromo() {
+    if (!currentSendingPromoId) return;
+    const doiTuong = document.getElementById('doiTuongGui').value;
+
+    alert('🎉 Đã gửi thông báo ưu đãi thành công đến nhóm khách hàng đã chọn!');
+    closeSendPromoModal();
+}
+
+document.getElementById('promoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch("{% url 'notifications:api_them_hoac_sua_uu_dai' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) { location.reload(); }
+        else { alert('Lỗi: ' + data.error); }
+    });
+});
+</script>
+{% endblock %}

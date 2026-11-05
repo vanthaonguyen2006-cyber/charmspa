@@ -1,10 +1,348 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Hướng dẫn sau liệu trình - Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+<style>
+    .admin-page-wrapper {
+        background-color: #f7f4ee !important;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .font-serif { font-family: serif !important; }
+    .card-summary-dark { background-color: #1a1a1a !important; color: #ffffff !important; }
+    .btn-charm-red { background-color: #8E2A2B !important; color: #ffffff !important; border: none !important; }
+    .btn-charm-red:hover { background-color: #722223 !important; color: #ffffff !important; }
+
+    .btn-charm-outline {
+        border: 1px solid #dcd3c5 !important;
+        color: #8E2A2B !important;
+        background-color: #ffffff !important;
+        font-size: 0.85rem;
+    }
+    .btn-charm-outline:hover { background-color: #f7f4ee !important; }
+
+    .badge-status-pending { background-color: #fef3d6 !important; color: #b76e00 !important; }
+    .badge-status-sent { background-color: #e6f4ea !important; color: #137333 !important; }
+
+    .avatar-ktv {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: #eee9e0;
+        color: #777;
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+    .btn-send-hdcs {
+        border: 1px solid #e0d6c8;
+        background-color: #ffffff;
+        color: #444;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        padding: 4px 12px;
+        transition: all 0.2s;
+    }
+    .btn-send-hdcs:hover {
+        background-color: #8E2A2B;
+        color: #ffffff;
+        border-color: #8E2A2B;
+    }
+    .text-view-content {
+        color: #8E2A2B;
+        font-size: 0.8rem;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .text-view-content:hover { text-decoration: underline; }
+
+    .modal-content-custom {
+        border-radius: 20px !important;
+        border: none !important;
+        padding: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page-wrapper p-4">
+
+    <!-- HEADER TRANG ADMIN -->
+    <div class="d-flex justify-content-between align-items-end mb-4 pt-2">
+        <div>
+            <span class="text-uppercase small text-muted fw-semibold" style="letter-spacing: 1px; font-size: 0.7rem;">CHĂM SÓC SAU LIỆU TRÌNH</span>
+            <h2 class="fw-normal font-serif mb-1" style="color: #1e1e1e; font-size: 2.2rem;">Hướng dẫn sau liệu trình</h2>
+            <p class="text-muted small mb-0">Gửi hướng dẫn và lời dặn riêng để sự chăm sóc tiếp tục, ngay cả khi khách đã rời spa.</p>
+        </div>
+        <a href="#" class="btn btn-charm-outline px-3 py-2 rounded-3 fw-semibold shadow-sm">
+            <i class="far fa-book-open me-2"></i>Thư viện mẫu
+        </a>
+    </div>
+
+    <!-- KHỐI THỐNG KÊ (3 CARDS SUMMARY) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 rounded-4 p-3 card-summary-dark shadow-sm d-flex flex-row justify-content-between align-items-center" style="min-height: 90px;">
+                <div>
+                    <div class="small text-white-50">Hoàn thành hôm nay</div>
+                    <div class="text-white-50" style="font-size: 0.72rem;">Các liệu trình đã checkout</div>
+                </div>
+                <div class="display-5 font-serif fw-normal ms-2">{{ hoan_thanh_count|default:"18" }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 rounded-4 p-3 bg-white shadow-sm d-flex flex-row justify-content-between align-items-center" style="min-height: 90px;">
+                <div>
+                    <div class="small text-dark fw-semibold">Chờ gửi hướng dẫn</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Ưu tiên gửi trong ngày</div>
+                </div>
+                <div class="display-5 font-serif fw-normal text-dark ms-2">{% if cho_gui_count < 10 %}0{% endif %}{{ cho_gui_count|default:"06" }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 rounded-4 p-3 bg-white shadow-sm d-flex flex-row justify-content-between align-items-center" style="min-height: 90px;">
+                <div>
+                    <div class="small text-dark fw-semibold">Đã gửi HDCS</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Nội dung khớp với từng dịch vụ</div>
+                </div>
+                <div class="display-5 font-serif fw-normal text-dark ms-2">{% if da_gui_count < 10 %}0{% endif %}{{ da_gui_count|default:"12" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BẢNG DANH SÁCH KHÁCH HÀNG (HÌNH 62) -->
+    <div class="card border-0 rounded-4 bg-white shadow-sm overflow-hidden mb-4">
+        <div class="p-3 border-bottom border-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="fw-normal mb-0 font-serif me-2">Khách hoàn thành liệu trình</h5>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="input-group input-group-sm" style="width: 240px;">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control bg-light border-start-0" placeholder="Tìm khách hàng hoặc dịch vụ">
+                </div>
+                <select class="form-select form-select-sm bg-light" style="width: 140px;">
+                    <option>Tất cả trạng thái</option>
+                    <option>Chưa gửi</option>
+                    <option>Đã gửi</option>
+                </select>
+                <button class="btn btn-sm btn-light border"><i class="far fa-calendar-alt me-1"></i> Hôm nay, 03/10</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3 fw-semibold">Khách hàng</th>
+                        <th class="py-3 fw-semibold">Dịch vụ</th>
+                        <th class="py-3 fw-semibold">KTV</th>
+                        <th class="py-3 fw-semibold">Giờ checkout</th>
+                        <th class="py-3 fw-semibold">Trạng thái gửi HDCS</th>
+                        <th class="py-3 text-end pe-4 fw-semibold">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in danh_sach %}
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <div class="fw-semibold text-dark">{{ item.ten_khach_hang }}</div>
+                                <small class="text-muted">{{ item.ma_lich_hen }}</small>
+                            </td>
+                            <td>
+                                <div class="text-dark">{{ item.ten_dich_vu }}</div>
+                                <small class="text-muted">{{ item.thoi_luong }} • Đã hoàn thành</small>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="avatar-ktv">{{ item.ktv_code }}</span>
+                                    <span class="small text-dark">{{ item.ten_ktv }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ item.gio_checkout }}</div>
+                                <small class="text-muted">{{ item.ngay_checkout }}</small>
+                            </td>
+                            <td>
+                                {% if item.trang_thai %}
+                                    <span class="badge badge-status-sent rounded-pill px-3 py-2 fw-normal">• Đã gửi</span>
+                                {% else %}
+                                    <span class="badge badge-status-pending rounded-pill px-3 py-2 fw-normal">• Chưa gửi</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                {% if item.trang_thai %}
+                                    <a class="text-view-content fw-semibold" onclick="openViewModal('{{ item.id }}')">Xem nội dung</a>
+                                {% else %}
+                                    <button type="button" class="btn btn-send-hdcs shadow-sm" onclick="openSendModal('{{ item.id }}')">
+                                        <i class="far fa-paper-plane me-1"></i> Gửi HDCS
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Hôm nay chưa có khách hàng hoàn thành liệu trình.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-3 border-top border-light d-flex justify-content-between align-items-center text-muted small">
+            <div>Hiển thị 1–{{ danh_sach|length }} trong {{ hoan_thanh_count|default:"18" }} bản ghi</div>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link border-0" href="#">&lt;</a></li>
+                <li class="page-item active"><a class="page-link border-0 text-white rounded-2" style="background-color: #8E2A2B;" href="#">1</a></li>
+                <li class="page-item"><a class="page-link border-0 text-dark" href="#">2</a></li>
+                <li class="page-item"><a class="page-link border-0 text-dark" href="#">3</a></li>
+                <li class="page-item border-0"><a class="page-link border-0" href="#">&gt;</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="d-flex justify-content-between align-items-center mt-4 text-muted small" style="font-size: 0.75rem;">
+        <div>Dữ liệu minh họa - Mẫu chăm sóc được chọn theo dịch vụ hoàn thành</div>
+        <div>Charm Spa • Chăm sóc từ tâm</div>
+    </div>
+</div>
+
+<!-- POP-UP 1: MODAL GỬI HDCS SAU LIỆU TRÌNH -->
+<div class="modal fade" id="sendHdcsModal" tabindex="-1" aria-hidden="true" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-custom shadow-lg">
+            <form id="sendHdcsForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0 position-relative">
+                    <div>
+                        <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.68rem; letter-spacing: 1px;">GỬI HDCS SAU LIỆU TRÌNH</span>
+                        <h3 class="modal-title font-serif fw-normal mt-1" style="color: #1e1e1e; font-size: 1.8rem;">Hướng dẫn cho <span id="send-customer-name" class="fw-semibold text-danger">...</span></h3>
+                        <p class="text-muted small mb-0">Nội dung mẫu tự động khớp với dịch vụ: <strong id="send-service-name" class="text-dark">...</strong></p>
+                    </div>
+                    <button type="button" class="btn-close rounded-circle bg-light p-2 position-absolute top-0 end-0 m-3" onclick="closeSendModal()"></button>
+                </div>
+
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">Kênh gửi hướng dẫn</label>
+                        <select class="form-select py-2 px-3 rounded-3" name="kenh_gui">
+                            <option value="zalo">Gửi qua Zalo OA (Khuyên dùng)</option>
+                            <option value="app">Gửi qua ứng dụng Charm Spa</option>
+                            <option value="email">Gửi qua Email</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">Nội dung dặn dò chi tiết</label>
+                        <textarea class="form-control p-3 rounded-3" id="send-content" name="noi_dung_dan_do" rows="5"></textarea>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-light border">
+                        <label class="form-label fw-semibold small text-dark mb-1">Lưu ý bổ sung cho dịch vụ này</label>
+                        <p class="text-muted small mb-0" id="send-note">Uống nhiều nước ấm và nghỉ ngơi nhẹ nhàng.</p>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none px-4" onclick="closeSendModal()">Hủy</button>
+                    <button type="submit" class="btn btn-charm-red px-4 py-2 rounded-3 fw-semibold"><i class="far fa-paper-plane me-1"></i> Xác nhận & Gửi ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- POP-UP 2: MODAL XEM NỘI DUNG ĐÃ GỬI -->
+<div class="modal fade" id="viewHdcsModal" tabindex="-1" aria-hidden="true" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-custom shadow-lg">
+            <div class="modal-header border-0 pb-0 position-relative">
+                <div>
+                    <span class="text-uppercase text-success fw-semibold" style="font-size: 0.68rem; letter-spacing: 1px;">• ĐÃ GỬI NỘI DUNG CHĂM SÓC</span>
+                    <h3 class="modal-title font-serif fw-normal mt-1" style="color: #1e1e1e; font-size: 1.8rem;">Nội dung dặn dò: <span id="view-customer-name">...</span></h3>
+                    <p class="text-muted small mb-0">Dịch vụ: <strong id="view-service-name" class="text-dark">...</strong></p>
+                </div>
+                <button type="button" class="btn-close rounded-circle bg-light p-2 position-absolute top-0 end-0 m-3" onclick="closeViewModal()"></button>
+            </div>
+
+            <div class="modal-body py-4">
+                <div class="p-3 rounded-3 bg-light border mb-3">
+                    <div class="fw-semibold small text-dark mb-2"><i class="fas fa-check-circle text-success me-1"></i> Lời dặn đã gửi cho khách:</div>
+                    <p class="text-dark small mb-0" style="white-space: pre-line;" id="view-content">...</p>
+                </div>
+
+                <div class="p-3 rounded-3 border-start border-4 border-warning bg-light">
+                    <div class="fw-semibold small text-dark mb-1">Ghi chú lưu ý thêm</div>
+                    <p class="text-muted small mb-0" id="view-note">...</p>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary px-4 py-2 rounded-3 fw-semibold" onclick="closeViewModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
+<script>
+    const URL_SEND_BASE = "{% url 'notifications:gui_hdcs_action' '0' %}".replace('0/', '');
+
+    function openSendModal(id) {
+        fetch(`/notifications/post-treatment/detail-json/${id}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('send-customer-name').innerText = data.ten_khach_hang;
+                document.getElementById('send-service-name').innerText = data.ten_dich_vu;
+                document.getElementById('send-content').value = data.noi_dung_dan_do;
+                document.getElementById('send-note').innerText = data.luu_y_dac_biet;
+
+                document.getElementById('sendHdcsForm').action = URL_SEND_BASE + id + '/';
+
+                const modalEl = document.getElementById('sendHdcsModal');
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+                document.body.classList.add('modal-open');
+            });
+    }
+
+    function closeSendModal() {
+        const modalEl = document.getElementById('sendHdcsModal');
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+
+    function openViewModal(id) {
+        fetch(`/notifications/post-treatment/detail-json/${id}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('view-customer-name').innerText = data.ten_khach_hang;
+                document.getElementById('view-service-name').innerText = data.ten_dich_vu;
+                document.getElementById('view-content').innerText = data.noi_dung_dan_do;
+                document.getElementById('view-note').innerText = data.luu_y_dac_biet;
+
+                const modalEl = document.getElementById('viewHdcsModal');
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+                document.body.classList.add('modal-open');
+            });
+    }
+
+    function closeViewModal() {
+        const modalEl = document.getElementById('viewHdcsModal');
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+</script>
+{% endblock %}

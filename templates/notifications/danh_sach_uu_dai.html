@@ -1,10 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block title %}Chương trình ưu đãi - Charm Spa Grand{% endblock %}
+
+{% block content %}
+<div class="promotions-list-wrapper" style="font-family: 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f7f4ee; padding: 50px 0 90px 0;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+
+        <!-- Tiêu đề trang -->
+        <div style="text-align: center; margin-bottom: 50px;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: #8E2A2B; text-transform: uppercase; letter-spacing: 2px;">ƯU ĐÃI ĐANG DIỄN RA</span>
+            <h1 style="font-family: serif; font-size: 2.5rem; color: #1e1e1e; margin-top: 10px; font-weight: 400;">Chọn một khoảng lặng dành riêng cho bạn</h1>
+            <p style="color: #666; font-size: 0.95rem; margin-top: 10px;">Mỗi ưu đãi áp dụng theo điều kiện riêng và số lượng khung giờ giới hạn.</p>
+        </div>
+
+        <!-- Danh sách dạng lưới Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
+            {% for promo in promotions %}
+            <div style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #efeae2; display: flex; flex-direction: column; transition: transform 0.3s ease;">
+
+                <!-- Hình ảnh Banner -->
+                <div style="height: 240px; overflow: hidden; background: #e8e2d8; position: relative;">
+                    {% if promo.hinh_anh %}
+                        <img src="{{ promo.hinh_anh }}" alt="{{ promo.ten_chuong_trinh }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/pro1.png' %}" alt="Banner mặc định" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% endif %}
+
+                    <!-- Nhãn giá nổi bật -->
+                    <div style="position: absolute; top: 16px; left: 16px; background: rgba(30, 30, 30, 0.85); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                        Giá: {{ promo.gia_tri_uu_dai|floatformat:0 }} đ
+                    </div>
+                </div>
+
+                <!-- Nội dung thẻ -->
+                <div style="padding: 28px; display: flex; flex-direction: column; flex-grow: 1;">
+
+                    <div style="font-size: 0.8rem; color: #888; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span>📅</span> {{ promo.ngay_bat_dau|date:"d.m.Y" }} — {{ promo.ngay_ket_thuc|date:"d.m.Y" }}
+                    </div>
+
+                    <h3 style="font-family: serif; font-size: 1.4rem; color: #1e1e1e; margin: 0 0 12px 0; font-weight: 600; line-height: 1.3;">
+                        {{ promo.ten_chuong_trinh }}
+                    </h3>
+
+                    <p style="color: #666; font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px; flex-grow: 1;">
+                        {{ promo.mo_ta|truncatechars:90 }}
+                    </p>
+
+                    <!-- Nút Chi tiết -->
+                    <div style="border-top: 1px solid #efeae2; padding-top: 18px; display: flex; justify-content: space-between; align-items: center;">
+                        <a href="{% url 'notifications:chi_tiet_uu_dai' promo.pk %}" style="color: #8E2A2B; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                            Đọc thêm
+                        </a>
+                        <a href="{% url 'notifications:chi_tiet_uu_dai' promo.pk %}" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #dcd6cd; display: flex; align-items: center; justify-content: center; color: #333; text-decoration: none; font-size: 0.8rem;">
+                            ↗
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: span 3; text-align: center; padding: 60px; color: #888; background: #fff; border-radius: 16px;">
+                Hiện tại chưa có chương trình ưu đãi nào được kích hoạt.
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

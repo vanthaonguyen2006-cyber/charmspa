@@ -1,302 +1,85 @@
+{% extends "layouts/customer_base.html" %}
+{% load static %}
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trung tâm thông báo | Charm Spa Grand</title>
+{% block title %}Trung tâm thông báo | Charm Spa Grand{% endblock %}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            background: #fbf8f4;
-            color: #39332e;
-            font-family: Arial, sans-serif;
-        }
-
-        .header {
-            padding: 22px 7%;
-            background: #fff;
-            border-bottom: 1px solid #e9e0d5;
-            color: #94764f;
-            letter-spacing: 2px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 48px auto;
-            padding: 0 24px;
-        }
-
-        .eyebrow {
-            color: #a18762;
-            font-size: 12px;
-            letter-spacing: 3px;
-        }
-
-        h1 {
-            margin: 12px 0;
-            font-family: Georgia, serif;
-            font-size: 36px;
-            font-weight: normal;
-        }
-
-        .subtitle {
-            color: #81776e;
-            line-height: 1.7;
-        }
-
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-            margin: 30px 0;
-        }
-
-        .summary-card, .notification {
-            background: white;
-            border: 1px solid #e9e0d5;
-            border-radius: 12px;
-            padding: 22px;
-        }
-
-        .summary-card p {
-            color: #81776e;
-            margin: 0 0 10px;
-        }
-
-        .summary-card strong {
-            font-size: 28px;
-        }
-
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin: 35px 0 18px;
-        }
-
-        .toolbar h2 {
-            font-family: Georgia, serif;
-            font-weight: normal;
-        }
-
-        button {
-            border: 1px solid #d8c6ae;
-            background: white;
-            color: #775e3f;
-            padding: 10px 16px;
-            border-radius: 24px;
-            cursor: pointer;
-        }
-
-        button:hover, button.active {
-            background: #eee3d5;
-        }
-
-        .notification {
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        .notification.unread {
-            background: #fcf4e8;
-        }
-
-        .icon {
-            flex-shrink: 0;
-            width: 44px;
-            height: 44px;
-            display: grid;
-            place-items: center;
-            border-radius: 50%;
-            background: #f2e7d9;
-            color: #957650;
-            font-size: 23px;
-        }
-
-        .content {
-            flex: 1;
-        }
-
-        .category {
-            color: #96764e;
-            font-size: 12px;
-        }
-
-        .content h3 {
-            margin: 9px 0;
-            font-size: 16px;
-        }
-
-        .content p {
-            color: #766e67;
-            line-height: 1.7;
-            margin: 0;
-        }
-
-        .time {
-            color: #93877b;
-            font-size: 12px;
-            margin-top: 12px;
-        }
-
-        .empty {
-            display: none;
-            background: white;
-            padding: 35px;
-            text-align: center;
-            border: 1px solid #e9e0d5;
-            border-radius: 12px;
-            color: #81776e;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                margin-top: 30px;
-                padding: 0 16px;
-            }
-
-            h1 {
-                font-size: 29px;
-            }
-
-            .summary {
-                grid-template-columns: 1fr;
-            }
-
-            .notification {
-                padding: 16px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <header class="header">CHARM SPA GRAND</header>
-
-    <main class="container">
-        <span class="eyebrow">YOUR SPA JOURNEY</span>
-        <h1>Trung tâm thông báo</h1>
-        <p class="subtitle">
-            Những thông tin dành riêng cho hành trình chăm sóc của bạn.
-        </p>
-
-        <section class="summary">
-            <div class="summary-card">
-                <p>Tổng thông báo</p>
-                <strong id="total">4</strong>
-            </div>
-            <div class="summary-card">
-                <p>Chưa đọc</p>
-                <strong id="unread">2</strong>
-            </div>
-        </section>
-
-        <section class="toolbar">
-            <h2>Thông báo của bạn</h2>
-            <div>
-                <button class="active" onclick="filterNotifications('all', this)">
-                    Tất cả
-                </button>
-                <button onclick="filterNotifications('unread', this)">
-                    Chưa đọc
-                </button>
-            </div>
-        </section>
-
-        <section id="notification-list">
-            <article class="notification unread" data-unread="true">
-                <div class="icon">◷</div>
-                <div class="content">
-                    <span class="category">LỊCH HẸN</span>
-                    <h3>Nhắc lịch hẹn của bạn</h3>
-                    <p>
-                        Bạn có lịch chăm sóc da tại Charm Spa Grand vào ngày mai.
-                        Hãy sắp xếp thời gian nhé!
-                    </p>
-                    <div class="time">1 giờ trước · Chưa đọc</div>
-                </div>
-            </article>
-
-            <article class="notification unread" data-unread="true">
-                <div class="icon">♡</div>
-                <div class="content">
-                    <span class="category">ƯU ĐÃI</span>
-                    <h3>Ưu đãi đặc biệt dành cho bạn</h3>
-                    <p>
-                        Khám phá các chương trình ưu đãi chăm sóc da
-                        đang áp dụng tại Charm Spa Grand.
-                    </p>
-                    <div class="time">5 giờ trước · Chưa đọc</div>
-                </div>
-            </article>
-
-            <article class="notification" data-unread="false">
-                <div class="icon">✿</div>
-                <div class="content">
-                    <span class="category">CHĂM SÓC SAU LIỆU TRÌNH</span>
-                    <h3>Đừng quên chăm sóc da sau liệu trình</h3>
-                    <p>
-                        Hãy dưỡng ẩm đầy đủ, sử dụng kem chống nắng
-                        và thực hiện theo hướng dẫn của chuyên viên.
-                    </p>
-                    <div class="time">Hôm qua · Đã đọc</div>
-                </div>
-            </article>
-
-            <article class="notification" data-unread="false">
-                <div class="icon">◷</div>
-                <div class="content">
-                    <span class="category">LỊCH HẸN</span>
-                    <h3>Xác nhận lịch hẹn thành công</h3>
-                    <p>
-                        Lịch hẹn trải nghiệm dịch vụ của bạn đã được
-                        ghi nhận trong hệ thống demo.
-                    </p>
-                    <div class="time">2 ngày trước · Đã đọc</div>
-                </div>
-            </article>
-        </section>
-
-        <div id="empty" class="empty">
-            Bạn không có thông báo nào trong mục này.
+{% block content %}
+<div class="notification-page">
+    <div class="notification-heading">
+        <div>
+            <span class="eyebrow">CHARM SPA GRAND</span>
+            <h1>Trung tâm thông báo</h1>
+            <p>Những thông tin dành riêng cho hành trình chăm sóc của bạn.</p>
         </div>
-    </main>
+    </div>
 
-    <script>
-        function filterNotifications(type, button) {
-            const items = document.querySelectorAll(".notification");
-            let visible = 0;
+    <div class="notification-summary">
+        <div class="summary-card">
+            <span class="summary-icon">♧</span>
+            <div>
+                <p>Tổng thông báo</p>
+                <h2>{{ notifications|length }}</h2>
+            </div>
+        </div>
 
-            items.forEach(function(item) {
-                const unread = item.dataset.unread === "true";
-                const show = type === "all" || unread;
+        <div class="summary-card">
+            <span class="summary-icon">♡</span>
+            <div>
+                <p>Chưa đọc</p>
+                <h2>{{ unread_count }}</h2>
+            </div>
+        </div>
+    </div>
 
-                item.style.display = show ? "flex" : "none";
+    <div class="notification-toolbar">
+        <h2>Thông báo của bạn</h2>
+        <div class="notification-filters">
+            <a href="?type=all" class="filter-link {% if active_tab != 'unread' %}active{% endif %}">Tất cả</a>
+            <a href="?type=unread" class="filter-link {% if active_tab == 'unread' %}active{% endif %}">Chưa đọc</a>
+        </div>
+    </div>
 
-                if (show) visible++;
-            });
+    <div class="notification-list">
+        {% for item in notifications %}
+        <article class="notification-item {% if item.trang_thai_gui == 'Chưa đọc' %}is-unread{% endif %}">
 
-            document.getElementById("empty").style.display =
-                visible === 0 ? "block" : "none";
+            <div class="notification-icon">
+                {% if item.loai_thong_bao == "Lịch hẹn" %}
+                    ◷
+                {% elif item.loai_thong_bao == "Ưu đãi" %}
+                    ♡
+                {% else %}
+                    ✿
+                {% endif %}
+            </div>
 
-            document.querySelectorAll(".toolbar button").forEach(function(btn) {
-                btn.classList.remove("active");
-            });
+            <div class="notification-content">
+                <div class="notification-meta">
+                    <span>{{ item.loai_thong_bao|default:"Thông báo" }}</span>
+                    <time>{{ item.thoi_gian_gui|date:"d/m/Y H:i" }}</time>
+                </div>
 
-            button.classList.add("active");
-        }
-    </script>
-</body>
-</html>
+                <h3>{{ item.tieu_de }}</h3>
+                <p>{{ item.noi_dung }}</p>
+
+                {% if item.trang_thai_gui == 'Chưa đọc' %}
+                <a href="{% url 'notifications:danh_dau_da_doc' item.ma_tbkh %}" class="notification-detail">
+                    Đánh dấu đã đọc ✓
+                </a>
+                {% endif %}
+            </div>
+
+            {% if item.trang_thai_gui == 'Chưa đọc' %}
+            <span class="unread-dot" title="Chưa đọc"></span>
+            {% endif %}
+        </article>
+        {% empty %}
+        <div class="notification-empty">
+            <div class="empty-icon">♡</div>
+            <h3>Bạn chưa có thông báo nào</h3>
+            <p>Thông báo lịch hẹn, ưu đãi và chăm sóc sẽ xuất hiện tại đây.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

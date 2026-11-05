@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import ChuongTrinhUuDai, HuongDanChamSoc, ThongBao, ThongBaoKhachHang
 
-# Register your models here.
+admin.site.register(ChuongTrinhUuDai)
+admin.site.register(HuongDanChamSoc)
+admin.site.register(ThongBao)
+admin.site.register(ThongBaoKhachHang)

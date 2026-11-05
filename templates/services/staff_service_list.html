@@ -1,0 +1,275 @@
+{% extends 'layouts/staff_base.html' %}
+{% load static %}
+
+{% block title %}Quản lý dịch vụ - Charm Spa Management{% endblock %}
+
+{% block content %}
+<div style="padding: 24px 32px; background-color: #f7f4ee; min-height: 100vh; font-family: 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    
+    <!-- Header thông tin ngày tháng -->
+    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="font-size: 0.85rem; color: #666; background: #ffffff; padding: 6px 14px; border-radius: 20px; border: 1px solid #efeae2;">
+                📅 {{ today|date:"l, d/m/Y"|default:"Thứ Năm, 05/11/2026" }}
+            </span>
+            <div style="position: relative; cursor: pointer;">
+                <span style="font-size: 1.2rem;">🔔</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title & Add Button -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-family: serif; font-size: 2.2rem; color: #2c2420; margin: 0 0 6px 0; font-weight: 700;">Quản lý dịch vụ</h1>
+            <p style="color: #777; font-size: 0.9rem; margin: 0;">Quản lý danh sách dịch vụ và điểm tích lũy tương ứng phục vụ khách hàng</p>
+        </div>
+        <button onclick="openAddModal()" style="background: #b58c59; color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(181, 140, 89, 0.25);">
+            + Thêm mới dịch vụ
+        </button>
+    </div>
+
+    <!-- Main Data Table Container -->
+    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #efeae2; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+
+        <div style="padding: 16px 24px; border-bottom: 1px solid #f5eee9; display: flex; align-items: center; gap: 10px;">
+            <h3 style="font-size: 1rem; color: #2c2420; margin: 0; font-weight: 700;">Danh sách dịch vụ</h3>
+            <span style="background: #f5eee9; color: #8C6D4F; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                {{ services|length }} dịch vụ
+            </span>
+        </div>
+
+        <!-- Table -->
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+            <thead>
+                <tr style="background: #faf7f2; color: #777; border-bottom: 1px solid #efeae2;">
+                    <th style="padding: 14px 16px; font-weight: 600; white-space: nowrap; width: 80px;">MÃ DV</th>
+                    <th style="padding: 14px 20px; font-weight: 600; min-width: 230px;">TÊN DỊCH VỤ</th>
+                    <th style="padding: 14px 16px; font-weight: 600; white-space: nowrap;">LOẠI DỊCH VỤ</th>
+                    <th style="padding: 14px 16px; font-weight: 600; white-space: nowrap;">THỜI LƯỢNG</th>
+                    <th style="padding: 14px 16px; font-weight: 600; white-space: nowrap;">GIÁ TIỀN</th>
+                    <th style="padding: 14px 16px; font-weight: 600; white-space: nowrap;">ĐIỂM TÍCH LŨY</th>
+                    <th style="padding: 14px 16px; font-weight: 600; white-space: nowrap; text-align: center;">TRẠNG THÁI</th>
+                    <th style="padding: 14px 16px; font-weight: 600; white-space: nowrap; text-align: right;">THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in services %}
+                <tr style="border-bottom: 1px solid #f7f3ee;">
+                    <td style="padding: 16px 16px; color: #888; font-weight: 600; white-space: nowrap;">{{ item.ma_dv }}</td>
+                    <td style="padding: 16px 20px; font-weight: 700; color: #2c2420; line-height: 1.4;">{{ item.ten_dich_vu }}</td>
+                    <td style="padding: 16px 16px; white-space: nowrap;">
+                        <span style="background: #f5eee9; color: #8C6D4F; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-block;">
+                            {{ item.loai_dich_vu }}
+                        </span>
+                    </td>
+                    <td style="padding: 16px 16px; color: #666; white-space: nowrap;">⏱ {{ item.thoi_luong }} phút</td>
+                    <td style="padding: 16px 16px; font-weight: 700; color: #b58c59; white-space: nowrap;">{{ item.gia_formatted }}</td>
+                    <td style="padding: 16px 16px; color: #2c2420; font-weight: 600; white-space: nowrap;">⭐ +{{ item.diem_tich_luy }} điểm</td>
+                    <td style="padding: 16px 16px; white-space: nowrap; text-align: center;">
+                        <span style="background: #e8f5e9; color: #2e7d32; font-size: 0.75rem; font-weight: 600; padding: 5px 14px; border-radius: 12px; display: inline-block;">Hoạt động</span>
+                    </td>
+                    <td style="padding: 16px 16px; white-space: nowrap; text-align: right;">
+                        <button onclick="openEditModal('{{ item.ma_dv }}', '{{ item.ten_dich_vu|escapejs }}', '{{ item.loai_dich_vu|escapejs }}', '{{ item.thoi_luong }}', '{{ item.gia_dich_vu }}', '{{ item.diem_tich_luy }}')" style="background: #fdf8f2; border: 1px solid #e0d8ce; color: #b58c59; padding: 6px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">
+                            ✏ Sửa
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 30px; color: #888;">Chưa có dữ liệu dịch vụ.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ================= POPUP MODAL THÊM MỚI DỊCH VỤ (Chuẩn thiết kế mới) ================= -->
+<div id="addModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #ffffff; width: 620px; border-radius: 16px; padding: 32px; box-shadow: 0 15px 40px rgba(0,0,0,0.12); position: relative; font-family: inherit;">
+
+        <!-- Nút X đóng popup -->
+        <button type="button" onclick="closeAddModal()" style="position: absolute; top: 24px; right: 24px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888;">✕</button>
+
+        <h2 style="font-family: serif; color: #2c2420; margin-top: 0; margin-bottom: 24px; font-size: 1.4rem; font-weight: 700;">Thêm mới dịch vụ</h2>
+
+        <form id="addForm">
+            {% csrf_token %}
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Mã dịch vụ *</label>
+                    <input type="text" name="ma_dv" value="Tự động" disabled style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; background: #f9f6f0; color: #888; font-size: 0.9rem; outline: none;">
+                </div>
+                <div style="flex: 2;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Tên dịch vụ *</label>
+                    <input type="text" name="ten_dich_vu" required placeholder="Nhập tên dịch vụ..." style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Loại dịch vụ / Mô tả</label>
+                <input type="text" name="loai_dich_vu" required placeholder="Nhập loại dịch vụ hoặc mô tả ngắn..." style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Thời lượng (phút)</label>
+                    <input type="number" name="thoi_luong" value="90" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Trạng thái</label>
+                    <select name="trang_thai" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; background: #fff; font-size: 0.9rem; outline: none;">
+                        <option value="Hoạt động">Hoạt động</option>
+                        <option value="Ngừng hoạt động">Ngừng hoạt động</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 8px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Giá dịch vụ *</label>
+                    <input type="number" name="gia_dich_vu" id="add_gia_dich_vu" value="750000" required oninput="autoCalculatePoints('add')" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Điểm tích lũy *</label>
+                    <input type="number" name="diem_tich_luy" id="add_diem_tich_luy" value="75" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+            </div>
+            <p style="font-size: 0.75rem; color: #888; margin-bottom: 24px;">Nhập số điểm khách hàng nhận được khi sử dụng dịch vụ (tự động lấy phần lẻ phía trước giá tiền).</p>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #f0eae1; padding-top: 20px;">
+                <button type="button" onclick="closeAddModal()" style="padding: 10px 20px; border: 1px solid #dcd6cd; background: #ffffff; color: #555; border-radius: 8px; font-weight: 600; cursor: pointer;">Hủy</button>
+                <button type="submit" style="padding: 10px 24px; background: #b58c59; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= POPUP MODAL CHỈNH SỬA DỊCH VỤ ================= -->
+<div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #ffffff; width: 620px; border-radius: 16px; padding: 32px; box-shadow: 0 15px 40px rgba(0,0,0,0.12); position: relative; font-family: inherit;">
+
+        <button type="button" onclick="closeEditModal()" style="position: absolute; top: 24px; right: 24px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888;">✕</button>
+
+        <h2 style="font-family: serif; color: #2c2420; margin-top: 0; margin-bottom: 24px; font-size: 1.4rem; font-weight: 700;">Chỉnh sửa dịch vụ</h2>
+
+        <form id="editForm">
+            {% csrf_token %}
+            <input type="hidden" name="ma_dv" id="edit_ma_dv">
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Mã dịch vụ *</label>
+                    <input type="text" id="edit_ma_dv_display" disabled style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; background: #f9f6f0; color: #888; font-size: 0.9rem; outline: none;">
+                </div>
+                <div style="flex: 2;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Tên dịch vụ *</label>
+                    <input type="text" name="ten_dich_vu" id="edit_ten_dich_vu" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Loại dịch vụ / Mô tả</label>
+                <input type="text" name="loai_dich_vu" id="edit_loai_dich_vu" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Thời lượng (phút)</label>
+                    <input type="number" name="thoi_luong" id="edit_thoi_luong" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Trạng thái</label>
+                    <select name="trang_thai" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; background: #fff; font-size: 0.9rem; outline: none;">
+                        <option value="Hoạt động">Hoạt động</option>
+                        <option value="Ngừng hoạt động">Ngừng hoạt động</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 8px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Giá dịch vụ *</label>
+                    <input type="number" name="gia_dich_vu" id="edit_gia_dich_vu" required oninput="autoCalculatePoints('edit')" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 6px;">Điểm tích lũy *</label>
+                    <input type="number" name="diem_tich_luy" id="edit_diem_tich_luy" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0d8ce; font-size: 0.9rem; outline: none;">
+                </div>
+            </div>
+            <p style="font-size: 0.75rem; color: #888; margin-bottom: 24px;">Nhập số điểm khách hàng nhận được khi sử dụng dịch vụ.</p>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #f0eae1; padding-top: 20px;">
+                <button type="button" onclick="closeEditModal()" style="padding: 10px 20px; border: 1px solid #dcd6cd; background: #ffffff; color: #555; border-radius: 8px; font-weight: 600; cursor: pointer;">Hủy</button>
+                <button type="submit" style="padding: 10px 24px; background: #b58c59; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Hàm tự động tính điểm tích lũy dựa trên phần đầu của giá tiền (ví dụ 750000 lấy các số phía trước thành 75)
+function autoCalculatePoints(mode) {
+    const priceInput = document.getElementById(mode + '_gia_dich_vu');
+    const pointsInput = document.getElementById(mode + '_diem_tich_luy');
+
+    let val = priceInput.value.trim();
+    if (val) {
+        // Lấy các chữ số đầu tiên hoặc chia tỉ lệ thông minh, ví dụ lấy số tiền chia cho 10.000 để ra điểm lẻ (750000 -> 75)
+        let num = parseFloat(val);
+        if (!isNaN(num)) {
+            let calculatedPoints = Math.floor(num / 10000);
+            pointsInput.value = calculatedPoints;
+        }
+    }
+}
+
+// Modal Thêm mới
+function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+
+document.getElementById('addForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch("{% url 'services:api_them_dich_vu' %}", {
+        method: 'POST',
+        body: new FormData(this),
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) { location.reload(); }
+        else { alert('Lỗi: ' + data.error); }
+    });
+});
+
+// Modal Chỉnh sửa
+function openEditModal(maDv, tenDv, loaiDv, thoiLuong, giaDv, diemTichLuy) {
+    document.getElementById('edit_ma_dv').value = maDv;
+    document.getElementById('edit_ma_dv_display').value = maDv;
+    document.getElementById('edit_ten_dich_vu').value = tenDv;
+    document.getElementById('edit_loai_dich_vu').value = loaiDv;
+    document.getElementById('edit_thoi_luong').value = thoiLuong;
+    document.getElementById('edit_gia_dich_vu').value = parseFloat(giaDv) || 0;
+    document.getElementById('edit_diem_tich_luy').value = diemTichLuy;
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch("{% url 'services:api_sua_dich_vu' %}", {
+        method: 'POST',
+        body: new FormData(this),
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) { location.reload(); }
+        else { alert('Lỗi: ' + data.error); }
+    });
+});
+</script>
+{% endblock %}
