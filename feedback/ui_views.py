@@ -472,9 +472,10 @@ def admin_feedback_detail(request, feedback_id):
         elif action == "assign":
             ma_nv = request.POST.get("ma_nv", "").strip()
 
-            # Chỉ cho phép chọn nhân viên tồn tại
+            # Chỉ cho phép phân công cho nhân viên có vai trò Nhân viên CSKH
             nhan_vien = NhanVien.objects.filter(
-                ma_nv=ma_nv
+                ma_nv=ma_nv,
+                ma_tk__vai_tro="Nhân viên CSKH"
             ).first()
 
             if not ma_nv or not nhan_vien:
@@ -701,10 +702,10 @@ def admin_feedback_detail(request, feedback_id):
         "-thoi_gian_pc"
     ).first()
 
-    # Danh sách nhân viên
-    danh_sach_nhan_vien = NhanVien.objects.all().order_by(
-        "ho_ten"
-    )
+    # Chỉ lấy nhân viên có vai trò Nhân viên CSKH để phân công
+    danh_sach_nhan_vien = NhanVien.objects.filter(
+        ma_tk__vai_tro="Nhân viên CSKH"
+    ).order_by("ho_ten")
 
     # Context giao diện
     context = _layout_context(request, True)
@@ -927,4 +928,3 @@ def admin_feedback_statistics(request):
         "feedback/feedback_statistics.html",
         context
     )
-
