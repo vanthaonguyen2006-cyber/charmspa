@@ -798,7 +798,11 @@ def booking_staff_detail(request, ma_lh):
         LichHen.objects.select_related('ma_dv', 'ma_kh', 'ma_nv'), ma_lh=ma_lh
     )
     dich_vu_list = DichVu.objects.all()
-    danh_sach_nhan_vien = NhanVien.objects.all().order_by('ho_ten', 'pk')
+    # Chỉ chuyên viên được chọn phục vụ khách.
+    danh_sach_nhan_vien = (
+        NhanVien.objects.filter(ma_tk__vai_tro='Chuyên viên')
+        .order_by('ho_ten', 'pk')
+    )
 
     # Bảng PhanCongLichHen lưu được nhiều nhân viên cho cùng một lịch.
     phan_cong_list = list(
@@ -922,10 +926,14 @@ def assign_staff_to_booking(request, ma_lh):
             messages.error(request, 'Không thể chọn cùng một nhân viên cho nhiều khách trong một lịch.')
             return redirect('staff_booking_detail', ma_lh=ma_lh)
 
-        nhan_vien = list(NhanVien.objects.filter(pk__in=selected_ids))
+        # Backend cũng chặn vai trò khác nếu gửi POST thủ công.
+        nhan_vien = list(NhanVien.objects.filter(
+            pk__in=selected_ids,
+            ma_tk__vai_tro='Chuyên viên',
+        ))
         by_id = {str(nv.pk): nv for nv in nhan_vien}
         if len(by_id) != len(selected_ids):
-            messages.error(request, 'Có nhân viên không tồn tại. Vui lòng chọn lại.')
+            messages.error(request, 'Chỉ được phân công nhân viên có vai trò Chuyên viên. Vui lòng chọn lại.')
             return redirect('staff_booking_detail', ma_lh=ma_lh)
         trung = _trung_ca_lam(lich_hen, selected_ids)
         if trung:
@@ -957,8 +965,6 @@ def assign_staff_to_booking(request, ma_lh):
     messages.success(request, f'Đã phân công đủ {so_khach} nhân viên cho lịch #{ma_lh}.')
     return redirect('staff_booking_detail', ma_lh=ma_lh)
 
-
 @staff_member_required(login_url='/accounts/dang_nhap/')
 def staff_home(request):
     return render(request, 'core/staff_home.html', get_staff_context(request))
-
