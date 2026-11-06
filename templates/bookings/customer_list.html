@@ -16,7 +16,7 @@
 
 
 <div class="booking-customer-list customer-profile-layout container">
-       <!-- SECTION 3: DANH SÁCH LỊCH HẸN -->
+        <!-- SECTION 3: DANH SÁCH LỊCH HẸN -->
     <div class="booking-content-area">
         {# Hiển thị rõ kết quả hủy lịch do views.py gửi về #}
         {% if messages %}
@@ -54,7 +54,7 @@
 
         <!-- BỘ LỌC DẠNG BẢNG - KHÔNG ĐỔI URL DJANGO -->
         <section class="customer-booking-toolbar" aria-label="Bộ lọc danh sách lịch hẹn">
-            <form id="customerBookingFilter" method="GET" action="{% url 'booking_customer_list' %}" class="customer-booking-filter-form">
+            <form id="customerBookingFilter" method="GET" action="{% url 'bookings:booking_customer_list' %}" class="customer-booking-filter-form">
                 <div class="customer-filter-field customer-filter-lead"><i class="bi bi-funnel"></i><span>BỘ LỌC</span></div>
                 <label class="customer-filter-field">Trạng thái
                     <select name="trang_thai" id="customerFilterStatus">
@@ -67,7 +67,7 @@
                 <label class="customer-filter-field">Từ ngày <input id="customerFromDate" type="date" name="tu_ngay"></label>
                 <label class="customer-filter-field">Đến ngày <input id="customerToDate" type="date" name="den_ngay"></label>
                 <button type="submit" class="customer-filter-apply"><i class="bi bi-search"></i> Lọc</button>
-                <a href="{% url 'booking_customer_list' %}" class="customer-filter-reset">Xóa bộ lọc</a>
+                <a href="{% url 'bookings:booking_customer_list' %}" class="customer-filter-reset">Xóa bộ lọc</a>
             </form>
             <div class="customer-filter-summary" id="customerFilterSummary">{{ lich_hen_list|length }} lịch hẹn · Sắp xếp mới nhất</div>
         </section>
@@ -92,7 +92,7 @@
                         {% else %}<span class="customer-status-pill active">{{ lh.trang_thai }}</span>{% endif %}
                     </div>
                     <div class="customer-booking-actions">
-                        <a href="{% url 'booking_customer_detail' lh.ma_lh %}" class="customer-action-detail">Xem chi tiết</a>
+                        <a href="{% url 'bookings:booking_customer_detail' lh.ma_lh %}" class="customer-action-detail">Xem chi tiết</a>
                         {% if lh.trang_thai != 'Đã hủy' and lh.trang_thai != 'Hoàn thành' %}
                         <button type="button" class="customer-action-button" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ lh.ma_lh }}">Thay đổi</button>
                         <button type="button" class="customer-action-button danger" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lh.ma_lh }}">Hủy</button>
@@ -103,7 +103,7 @@
                 <div class="modal fade booking-ui-modal" id="cancelModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 950px;">
                         <div class="modal-content" style="border-radius: 16px; border: none; padding: 10px;">
-                            <form method="POST" action="{% url 'booking_customer_cancel' lh.ma_lh %}">
+                            <form method="POST" action="{% url 'bookings:booking_customer_cancel' lh.ma_lh %}">
                                 {% csrf_token %}
                                 <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
                                     <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Xác nhận hủy lịch hẹn #{{ lh.ma_lh }}</h5>
@@ -146,7 +146,7 @@
                                   data-original-time="{{ lh.gio_hen|time:'H:i' }}"
                                   data-original-service="{{ lh.ma_dv.pk }}"
                                   data-original-guests="{{ lh.so_luong_khach }}"
-                                  action="{% url 'booking_customer_reschedule' lh.ma_lh %}">
+                                  action="{% url 'bookings:booking_customer_reschedule' lh.ma_lh %}">
                                 {% csrf_token %}
                                 <div class="modal-header bg-white border-bottom-0 pb-0 pt-4 px-4">
                                     <h5 class="modal-title fw-bold" style="color: var(--primary-gold); font-size: 18px;">
@@ -351,7 +351,7 @@
     // Dữ liệu khóa ngày từ Django: một chuỗi JSON hoặc danh sách ngày YYYY-MM-DD.
     const disabledDates = {{ locked_dates_json|default:"[]"|safe }}.map(String);
     const bookingTimeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00'];
-    const availabilityUrl = "{% url 'api_kiem_tra_giuong' %}";
+    const availabilityUrl = "{% url 'bookings:api_kiem_tra_giuong' %}";
     const rescheduleRequestSerial = {};
 
     function getRescheduleForm(id) {
@@ -538,4 +538,3 @@
     });
 </script>
 {% endblock %}
-

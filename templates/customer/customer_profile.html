@@ -60,7 +60,7 @@
                 <!-- Họ và tên -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Họ và tên <span class="text-red-500">*</span></label>
-                    <input type="text" name="ho_ten" value="{{ form.ho_ten.value|default:khach_hang.ho_ten }}"
+                    <input type="text" name="ho_ten" value="{% if form.ho_ten.value %}{{ form.ho_ten.value }}{% else %}{{ khach_hang.ho_ten|default:'' }}{% endif %}"
                            {% if not is_editing %}disabled{% endif %}
                            class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.ho_ten.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                     {% if is_editing and form.ho_ten.errors %}
@@ -86,7 +86,7 @@
                 <!-- Số điện thoại -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Số điện thoại <span class="text-red-500">*</span></label>
-                    <input type="text" name="so_dien_thoai" value="{{ form.so_dien_thoai.value|default:tai_khoan.so_dien_thoai|default:'' }}"
+                    <input type="text" name="so_dien_thoai" value="{% if form.so_dien_thoai.value %}{{ form.so_dien_thoai.value }}{% elif tai_khoan %}{{ tai_khoan.so_dien_thoai|default:'' }}{% else %}{% endif %}"
                            placeholder="Chưa cập nhật"
                            {% if not is_editing %}disabled{% endif %}
                            class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.so_dien_thoai.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
@@ -113,7 +113,7 @@
                 <!-- Ngày sinh -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Ngày sinh</label>
-                    <input type="date" name="ngay_sinh" value="{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:khach_hang.ngay_sinh|date:'Y-m-d'|default:'' }}"
+                    <input type="date" name="ngay_sinh" value="{% if form.ngay_sinh.value %}{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value }}{% elif khach_hang and khach_hang.ngay_sinh %}{{ khach_hang.ngay_sinh|date:'Y-m-d' }}{% endif %}"
                            {% if not is_editing %}disabled{% endif %}
                            class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.ngay_sinh.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                     {% if is_editing and form.ngay_sinh.errors %}
@@ -266,7 +266,7 @@
                     <p class="text-xs text-gray-400 max-w-sm mx-auto mb-4">
                         Quý khách chưa có lần sử dụng dịch vụ nào tại Charm Spa Grand. Hãy đặt lịch hẹn để trải nghiệm dịch vụ chăm sóc cao cấp của chúng tôi.
                     </p>
-                    <a href="{% url 'booking_customer_list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#8C6D4F] text-white text-xs font-semibold rounded-xl hover:bg-[#785b40] transition">
+                    <a href="{% url 'bookings:booking_customer_list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#8C6D4F] text-white text-xs font-semibold rounded-xl hover:bg-[#785b40] transition">
                         Đặt lịch ngay
                     </a>
                 </div>

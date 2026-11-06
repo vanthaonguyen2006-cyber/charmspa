@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Widget chatbot t\u01b0 v\u1ea5n (kh\u00e1ch h\u00e0ng): ch\u1ea1y theo k\u1ecbch b\u1ea3n \u0111\u00e3 thi\u1ebft k\u1ebf \u1edf trang Qu\u1ea3n l\u00fd k\u1ecbch b\u1ea3n.
-   - N\u00fat l\u1ef1a ch\u1ecdn l\u1ea5y t\u1eeb s\u01a1 \u0111\u1ed3 k\u1ecbch b\u1ea3n (m\u00e1y ch\u1ee7 quy\u1ebft \u0111\u1ecbnh b\u01b0\u1edbc ti\u1ebfp theo).
-   - "Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n": kh\u00e1ch v\u00e3ng lai \u0111i\u1ec1n form, kh\u00e1ch \u0111\u00e3 \u0111\u0103ng nh\u1eadp \u0111\u01b0\u1ee3c l\u1ea5y th\u00f4ng tin t\u1eeb t\u00e0i kho\u1ea3n.
-   - Sau khi g\u1eedi: ch\u1edd nh\u00e2n vi\u00ean ti\u1ebfp nh\u1eadn -> m\u1edf \u00f4 nh\u1eafn tin -> k\u1ebft th\u00fac khi nh\u00e2n vi\u00ean ho\u00e0n t\u1ea5t.
+   Widget chatbot tư vấn (khách hàng): chạy theo kịch bản đã thiết kế ở trang Quản lý kịch bản.
+   - Nút lựa chọn lấy từ sơ đồ kịch bản (máy chủ quyết định bước tiếp theo).
+   - "Yêu cầu tư vấn": khách vãng lai điền form, khách đã đăng nhập được lấy thông tin từ tài khoản.
+   - Sau khi gửi: chờ nhân viên tiếp nhận -> mở ô nhắn tin -> kết thúc khi nhân viên hoàn tất.
    ========================================================================== */
 (function () {
     'use strict';
@@ -11,25 +11,25 @@
     var root = document.getElementById('cgWidget');
     if (!root) return;
 
-    var NEEDS = ['Ch\u1ecdn li\u1ec7u tr\u00ecnh', 'H\u1ed7 tr\u1ee3 \u0111\u1eb7t l\u1ecbch', 'Ch\u0103m s\u00f3c sau li\u1ec7u tr\u00ecnh', 'Kh\u00e1c'];
-    var TITLE = 'Charm Grand \u2013 Tr\u1ee3 l\u00fd t\u01b0 v\u1ea5n';
+    var NEEDS = ['Chọn liệu trình', 'Hỗ trợ đặt lịch', 'Chăm sóc sau liệu trình', 'Khác'];
+    var TITLE = 'Charm Grand – Trợ lý tư vấn';
     var ICON_CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>';
     var ICON_SEND = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.5 11.2 20.8 3.4a.8.8 0 0 1 1.1.9l-3.2 15.4a.8.8 0 0 1-1.2.5l-4.6-3-2.4 2.9a.5.5 0 0 1-.9-.3v-3.9l8-7-9.7 6-4.2-1.5a.8.8 0 0 1 0-1.5z"/></svg>';
 
     var sid = '';
-    var me = null;               // th\u00f4ng tin t\u00e0i kho\u1ea3n kh\u00e1ch (n\u1ebfu \u0111\u00e3 \u0111\u0103ng nh\u1eadp)
+    var me = null;               // thông tin tài khoản khách (nếu đã đăng nhập)
     var mode = 'bot';            // bot | waiting | live | done
     var isOpen = false, booted = false;
-    var stack = [];              // c\u00e1c b\u01b0\u1edbc \u0111\u00e3 hi\u1ec3n th\u1ecb (\u0111\u1ec3 "Quay l\u1ea1i")
-    var path = [];               // \u0111\u01b0\u1eddng \u0111i kh\u00e1ch \u0111\u00e3 ch\u1ecdn
+    var stack = [];              // các bước đã hiển thị (để "Quay lại")
+    var path = [];               // đường đi khách đã chọn
     var lastService = '';
-    var seen = {};               // id tin nh\u1eafn nh\u00e2n vi\u00ean \u0111\u00e3 hi\u1ec3n th\u1ecb
+    var seen = {};               // id tin nhắn nhân viên đã hiển thị
     var staffName = '';
     var unread = 0;
     var pollTimer = null;
     var el = {};
 
-    /* ---------------- Ti\u1ec7n \u00edch ---------------- */
+    /* ---------------- Tiện ích ---------------- */
     function esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -56,7 +56,7 @@
     }
     function parse(res) {
         return res.json().catch(function () { return {}; }).then(function (d) {
-            if (!res.ok || d.ok === false) throw new Error(d.error || ('L\u1ed7i m\u00e1y ch\u1ee7 (' + res.status + ')'));
+            if (!res.ok || d.ok === false) throw new Error(d.error || ('Lỗi máy chủ (' + res.status + ')'));
             return d;
         });
     }
@@ -70,7 +70,7 @@
     function get(url) {
         return fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } }).then(parse);
     }
-    function store(key, val) { try { window.localStorage.setItem(key, val); } catch (e) { /* b\u1ecf qua */ } }
+    function store(key, val) { try { window.localStorage.setItem(key, val); } catch (e) { /* bỏ qua */ } }
     function load(key) { try { return window.localStorage.getItem(key) || ''; } catch (e) { return ''; } }
     function node(tag, cls, html) {
         var n = document.createElement(tag);
@@ -79,25 +79,25 @@
         return n;
     }
 
-    /* ---------------- D\u1ef1ng giao di\u1ec7n ---------------- */
+    /* ---------------- Dựng giao diện ---------------- */
     function build() {
         root.innerHTML =
-            '<button type="button" class="cg-launcher" id="cgLauncher" aria-label="M\u1edf chatbot t\u01b0 v\u1ea5n">' + ICON_CHAT +
-            '<span>Charm Grand t\u01b0 v\u1ea5n</span><i class="cg-badge" id="cgBadge" hidden>0</i></button>' +
-            '<section class="cg-window" id="cgWindow" hidden role="dialog" aria-label="Chatbot t\u01b0 v\u1ea5n">' +
+            '<button type="button" class="cg-launcher" id="cgLauncher" aria-label="Mở chatbot tư vấn">' + ICON_CHAT +
+            '<span>Charm Grand tư vấn</span><i class="cg-badge" id="cgBadge" hidden>0</i></button>' +
+            '<section class="cg-window" id="cgWindow" hidden role="dialog" aria-label="Chatbot tư vấn">' +
             '<header class="cg-head"><div><strong id="cgTitle">' + esc(TITLE) + '</strong>' +
-            '<small id="cgStatus">\u25cf S\u1eb5n s\u00e0ng h\u1ed7 tr\u1ee3 b\u1ea1n</small></div><div>' +
-            '<button type="button" id="cgMin" aria-label="Thu nh\u1ecf">&minus;</button>' +
-            '<button type="button" id="cgClose" aria-label="\u0110\u00f3ng">&times;</button></div></header>' +
+            '<small id="cgStatus">● Sẵn sàng hỗ trợ bạn</small></div><div>' +
+            '<button type="button" id="cgMin" aria-label="Thu nhỏ">&minus;</button>' +
+            '<button type="button" id="cgClose" aria-label="Đóng">&times;</button></div></header>' +
             '<div class="cg-trail" id="cgTrail"></div>' +
             '<div class="cg-body" id="cgBody"></div>' +
             '<footer class="cg-foot">' +
             '<form class="cg-compose" id="cgCompose" hidden autocomplete="off">' +
-            '<input id="cgInput" type="text" maxlength="1000" placeholder="Nh\u1eadp tin nh\u1eafn...">' +
-            '<button type="submit" aria-label="G\u1eedi">' + ICON_SEND + '</button></form>' +
-            '<div class="cg-waitnote" id="cgWait" hidden>\u00d4 nh\u1eafn tin s\u1ebd m\u1edf khi nh\u00e2n vi\u00ean ti\u1ebfp nh\u1eadn y\u00eau c\u1ea7u c\u1ee7a b\u1ea1n.</div>' +
-            '<div class="cg-links"><a id="cgHistory" href="' + esc(cfg.history || '#') + '">L\u1ecbch s\u1eed h\u1ed9i tho\u1ea1i</a>' +
-            '<button type="button" id="cgAsk">Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n</button></div></footer></section>';
+            '<input id="cgInput" type="text" maxlength="1000" placeholder="Nhập tin nhắn...">' +
+            '<button type="submit" aria-label="Gửi">' + ICON_SEND + '</button></form>' +
+            '<div class="cg-waitnote" id="cgWait" hidden>Ô nhắn tin sẽ mở khi nhân viên tiếp nhận yêu cầu của bạn.</div>' +
+            '<div class="cg-links"><a id="cgHistory" href="' + esc(cfg.history || '#') + '">Lịch sử hội thoại</a>' +
+            '<button type="button" id="cgAsk">Yêu cầu tư vấn</button></div></footer></section>';
         ['Launcher', 'Badge', 'Window', 'Title', 'Status', 'Min', 'Close', 'Trail', 'Body', 'Compose', 'Input', 'Wait', 'Ask']
             .forEach(function (k) { el[k] = document.getElementById('cg' + k); });
 
@@ -105,7 +105,7 @@
         el.Min.addEventListener('click', closeWindow);
         el.Close.addEventListener('click', closeWindow);
         el.Ask.addEventListener('click', function () {
-            openConsult({ title: 'Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', options: [{ text: 'G\u1eedi y\u00eau c\u1ea7u' }] });
+            openConsult({ title: 'Yêu cầu tư vấn', options: [{ text: 'Gửi yêu cầu' }] });
         });
         el.Compose.addEventListener('submit', function (e) { e.preventDefault(); sendMessage(); });
     }
@@ -115,7 +115,7 @@
         el.Title.textContent = title;
         el.Status.textContent = status;
     }
-    function setTrail() { el.Trail.textContent = path.length ? path.join(' \u2192 ') : ''; }
+    function setTrail() { el.Trail.textContent = path.length ? path.join(' → ') : ''; }
 
     function bubble(kind, html, meta) {
         var m = node('div', 'cg-msg ' + kind);
@@ -125,7 +125,7 @@
         scrollDown();
         return m;
     }
-    function botSays(html) { return bubble('bot', html, 'Chatbot \u2022 ' + nowTime()); }
+    function botSays(html) { return bubble('bot', html, 'Chatbot • ' + nowTime()); }
     function sys(text) { return bubble('sys', esc(text)); }
 
     function chip(text, cls, onClick) {
@@ -142,7 +142,7 @@
         });
     }
 
-    /* ---------------- M\u1edf / \u0111\u00f3ng ---------------- */
+    /* ---------------- Mở / đóng ---------------- */
     function openWindow() {
         isOpen = true;
         el.Window.hidden = false;
@@ -162,49 +162,59 @@
         el.Badge.textContent = unread > 9 ? '9+' : String(unread);
     }
 
-    /* ---------------- Kh\u1edfi \u0111\u1ed9ng ---------------- */
+    /* ---------------- Khởi động ---------------- */
     function boot() {
         booted = true;
         get(cfg.me).then(function (m) { me = m && m.authenticated ? m : null; })
             .catch(function () { me = null; })
             .then(function () { return get(cfg.state + '?session_id=' + encodeURIComponent(sid)); })
             .then(function (st) {
+                if (st.forbidden) {                 // mã phiên cũ thuộc tài khoản khác
+                    sid = newSid();
+                    store('cg_session', sid);
+                    startFlow(false);
+                    return;
+                }
                 if (st.exists && st.has_request) restore(st); else startFlow(false);
             })
             .catch(function () { startFlow(false); });
     }
 
     function greeting() {
-        var who = me && me.fullname ? me.fullname : 'qu\u00fd kh\u00e1ch';
-        botSays('Xin ch\u00e0o ' + esc(who) + '! Charm Grand r\u1ea5t vui \u0111\u01b0\u1ee3c h\u1ed7 tr\u1ee3 b\u1ea1n.');
+        var who = me && me.fullname ? me.fullname : 'quý khách';
+        botSays('Xin chào ' + esc(who) + '! Charm Grand rất vui được hỗ trợ bạn.');
     }
 
     function startFlow(silent) {
         if (!silent) greeting();
         post(cfg.flow, { session_id: sid }).then(function (r) {
+            if (r.session_id && r.session_id !== sid) {   // máy chủ cấp mã phiên mới
+                sid = r.session_id;
+                store('cg_session', sid);
+            }
             if (r.node) showNode(r.node);
             else fallbackMenu();
         }).catch(function () {
-            sys('Kh\u00f4ng th\u1ec3 k\u1ebft n\u1ed1i v\u1edbi h\u1ec7 th\u1ed1ng t\u01b0 v\u1ea5n l\u00fac n\u00e0y, vui l\u00f2ng th\u1eed l\u1ea1i sau.');
+            sys('Không thể kết nối với hệ thống tư vấn lúc này, vui lòng thử lại sau.');
             var box = node('div', 'cg-chips');
-            box.appendChild(chip('Th\u1eed l\u1ea1i', 'ghost', function (b) { lock(box, b); startFlow(true); }));
+            box.appendChild(chip('Thử lại', 'ghost', function (b) { lock(box, b); startFlow(true); }));
             el.Body.appendChild(box);
             scrollDown();
         });
     }
 
     function fallbackMenu() {
-        botSays('B\u1ea1n c\u1ea7n Charm Grand h\u1ed7 tr\u1ee3 \u0111i\u1ec1u g\u00ec \u1ea1?');
+        botSays('Bạn cần Charm Grand hỗ trợ điều gì ạ?');
         var box = node('div', 'cg-chips');
-        box.appendChild(chip('Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', 'ask', function (b) {
+        box.appendChild(chip('Yêu cầu tư vấn', 'ask', function (b) {
             lock(box, b);
-            openConsult({ title: 'Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', options: [{ text: 'G\u1eedi y\u00eau c\u1ea7u' }] });
+            openConsult({ title: 'Yêu cầu tư vấn', options: [{ text: 'Gửi yêu cầu' }] });
         }));
         el.Body.appendChild(box);
         scrollDown();
     }
 
-    /* ---------------- Hi\u1ec3n th\u1ecb m\u1ed9t b\u01b0\u1edbc c\u1ee7a k\u1ecbch b\u1ea3n ---------------- */
+    /* ---------------- Hiển thị một bước của kịch bản ---------------- */
     function showNode(n, isBack) {
         if (!isBack) stack.push(n);
         setTrail();
@@ -214,11 +224,11 @@
         var html;
         if (n.type === 'hinh_anh') {
             var url = safeUrl(n.image_url);
-            html = (url ? '<img src="' + esc(url) + '" alt="">' : '<div class="cg-card-ph">Ch\u01b0a c\u00f3 \u1ea3nh</div>') + nl2br(n.content);
+            html = (url ? '<img src="' + esc(url) + '" alt="">' : '<div class="cg-card-ph">Chưa có ảnh</div>') + nl2br(n.content);
         } else if (n.type === 'dich_vu') {
             lastService = n.title || lastService;
             html = '<div class="cg-card-title">' + esc(n.title) + '</div>' +
-                '<div class="cg-card-meta">' + esc(n.duration || 0) + ' ph\u00fat \u00b7 ' + money(n.price) + ' \u0111</div>' + nl2br(n.content);
+                '<div class="cg-card-meta">' + esc(n.duration || 0) + ' phút · ' + money(n.price) + ' đ</div>' + nl2br(n.content);
         } else {
             html = nl2br(n.content || n.title);
         }
@@ -226,16 +236,16 @@
 
         var box = node('div', 'cg-chips');
         (n.options || []).forEach(function (o) {
-            box.appendChild(chip(o.text || 'Ti\u1ebfp t\u1ee5c', '', function (b) { choose(n, o, box, b); }));
+            box.appendChild(chip(o.text || 'Tiếp tục', '', function (b) { choose(n, o, box, b); }));
         });
         if (!(n.options || []).length) {
-            box.appendChild(chip('Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', 'ask', function (b) {
+            box.appendChild(chip('Yêu cầu tư vấn', 'ask', function (b) {
                 lock(box, b);
-                openConsult({ title: 'Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', options: [{ text: 'G\u1eedi y\u00eau c\u1ea7u' }] });
+                openConsult({ title: 'Yêu cầu tư vấn', options: [{ text: 'Gửi yêu cầu' }] });
             }));
         }
         if (stack.length > 1) {
-            box.appendChild(chip('\u2190 Quay l\u1ea1i', 'ghost', function (b) { lock(box, b); goBack(); }));
+            box.appendChild(chip('← Quay lại', 'ghost', function (b) { lock(box, b); goBack(); }));
         }
         el.Body.appendChild(box);
         scrollDown();
@@ -243,22 +253,26 @@
 
     function choose(n, opt, box, btn) {
         lock(box, btn);
-        bubble('me', esc(opt.text), 'B\u1ea1n \u2022 ' + nowTime());
+        bubble('me', esc(opt.text), 'Bạn • ' + nowTime());
         path.push(opt.text);
         setTrail();
         post(cfg.flow, { session_id: sid, node_id: n.id, option_id: opt.id }).then(function (r) {
+            if (r.session_id && r.session_id !== sid) {
+                sid = r.session_id;
+                store('cg_session', sid);
+            }
             if (r.node) { showNode(r.node); return; }
-            botSays('C\u1ea3m \u01a1n b\u1ea1n. B\u1ea1n c\u00f3 th\u1ec3 quay l\u1ea1i ho\u1eb7c g\u1eedi y\u00eau c\u1ea7u \u0111\u1ec3 nh\u00e2n vi\u00ean t\u01b0 v\u1ea5n tr\u1ef1c ti\u1ebfp.');
+            botSays('Cảm ơn bạn. Bạn có thể quay lại hoặc gửi yêu cầu để nhân viên tư vấn trực tiếp.');
             var b2 = node('div', 'cg-chips');
-            b2.appendChild(chip('Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', 'ask', function (b) {
+            b2.appendChild(chip('Yêu cầu tư vấn', 'ask', function (b) {
                 lock(b2, b);
-                openConsult({ title: 'Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', options: [{ text: 'G\u1eedi y\u00eau c\u1ea7u' }] });
+                openConsult({ title: 'Yêu cầu tư vấn', options: [{ text: 'Gửi yêu cầu' }] });
             }));
-            if (stack.length > 1) b2.appendChild(chip('\u2190 Quay l\u1ea1i', 'ghost', function (b) { lock(b2, b); goBack(); }));
+            if (stack.length > 1) b2.appendChild(chip('← Quay lại', 'ghost', function (b) { lock(b2, b); goBack(); }));
             el.Body.appendChild(b2);
             scrollDown();
         }).catch(function (err) {
-            sys('Kh\u00f4ng th\u1ec3 t\u1ea3i b\u01b0\u1edbc ti\u1ebfp theo: ' + err.message);
+            sys('Không thể tải bước tiếp theo: ' + err.message);
             path.pop(); setTrail();
         });
     }
@@ -272,7 +286,7 @@
         showNode(prev, true);
     }
 
-    /* ---------------- Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n ---------------- */
+    /* ---------------- Yêu cầu tư vấn ---------------- */
     function needOptions() {
         var list = [];
         if (lastService) list.push(lastService);
@@ -281,29 +295,29 @@
     }
     function roField(label, value) {
         return '<div class="cg-field"><label>' + label + '</label><div class="cg-ro' + (value ? '' : ' empty') + '">' +
-            (value ? esc(value) : 'Ch\u01b0a c\u1eadp nh\u1eadt') + '</div></div>';
+            (value ? esc(value) : 'Chưa cập nhật') + '</div></div>';
     }
 
     function openConsult(n) {
-        if (mode === 'waiting') { sys('Y\u00eau c\u1ea7u c\u1ee7a b\u1ea1n \u0111ang ch\u1edd nh\u00e2n vi\u00ean ti\u1ebfp nh\u1eadn.'); return; }
-        if (mode === 'live') { sys('B\u1ea1n \u0111ang \u0111\u01b0\u1ee3c nh\u00e2n vi\u00ean h\u1ed7 tr\u1ee3 tr\u1ef1c ti\u1ebfp.'); return; }
+        if (mode === 'waiting') { sys('Yêu cầu của bạn đang chờ nhân viên tiếp nhận.'); return; }
+        if (mode === 'live') { sys('Bạn đang được nhân viên hỗ trợ trực tiếp.'); return; }
         if (mode === 'done') { return; }
 
-        var submitText = (n.options && n.options[0] && n.options[0].text) || 'G\u1eedi y\u00eau c\u1ea7u';
+        var submitText = (n.options && n.options[0] && n.options[0].text) || 'Gửi yêu cầu';
         var form = node('form', 'cg-form');
         form.setAttribute('novalidate', 'novalidate');
-        var html = '<h4>' + esc(n.title || 'Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n') + '</h4>';
+        var html = '<h4>' + esc(n.title || 'Yêu cầu tư vấn') + '</h4>';
         if (me) {
-            html += '<p class="cg-hint">Th\u00f4ng tin c\u1ee7a b\u1ea1n \u0111\u01b0\u1ee3c l\u1ea5y t\u1eeb t\u00e0i kho\u1ea3n. Ch\u1ecdn nhu c\u1ea7u \u0111\u1ec3 nh\u00e2n vi\u00ean h\u1ed7 tr\u1ee3 nhanh h\u01a1n.</p>' +
-                roField('H\u1ecd v\u00e0 t\u00ean', me.fullname) + roField('S\u1ed1 \u0111i\u1ec7n tho\u1ea1i', me.phone) + roField('Email', me.email);
+            html += '<p class="cg-hint">Thông tin của bạn được lấy từ tài khoản. Chọn nhu cầu để nhân viên hỗ trợ nhanh hơn.</p>' +
+                roField('Họ và tên', me.fullname) + roField('Số điện thoại', me.phone) + roField('Email', me.email);
         } else {
-            html += '<p class="cg-hint">Vui l\u00f2ng \u0111\u1ec3 l\u1ea1i th\u00f4ng tin \u0111\u1ec3 nh\u00e2n vi\u00ean li\u00ean h\u1ec7 v\u00e0 t\u01b0 v\u1ea5n ri\u00eang cho b\u1ea1n.</p>' +
-                '<div class="cg-field"><label>H\u1ecd v\u00e0 t\u00ean *</label><input name="fullname" maxlength="100" autocomplete="name"></div>' +
-                '<div class="cg-field"><label>S\u1ed1 \u0111i\u1ec7n tho\u1ea1i *</label><input name="phone" maxlength="20" inputmode="tel" autocomplete="tel"></div>' +
-                '<div class="cg-field"><label>Email (kh\u00f4ng b\u1eaft bu\u1ed9c)</label><input name="email" maxlength="100" autocomplete="email"></div>';
+            html += '<p class="cg-hint">Vui lòng để lại thông tin để nhân viên liên hệ và tư vấn riêng cho bạn.</p>' +
+                '<div class="cg-field"><label>Họ và tên *</label><input name="fullname" maxlength="100" autocomplete="name"></div>' +
+                '<div class="cg-field"><label>Số điện thoại *</label><input name="phone" maxlength="20" inputmode="tel" autocomplete="tel"></div>' +
+                '<div class="cg-field"><label>Email (không bắt buộc)</label><input name="email" maxlength="100" autocomplete="email"></div>';
         }
-        html += '<div class="cg-field"><label>Nhu c\u1ea7u t\u01b0 v\u1ea5n</label><select name="topic">' + needOptions() + '</select></div>' +
-            '<p class="cg-hint">B\u1ea1n ch\u1ec9 c\u00f3 th\u1ec3 nh\u1eafn tin tr\u1ef1c ti\u1ebfp sau khi nh\u00e2n vi\u00ean ti\u1ebfp nh\u1eadn y\u00eau c\u1ea7u. Th\u00f4ng tin ch\u1ec9 d\u00f9ng \u0111\u1ec3 h\u1ed7 tr\u1ee3 t\u01b0 v\u1ea5n.</p>' +
+        html += '<div class="cg-field"><label>Nhu cầu tư vấn</label><select name="topic">' + needOptions() + '</select></div>' +
+            '<p class="cg-hint">Bạn chỉ có thể nhắn tin trực tiếp sau khi nhân viên tiếp nhận yêu cầu. Thông tin chỉ dùng để hỗ trợ tư vấn.</p>' +
             '<p class="cg-error" role="alert"></p>' +
             '<button class="cg-submit" type="submit">' + esc(submitText) + '</button>';
         form.innerHTML = html;
@@ -320,8 +334,8 @@
                 data.fullname = form.elements.fullname.value.trim();
                 data.phone = form.elements.phone.value.trim();
                 data.email = form.elements.email.value.trim();
-                if (data.fullname.length < 2) { err.textContent = 'Vui l\u00f2ng nh\u1eadp h\u1ecd v\u00e0 t\u00ean.'; return; }
-                if (!data.phone && !data.email) { err.textContent = 'Vui l\u00f2ng nh\u1eadp s\u1ed1 \u0111i\u1ec7n tho\u1ea1i ho\u1eb7c email.'; return; }
+                if (data.fullname.length < 2) { err.textContent = 'Vui lòng nhập họ và tên.'; return; }
+                if (!data.phone && !data.email) { err.textContent = 'Vui lòng nhập số điện thoại hoặc email.'; return; }
             }
             err.textContent = '';
             btn.disabled = true;
@@ -336,22 +350,22 @@
     }
 
     function summaryHtml(r) {
-        function row(k, v) { return '<div><span>' + k + '</span><span>' + esc(v || 'Ch\u01b0a cung c\u1ea5p') + '</span></div>'; }
-        return row('H\u1ecd v\u00e0 t\u00ean', r.fullname) + row('S\u1ed1 \u0111i\u1ec7n tho\u1ea1i', r.phone) + row('Email', r.email) + row('Nhu c\u1ea7u', r.topic);
+        function row(k, v) { return '<div><span>' + k + '</span><span>' + esc(v || 'Chưa cung cấp') + '</span></div>'; }
+        return row('Họ và tên', r.fullname) + row('Số điện thoại', r.phone) + row('Email', r.email) + row('Nhu cầu', r.topic);
     }
 
     function enterWaiting(r, announce) {
         mode = 'waiting';
-        setHeader(TITLE, '\u25cf \u0110ang ch\u1edd nh\u00e2n vi\u00ean ti\u1ebfp nh\u1eadn');
+        setHeader(TITLE, '● Đang chờ nhân viên tiếp nhận');
         el.Compose.hidden = true;
         el.Wait.hidden = false;
         el.Ask.hidden = true;
         if (announce) {
-            botSays('Y\u00eau c\u1ea7u c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c g\u1eedi. Nh\u00e2n vi\u00ean t\u01b0 v\u1ea5n s\u1ebd ph\u1ea3n h\u1ed3i ngay t\u1ea1i \u0111\u00e2y khi ti\u1ebfp nh\u1eadn.');
+            botSays('Yêu cầu của bạn đã được gửi. Nhân viên tư vấn sẽ phản hồi ngay tại đây khi tiếp nhận.');
             var s = node('div', 'cg-summary', summaryHtml(r || {}));
             el.Body.appendChild(s);
             var box = node('div', 'cg-chips');
-            box.appendChild(chip('Quay l\u1ea1i cu\u1ed9c h\u1ed9i tho\u1ea1i', 'ghost', function (b) { lock(box, b); stack = []; path = []; setTrail(); startFlow(true); }));
+            box.appendChild(chip('Quay lại cuộc hội thoại', 'ghost', function (b) { lock(box, b); stack = []; path = []; setTrail(); startFlow(true); }));
             el.Body.appendChild(box);
             scrollDown();
         }
@@ -361,13 +375,13 @@
     function enterLive(name, quiet) {
         var changed = mode !== 'live' && !quiet;
         mode = 'live';
-        staffName = name || 'Nh\u00e2n vi\u00ean t\u01b0 v\u1ea5n';
-        setHeader(staffName + ' \u2013 Nh\u00e2n vi\u00ean t\u01b0 v\u1ea5n', '\u25cf \u0110ang h\u1ed7 tr\u1ee3');
+        staffName = name || 'Nhân viên tư vấn';
+        setHeader(staffName + ' – Nhân viên tư vấn', '● Đang hỗ trợ');
         el.Wait.hidden = true;
         el.Ask.hidden = true;
         el.Compose.hidden = false;
         if (changed) {
-            sys('Y\u00eau c\u1ea7u \u0111\u00e3 \u0111\u01b0\u1ee3c ti\u1ebfp nh\u1eadn');
+            sys('Yêu cầu đã được tiếp nhận');
             if (isOpen) el.Input.focus();
         }
     }
@@ -375,13 +389,13 @@
     function enterDone() {
         if (mode === 'done') return;
         mode = 'done';
-        setHeader(TITLE, '\u25cf Cu\u1ed9c t\u01b0 v\u1ea5n \u0111\u00e3 k\u1ebft th\u00fac');
+        setHeader(TITLE, '● Cuộc tư vấn đã kết thúc');
         el.Compose.hidden = true;
         el.Wait.hidden = true;
         el.Ask.hidden = true;
-        sys('Cu\u1ed9c t\u01b0 v\u1ea5n \u0111\u00e3 k\u1ebft th\u00fac. C\u1ea3m \u01a1n b\u1ea1n \u0111\u00e3 tin t\u01b0\u1edfng Charm Grand!');
+        sys('Cuộc tư vấn đã kết thúc. Cảm ơn bạn đã tin tưởng Charm Grand!');
         var box = node('div', 'cg-chips');
-        box.appendChild(chip('B\u1eaft \u0111\u1ea7u cu\u1ed9c h\u1ed9i tho\u1ea1i m\u1edbi', 'ask', function (b) { lock(box, b); newConversation(); }));
+        box.appendChild(chip('Bắt đầu cuộc hội thoại mới', 'ask', function (b) { lock(box, b); newConversation(); }));
         el.Body.appendChild(box);
         scrollDown();
     }
@@ -392,23 +406,23 @@
         mode = 'bot'; stack = []; path = []; seen = {}; lastService = ''; staffName = '';
         el.Body.innerHTML = '';
         el.Ask.hidden = false;
-        setHeader(TITLE, '\u25cf S\u1eb5n s\u00e0ng h\u1ed7 tr\u1ee3 b\u1ea1n');
+        setHeader(TITLE, '● Sẵn sàng hỗ trợ bạn');
         setTrail();
         startFlow(false);
     }
 
-    /* ---------------- Kh\u00f4i ph\u1ee5c h\u1ed9i tho\u1ea1i \u0111ang t\u01b0 v\u1ea5n (khi t\u1ea3i l\u1ea1i trang) ---------------- */
+    /* ---------------- Khôi phục hội thoại đang tư vấn (khi tải lại trang) ---------------- */
     function restore(st) {
         st.messages.forEach(function (m) {
             var meta = m.time;
-            if (m.sender === 'Kh\u00e1ch h\u00e0ng') bubble('me', nl2br(m.content), 'B\u1ea1n \u2022 ' + meta);
-            else if (m.sender === 'Nh\u00e2n vi\u00ean') { seen[m.id] = 1; bubble('staff', nl2br(m.content), (st.staff_name || 'Nh\u00e2n vi\u00ean') + ' \u2022 ' + meta); }
-            else bubble('bot', nl2br(m.content), 'Chatbot \u2022 ' + meta);
+            if (m.sender === 'Khách hàng') bubble('me', nl2br(m.content), 'Bạn • ' + meta);
+            else if (m.sender === 'Nhân viên') { seen[m.id] = 1; bubble('staff', nl2br(m.content), (st.staff_name || 'Nhân viên') + ' • ' + meta); }
+            else bubble('bot', nl2br(m.content), 'Chatbot • ' + meta);
         });
-        if (st.status === 'Ch\u1edd x\u1eed l\u00fd') {
+        if (st.status === 'Chờ xử lý') {
             mode = 'bot';
             enterWaiting(st.request, false);
-        } else if (st.status === '\u0110ang x\u1eed l\u00fd') {
+        } else if (st.status === 'Đang xử lý') {
             mode = 'waiting';
             enterLive(st.staff_name, true);
         } else {
@@ -417,18 +431,18 @@
         }
     }
 
-    /* ---------------- Nh\u1eafn tin tr\u1ef1c ti\u1ebfp ---------------- */
+    /* ---------------- Nhắn tin trực tiếp ---------------- */
     function sendMessage() {
         var text = el.Input.value.trim();
         if (!text || mode !== 'live') return;
         el.Input.value = '';
-        bubble('me', nl2br(text), 'B\u1ea1n \u2022 ' + nowTime());
+        bubble('me', nl2br(text), 'Bạn • ' + nowTime());
         post(cfg.send, { session_id: sid, message: text }).catch(function (err) {
-            sys('Kh\u00f4ng g\u1eedi \u0111\u01b0\u1ee3c tin nh\u1eafn: ' + err.message);
+            sys('Không gửi được tin nhắn: ' + err.message);
         });
     }
 
-    /* ---------------- C\u1eadp nh\u1eadt \u0111\u1ecbnh k\u1ef3 ---------------- */
+    /* ---------------- Cập nhật định kỳ ---------------- */
     function schedulePoll(delay) {
         clearTimeout(pollTimer);
         if (mode !== 'waiting' && mode !== 'live') return;
@@ -438,50 +452,50 @@
     function tick() {
         if (mode !== 'waiting' && mode !== 'live') return;
         get(cfg.state + '?session_id=' + encodeURIComponent(sid)).then(handleState)
-            .catch(function () { /* m\u1ea1ng ch\u1eadp ch\u1eddn: th\u1eed l\u1ea1i \u1edf l\u1ea7n sau */ })
+            .catch(function () { /* mạng chập chờn: thử lại ở lần sau */ })
             .then(function () { schedulePoll(); });
     }
 
     function handleState(st) {
         if (!st.exists || !st.has_request) return;
-        if (st.status === '\u0110ang x\u1eed l\u00fd' || st.status === '\u0110\u00e3 ho\u00e0n t\u1ea5t') {
+        if (st.status === 'Đang xử lý' || st.status === 'Đã hoàn tất') {
             if (mode === 'waiting') enterLive(st.staff_name);
             else if (staffName !== st.staff_name && st.staff_name) {
                 staffName = st.staff_name;
-                setHeader(staffName + ' \u2013 Nh\u00e2n vi\u00ean t\u01b0 v\u1ea5n', '\u25cf \u0110ang h\u1ed7 tr\u1ee3');
+                setHeader(staffName + ' – Nhân viên tư vấn', '● Đang hỗ trợ');
             }
         }
         st.messages.forEach(function (m) {
-            if (m.sender === 'Nh\u00e2n vi\u00ean' && !seen[m.id]) {
+            if (m.sender === 'Nhân viên' && !seen[m.id]) {
                 seen[m.id] = 1;
-                bubble('staff', nl2br(m.content), (st.staff_name || 'Nh\u00e2n vi\u00ean') + ' \u2022 ' + m.time);
+                bubble('staff', nl2br(m.content), (st.staff_name || 'Nhân viên') + ' • ' + m.time);
                 if (!isOpen) { unread++; updateBadge(); }
             }
         });
-        if (st.status === '\u0110\u00e3 ho\u00e0n t\u1ea5t') enterDone();
+        if (st.status === 'Đã hoàn tất') enterDone();
     }
 
-    /* ---------------- Kh\u1edfi t\u1ea1o ---------------- */
+    /* ---------------- Khởi tạo ---------------- */
     sid = load('cg_session');
     if (!/^[A-Za-z0-9]{6,10}$/.test(sid)) { sid = newSid(); store('cg_session', sid); }
     build();
-    // T\u1eeb trang "L\u1ecbch s\u1eed h\u1ed9i tho\u1ea1i" b\u1ea5m "Ti\u1ebfp t\u1ee5c": t\u1ef1 m\u1edf khung chat (?open_chat=true)
+    // Từ trang "Lịch sử hội thoại" bấm "Tiếp tục": tự mở khung chat (?open_chat=true)
     if (/[?&]open_chat=true/.test(window.location.search)) {
         openWindow();
         try {
             var u = new URL(window.location.href);
             u.searchParams.delete('open_chat');
             window.history.replaceState({}, '', u.pathname + u.search + u.hash);
-        } catch (e) { /* b\u1ecf qua */ }
+        } catch (e) { /* bỏ qua */ }
     }
 
-    // Khi ch\u01b0a m\u1edf widget: ki\u1ec3m tra n\u1ec1n \u0111\u1ec3 hi\u1ec7n s\u1ed1 tin m\u1edbi c\u1ee7a nh\u00e2n vi\u00ean tr\u00ean n\u00fat m\u1edf chatbot
+    // Khi chưa mở widget: kiểm tra nền để hiện số tin mới của nhân viên trên nút mở chatbot
     var bgSeen = null;
     function bgTick() {
         if (booted) return;
         get(cfg.state + '?session_id=' + encodeURIComponent(sid)).then(function (st) {
-            if (booted || !st.exists || !st.has_request || st.status === '\u0110\u00e3 ho\u00e0n t\u1ea5t') return;
-            var staff = st.messages.filter(function (m) { return m.sender === 'Nh\u00e2n vi\u00ean'; });
+            if (booted || !st.exists || !st.has_request || st.status === 'Đã hoàn tất') return;
+            var staff = st.messages.filter(function (m) { return m.sender === 'Nhân viên'; });
             if (bgSeen === null) {
                 bgSeen = {};
                 staff.forEach(function (m) { bgSeen[m.id] = 1; });

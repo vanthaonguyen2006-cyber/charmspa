@@ -26,7 +26,7 @@
 
     <header class="customer-detail-page-head">
         <h1>CHI TIẾT LỊCH HẸN</h1>
-        <a href="{% url 'booking_customer_list' %}" class="customer-detail-back"><i class="bi bi-arrow-left"></i> Quay lại</a>
+        <a href="{% url 'bookings:booking_customer_list' %}" class="customer-detail-back"><i class="bi bi-arrow-left"></i> Quay lại</a>
     </header>
 
     <section class="customer-detail-summary">
@@ -95,7 +95,7 @@
             <button type="button" class="customer-detail-cancel" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lich_hen.ma_lh }}"><i class="bi bi-x-circle"></i> Hủy lịch</button>
             <p class="customer-detail-policy">Chỉ được đổi hoặc hủy lịch trước giờ hẹn ít nhất 12 tiếng, theo quy định của spa.</p>
             {% else %}
-            <a class="customer-detail-change" href="{% url 'booking_customer_create' %}"><i class="bi bi-calendar-plus"></i> Đặt lịch mới</a>
+            <a class="customer-detail-change" href="{% url 'bookings:booking_customer_create' %}"><i class="bi bi-calendar-plus"></i> Đặt lịch mới</a>
             {% endif %}
         </aside>
     </div>
@@ -106,7 +106,7 @@
                 <div class="modal fade booking-ui-modal" id="cancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 950px;">
                         <div class="modal-content" style="border-radius: 16px; border: none; padding: 10px;">
-                            <form method="POST" action="{% url 'booking_customer_cancel' lich_hen.ma_lh %}">
+                            <form method="POST" action="{% url 'bookings:booking_customer_cancel' lich_hen.ma_lh %}">
                                 {% csrf_token %}
                                 <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
                                     <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Xác nhận hủy lịch hẹn #{{ lich_hen.ma_lh }}</h5>
@@ -149,7 +149,7 @@
                                   data-original-time="{{ lich_hen.gio_hen|time:'H:i' }}"
                                   data-original-service="{{ lich_hen.ma_dv.pk }}"
                                   data-original-guests="{{ lich_hen.so_luong_khach }}"
-                                  action="{% url 'booking_customer_reschedule' lich_hen.ma_lh %}">
+                                  action="{% url 'bookings:booking_customer_reschedule' lich_hen.ma_lh %}">
                                 {% csrf_token %}
                                 <div class="modal-header bg-white border-bottom-0 pb-0 pt-4 px-4">
                                     <h5 class="modal-title fw-bold" style="color: var(--primary-gold); font-size: 18px;">
@@ -285,7 +285,7 @@
     // Dữ liệu khóa ngày từ Django: một chuỗi JSON hoặc danh sách ngày YYYY-MM-DD.
     const disabledDates = {{ locked_dates_json|default:"[]"|safe }}.map(String);
     const bookingTimeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00'];
-    const availabilityUrl = "{% url 'api_kiem_tra_giuong' %}";
+    const availabilityUrl = "{% url 'bookings:api_kiem_tra_giuong' %}";
     const rescheduleRequestSerial = {};
 
     function getRescheduleForm(id) {
@@ -472,5 +472,3 @@
     });
     </script>
 {% endblock %}
-
-```

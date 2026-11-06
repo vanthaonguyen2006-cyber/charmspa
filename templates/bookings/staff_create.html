@@ -22,7 +22,7 @@
             <p class="text-muted small m-0 mt-1">Hỗ trợ thiết lập lịch trị liệu trực tiếp cho khách hàng tại quầy.</p>
         </div>
         <div>
-            <a href="{% url 'staff_booking_list' %}" class="staff-create-inline-2 btn btn-outline-secondary btn-sm fw-bold px-3 py-2">
+            <a href="{% url 'bookings:staff_booking_list' %}" class="staff-create-inline-2 btn btn-outline-secondary btn-sm fw-bold px-3 py-2">
                 <i class="bi bi-list-ul me-1"></i> Xem danh sách lịch hẹn
             </a>
         </div>
@@ -382,7 +382,7 @@
                 statusText = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
             } else {
                 try {
-                    const response = await fetch(`{% url 'api_kiem_tra_giuong' %}?ngay=${encodeURIComponent(ngayVal)}&gio=${encodeURIComponent(time)}&loai=${encodeURIComponent(loaiDv)}`);
+                    const response = await fetch(`{% url 'bookings:api_kiem_tra_giuong' %}?ngay=${encodeURIComponent(ngayVal)}&gio=${encodeURIComponent(time)}&loai=${encodeURIComponent(loaiDv)}`);
                     const data = await response.json();
                     remaining = data.con_lai;
                 } catch (error) {
