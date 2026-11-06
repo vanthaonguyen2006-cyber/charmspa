@@ -264,10 +264,13 @@
                 <i data-lucide="user-round"></i>
                 <span>Đổi mật khẩu</span>
             </a>
-            <a href="/admin/logout/" class="user-dropdown-item text-danger">
-                <i data-lucide="log-out"></i>
-                <span>Đăng xuất</span>
-            </a>
+            <form method="POST" action="/admin/logout/" style="margin: 0; padding: 0;">
+                {% csrf_token %}
+                <button type="submit" class="user-dropdown-item text-danger" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="log-out"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
         </div>
 
     </div>
