@@ -74,13 +74,20 @@
         </div>
     </div>
 
-    <!-- Bộ lọc phản hồi và khiếu nại -->
+
+    <!-- BỘ LỌC PHẢN HỒI VÀ KHIẾU NẠI -->
     <section class="feedback-panel">
         <form method="get">
-            <div class="feedback-filter">
-                <input type="text" name="q" value="{{ keyword }}"
+
+            <div class="feedback-filter {% if is_admin %}is-admin{% else %}is-staff{% endif %}">
+
+                <!-- Tìm kiếm -->
+                <input type="text"
+                       name="q"
+                       value="{{ keyword }}"
                        placeholder="Tìm mã phiếu, khách hàng hoặc tiêu đề...">
 
+                <!-- Lọc loại -->
                 <select name="type">
                     <option value="">Tất cả loại</option>
                     <option value="Phản hồi" {% if feedback_type == "Phản hồi" %}selected{% endif %}>
@@ -91,6 +98,7 @@
                     </option>
                 </select>
 
+                <!-- Lọc trạng thái -->
                 <select name="status">
                     <option value="">Tất cả trạng thái</option>
                     <option value="Đã tiếp nhận" {% if status == "Đã tiếp nhận" %}selected{% endif %}>
@@ -104,6 +112,7 @@
                     </option>
                 </select>
 
+                <!-- Chỉ Admin mới có bộ lọc tính hợp lệ -->
                 {% if is_admin %}
                     <select name="validity">
                         <option value="">Tất cả tính hợp lệ</option>
@@ -116,30 +125,33 @@
                     </select>
                 {% endif %}
 
-                <!-- Khoảng ngày gửi -->
-                <input type="date" name="from_date" value="{{ from_date }}"
-                       aria-label="Từ ngày">
-                <input type="date" name="to_date" value="{{ to_date }}"
-                       aria-label="Đến ngày">
-            </div>
+                <!-- Lọc theo một ngày gửi -->
+                <input type="date"
+                       name="date"
+                       value="{{ filter_date }}"
+                       aria-label="Ngày gửi">
 
-            <div class="feedback-filter-actions">
-                <button class="feedback-btn gold" type="submit">
-                    Lọc danh sách
-                </button>
+                <!-- Hai nút nằm cùng hàng với các bộ lọc -->
+                <div class="feedback-filter-actions">
 
-                <!-- Xóa các điều kiện lọc -->
-                {% if is_admin %}
-                    <a class="feedback-btn light"
-                       href="{% url 'feedback:admin_feedback_list' %}">
-                        Xóa bộ lọc
-                    </a>
-                {% else %}
-                    <a class="feedback-btn light"
-                       href="{% url 'feedback:staff_feedback_list' %}">
-                        Xóa bộ lọc
-                    </a>
-                {% endif %}
+                    <button class="feedback-btn gold" type="submit">
+                        Lọc danh sách
+                    </button>
+
+                    {% if is_admin %}
+                        <a class="feedback-btn light"
+                           href="{% url 'feedback:admin_feedback_list' %}">
+                            Xóa bộ lọc
+                        </a>
+                    {% else %}
+                        <a class="feedback-btn light"
+                           href="{% url 'feedback:staff_feedback_list' %}">
+                            Xóa bộ lọc
+                        </a>
+                    {% endif %}
+
+                </div>
+
             </div>
         </form>
     </section>
