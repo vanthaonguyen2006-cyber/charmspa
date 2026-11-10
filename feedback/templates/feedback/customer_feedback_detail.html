@@ -1,4 +1,3 @@
-
 {% extends 'layouts/customer_base_pro.html' %}
 
 {% block title %}
@@ -8,6 +7,8 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
 {% block profile_content %}
 
 <style>
+    /* Tải font Montserrat */
+    @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
     /* Tổng thể trang chi tiết */
     .ticket-detail-page {
         color: #302b25;
@@ -25,7 +26,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
 
     .ticket-heading h1 {
         margin: 0 0 7px;
-        font-family: Georgia, serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 30px;
         font-weight: 400;
         text-transform: uppercase;
@@ -82,7 +83,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
 
     .ticket-status-header h2 {
         margin: 0;
-        font-family: Georgia, serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 21px;
         font-weight: 600;
     }
@@ -208,7 +209,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     .ticket-card h3,
     .ticket-side-card h3 {
         margin: 0 0 16px;
-        font-family: Georgia, serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 17px;
         font-weight: 600;
     }
@@ -399,7 +400,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     .ticket-signature {
         margin-top: 12px;
         color: #987542;
-        font-family: Georgia, serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 13px;
         font-style: italic;
     }
@@ -450,6 +451,13 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         .ticket-reply-time {
             margin-left: 0;
         }
+    }
+
+
+    /* Đồng bộ Montserrat cho toàn bộ trang chi tiết */
+    .ticket-detail-page,
+    .ticket-detail-page * {
+        font-family: 'Montserrat', sans-serif !important;
     }
 </style>
 
@@ -685,3 +693,4 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
 </div>
 
 {% endblock %}
+

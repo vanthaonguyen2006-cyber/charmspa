@@ -6,8 +6,9 @@ Gửi phản hồi/khiếu nại | Charm Grand Spa
 {% endblock %}
 
 {% block profile_content %}
-
 <style>
+    /* Tải font Montserrat */
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
     /* Chỉ định dạng phần nội dung của trang khiếu nại */
     .feedback-page {
         color: #302b25;
@@ -421,9 +422,21 @@ Gửi phản hồi/khiếu nại | Charm Grand Spa
             flex-direction: column;
         }
     }
+        /* ==========================================
+       ĐỒNG BỘ FONT MONTSERRAT
+       Trang gửi phản hồi và popup thành công
+       ========================================== */
+
+    .feedback-page,
+    .feedback-page *,
+    .feedback-success-overlay,
+    .feedback-success-overlay * {
+        font-family: 'Montserrat', sans-serif !important;
+    }
 
 
 </style>
+
 
 <div class="feedback-page">
 
