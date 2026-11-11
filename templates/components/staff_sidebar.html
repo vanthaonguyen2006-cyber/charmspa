@@ -164,10 +164,6 @@
         <div class="sidebar-submenu {% if active_menu == 'reminders' or active_menu == 'aftercare' %}show{% endif %}"
              id="careSubmenu"
              style="{% if active_menu == 'reminders' or active_menu == 'aftercare' %}display: block;{% else %}display: none;{% endif %}">
-            <a href="/admin/care/nhaclich/"
-               class="sidebar-subitem {% if active_menu == 'reminders' %}active-sub{% endif %}">
-                Nhắc lịch & Tái hẹn
-            </a>
             <a href="{% url 'notifications:cham_soc_sau_lieu_trinh' %}"
                class="sidebar-subitem {% if active_menu == 'aftercare' %}active-sub{% endif %}">
                 Hướng dẫn sau liệu trình
@@ -178,19 +174,6 @@
            class="sidebar-item {% if active_menu == 'services' or active_menu == 'dich_vu' %}active{% endif %}">
             <i data-lucide="sparkles" class="sidebar-icon"></i>
             <span class="sidebar-label">Dịch vụ</span>
-        </a>
-
-
-        <a href="/admin/inventory/sanpham/" title="Kho & sản phẩm"
-           class="sidebar-item {% if active_menu == 'inventory' %}active{% endif %}">
-            <i data-lucide="package" class="sidebar-icon"></i>
-            <span class="sidebar-label">Kho & sản phẩm</span>
-        </a>
-
-        <a href="/admin/reports/" title="Báo cáo"
-           class="sidebar-item {% if active_menu == 'reports' %}active{% endif %}">
-            <i data-lucide="chart-no-axes-combined" class="sidebar-icon"></i>
-            <span class="sidebar-label">Báo cáo</span>
         </a>
 
         <a href="{% url 'staff_account_list' %}" title="Quản trị người dùng"

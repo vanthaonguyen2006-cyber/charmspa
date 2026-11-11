@@ -163,3 +163,22 @@
 .modal-backdrop.fade { opacity: 0; }
 .modal-backdrop.show { opacity: .5; }
 body.modal-open { overflow: hidden; }
+
+/* Sửa kích thước mũi tên lịch Flatpickr */
+.booking-reschedule-modal .flatpickr-calendar {
+    width: 307px;
+    max-width: 100%;
+}
+
+.booking-reschedule-modal .flatpickr-months .flatpickr-prev-month,
+.booking-reschedule-modal .flatpickr-months .flatpickr-next-month {
+    width: 34px;
+    height: 34px;
+    padding: 10px;
+}
+
+.booking-reschedule-modal .flatpickr-months .flatpickr-prev-month svg,
+.booking-reschedule-modal .flatpickr-months .flatpickr-next-month svg {
+    width: 14px !important;
+    height: 14px !important;
+}

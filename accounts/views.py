@@ -23,7 +23,7 @@ def dang_nhap_view(request):
     # Nếu user đã đăng nhập rồi thì không cho hiện trang login nữa, tự động điều hướng luôn
     if request.user.is_authenticated:
         if request.user.is_superuser or request.user.is_staff:
-            return redirect('/home/staff/')
+            return redirect('/home/staff/dashboard/')
         else:
             return redirect('/home/')
 
@@ -76,7 +76,7 @@ def dang_nhap_view(request):
 
                 # Phân quyền chuyển hướng
                 if user.is_superuser or user.is_staff:
-                    return redirect('/home/staff/')
+                    return redirect('/home/staff/dashboard/')
                 else:
                     return redirect('/home/')
 

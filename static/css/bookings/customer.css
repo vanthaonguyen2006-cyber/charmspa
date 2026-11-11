@@ -1135,3 +1135,28 @@ body:has(.booking-customer-detail)
         font-size: 23px !important;
     }
 }
+/* Mũi tên phân trang lịch hẹn */
+.customer-page-buttons button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px !important;
+    font-weight: bold;
+    color: #a88b55 !important;
+    line-height: 1;
+}
+
+
+.customer-page-buttons button:hover:not(:disabled) {
+    background-color: #a88b55;
+    color: white !important;
+}
+
+
+.customer-page-buttons button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+
+
