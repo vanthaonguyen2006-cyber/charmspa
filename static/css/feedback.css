@@ -1114,24 +1114,441 @@
     }
 }
 
+
+/* ==========================================
+   TRANG XỬ LÝ PHIẾU NHÂN VIÊN
+   Bố cục hai cột theo giao diện Charm Spa.
+========================================== */
+
+/* Tiêu đề trang */
+.staff-detail-page .staff-detail-heading {
+    align-items: center;
+    margin-bottom: 17px;
+}
+
+/* Nút danh sách và badge trạng thái */
+.staff-detail-page .staff-detail-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Hai cột nội dung */
+.staff-detail-page .staff-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(260px, .85fr);
+    gap: 14px;
+    align-items: start;
+}
+
+/* Thẻ nội dung bên trái */
+.staff-detail-page .staff-ticket-card,
+.staff-detail-page .staff-update-card {
+    margin-bottom: 13px;
+}
+
+/* Nội dung khách hàng */
+.staff-detail-page .staff-ticket-content {
+    padding: 12px 14px;
+    background: #fcf9f4;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+/* Hai lựa chọn trạng thái */
+.staff-detail-page .staff-status-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+/* Hai cột trạng thái */
+.staff-detail-page .staff-status-option span {
+    min-height: 38px;
+    border-radius: 8px;
+    font-size: 10px;
+}
+
+/* Khu vực ghi chú */
+.staff-detail-page .staff-note-group textarea {
+    min-height: 95px;
+}
+
+/* Chân form cập nhật */
+.staff-detail-page .staff-update-footer {
+    margin-top: 10px;
+}
+
+/* Khung hoàn tất nền tối */
+.staff-detail-page .staff-complete-card {
+    margin-top: 0;
+}
+
+/* Responsive: chuyển sang một cột trên màn hình hẹp */
+@media (max-width: 900px) {
+    .staff-detail-page .staff-detail-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ==========================================
+   BỘ LỌC ADMIN VÀ STAFF
+   TẤT CẢ NẰM TRÊN MỘT HÀNG
+========================================== */
+
+/* Cấu hình chung */
+.feedback-page .feedback-filter {
+    display: grid !important;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ADMIN: 5 ô lọc + 2 nút */
+.feedback-page .feedback-filter.is-admin {
+    grid-template-columns:
+        minmax(210px, 2fr)
+        repeat(3, minmax(115px, 1fr))
+        minmax(140px, 1fr)
+        max-content;
+}
+
+/* STAFF: 4 ô lọc + 2 nút */
+.feedback-page .feedback-filter.is-staff {
+    grid-template-columns:
+        minmax(210px, 2fr)
+        repeat(2, minmax(115px, 1fr))
+        minmax(140px, 1fr)
+        max-content;
+}
+
+/* Không để các ô nhập liệu tràn khỏi cột */
+.feedback-page .feedback-filter > input,
+.feedback-page .feedback-filter > select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Cụm nút thao tác */
+.feedback-page .feedback-filter .feedback-filter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+}
+
+/* Hai nút không bị co hoặc xuống dòng */
+.feedback-page .feedback-filter-actions .feedback-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Màn hình nhỏ */
+@media (max-width: 1100px) {
+    .feedback-page .feedback-filter.is-admin,
+    .feedback-page .feedback-filter.is-staff {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .feedback-page .feedback-filter .feedback-filter-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 560px) {
+    .feedback-page .feedback-filter.is-admin,
+    .feedback-page .feedback-filter.is-staff {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .feedback-page .feedback-filter .feedback-filter-actions {
+        grid-column: auto;
+        flex-wrap: wrap;
+    }
+}
+
+
+/* ==========================================
+   POPUP CẬP NHẬT VÀ HOÀN TẤT PHIẾU
+   DÙNG CHUNG CHO ADMIN VÀ NHÂN VIÊN
+========================================== */
+
+/* Lớp phủ nền */
+.feedback-action-modal {
+    padding: 18px;
+    background: rgba(37, 35, 31, 0.62);
+    backdrop-filter: blur(2px);
+}
+
+/* Hộp popup */
+.feedback-action-modal .feedback-modal-box {
+    width: min(100%, 520px);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #eee5d8;
+    border-radius: 15px;
+    box-shadow: 0 18px 55px rgba(0, 0, 0, .18);
+}
+
+/* Phần đầu popup */
+.feedback-action-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-bottom: 17px;
+}
+
+.feedback-action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border-radius: 50%;
+    background: #f5ead5;
+    color: #a77c35;
+    font-size: 17px;
+}
+
+.feedback-action-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.feedback-action-heading h2 {
+    margin: 1px 0 4px;
+    color: #302823;
+    font-family: Georgia, serif;
+    font-size: 19px;
+    font-weight: 600;
+}
+
+.feedback-action-heading p {
+    margin: 0;
+    color: #91877a;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.feedback-action-close {
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #898176;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.feedback-action-close:hover {
+    color: #302823;
+}
+
+/* Thẻ tóm tắt thông tin phiếu */
+.feedback-action-summary {
+    padding: 11px 13px;
+    margin-bottom: 16px;
+    border: 1px solid #eee3d1;
+    border-radius: 10px;
+    background: #fcf9f3;
+}
+
+.feedback-action-summary-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 5px 10px;
+    margin-bottom: 5px;
+}
+
+.feedback-action-code {
+    color: #98702f;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.feedback-action-customer {
+    color: #8b8175;
+    font-size: 9px;
+}
+
+.feedback-action-summary-title {
+    margin: 0;
+    color: #302823;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Nội dung form */
+.feedback-action-form {
+    width: 100%;
+}
+
+.feedback-action-form label {
+    display: block;
+    margin: 13px 0 7px;
+    color: #38332d;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.feedback-action-required {
+    color: #ad3931;
+}
+
+.feedback-action-form select,
+.feedback-action-form textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid #e8ddcd;
+    border-radius: 8px;
+    background: #fff;
+    color: #39352f;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    line-height: 1.5;
+    outline: none;
+}
+
+.feedback-action-form select {
+    min-height: 42px;
+    cursor: pointer;
+}
+
+.feedback-action-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.feedback-action-form select:focus,
+.feedback-action-form textarea:focus {
+    border-color: #b58b43;
+    box-shadow: 0 0 0 2px rgba(181, 139, 67, .10);
+}
+
+.feedback-action-form textarea::placeholder {
+    color: #aaa197;
+}
+
+.feedback-action-hint {
+    margin: 8px 0 0;
+    color: #999084;
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+/* Hai nút dưới cùng */
+.feedback-action-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 17px;
+}
+
+.feedback-action-footer .feedback-btn {
+    min-height: 39px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.feedback-action-btn-back {
+    background: #fff;
+    color: #5d554a;
+    border: 1px solid #e8ddcd;
+}
+
+.feedback-action-btn-back:hover {
+    background: #faf7f1;
+}
+
+.feedback-action-btn-save {
+    background: #b58b43;
+    color: #fff;
+    border: 1px solid #b58b43;
+}
+
+.feedback-action-btn-save:hover {
+    background: #9d7535;
+}
+
+.feedback-action-btn-complete {
+    background: #b58b43;
+    color: #fff;
+    border: 1px solid #b58b43;
+}
+
+.feedback-action-btn-complete:hover {
+    background: #9d7535;
+}
+
+/* Các nút mở popup trên trang chi tiết */
+.feedback-action-launch-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 15px;
+}
+
+.feedback-action-launch-buttons .feedback-btn {
+    min-height: 39px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .feedback-action-modal {
+        padding: 12px;
+    }
+
+    .feedback-action-modal .feedback-modal-box {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .feedback-action-heading h2 {
+        font-size: 17px;
+    }
+
+    .feedback-action-footer {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* =========================================
-   ĐỒNG BỘ FONT VỚI GIAO DIỆN KHÁCH HÀNG
+   ĐỒNG BỘ FONT MONTSERRAT TOÀN BỘ MODULE FEEDBACK
 ========================================= */
 
-/* Font nội dung */
+/* Áp dụng Montserrat cho toàn bộ nội dung module */
 .feedback-page,
 .feedback-page *,
 .feedback-modal,
 .feedback-modal * {
-    font-family: Arial, sans-serif;
-}
-
-/* Font tiêu đề */
-.feedback-page h1,
-.feedback-page h2,
-.feedback-page .feedback-title,
-.feedback-page .feedback-subject,
-.feedback-page .staff-ticket-title,
-.feedback-modal h2 {
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: 'Montserrat', sans-serif !important;
 }

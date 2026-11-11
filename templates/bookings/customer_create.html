@@ -19,7 +19,7 @@
     </div>
 
     <!-- Form gửi dữ liệu về hàm views xử lý lưu database -->
-    <form method="POST" action="{% url 'booking_customer_create' %}" onsubmit="return validateBookingForm(event)">
+    <form method="POST" action="{% url 'bookings:booking_customer_create' %}" onsubmit="return validateBookingForm(event)">
         {% csrf_token %}
 
         <input type="hidden" name="ma_dv" id="input_ma_dv" value="{{ dich_vu_list.first.pk }}">
@@ -374,7 +374,7 @@
                 statusText = '<small class="text-danger" style="font-size:10px;">Đã qua</small>';
             } else {
                 try {
-                    const response = await fetch(`{% url 'api_kiem_tra_giuong' %}?ngay=${encodeURIComponent(ngayVal)}&gio=${encodeURIComponent(time)}&loai=${encodeURIComponent(loaiDv)}`);
+                    const response = await fetch(`{% url 'bookings:api_kiem_tra_giuong' %}?ngay=${encodeURIComponent(ngayVal)}&gio=${encodeURIComponent(time)}&loai=${encodeURIComponent(loaiDv)}`);
                     const data = await response.json();
                     remaining = data.con_lai;
                 } catch (error) {

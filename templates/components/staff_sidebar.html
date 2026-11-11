@@ -98,7 +98,7 @@
     <!-- MENU -->
     <nav class="sidebar-menu">
 
-        <a href="{% url 'staff_home' %}" title="Tổng quan"
+        <a href="{% url 'core:staff_dashboard' %}" title="Tổng quan"
            class="sidebar-item {% if active_menu == 'dashboard' %}active{% endif %}">
             <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
             <span class="sidebar-label">Tổng quan</span>
@@ -110,7 +110,7 @@
             <span class="sidebar-label">Khách hàng</span>
         </a>
 
-        <a href="{% url 'staff_booking_list' %}" title="Lịch hẹn"
+        <a href="{% url 'bookings:staff_booking_list' %}" title="Lịch hẹn"
            class="sidebar-item {% if active_menu == 'bookings' %}active{% endif %}">
             <i data-lucide="calendar-days" class="sidebar-icon"></i>
             <span class="sidebar-label">Lịch hẹn</span>
@@ -119,7 +119,7 @@
             {% endif %}
         </a>
 
-        <a href="{% url 'quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
+        <a href="{% url 'bookings:quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
            class="sidebar-item {% if active_menu == 'working_days' %}active{% endif %}">
             <i data-lucide="calendar-check-2" class="sidebar-icon"></i>
             <span class="sidebar-label">Ngày hoạt động</span>
@@ -168,8 +168,7 @@
                class="sidebar-subitem {% if active_menu == 'reminders' %}active-sub{% endif %}">
                 Nhắc lịch & Tái hẹn
             </a>
-
-            <a href="/admin/care/huongdansauieutrinh/"
+            <a href="{% url 'notifications:cham_soc_sau_lieu_trinh' %}"
                class="sidebar-subitem {% if active_menu == 'aftercare' %}active-sub{% endif %}">
                 Hướng dẫn sau liệu trình
             </a>
@@ -264,10 +263,13 @@
                 <i data-lucide="user-round"></i>
                 <span>Đổi mật khẩu</span>
             </a>
-            <a href="/admin/logout/" class="user-dropdown-item text-danger">
-                <i data-lucide="log-out"></i>
-                <span>Đăng xuất</span>
-            </a>
+            <form method="POST" action="/admin/logout/" style="margin: 0; padding: 0;">
+                {% csrf_token %}
+                <button type="submit" class="user-dropdown-item text-danger" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="log-out"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
         </div>
 
     </div>

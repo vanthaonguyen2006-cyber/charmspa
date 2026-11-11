@@ -10,22 +10,16 @@ class ChuongTrinhUuDai(models.Model):
     ma_ctud = models.CharField(max_length=10, primary_key=True, verbose_name="Mã ưu đãi")
     ten_chuong_trinh = models.CharField(max_length=200, verbose_name="Tên chương trình")
     mo_ta = models.TextField(null=True, blank=True, verbose_name="Mô tả")
-
-    # Bổ sung các trường chi tiết
     loai_uu_dai = models.CharField(max_length=50, null=True, blank=True, verbose_name="Loại ưu đãi")
     gia_tri_uu_dai = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Giá ưu đãi")
     gia_goc = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Giá gốc")
     thoi_luong = models.CharField(max_length=50, default="90 phút", verbose_name="Thời lượng liệu trình")
     doi_tuong_ap_dung = models.CharField(max_length=100, default="Tất cả khách hàng", verbose_name="Đối tượng áp dụng")
-    dia_diem_ap_dung = models.CharField(max_length=200, default="Charm Grand Spa & Wellness",
-                                        verbose_name="Địa điểm áp dụng")
-
+    dia_diem_ap_dung = models.CharField(max_length=200, default="Charm Grand Spa & Wellness", verbose_name="Địa điểm áp dụng")
     ngay_bat_dau = models.DateTimeField(verbose_name="Ngày bắt đầu")
     ngay_ket_thuc = models.DateTimeField(verbose_name="Ngày kết thúc")
-
     quyen_loi = models.TextField(null=True, blank=True, verbose_name="Quyền lợi khách hàng")
     dieu_kien = models.TextField(null=True, blank=True, verbose_name="Điều kiện áp dụng")
-
     hinh_anh = models.CharField(max_length=500, null=True, blank=True, verbose_name="Hình ảnh Banner URL")
     trang_thai = models.CharField(max_length=30, default='Đang áp dụng', verbose_name="Trạng thái")
 
@@ -47,9 +41,11 @@ class HuongDanChamSoc(models.Model):
 class ThongBao(models.Model):
     ma_tb = models.CharField(max_length=10, primary_key=True, verbose_name="Mã thông báo")
     ma_lh = models.ForeignKey(LichHen, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Lịch hẹn")
-    ma_ctud = models.ForeignKey(ChuongTrinhUuDai, on_delete=models.SET_NULL, null=True, blank=True,
-                                verbose_name="Chương trình ưu đãi")
-    ma_nv = models.ForeignKey(NhanVien, on_delete=models.CASCADE, verbose_name="Nhân viên tạo")
+    ma_ctud = models.ForeignKey(ChuongTrinhUuDai, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Chương trình ưu đãi")
+    # Nhan vien la tuy chon; thong bao cua admin khong can ho so nhan vien.
+    ma_nv = models.ForeignKey(NhanVien, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Nhân viên tạo (nếu có)")
+    # Model nay tro toi accounts.TaiKhoan, KHONG tro truc tiep auth.User.
+    nguoi_gui = models.ForeignKey('accounts.TaiKhoan', on_delete=models.SET_NULL, null=True, blank=True, related_name='thong_bao_da_gui', verbose_name="Tài khoản gửi thông báo")
     loai_tb = models.CharField(max_length=50, verbose_name="Loại thông báo")
     tieu_de = models.CharField(max_length=200, verbose_name="Tiêu đề")
     noi_dung = models.TextField(verbose_name="Nội dung")
@@ -68,9 +64,6 @@ class ThongBaoKhachHang(models.Model):
     trang_thai_gui = models.CharField(max_length=30, default='Chưa gửi', verbose_name="Trạng thái gửi")
 
 
-# ==============================================================================
-# BỔ SUNG: BẢNG NHẬT KÝ GỬI HDCS (LƯU VÂN HÀNH KHI KHÁCH CHECKOUT TỪ LỊCH HẸN)
-# ==============================================================================
 class NhatKyGuiHDCS(models.Model):
     ma_lh = models.ForeignKey(LichHen, on_delete=models.CASCADE, verbose_name="Lịch hẹn liên quan")
     ma_hd = models.ForeignKey(HuongDanChamSoc, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Mẫu hướng dẫn")

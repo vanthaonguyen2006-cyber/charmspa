@@ -391,124 +391,265 @@
 </div>
 
 
-<!-- ========================================= -->
-<!-- MODAL 3: ADMIN CẬP NHẬT TRẠNG THÁI -->
-<!-- ========================================= -->
-<div class="feedback-modal" id="updateModal" role="dialog"
-     aria-modal="true" aria-labelledby="updateModalTitle">
 
+<!-- ==========================================
+     MODAL 3: ADMIN CẬP NHẬT TRẠNG THÁI
+     Chức năng: Cho phép Admin đổi trạng thái phiếu
+     và ghi chú quá trình xử lý trực tiếp.
+========================================== -->
+
+<!-- Chỉ hiển thị popup khi phiếu còn hợp lệ và chưa giải quyết -->
+{% if ph.tinh_hop_le == "Hợp lệ" and ph.trang_thai_xu_ly != "Đã giải quyết" %}
+
+<div class="feedback-modal feedback-action-modal"
+     id="updateModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="adminUpdateTitle">
+
+    <!-- Khung nội dung chính của popup -->
     <div class="feedback-modal-box">
 
-        <div class="feedback-modal-head">
-            <div>
-                <h2 id="updateModalTitle">Cập nhật trạng thái phiếu</h2>
-                <p class="feedback-muted">
-                    Admin có thể cập nhật trạng thái và ghi chú xử lý trực tiếp.
+        <!-- Phần đầu popup: icon, tiêu đề, mô tả và nút đóng -->
+        <div class="feedback-action-header">
+
+            <!-- Icon trang trí -->
+            <div class="feedback-action-icon">✦</div>
+
+            <!-- Tiêu đề và mô tả popup -->
+            <div class="feedback-action-heading">
+                <h2 id="adminUpdateTitle">Cập nhật trạng thái phiếu</h2>
+                <p>
+                    Cập nhật tiến độ và ghi chú xử lý của phiếu.
                 </p>
             </div>
 
-            <button type="button" class="feedback-modal-close"
-                    data-close-modal aria-label="Đóng">×</button>
+            <!-- Nút X để đóng popup -->
+            <button type="button"
+                    class="feedback-action-close"
+                    data-close-modal
+                    aria-label="Đóng">
+                ×
+            </button>
+
         </div>
 
+        <!-- Thẻ tóm tắt thông tin phiếu đang được cập nhật -->
+        <div class="feedback-action-summary">
+
+            <!-- Hiển thị mã phiếu và mã khách hàng -->
+            <div class="feedback-action-summary-top">
+                <span class="feedback-action-code">
+                    #{{ ph.ma_ph }}
+                </span>
+
+                <span class="feedback-action-customer">
+                    Khách hàng {{ ph.ma_kh_id }}
+                </span>
+            </div>
+
+            <!-- Hiển thị tiêu đề phiếu -->
+            <p class="feedback-action-summary-title">
+                {{ ph.tieu_de }}
+            </p>
+
+        </div>
+
+        <!-- Form gửi dữ liệu cập nhật trạng thái về Django -->
         <form method="post"
+              class="feedback-action-form"
               action="{% url 'feedback:admin_feedback_detail' feedback_id=ph.ma_ph %}">
+
+            <!-- CSRF token giúp bảo vệ form POST của Django -->
             {% csrf_token %}
+
+            <!-- action=update để admin_feedback_detail biết đây là thao tác cập nhật -->
             <input type="hidden" name="action" value="update">
 
-            <label for="adminFeedbackStatus">Trạng thái mới</label>
+            <!-- Trường chọn trạng thái mới -->
+            <label for="adminFeedbackStatus">
+                Trạng thái mới
+                <span class="feedback-action-required">*</span>
+            </label>
 
             <select id="adminFeedbackStatus"
                     name="trang_thai_xu_ly"
-                    required
-                    style="width:100%;padding:11px;margin:8px 0 16px">
+                    required>
+
+                <!-- Nếu phiếu đang ở trạng thái này thì tự động chọn -->
                 <option value="Đã tiếp nhận"
                     {% if ph.trang_thai_xu_ly == "Đã tiếp nhận" %}selected{% endif %}>
                     Đã tiếp nhận
                 </option>
 
+                <!-- Nếu phiếu đang ở trạng thái này thì tự động chọn -->
                 <option value="Đang xử lý"
                     {% if ph.trang_thai_xu_ly == "Đang xử lý" %}selected{% endif %}>
                     Đang xử lý
                 </option>
+
             </select>
 
-            <label for="adminUpdateNote">Ghi chú xử lý</label>
+            <!-- Trường nhập ghi chú xử lý -->
+            <label for="adminUpdateNote">
+                Ghi chú xử lý
+                <span class="feedback-action-required">*</span>
+            </label>
 
             <textarea id="adminUpdateNote"
                       name="noi_dung_xu_ly"
-                      rows="4"
-                      placeholder="Nhập nội dung cập nhật hoặc ghi chú xử lý..."></textarea>
+                      rows="5"
+                      required
+                      placeholder="Nhập nội dung cập nhật, kết quả kiểm tra hoặc ghi chú xử lý..."></textarea>
 
-            <div class="feedback-modal-actions">
-                <button type="button" class="feedback-btn light"
+            <!-- Giải thích cho Admin biết ghi chú được lưu ở đâu -->
+            <p class="feedback-action-hint">
+                Ghi chú sẽ được lưu vào lịch sử xử lý của phiếu.
+            </p>
+
+            <!-- Hai nút thao tác ở cuối popup -->
+            <div class="feedback-action-footer">
+
+                <!-- Nút quay lại: chỉ đóng popup, không gửi form -->
+                <button type="button"
+                        class="feedback-btn feedback-action-btn-back"
                         data-close-modal>
-                    Hủy
+                    Quay lại
                 </button>
 
-                <button type="submit" class="feedback-btn">
+                <!-- Nút lưu: gửi dữ liệu POST về Django để cập nhật phiếu -->
+                <button type="submit"
+                        class="feedback-btn feedback-action-btn-save">
                     Lưu cập nhật
                 </button>
+
             </div>
+
         </form>
 
     </div>
 </div>
 
+{% endif %}
 
-<!-- ========================================= -->
-<!-- MODAL 4: ADMIN HOÀN TẤT PHIẾU -->
-<!-- ========================================= -->
-<div class="feedback-modal" id="completeModal" role="dialog"
-     aria-modal="true" aria-labelledby="completeModalTitle">
 
+
+<!-- ==========================================
+     MODAL 4: ADMIN HOÀN TẤT PHIẾU
+     Chức năng: Cho phép Admin nhập phản hồi cuối cùng
+     và chuyển phiếu sang trạng thái Đã giải quyết.
+========================================== -->
+
+<!-- Chỉ hiển thị khi phiếu hợp lệ và chưa được giải quyết -->
+{% if ph.tinh_hop_le == "Hợp lệ" and ph.trang_thai_xu_ly != "Đã giải quyết" %}
+
+<div class="feedback-modal feedback-action-modal"
+     id="completeModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="adminCompleteTitle">
+
+    <!-- Khung nội dung popup -->
     <div class="feedback-modal-box">
 
-        <div class="feedback-modal-head">
-            <div>
-                <h2 id="completeModalTitle">Hoàn tất xử lý phiếu</h2>
+        <!-- Phần đầu popup -->
+        <div class="feedback-action-header">
 
-                <p class="feedback-muted">
-                    Xác nhận hoàn tất phiếu #{{ ph.ma_ph }}.
-                    Thao tác này sẽ cập nhật trạng thái và lưu lịch sử xử lý.
+            <!-- Icon trang trí -->
+            <div class="feedback-action-icon">✦</div>
+
+            <!-- Tiêu đề và mô tả -->
+            <div class="feedback-action-heading">
+                <h2 id="adminCompleteTitle">Hoàn tất xử lý phiếu</h2>
+                <p>
+                    Nội dung phản hồi sẽ được ghi nhận vào lịch sử
+                    và phiếu chuyển sang trạng thái Đã giải quyết.
                 </p>
             </div>
 
-            <button type="button" class="feedback-modal-close"
-                    data-close-modal aria-label="Đóng">×</button>
+            <!-- Nút đóng popup -->
+            <button type="button"
+                    class="feedback-action-close"
+                    data-close-modal
+                    aria-label="Đóng">
+                ×
+            </button>
+
         </div>
 
+        <!-- Hiển thị thông tin phiếu đang được hoàn tất -->
+        <div class="feedback-action-summary">
+
+            <div class="feedback-action-summary-top">
+                <span class="feedback-action-code">
+                    #{{ ph.ma_ph }}
+                </span>
+
+                <span class="feedback-action-customer">
+                    Khách hàng {{ ph.ma_kh_id }}
+                </span>
+            </div>
+
+            <!-- Tiêu đề phiếu -->
+            <p class="feedback-action-summary-title">
+                {{ ph.tieu_de }}
+            </p>
+
+        </div>
+
+        <!-- Form gửi yêu cầu hoàn tất phiếu đến Django -->
         <form method="post"
+              class="feedback-action-form"
               action="{% url 'feedback:admin_feedback_detail' feedback_id=ph.ma_ph %}">
+
+            <!-- Token bảo mật của Django -->
             {% csrf_token %}
+
+            <!-- action=complete để View biết Admin muốn hoàn tất phiếu -->
             <input type="hidden" name="action" value="complete">
 
+            <!-- Nội dung phản hồi cuối cùng cho khách hàng -->
             <label for="adminFinalResponse">
-                Nội dung phản hồi cuối cùng
-                <span style="color:#ad3931">*</span>
+                Nội dung phản hồi cho khách hàng
+                <span class="feedback-action-required">*</span>
             </label>
 
             <textarea id="adminFinalResponse"
                       name="noi_dung_phan_hoi"
-                      rows="5"
-                      placeholder="Nhập nội dung phản hồi và kết quả xử lý cuối cùng..."
-                      required></textarea>
+                      rows="6"
+                      required
+                      placeholder="Nhập kết quả kiểm tra, hướng giải quyết và nội dung phản hồi cuối cùng cho khách hàng..."></textarea>
 
-            <div class="feedback-modal-actions">
-                <button type="button" class="feedback-btn light"
+            <!-- Thông báo trước khi xác nhận -->
+            <p class="feedback-action-hint">
+                Sau khi hoàn tất, trạng thái phiếu chuyển sang
+                “Đã giải quyết” và khách hàng có thể xem nội dung phản hồi này.
+            </p>
+
+            <!-- Các nút xác nhận hoặc quay lại -->
+            <div class="feedback-action-footer">
+
+                <!-- Quay lại: đóng popup, không gửi dữ liệu -->
+                <button type="button"
+                        class="feedback-btn feedback-action-btn-back"
                         data-close-modal>
-                    Hủy
+                    Quay lại
                 </button>
 
-                <button type="submit" class="feedback-btn"
-                        style="background:#27845b;border-color:#27845b;color:white">
-                    Xác nhận hoàn tất
+                <!-- Xác nhận: gửi nội dung phản hồi về View để hoàn tất phiếu -->
+                <button type="submit"
+                        class="feedback-btn feedback-action-btn-complete">
+                    Hoàn tất xử lý
                 </button>
+
             </div>
+
         </form>
 
     </div>
 </div>
+
+{% endif %}
 
 {% endblock %}
 

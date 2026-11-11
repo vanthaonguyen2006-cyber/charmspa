@@ -163,15 +163,11 @@ def _loc_phan_hoi(request, mode="all", ma_nv=None):
     if tinh_hop_le:
         phan_hoi = phan_hoi.filter(tinh_hop_le=tinh_hop_le)
 
-    # Lọc theo khoảng thời gian gửi
-    ngay_bat_dau = parse_date(request.GET.get("from_date", ""))
-    ngay_ket_thuc = parse_date(request.GET.get("to_date", ""))
+    # Lọc theo một ngày gửi cụ thể
+    ngay_gui = parse_date(request.GET.get("date", "").strip())
 
-    if ngay_bat_dau:
-        phan_hoi = phan_hoi.filter(ngay_gui__date__gte=ngay_bat_dau)
-
-    if ngay_ket_thuc:
-        phan_hoi = phan_hoi.filter(ngay_gui__date__lte=ngay_ket_thuc)
+    if ngay_gui:
+        phan_hoi = phan_hoi.filter(ngay_gui__date=ngay_gui)
 
     # Lấy các phiếu đã từng được phân công
     ma_ph_da_phan_cong = PhanCongXuLy.objects.values_list(
@@ -295,8 +291,7 @@ def _danh_sach_view(request, is_admin, mode, title, subtitle):
         "status": request.GET.get("status", ""),
         "feedback_type": request.GET.get("type", ""),
         "validity": request.GET.get("validity", ""),
-        "from_date": request.GET.get("from_date", ""),
-        "to_date": request.GET.get("to_date", ""),
+        "filter_date": request.GET.get("date", ""),
     })
 
     return render(request, "feedback/feedback_list.html", context)
@@ -688,6 +683,11 @@ def admin_feedback_detail(request, feedback_id):
         "ma_nguoi_thuc_hien"
     ).order_by("ngay_thuc_hien")
 
+    # Lấy bản ghi lịch sử mới nhất để hiển thị thời gian cập nhật gần nhất
+    lich_su_moi_nhat = LichSuXuLy.objects.filter(
+        ma_ph=ph
+    ).order_by("-ngay_thuc_hien").first()
+
     # Tệp đính kèm
     tep_dinh_kem = TepDinhKem.objects.filter(
         ma_ph=ph
@@ -852,12 +852,30 @@ def staff_feedback_detail(request, feedback_id):
             feedback_id=feedback_id
         )
 
-    # Lấy lịch sử và tệp đính kèm cho trang chi tiết nhân viên
+    # Lấy toàn bộ lịch sử xử lý của phiếu để hiển thị dạng timeline
     lich_su = LichSuXuLy.objects.filter(
         ma_ph=ph
-    ).select_related("ma_nguoi_thuc_hien").order_by("ngay_thuc_hien")
+    ).select_related(
+        "ma_nguoi_thuc_hien"
+    ).order_by("ngay_thuc_hien")
 
-    tep_dinh_kem = TepDinhKem.objects.filter(ma_ph=ph)
+    # Lấy bản ghi lịch sử mới nhất để hiển thị thời gian cập nhật gần nhất
+    # order_by("-ngay_thuc_hien") sắp xếp từ mới nhất đến cũ nhất
+    # first() lấy bản ghi đầu tiên trong danh sách đã sắp xếp
+    lich_su_moi_nhat = LichSuXuLy.objects.filter(
+        ma_ph=ph
+    ).order_by("-ngay_thuc_hien").first()
+
+    # Lấy danh sách tệp đính kèm của phiếu
+    tep_dinh_kem = TepDinhKem.objects.filter(
+        ma_ph=ph
+    )
+
+    # Lấy bản ghi hoàn tất mới nhất để hiển thị phản hồi cuối cùng
+    lich_su_hoan_tat = LichSuXuLy.objects.filter(
+        ma_ph=ph,
+        loai_thao_tac="Hoàn tất xử lý"
+    ).order_by("-ngay_thuc_hien").first()
 
     context = _layout_context(request, False)
     context.update({
@@ -865,6 +883,7 @@ def staff_feedback_detail(request, feedback_id):
         "nhan_vien": nhan_vien,
         "customer": ph.ma_kh,
         "lich_su": lich_su,
+        "lich_su_moi_nhat": lich_su_moi_nhat,
         "tep_dinh_kem": tep_dinh_kem,
         "phan_cong": phan_cong,
     })

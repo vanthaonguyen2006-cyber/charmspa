@@ -51,10 +51,10 @@
         {% endif %}
 
         <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
-            <a href="{% url 'booking_customer_list' %}" class="btn btn-outline-secondary btn-sm px-4 py-2 text-decoration-none">
+            <a href="{% url 'bookings:booking_customer_list' %}" class="btn btn-outline-secondary btn-sm px-4 py-2 text-decoration-none">
                 <i class="bi bi-list-task me-1"></i> Xem danh sách lịch hẹn
             </a>
-            <a href="{% url 'booking_customer_create' %}" class="btn btn-gold">
+            <a href="{% url 'bookings:booking_customer_create' %}" class="btn btn-gold">
                 <i class="bi bi-calendar-plus me-1"></i> Đặt lịch tiếp
             </a>
         </div>

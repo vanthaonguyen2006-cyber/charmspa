@@ -1,72 +1,411 @@
+
 {% extends 'layouts/customer_base.html' %}
 {% load static %}
 
-{% block title %}Chương trình ưu đãi - Charm Spa Grand{% endblock %}
+{% block title %}Chương trình ưu đãi - Charm Grand Spa{% endblock %}
 
 {% block content %}
-<div class="promotions-list-wrapper" style="font-family: 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f7f4ee; padding: 50px 0 90px 0;">
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
 
-        <!-- Tiêu đề trang -->
-        <div style="text-align: center; margin-bottom: 50px;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: #8E2A2B; text-transform: uppercase; letter-spacing: 2px;">ƯU ĐÃI ĐANG DIỄN RA</span>
-            <h1 style="font-family: serif; font-size: 2.5rem; color: #1e1e1e; margin-top: 10px; font-weight: 400;">Chọn một khoảng lặng dành riêng cho bạn</h1>
-            <p style="color: #666; font-size: 0.95rem; margin-top: 10px;">Mỗi ưu đãi áp dụng theo điều kiện riêng và số lượng khung giờ giới hạn.</p>
+<style>
+    .promotions-list-wrapper {
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        background: #f7f4ee;
+        padding: 55px 0 90px;
+        min-height: 70vh;
+    }
+
+    .promotions-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .promotions-heading {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .promotions-eyebrow {
+        color: #8e2a2b;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+    }
+
+    .promotions-heading h1 {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: clamp(28px, 4vw, 42px);
+        font-weight: 400;
+        color: #2c241e;
+        margin: 12px 0;
+        line-height: 1.3;
+    }
+
+    .promotions-heading p {
+        color: #80766d;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .promotions-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 28px;
+    }
+
+    .promotion-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #ebe4da;
+        overflow: hidden;
+        box-shadow: 0 5px 24px rgba(45, 31, 20, 0.05);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .promotion-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 34px rgba(45, 31, 20, 0.1);
+    }
+
+    .promotion-banner {
+        height: 235px;
+        background: linear-gradient(135deg, #f6f0e7, #e5d2b4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .promotion-banner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s ease;
+    }
+
+    .promotion-card:hover .promotion-banner img {
+        transform: scale(1.04);
+    }
+
+    .promotion-banner-placeholder {
+        width: 100%;
+        height: 100%;
+        padding: 30px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background:
+            radial-gradient(circle at 85% 15%,
+                rgba(255, 255, 255, 0.7), transparent 35%),
+            linear-gradient(135deg, #f7f0e6, #e5d1b1);
+    }
+
+    .promotion-placeholder-icon {
+        font-family: Georgia, serif;
+        color: #b18b55;
+        font-size: 36px;
+        line-height: 1;
+        margin-bottom: 15px;
+    }
+
+    .promotion-placeholder-brand {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2.5px;
+        color: #9e7747;
+        margin-bottom: 12px;
+    }
+
+    .promotion-placeholder-name {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 20px;
+        font-weight: 500;
+        line-height: 1.4;
+        color: #493a2c;
+        margin: 0;
+        max-width: 300px;
+    }
+
+    .promotion-placeholder-line {
+        width: 48px;
+        height: 1px;
+        background: #b89a6c;
+        margin-top: 16px;
+    }
+
+    .promotion-price-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(36, 28, 23, 0.88);
+        color: #fff;
+        padding: 8px 13px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        z-index: 2;
+    }
+
+    .promotion-card-body {
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .promotion-period {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: #91867a;
+        margin-bottom: 11px;
+    }
+
+    .promotion-card-title {
+        font-family: Georgia, 'Times New Roman', serif;
+        color: #30251d;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0 0 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .promotion-description {
+        color: #756b61;
+        font-size: 13px;
+        line-height: 1.75;
+        flex: 1;
+        margin-bottom: 22px;
+        overflow-wrap: anywhere;
+    }
+
+    .promotion-card-footer {
+        border-top: 1px solid #eee7dd;
+        padding-top: 17px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .promotion-detail-link {
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        color: #8e2a2b;
+        transition: color 0.2s;
+    }
+
+    .promotion-detail-link:hover {
+        color: #b04542;
+    }
+
+    .promotion-detail-arrow {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: 1px solid #dfd4c5;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        color: #654b35;
+        transition: all 0.2s;
+    }
+
+    .promotion-detail-arrow:hover {
+        background: #8c6d4f;
+        border-color: #8c6d4f;
+        color: white;
+    }
+
+    .promotions-empty {
+        grid-column: 1 / -1;
+        background: #fff;
+        border: 1px solid #ebe4da;
+        border-radius: 16px;
+        padding: 65px 25px;
+        text-align: center;
+        color: #80766d;
+        font-size: 14px;
+    }
+
+    @media (max-width: 1000px) {
+        .promotions-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .promotions-list-wrapper {
+            padding: 38px 0 65px;
+        }
+
+        .promotions-grid {
+            grid-template-columns: 1fr;
+            gap: 22px;
+        }
+
+        .promotions-heading {
+            margin-bottom: 32px;
+        }
+
+        .promotion-banner {
+            height: 220px;
+        }
+
+        .promotion-card-body {
+            padding: 22px;
+        }
+    }
+</style>
+
+
+<div class="promotions-list-wrapper">
+    <div class="promotions-container">
+
+        <!-- TIÊU ĐỀ TRANG -->
+        <div class="promotions-heading">
+            <span class="promotions-eyebrow">
+                ƯU ĐÃI ĐANG DIỄN RA
+            </span>
+
+            <h1>
+                Chọn một khoảng lặng dành riêng cho bạn
+            </h1>
+
+            <p>
+                Khám phá những chương trình chăm sóc đặc biệt
+                tại Charm Grand Spa & Wellness.
+            </p>
         </div>
 
-        <!-- Danh sách dạng lưới Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
-            {% for promo in promotions %}
-            <div style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #efeae2; display: flex; flex-direction: column; transition: transform 0.3s ease;">
 
-                <!-- Hình ảnh Banner -->
-                <div style="height: 240px; overflow: hidden; background: #e8e2d8; position: relative;">
+        <!-- DANH SÁCH ƯU ĐÃI -->
+        <div class="promotions-grid">
+
+            {% for promo in promotions %}
+
+            <article class="promotion-card">
+
+                <!-- BANNER RIÊNG TỪ ADMIN -->
+                <div class="promotion-banner">
+
                     {% if promo.hinh_anh %}
-                        <img src="{{ promo.hinh_anh }}" alt="{{ promo.ten_chuong_trinh }}" style="width: 100%; height: 100%; object-fit: cover;">
+
+                        <img
+                            src="{{ promo.hinh_anh }}"
+                            alt="Ưu đãi {{ promo.ten_chuong_trinh }}"
+                            loading="lazy"
+                        >
+
                     {% else %}
-                        <img src="{% static 'images/pro1.png' %}" alt="Banner mặc định" style="width: 100%; height: 100%; object-fit: cover;">
+
+                        <!-- KHÔNG CÓ BANNER: HIỂN THỊ THIẾT KẾ THAY THẾ -->
+                        <div class="promotion-banner-placeholder">
+
+                            <div class="promotion-placeholder-icon">
+                                ✦
+                            </div>
+
+                            <span class="promotion-placeholder-brand">
+                                CHARM GRAND SPA
+                            </span>
+
+                            <h3 class="promotion-placeholder-name">
+                                {{ promo.ten_chuong_trinh }}
+                            </h3>
+
+                            <div class="promotion-placeholder-line"></div>
+
+                        </div>
+
                     {% endif %}
 
-                    <!-- Nhãn giá nổi bật -->
-                    <div style="position: absolute; top: 16px; left: 16px; background: rgba(30, 30, 30, 0.85); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
-                        Giá: {{ promo.gia_tri_uu_dai|floatformat:0 }} đ
+                    <!-- GIÁ ƯU ĐÃI -->
+                    <div class="promotion-price-badge">
+                        {{ promo.gia_tri_uu_dai|floatformat:0 }} đ
                     </div>
+
                 </div>
 
-                <!-- Nội dung thẻ -->
-                <div style="padding: 28px; display: flex; flex-direction: column; flex-grow: 1;">
 
-                    <div style="font-size: 0.8rem; color: #888; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                        <span>📅</span> {{ promo.ngay_bat_dau|date:"d.m.Y" }} — {{ promo.ngay_ket_thuc|date:"d.m.Y" }}
+                <!-- THÔNG TIN ƯU ĐÃI -->
+                <div class="promotion-card-body">
+
+                    <!-- THỜI GIAN ÁP DỤNG -->
+                    <div class="promotion-period">
+                        <span>▦</span>
+
+                        <span>
+                            {{ promo.ngay_bat_dau|date:"d/m/Y" }}
+                            –
+                            {{ promo.ngay_ket_thuc|date:"d/m/Y" }}
+                        </span>
                     </div>
 
-                    <h3 style="font-family: serif; font-size: 1.4rem; color: #1e1e1e; margin: 0 0 12px 0; font-weight: 600; line-height: 1.3;">
-                        {{ promo.ten_chuong_trinh }}
-                    </h3>
 
-                    <p style="color: #666; font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px; flex-grow: 1;">
-                        {{ promo.mo_ta|truncatechars:90 }}
+                    <!-- TÊN CHƯƠNG TRÌNH -->
+                    <h2 class="promotion-card-title">
+                        {{ promo.ten_chuong_trinh }}
+                    </h2>
+
+
+                    <!-- MÔ TẢ RIÊNG CỦA CHƯƠNG TRÌNH -->
+                    <p class="promotion-description">
+                        {% if promo.mo_ta %}
+                            {{ promo.mo_ta|truncatechars:115 }}
+                        {% else %}
+                            Khám phá chương trình ưu đãi đặc biệt
+                            dành riêng cho khách hàng của Charm Grand Spa.
+                        {% endif %}
                     </p>
 
-                    <!-- Nút Chi tiết -->
-                    <div style="border-top: 1px solid #efeae2; padding-top: 18px; display: flex; justify-content: space-between; align-items: center;">
-                        <a href="{% url 'notifications:chi_tiet_uu_dai' promo.pk %}" style="color: #8E2A2B; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+
+                    <!-- NÚT ĐỌC CHI TIẾT -->
+                    <div class="promotion-card-footer">
+
+                        <a
+                            href="{% url 'notifications:chi_tiet_uu_dai' promo.pk %}"
+                            class="promotion-detail-link"
+                        >
                             Đọc thêm
                         </a>
-                        <a href="{% url 'notifications:chi_tiet_uu_dai' promo.pk %}" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #dcd6cd; display: flex; align-items: center; justify-content: center; color: #333; text-decoration: none; font-size: 0.8rem;">
+
+                        <a
+                            href="{% url 'notifications:chi_tiet_uu_dai' promo.pk %}"
+                            class="promotion-detail-arrow"
+                            aria-label="Xem chi tiết {{ promo.ten_chuong_trinh }}"
+                        >
                             ↗
                         </a>
+
                     </div>
 
                 </div>
-            </div>
+
+            </article>
+
             {% empty %}
-            <div style="grid-column: span 3; text-align: center; padding: 60px; color: #888; background: #fff; border-radius: 16px;">
-                Hiện tại chưa có chương trình ưu đãi nào được kích hoạt.
+
+            <div class="promotions-empty">
+                <div style="font-size: 36px; margin-bottom: 12px;">✦</div>
+                Hiện tại chưa có chương trình ưu đãi nào đang áp dụng.
+                <br>
+                Vui lòng quay lại sau để khám phá những ưu đãi mới từ Charm Grand Spa.
             </div>
+
             {% endfor %}
+
         </div>
 
     </div>
 </div>
+
 {% endblock %}

@@ -1,16 +1,397 @@
+
 {% extends "layouts/staff_base.html" %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}Thống kê phản hồi | Charm Spa{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/feedback.css' %}">
+
+<style>
+    /* =====================================
+       TỔNG THỂ TRANG THỐNG KÊ
+       ===================================== */
+
+    .feedback-statistics-page {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* =====================================
+       4 THẺ THỐNG KÊ PHÍA TRÊN
+       ===================================== */
+
+    .feedback-statistics-page .fs-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 11px;
+        margin-bottom: 12px;
+    }
+
+    .feedback-statistics-page .fs-kpi-card {
+        min-width: 0;
+        min-height: 80px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 13px;
+        background: #fff;
+        border: 1px solid #eadfce;
+        border-radius: 11px;
+    }
+
+    .feedback-statistics-page .fs-kpi-icon {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+        font-size: 20px;
+    }
+
+    .feedback-statistics-page .fs-kpi-icon.gold {
+        color: #98702f;
+        background: #f4ead7;
+    }
+
+    .feedback-statistics-page .fs-kpi-icon.yellow {
+        color: #a97524;
+        background: #fbf1de;
+    }
+
+    .feedback-statistics-page .fs-kpi-icon.blue {
+        color: #40758d;
+        background: #e7f0f3;
+    }
+
+    .feedback-statistics-page .fs-kpi-icon.green {
+        color: #258361;
+        background: #e5f3ed;
+    }
+
+    .feedback-statistics-page .fs-kpi-content {
+        min-width: 0;
+    }
+
+    .feedback-statistics-page .fs-kpi-label {
+        margin-bottom: 3px;
+        color: #81776c;
+        font-size: 9px;
+        line-height: 1.2;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .feedback-statistics-page .fs-kpi-bottom {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .feedback-statistics-page .fs-kpi-number {
+        color: #302823;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 23px;
+        line-height: 1.1;
+        font-weight: 700;
+    }
+
+    .feedback-statistics-page .fs-kpi-note {
+        color: #a17a3d;
+        font-size: 8px;
+        line-height: 1.3;
+    }
+
+    .feedback-statistics-page .fs-kpi-note.blue {
+        color: #40758d;
+    }
+
+    .feedback-statistics-page .fs-kpi-note.green {
+        color: #258361;
+    }
+
+    /* =====================================
+       BỐ CỤC 2 BIỂU ĐỒ
+       ===================================== */
+
+    .feedback-statistics-page .fs-chart-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .feedback-statistics-page .fs-card {
+        box-sizing: border-box;
+        min-width: 0;
+        height: 294px;
+        padding: 16px;
+        background: #fff;
+        border: 1px solid #eadfce;
+        border-radius: 11px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .feedback-statistics-page .fs-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .feedback-statistics-page .fs-card-title {
+        margin: 0 0 3px;
+        color: #302823;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 15px;
+        line-height: 1.3;
+        font-weight: 600;
+    }
+
+    .feedback-statistics-page .fs-card-subtitle {
+        margin: 0;
+        color: #a49a8e;
+        font-size: 9px;
+        line-height: 1.4;
+    }
+
+    .feedback-statistics-page .fs-card-more {
+        color: #81776c;
+        font-size: 17px;
+        line-height: 12px;
+    }
+
+    /* =====================================
+       BIỂU ĐỒ DONUT
+       ===================================== */
+
+    .feedback-statistics-page .fs-donut-layout {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 165px minmax(0, 1fr);
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 8px 3px;
+    }
+
+    .feedback-statistics-page .fs-donut {
+        display: block;
+        width: 160px;
+        height: 160px;
+        max-width: 100%;
+        overflow: visible;
+    }
+
+    .feedback-statistics-page .fs-donut-track {
+        fill: none;
+        stroke: #f3e8d2;
+        stroke-width: 27;
+    }
+
+    .feedback-statistics-page .fs-donut-value {
+        fill: none;
+        stroke: #b58b43;
+        stroke-width: 27;
+        stroke-linecap: butt;
+        transform: rotate(-90deg);
+        transform-origin: 80px 80px;
+    }
+
+    .feedback-statistics-page .fs-donut-total {
+        fill: #302823;
+        font-size: 19px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    .feedback-statistics-page .fs-donut-caption {
+        fill: #a49a8e;
+        font-size: 8px;
+        text-anchor: middle;
+    }
+
+    /* Chú thích bên phải biểu đồ */
+    .feedback-statistics-page .fs-legend {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .feedback-statistics-page .fs-legend-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        min-width: 0;
+    }
+
+    .feedback-statistics-page .fs-legend-dot {
+        flex: 0 0 8px;
+        width: 8px;
+        height: 8px;
+        margin-top: 3px;
+        border-radius: 50%;
+    }
+
+    .feedback-statistics-page .fs-legend-dot.gold {
+        background: #b58b43;
+    }
+
+    .feedback-statistics-page .fs-legend-dot.cream {
+        background: #f3e8d2;
+        border: 1px solid #e5d8c0;
+        box-sizing: border-box;
+    }
+
+    .feedback-statistics-page .fs-legend-label {
+        color: #756c62;
+        font-size: 9px;
+        line-height: 1.3;
+    }
+
+    .feedback-statistics-page .fs-legend-value {
+        display: block;
+        margin-top: 2px;
+        color: #302823;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    /* =====================================
+       BIỂU ĐỒ THANH NGANG
+       ===================================== */
+
+    .feedback-statistics-page .fs-bars {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 13px;
+        padding: 5px 0;
+    }
+
+    .feedback-statistics-page .fs-bar-row {
+        display: grid;
+        grid-template-columns: 91px minmax(0, 1fr) 24px;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .feedback-statistics-page .fs-bar-label {
+        color: #756c62;
+        font-size: 9px;
+        white-space: nowrap;
+    }
+
+    .feedback-statistics-page .fs-bar-track {
+        width: 100%;
+        height: 12px;
+        overflow: hidden;
+        border-radius: 20px;
+        background: #f7f3ed;
+    }
+
+    .feedback-statistics-page .fs-bar-fill {
+        display: block;
+        width: 0;
+        height: 100%;
+        max-width: 100%;
+        border-radius: 20px;
+        transition: width 0.4s ease;
+    }
+
+    .feedback-statistics-page .fs-bar-fill.gold {
+        background: #a97524;
+    }
+
+    .feedback-statistics-page .fs-bar-fill.blue {
+        background: #40758d;
+    }
+
+    .feedback-statistics-page .fs-bar-fill.green {
+        background: #258361;
+    }
+
+    .feedback-statistics-page .fs-bar-value {
+        color: #302823;
+        text-align: right;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    /* =====================================
+       RESPONSIVE
+       ===================================== */
+
+    @media (max-width: 900px) {
+        .feedback-statistics-page .fs-kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .feedback-statistics-page .fs-chart-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .feedback-statistics-page .fs-kpi-grid {
+            gap: 8px;
+        }
+
+        .feedback-statistics-page .fs-kpi-card {
+            gap: 8px;
+            padding: 9px;
+        }
+
+        .feedback-statistics-page .fs-kpi-icon {
+            width: 32px;
+            height: 32px;
+            flex-basis: 32px;
+        }
+
+        .feedback-statistics-page .fs-kpi-number {
+            font-size: 20px;
+        }
+
+        .feedback-statistics-page .fs-card {
+            height: 280px;
+            padding: 14px;
+        }
+
+        .feedback-statistics-page .fs-donut-layout {
+            grid-template-columns: 135px minmax(0, 1fr);
+            gap: 4px;
+        }
+
+        .feedback-statistics-page .fs-donut {
+            width: 135px;
+            height: 135px;
+        }
+
+        .feedback-statistics-page .fs-bar-row {
+            grid-template-columns: 82px minmax(0, 1fr) 22px;
+            gap: 7px;
+        }
+    }
+</style>
 {% endblock %}
 
-{% block content %}
-<div class="feedback-page">
 
-    <!-- Tiêu đề và đường dẫn quay lại danh sách -->
+{% block content %}
+<div class="feedback-page feedback-statistics-page">
+
+    <!-- THANH TIÊU ĐỀ TRANG THỐNG KÊ -->
     <div class="feedback-toolbar">
         <div>
             <h1>Thống kê</h1>
@@ -18,90 +399,319 @@
                 Tổng quan hiệu quả tiếp nhận và xử lý ý kiến khách hàng.
             </p>
         </div>
+
         <a class="feedback-btn light"
            href="{% url 'feedback:admin_feedback_list' %}">
             Danh sách phiếu
         </a>
     </div>
 
-    <!-- Thẻ thống kê tổng quan -->
-    <div class="feedback-stats">
-        <div class="feedback-stat">
-            <div class="feedback-stat-label">Tổng số phiếu</div>
-            <div class="feedback-stat-value">{{ tong_so }}</div>
-            <div class="feedback-muted">Phản hồi và khiếu nại</div>
+
+    <!-- =================================
+         4 THẺ THỐNG KÊ
+         ================================= -->
+
+    <div class="fs-kpi-grid">
+
+        <!-- Tổng số phiếu -->
+        <div class="fs-kpi-card">
+            <div class="fs-kpi-icon gold">✦</div>
+
+            <div class="fs-kpi-content">
+                <div class="fs-kpi-label">Tổng số</div>
+
+                <div class="fs-kpi-bottom">
+                    <strong class="fs-kpi-number">{{ tong_so }}</strong>
+                    <span class="fs-kpi-note">
+                        Phản hồi và khiếu nại
+                    </span>
+                </div>
+            </div>
         </div>
-        <div class="feedback-stat">
-            <div class="feedback-stat-label">Đã tiếp nhận</div>
-            <div class="feedback-stat-value">{{ da_tiep_nhan }}</div>
-            <div class="feedback-muted">{{ pct_da_tiep_nhan }}% tổng số phiếu</div>
+
+
+        <!-- Đã tiếp nhận -->
+        <div class="fs-kpi-card">
+            <div class="fs-kpi-icon yellow">✦</div>
+
+            <div class="fs-kpi-content">
+                <div class="fs-kpi-label">Đã tiếp nhận</div>
+
+                <div class="fs-kpi-bottom">
+                    <strong class="fs-kpi-number">{{ da_tiep_nhan }}</strong>
+                    <span class="fs-kpi-note">
+                        {{ pct_da_tiep_nhan }}% tổng số
+                    </span>
+                </div>
+            </div>
         </div>
-        <div class="feedback-stat">
-            <div class="feedback-stat-label">Đang xử lý</div>
-            <div class="feedback-stat-value">{{ dang_xu_ly }}</div>
-            <div class="feedback-muted">{{ pct_dang_xu_ly }}% tổng số phiếu</div>
+
+
+        <!-- Đang xử lý -->
+        <div class="fs-kpi-card">
+            <div class="fs-kpi-icon blue">✦</div>
+
+            <div class="fs-kpi-content">
+                <div class="fs-kpi-label">Đang xử lý</div>
+
+                <div class="fs-kpi-bottom">
+                    <strong class="fs-kpi-number">{{ dang_xu_ly }}</strong>
+                    <span class="fs-kpi-note blue">
+                        {{ pct_dang_xu_ly }}% tổng số
+                    </span>
+                </div>
+            </div>
         </div>
-        <div class="feedback-stat">
-            <div class="feedback-stat-label">Đã giải quyết</div>
-            <div class="feedback-stat-value">{{ da_giai_quyet }}</div>
-            <div class="feedback-muted">{{ pct_da_giai_quyet }}% tổng số phiếu</div>
+
+
+        <!-- Đã giải quyết -->
+        <div class="fs-kpi-card">
+            <div class="fs-kpi-icon green">✦</div>
+
+            <div class="fs-kpi-content">
+                <div class="fs-kpi-label">Đã giải quyết</div>
+
+                <div class="fs-kpi-bottom">
+                    <strong class="fs-kpi-number">{{ da_giai_quyet }}</strong>
+                    <span class="fs-kpi-note green">
+                        {{ pct_da_giai_quyet }}% tổng số
+                    </span>
+                </div>
+            </div>
         </div>
+
     </div>
 
-    <div class="feedback-chart-grid">
 
-        <!-- Biểu đồ tỷ lệ phản hồi so với khiếu nại -->
-        <section class="feedback-chart-card">
-            <h2>Phản hồi vs Khiếu nại</h2>
-            <p class="feedback-muted">Theo số phiếu trong toàn bộ dữ liệu</p>
+    <!-- =================================
+         2 BIỂU ĐỒ
+         ================================= -->
 
-            <div class="feedback-donut"
-                 style="background:conic-gradient(#b58b43 0 {{ pct_phan_hoi }}%, #302823 {{ pct_phan_hoi }}% 100%)">
-                <div class="feedback-donut-label">{{ tong_so }}</div>
+    <div class="fs-chart-grid">
+
+        <!-- BIỂU ĐỒ PHẢN HỒI VS KHIẾU NẠI -->
+        <section class="fs-card">
+
+            <div class="fs-card-header">
+                <div>
+                    <h2 class="fs-card-title">Phản hồi vs Khiếu nại</h2>
+                    <p class="fs-card-subtitle">
+                        Theo số phiếu trong tháng
+                    </p>
+                </div>
+
+                <span class="fs-card-more">···</span>
             </div>
 
-            <div class="feedback-side-value">
-                <span style="color:#b58b43">●</span>
-                Phản hồi: <strong>{{ phan_hoi_count }}</strong>
-                <span class="feedback-muted">({{ pct_phan_hoi }}%)</span>
+
+            <div class="fs-donut-layout">
+
+                <!-- Donut -->
+                <svg class="fs-donut"
+                     viewBox="0 0 160 160"
+                     role="img"
+                     aria-label="Biểu đồ tỷ lệ phản hồi và khiếu nại">
+
+                    <!-- Vòng nền màu kem -->
+                    <circle
+                        class="fs-donut-track"
+                        cx="80"
+                        cy="80"
+                        r="60"
+                    />
+
+                    <!-- Phần vàng thể hiện tỷ lệ phản hồi -->
+                    <circle
+                        class="fs-donut-value"
+                        id="fsDonutValue"
+                        cx="80"
+                        cy="80"
+                        r="60"
+                        pathLength="100"
+                    />
+
+                    <!-- Tổng số ở giữa -->
+                    <text
+                        class="fs-donut-total"
+                        x="80"
+                        y="77">
+                        {{ tong_so }}
+                    </text>
+
+                    <text
+                        class="fs-donut-caption"
+                        x="80"
+                        y="96">
+                        Tổng phiếu
+                    </text>
+
+                </svg>
+
+
+                <!-- Chú thích -->
+                <div class="fs-legend">
+
+                    <div class="fs-legend-item">
+                        <span class="fs-legend-dot gold"></span>
+
+                        <div>
+                            <div class="fs-legend-label">Phản hồi</div>
+
+                            <strong class="fs-legend-value">
+                                {{ phan_hoi_count }} · {{ pct_phan_hoi }}%
+                            </strong>
+                        </div>
+                    </div>
+
+
+                    <div class="fs-legend-item">
+                        <span class="fs-legend-dot cream"></span>
+
+                        <div>
+                            <div class="fs-legend-label">Khiếu nại</div>
+
+                            <strong class="fs-legend-value">
+                                {{ khieu_nai_count }} · {{ pct_khieu_nai }}%
+                            </strong>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
-            <div class="feedback-side-value">
-                <span style="color:#302823">●</span>
-                Khiếu nại: <strong>{{ khieu_nai_count }}</strong>
-                <span class="feedback-muted">({{ pct_khieu_nai }}%)</span>
-            </div>
+
         </section>
 
-        <!-- Biểu đồ tiến độ xử lý bằng thanh ngang -->
-        <section class="feedback-chart-card">
-            <h2>Trạng thái xử lý</h2>
-            <p class="feedback-muted">Số lượng phiếu theo tiến độ</p>
 
-            <div class="feedback-bar-row">
-                <span>Đã tiếp nhận</span>
-                <div class="feedback-bar-bg">
-                    <div class="feedback-bar" style="width:{{ pct_da_tiep_nhan }}%"></div>
+        <!-- BIỂU ĐỒ TRẠNG THÁI XỬ LÝ -->
+        <section class="fs-card">
+
+            <div class="fs-card-header">
+                <div>
+                    <h2 class="fs-card-title">Trạng thái xử lý</h2>
+                    <p class="fs-card-subtitle">
+                        Số lượng phiếu theo tiến độ
+                    </p>
                 </div>
-                <strong>{{ da_tiep_nhan }}</strong>
+
+                <span class="fs-card-more">···</span>
             </div>
 
-            <div class="feedback-bar-row">
-                <span>Đang xử lý</span>
-                <div class="feedback-bar-bg">
-                    <div class="feedback-bar blue" style="width:{{ pct_dang_xu_ly }}%"></div>
+
+            <div class="fs-bars">
+
+                <!-- Đã tiếp nhận -->
+                <div class="fs-bar-row">
+
+                    <span class="fs-bar-label">Đã tiếp nhận</span>
+
+                    <div class="fs-bar-track">
+                        <div
+                            class="fs-bar-fill gold"
+                            data-value="{{ da_tiep_nhan|unlocalize }}">
+                        </div>
+                    </div>
+
+                    <strong class="fs-bar-value">
+                        {{ da_tiep_nhan }}
+                    </strong>
+
                 </div>
-                <strong>{{ dang_xu_ly }}</strong>
+
+
+                <!-- Đang xử lý -->
+                <div class="fs-bar-row">
+
+                    <span class="fs-bar-label">Đang xử lý</span>
+
+                    <div class="fs-bar-track">
+                        <div
+                            class="fs-bar-fill blue"
+                            data-value="{{ dang_xu_ly|unlocalize }}">
+                        </div>
+                    </div>
+
+                    <strong class="fs-bar-value">
+                        {{ dang_xu_ly }}
+                    </strong>
+
+                </div>
+
+
+                <!-- Đã giải quyết -->
+                <div class="fs-bar-row">
+
+                    <span class="fs-bar-label">Đã giải quyết</span>
+
+                    <div class="fs-bar-track">
+                        <div
+                            class="fs-bar-fill green"
+                            data-value="{{ da_giai_quyet|unlocalize }}">
+                        </div>
+                    </div>
+
+                    <strong class="fs-bar-value">
+                        {{ da_giai_quyet }}
+                    </strong>
+
+                </div>
+
             </div>
 
-            <div class="feedback-bar-row">
-                <span>Đã giải quyết</span>
-                <div class="feedback-bar-bg">
-                    <div class="feedback-bar green" style="width:{{ pct_da_giai_quyet }}%"></div>
-                </div>
-                <strong>{{ da_giai_quyet }}</strong>
-            </div>
         </section>
 
     </div>
+
 </div>
+
+
+<!-- =================================
+     XỬ LÝ ĐỘ DÀI BIỂU ĐỒ
+     ================================= -->
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // 1. Vẽ biểu đồ donut
+        const donut = document.getElementById("fsDonutValue");
+
+        if (donut) {
+            const percentage = Number(
+                "{{ pct_phan_hoi|unlocalize }}"
+            ) || 0;
+
+            const safePercentage = Math.max(
+                0,
+                Math.min(100, percentage)
+            );
+
+            donut.style.strokeDasharray =
+                safePercentage + " " + (100 - safePercentage);
+        }
+
+
+        // 2. Tính chiều dài thanh theo tổng số phiếu
+        const bars = document.querySelectorAll(
+            ".feedback-statistics-page .fs-bar-fill"
+        );
+
+        // Lấy tổng số phiếu từ Django
+        const totalTickets = Number(
+            "{{ tong_so|unlocalize }}"
+        ) || 0;
+
+        // Tính tỷ lệ từng trạng thái trên tổng số phiếu
+        bars.forEach(function (bar) {
+            const value = Number(bar.dataset.value) || 0;
+
+            const percentage = totalTickets > 0
+                ? (value / totalTickets) * 100
+                : 0;
+
+            bar.style.width = percentage + "%";
+        });
+
+    });
+</script>
+
 {% endblock %}

@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import PhienHoiThoai, TinNhan, BuocChatbot, KichBanChatbot, YeuCauTuVan
+from .permissions import admin_required
 
 # Thử kết nối Model Dịch vụ từ app dịch vụ (nếu có)
 try:
@@ -405,7 +406,7 @@ def admin_conversation_complete(request, session_id):
 
 
 # --- QUẢN LÝ KỊCH BẢN CHATBOT ---
-
+@admin_required
 def admin_script_list(request):
     """1. Màn hình Danh sách Kịch bản Chatbot (Ảnh 13) - Đã sửa lỗi FieldError"""
     # Sửa từ -thoi_gian_tao sang -pk vì model KichBanChatbot dùng khóa chính thay vì trường thời gian
@@ -425,7 +426,7 @@ def admin_script_list(request):
     }
     return render(request, 'chatbot/admin_script_list.html', context)
 
-
+@admin_required
 def admin_script_create(request):
     """Tạo kịch bản mới"""
     if request.method == 'POST':
@@ -452,7 +453,7 @@ def admin_script_create(request):
 
     return redirect('chatbot:admin_script_list')
 
-
+@admin_required
 def admin_script_detail(request, pk):
     """2. Màn hình Chi tiết Luồng Kịch bản (Ảnh 14)"""
     script = get_object_or_404(KichBanChatbot, pk=pk)
@@ -464,7 +465,7 @@ def admin_script_detail(request, pk):
     }
     return render(request, 'chatbot/admin_script_detail.html', context)
 
-
+@admin_required
 def admin_script_edit(request, pk):
     """3. Màn hình Chỉnh sửa / Flow Builder Kịch bản (Ảnh 15)"""
     script = get_object_or_404(KichBanChatbot, pk=pk)
@@ -490,7 +491,7 @@ def admin_script_edit(request, pk):
     }
     return render(request, 'chatbot/admin_script_edit.html', context)
 
-
+@admin_required
 def admin_script_preview(request, pk):
     """4. Màn hình Xem trước Kịch bản (Ảnh 17)"""
     script = get_object_or_404(KichBanChatbot, pk=pk)
@@ -503,7 +504,7 @@ def admin_script_preview(request, pk):
     }
     return render(request, 'chatbot/admin_script_preview.html', context)
 
-
+@admin_required
 def admin_script_delete(request, pk):
     """5. Xác nhận & Thực hiện Xóa Kịch bản (Ảnh 16)"""
     if request.method == 'POST':
@@ -512,7 +513,7 @@ def admin_script_delete(request, pk):
         messages.success(request, 'Đã xóa kịch bản thành công!')
     return redirect('chatbot:admin_script_list')
 
-
+@admin_required
 def admin_script_toggle_status(request, pk):
     """Bật / Tắt trạng thái kịch bản"""
     script = get_object_or_404(KichBanChatbot, pk=pk)

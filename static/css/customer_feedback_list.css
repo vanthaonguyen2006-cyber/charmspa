@@ -1,3 +1,5 @@
+/* Tải font Montserrat */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
 /* ==========================================
    FONT CHỮ CHUNG TOÀN BỘ MODULE
    ========================================== */
@@ -8,7 +10,7 @@
 .staff-detail-page *,
 .customer-feedback-list-page,
 .customer-feedback-list-page * {
-    font-family: "Segoe UI", Arial, Tahoma, sans-serif !important;
+    font-family: 'Montserrat', sans-serif !important;
 }
 
 /* Đồng bộ font cho các thành phần nhập liệu */
@@ -19,8 +21,12 @@
 .staff-detail-page input,
 .staff-detail-page select,
 .staff-detail-page textarea,
-.staff-detail-page button {
-    font-family: "Segoe UI", Arial, Tahoma, sans-serif !important;
+.staff-detail-page button,
+.customer-feedback-list-page input,
+.customer-feedback-list-page select,
+.customer-feedback-list-page textarea,
+.customer-feedback-list-page button {
+    font-family: 'Montserrat', sans-serif !important;
 }
 /* =========================================
    1. KHUNG CHUNG CỦA TRANG DANH SÁCH
@@ -373,4 +379,12 @@
     .feedback-table {
         min-width: 760px;
     }
+}
+
+/* ==========================================
+   FONT MONTSERRAT CHO TRANG KHÁCH HÀNG
+   ========================================== */
+.customer-feedback-list-page,
+.customer-feedback-list-page * {
+    font-family: 'Montserrat', sans-serif !important;
 }

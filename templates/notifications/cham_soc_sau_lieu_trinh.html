@@ -1,348 +1,360 @@
 {% extends 'layouts/staff_base.html' %}
 {% load static %}
 
-{% block title %}Hướng dẫn sau liệu trình - Charm Spa Management{% endblock %}
-
-{% block extra_css %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-<style>
-    .admin-page-wrapper {
-        background-color: #f7f4ee !important;
-        min-height: 100vh;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .font-serif { font-family: serif !important; }
-    .card-summary-dark { background-color: #1a1a1a !important; color: #ffffff !important; }
-    .btn-charm-red { background-color: #8E2A2B !important; color: #ffffff !important; border: none !important; }
-    .btn-charm-red:hover { background-color: #722223 !important; color: #ffffff !important; }
-
-    .btn-charm-outline {
-        border: 1px solid #dcd3c5 !important;
-        color: #8E2A2B !important;
-        background-color: #ffffff !important;
-        font-size: 0.85rem;
-    }
-    .btn-charm-outline:hover { background-color: #f7f4ee !important; }
-
-    .badge-status-pending { background-color: #fef3d6 !important; color: #b76e00 !important; }
-    .badge-status-sent { background-color: #e6f4ea !important; color: #137333 !important; }
-
-    .avatar-ktv {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background-color: #eee9e0;
-        color: #777;
-        font-size: 0.7rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-    }
-    .btn-send-hdcs {
-        border: 1px solid #e0d6c8;
-        background-color: #ffffff;
-        color: #444;
-        font-size: 0.8rem;
-        border-radius: 8px;
-        padding: 4px 12px;
-        transition: all 0.2s;
-    }
-    .btn-send-hdcs:hover {
-        background-color: #8E2A2B;
-        color: #ffffff;
-        border-color: #8E2A2B;
-    }
-    .text-view-content {
-        color: #8E2A2B;
-        font-size: 0.8rem;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .text-view-content:hover { text-decoration: underline; }
-
-    .modal-content-custom {
-        border-radius: 20px !important;
-        border: none !important;
-        padding: 10px;
-    }
-</style>
-{% endblock %}
+{% block title %}Hướng dẫn sau liệu trình - Charm Grand Spa{% endblock %}
 
 {% block content %}
-<div class="admin-page-wrapper p-4">
+<style>
+  .hdcs-page{font-family:Arial,'Segoe UI',sans-serif;background:#f8f5ef;min-height:calc(100vh - 80px);padding:30px 25px 55px;color:#312820}
+  .hdcs-wrap{max-width:1350px;margin:auto}
+  .hdcs-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9c805b;font-weight:700}
+  .hdcs-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:24px}
+  .hdcs-heading h1{font-family:Georgia,serif;font-size:33px;font-weight:500;margin:8px 0;color:#2f2923}
+  .hdcs-heading p{font-size:13px;color:#897d71;margin:0;line-height:1.6}
+  .hdcs-note{font-size:12px;border:1px solid #e5d8c4;border-radius:10px;background:#fffdf8;color:#846d4f;padding:11px 14px}
+  .hdcs-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:23px}
+  .hdcs-metric{background:white;border:1px solid #eee8df;border-radius:14px;padding:20px 21px;min-height:112px;box-shadow:0 3px 14px rgba(30,23,15,.025)}
+  .hdcs-metric:first-child{background:#272321;color:white;border-color:#272321}
+  .hdcs-metric-name{font-size:13px;color:#8d8074}
+  .hdcs-metric:first-child .hdcs-metric-name{color:#d9c6aa}
+  .hdcs-metric-value{font-family:Georgia,serif;font-size:35px;line-height:1.3;margin-top:9px;font-variant-numeric:tabular-nums}
+  .hdcs-panel{background:#fff;border:1px solid #eee8df;border-radius:17px;overflow:hidden;box-shadow:0 4px 20px rgba(30,23,15,.035)}
+  .hdcs-panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:20px;border-bottom:1px solid #efeae4}
+  .hdcs-panel-head h2{font-family:Georgia,serif;font-weight:600;font-size:19px;margin:0;color:#342b23}
+  .hdcs-controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .hdcs-search,.hdcs-filter{border:1px solid #e6ddd2;border-radius:9px;background:#fff;padding:11px 12px;color:#4c4037;font-size:12px;outline:none}
+  .hdcs-search{width:260px;max-width:100%}
+  .hdcs-search:focus,.hdcs-filter:focus{border-color:#ad8655}
+  .hdcs-table-wrap{overflow-x:auto}
+  .hdcs-table{width:100%;border-collapse:collapse;font-size:13px;min-width:810px}
+  .hdcs-table thead{background:#f7f4ef}
+  .hdcs-table th{font-size:11px;font-weight:700;letter-spacing:.2px;color:#8a7e72;padding:15px 17px;text-align:left;white-space:nowrap}
+  .hdcs-table td{padding:16px 17px;border-top:1px solid #f1ede8;vertical-align:middle;color:#4f473f}
+  .hdcs-table tbody tr:hover{background:#fdfaf6}
+  .hdcs-name{font-weight:700;color:#342c26;font-size:13px}
+  .hdcs-sub{font-size:11px;color:#9d9084;margin-top:5px}
+  .hdcs-pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:6px 10px;border-radius:999px;white-space:nowrap}
+  .hdcs-pill.pending{background:#fff0eb;color:#ae5a46}
+  .hdcs-pill.sent{background:#eaf5ed;color:#477b59}
+  .hdcs-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+  .hdcs-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;padding:10px 14px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap;transition:.18s;border:1px solid #e3d8c8;background:white;color:#805e3e}
+  .hdcs-btn:hover{background:#fbf4e9;border-color:#bda27c}
+  .hdcs-btn.primary{background:#8d6949;border-color:#8d6949;color:#fff}
+  .hdcs-btn.primary:hover{background:#725238}
+  .hdcs-btn:disabled{cursor:not-allowed;opacity:.55}
+  .hdcs-empty{padding:45px 24px;text-align:center;color:#8b8074;font-size:13px;line-height:1.8}
+  .hdcs-footer{padding:14px 20px;font-size:11px;color:#948779;border-top:1px solid #eee8df;display:flex;justify-content:space-between;gap:10px}
+  .hdcs-modal{position:fixed;inset:0;z-index:100000;display:none;justify-content:center;align-items:center;padding:20px}
+  .hdcs-modal.is-open{display:flex}
+  .hdcs-modal-backdrop{position:absolute;inset:0;background:rgba(26,21,17,.64);backdrop-filter:blur(3px)}
+  .hdcs-modal-card{position:relative;background:#fff;width:100%;max-width:610px;max-height:90vh;overflow:auto;border-radius:18px;padding:26px 28px;box-shadow:0 25px 80px rgba(0,0,0,.22)}
+  .hdcs-modal-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;border-bottom:1px solid #eee5d9;padding-bottom:17px}
+  .hdcs-modal-top h2{font-family:Georgia,serif;font-size:24px;font-weight:500;margin:4px 0 0}
+  .hdcs-close{background:none;border:0;cursor:pointer;font-size:25px;color:#887665;line-height:1}
+  .hdcs-modal-info{margin:18px 0;background:#faf6f0;border:1px solid #eee4d6;border-radius:11px;padding:15px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .hdcs-info-key{font-size:11px;color:#8e7e6e;margin-bottom:4px}
+  .hdcs-info-val{font-weight:700;font-size:13px;color:#483a2c;overflow-wrap:anywhere}
+  .hdcs-label{font-size:12px;font-weight:700;color:#594534;margin-bottom:8px;display:block}
+  .hdcs-textarea{width:100%;min-height:190px;resize:vertical;border:1px solid #e3d6c4;border-radius:11px;padding:14px;font-size:13px;line-height:1.7;color:#45372e;box-sizing:border-box;font-family:inherit}
+  .hdcs-textarea:focus{outline:2px solid #ead4b4;border-color:#a68156}
+  .hdcs-help{font-size:12px;color:#91806e;line-height:1.6;margin-top:9px}
+  .hdcs-modal-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:21px}
+  /* Popup gui HDCS theo layout 2 phan: mau + ghi chu. */
+  .hdcs-modal-card{max-width:665px;padding:28px 30px;border-radius:17px}
+  .hdcs-modal-top{align-items:center}
+  .hdcs-modal-top .hdcs-eyebrow{font-size:10px;letter-spacing:1.4px}
+  .hdcs-modal-top h2{font-size:27px}
+  .hdcs-modal-info{background:#f8f5f0;grid-template-columns:1fr 1fr;padding:18px;gap:14px}
+  .hdcs-modal-info .hdcs-info-val{font-size:12.5px}
+  .hdcs-choice{width:100%;padding:13px;border:1px solid #e5d9c8;border-radius:11px;background:#fff;font-size:13px;color:#4b4037}
+  .hdcs-choice:focus{outline:2px solid #e7cda8}
+  .hdcs-template-box{margin:17px 0 18px;padding:16px;border:1px solid #e9dfd2;border-radius:12px;background:#f8f5f0}
+  .hdcs-template-top{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:11px;font-weight:800;letter-spacing:.3px;color:#9a503c}
+  .hdcs-template-status{color:#5e886c;font-size:11px}
+  .hdcs-template-body{color:#62564b;font-size:12.5px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 0;max-height:185px;overflow-y:auto}
+  .hdcs-editor{border:1px solid #e2d5c4;border-radius:11px;overflow:hidden;background:#fff}
+  .hdcs-toolbar{padding:9px 11px;display:flex;gap:6px;align-items:center;background:#f7f3ed;border-bottom:1px solid #ece2d7}
+  .hdcs-tool{font-size:13px;font-weight:700;min-width:30px;height:30px;border:0;background:transparent;border-radius:6px;color:#8c6244;cursor:pointer}
+  .hdcs-tool:hover{background:#eae1d5}
+  .hdcs-textarea{border:0;border-radius:0;min-height:110px;padding:14px;font-size:12.5px;line-height:1.8}
+  .hdcs-textarea:focus{outline:0}
+  .hdcs-template-hint{color:#948473;font-size:11px;margin:6px 0 0}
+  .hdcs-modal-actions{border-top:1px solid #eee7dd;padding-top:16px}
+  .hdcs-btn.primary{background:#972d30;border-color:#972d30}
+  .hdcs-btn.primary:hover{background:#7d2225}
+  @media(max-width:760px){.hdcs-page{padding:22px 12px 45px}.hdcs-heading h1{font-size:27px}.hdcs-metrics{grid-template-columns:1fr;gap:10px}.hdcs-metric{min-height:auto;padding:15px 18px}.hdcs-metric-value{font-size:29px}.hdcs-search{width:100%}.hdcs-controls{width:100%}.hdcs-panel-head{padding:16px}.hdcs-modal-card{padding:20px}.hdcs-modal-info{grid-template-columns:1fr}}
+</style>
 
-    <!-- HEADER TRANG ADMIN -->
-    <div class="d-flex justify-content-between align-items-end mb-4 pt-2">
-        <div>
-            <span class="text-uppercase small text-muted fw-semibold" style="letter-spacing: 1px; font-size: 0.7rem;">CHĂM SÓC SAU LIỆU TRÌNH</span>
-            <h2 class="fw-normal font-serif mb-1" style="color: #1e1e1e; font-size: 2.2rem;">Hướng dẫn sau liệu trình</h2>
-            <p class="text-muted small mb-0">Gửi hướng dẫn và lời dặn riêng để sự chăm sóc tiếp tục, ngay cả khi khách đã rời spa.</p>
-        </div>
-        <a href="#" class="btn btn-charm-outline px-3 py-2 rounded-3 fw-semibold shadow-sm">
-            <i class="far fa-book-open me-2"></i>Thư viện mẫu
-        </a>
+<div class="hdcs-page">
+ <div class="hdcs-wrap">
+  <div class="hdcs-heading">
+   <div>
+    <div class="hdcs-eyebrow">CHĂM SÓC SAU LIỆU TRÌNH</div>
+    <h1>Hướng dẫn sau liệu trình</h1>
+    <p>Quản lý lời dặn chăm sóc dành riêng cho khách hàng sau khi hoàn thành dịch vụ.</p>
+   </div>
+   <div class="hdcs-note">Hướng dẫn chăm sóc cá nhân hóa • Gửi trực tiếp đến khách hàng</div>
+  </div>
+
+  <div class="hdcs-metrics">
+   <div class="hdcs-metric"><div class="hdcs-metric-name">Hoàn thành hôm nay</div><div class="hdcs-metric-value" id="hdcsToday">0</div></div>
+   <div class="hdcs-metric"><div class="hdcs-metric-name">Chờ gửi hướng dẫn</div><div class="hdcs-metric-value" id="hdcsPending">0</div></div>
+   <div class="hdcs-metric"><div class="hdcs-metric-name">Đã gửi hướng dẫn</div><div class="hdcs-metric-value" id="hdcsSent">0</div></div>
+  </div>
+
+  <section class="hdcs-panel">
+   <div class="hdcs-panel-head">
+    <h2>Khách hoàn thành liệu trình</h2>
+    <div class="hdcs-controls">
+     <input id="hdcsSearch" class="hdcs-search" type="search" placeholder="Tìm khách hàng hoặc dịch vụ..." aria-label="Tìm khách hàng hoặc dịch vụ">
+     <select id="hdcsStatus" class="hdcs-filter" aria-label="Lọc trạng thái">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="pending">Chưa gửi</option>
+      <option value="sent">Đã gửi</option>
+     </select>
     </div>
-
-    <!-- KHỐI THỐNG KÊ (3 CARDS SUMMARY) -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 rounded-4 p-3 card-summary-dark shadow-sm d-flex flex-row justify-content-between align-items-center" style="min-height: 90px;">
-                <div>
-                    <div class="small text-white-50">Hoàn thành hôm nay</div>
-                    <div class="text-white-50" style="font-size: 0.72rem;">Các liệu trình đã checkout</div>
-                </div>
-                <div class="display-5 font-serif fw-normal ms-2">{{ hoan_thanh_count|default:"18" }}</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 rounded-4 p-3 bg-white shadow-sm d-flex flex-row justify-content-between align-items-center" style="min-height: 90px;">
-                <div>
-                    <div class="small text-dark fw-semibold">Chờ gửi hướng dẫn</div>
-                    <div class="text-muted" style="font-size: 0.72rem;">Ưu tiên gửi trong ngày</div>
-                </div>
-                <div class="display-5 font-serif fw-normal text-dark ms-2">{% if cho_gui_count < 10 %}0{% endif %}{{ cho_gui_count|default:"06" }}</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 rounded-4 p-3 bg-white shadow-sm d-flex flex-row justify-content-between align-items-center" style="min-height: 90px;">
-                <div>
-                    <div class="small text-dark fw-semibold">Đã gửi HDCS</div>
-                    <div class="text-muted" style="font-size: 0.72rem;">Nội dung khớp với từng dịch vụ</div>
-                </div>
-                <div class="display-5 font-serif fw-normal text-dark ms-2">{% if da_gui_count < 10 %}0{% endif %}{{ da_gui_count|default:"12" }}</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- BẢNG DANH SÁCH KHÁCH HÀNG (HÌNH 62) -->
-    <div class="card border-0 rounded-4 bg-white shadow-sm overflow-hidden mb-4">
-        <div class="p-3 border-bottom border-light d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <h5 class="fw-normal mb-0 font-serif me-2">Khách hoàn thành liệu trình</h5>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="input-group input-group-sm" style="width: 240px;">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
-                    <input type="text" class="form-control bg-light border-start-0" placeholder="Tìm khách hàng hoặc dịch vụ">
-                </div>
-                <select class="form-select form-select-sm bg-light" style="width: 140px;">
-                    <option>Tất cả trạng thái</option>
-                    <option>Chưa gửi</option>
-                    <option>Đã gửi</option>
-                </select>
-                <button class="btn btn-sm btn-light border"><i class="far fa-calendar-alt me-1"></i> Hôm nay, 03/10</button>
-            </div>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
-                <thead class="bg-light text-muted small">
-                    <tr>
-                        <th class="ps-4 py-3 fw-semibold">Khách hàng</th>
-                        <th class="py-3 fw-semibold">Dịch vụ</th>
-                        <th class="py-3 fw-semibold">KTV</th>
-                        <th class="py-3 fw-semibold">Giờ checkout</th>
-                        <th class="py-3 fw-semibold">Trạng thái gửi HDCS</th>
-                        <th class="py-3 text-end pe-4 fw-semibold">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in danh_sach %}
-                        <tr>
-                            <td class="ps-4 py-3">
-                                <div class="fw-semibold text-dark">{{ item.ten_khach_hang }}</div>
-                                <small class="text-muted">{{ item.ma_lich_hen }}</small>
-                            </td>
-                            <td>
-                                <div class="text-dark">{{ item.ten_dich_vu }}</div>
-                                <small class="text-muted">{{ item.thoi_luong }} • Đã hoàn thành</small>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="avatar-ktv">{{ item.ktv_code }}</span>
-                                    <span class="small text-dark">{{ item.ten_ktv }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold text-dark">{{ item.gio_checkout }}</div>
-                                <small class="text-muted">{{ item.ngay_checkout }}</small>
-                            </td>
-                            <td>
-                                {% if item.trang_thai %}
-                                    <span class="badge badge-status-sent rounded-pill px-3 py-2 fw-normal">• Đã gửi</span>
-                                {% else %}
-                                    <span class="badge badge-status-pending rounded-pill px-3 py-2 fw-normal">• Chưa gửi</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end pe-4">
-                                {% if item.trang_thai %}
-                                    <a class="text-view-content fw-semibold" onclick="openViewModal('{{ item.id }}')">Xem nội dung</a>
-                                {% else %}
-                                    <button type="button" class="btn btn-send-hdcs shadow-sm" onclick="openSendModal('{{ item.id }}')">
-                                        <i class="far fa-paper-plane me-1"></i> Gửi HDCS
-                                    </button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">Hôm nay chưa có khách hàng hoàn thành liệu trình.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="p-3 border-top border-light d-flex justify-content-between align-items-center text-muted small">
-            <div>Hiển thị 1–{{ danh_sach|length }} trong {{ hoan_thanh_count|default:"18" }} bản ghi</div>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link border-0" href="#">&lt;</a></li>
-                <li class="page-item active"><a class="page-link border-0 text-white rounded-2" style="background-color: #8E2A2B;" href="#">1</a></li>
-                <li class="page-item"><a class="page-link border-0 text-dark" href="#">2</a></li>
-                <li class="page-item"><a class="page-link border-0 text-dark" href="#">3</a></li>
-                <li class="page-item border-0"><a class="page-link border-0" href="#">&gt;</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="d-flex justify-content-between align-items-center mt-4 text-muted small" style="font-size: 0.75rem;">
-        <div>Dữ liệu minh họa - Mẫu chăm sóc được chọn theo dịch vụ hoàn thành</div>
-        <div>Charm Spa • Chăm sóc từ tâm</div>
-    </div>
+   </div>
+   <div class="hdcs-table-wrap">
+    <table class="hdcs-table">
+     <thead><tr><th>Khách hàng</th><th>Dịch vụ</th><th>Kỹ thuật viên</th><th>Thời điểm ghi nhận</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+     <tbody id="hdcsRows">
+      {% for record in records %}
+      <tr class="hdcs-record" data-status="{% if record.trang_thai %}sent{% else %}pending{% endif %}" data-date="{{ record.gio_checkout|date:'Y-m-d' }}">
+       <td><div class="hdcs-name">{{ record.ten_khach_hang }}</div><div class="hdcs-sub">{{ record.ma_lh_id }}</div></td>
+       <td><div>{{ record.ten_dich_vu }}</div></td>
+       <td>{{ record.ten_ktv|default:'Chưa phân công' }}</td>
+       <td><div>{{ record.gio_checkout|date:'H:i' }}</div><div class="hdcs-sub">{{ record.gio_checkout|date:'d/m/Y' }}</div></td>
+       <td>{% if record.trang_thai %}<span class="hdcs-pill sent">Đã gửi</span>{% else %}<span class="hdcs-pill pending">Chưa gửi</span>{% endif %}</td>
+       <td>
+        <button type="button" class="hdcs-btn {% if not record.trang_thai %}primary{% endif %} hdcs-open"
+         data-name="{{ record.ten_khach_hang|escape }}"
+         data-service="{{ record.ten_dich_vu|escape }}"
+         data-staff="{{ record.ten_ktv|default:'Chưa phân công'|escape }}"
+         data-code="{{ record.ma_lh_id|escape }}"
+         data-service-id="{{ record.ma_lh.ma_dv_id|escape }}"
+         data-template-id="{{ record.ma_hd_id|default:''|escape }}"
+         data-send-url="{% url 'notifications:gui_hdcs_action' record.id %}"
+         data-status="{% if record.trang_thai %}sent{% else %}pending{% endif %}"
+         data-content="{{ record.noi_dung_gui|default:''|escape }}">
+         {% if record.trang_thai %}Xem nội dung{% else %}Soạn hướng dẫn{% endif %}
+        </button>
+       </td>
+      </tr>
+      {% empty %}
+      <tr id="hdcsDatabaseEmpty"><td colspan="6"><div class="hdcs-empty">Chưa có lịch hẹn ở trạng thái <strong>Hoàn thành</strong>.</div></td></tr>
+      {% endfor %}
+     </tbody>
+    </table>
+   </div>
+   <div class="hdcs-empty" id="hdcsFilterEmpty" style="display:none;">Không tìm thấy khách hàng phù hợp với bộ lọc.</div>
+   <div class="hdcs-footer"><span id="hdcsVisible">Hiển thị 0 bản ghi</span><span>Dữ liệu lấy từ nhật ký chăm sóc thực tế</span></div>
+  </section>
+ </div>
 </div>
 
-<!-- POP-UP 1: MODAL GỬI HDCS SAU LIỆU TRÌNH -->
-<div class="modal fade" id="sendHdcsModal" tabindex="-1" aria-hidden="true" style="background-color: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content modal-content-custom shadow-lg">
-            <form id="sendHdcsForm" method="POST" action="">
-                {% csrf_token %}
-                <div class="modal-header border-0 pb-0 position-relative">
-                    <div>
-                        <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.68rem; letter-spacing: 1px;">GỬI HDCS SAU LIỆU TRÌNH</span>
-                        <h3 class="modal-title font-serif fw-normal mt-1" style="color: #1e1e1e; font-size: 1.8rem;">Hướng dẫn cho <span id="send-customer-name" class="fw-semibold text-danger">...</span></h3>
-                        <p class="text-muted small mb-0">Nội dung mẫu tự động khớp với dịch vụ: <strong id="send-service-name" class="text-dark">...</strong></p>
-                    </div>
-                    <button type="button" class="btn-close rounded-circle bg-light p-2 position-absolute top-0 end-0 m-3" onclick="closeSendModal()"></button>
-                </div>
-
-                <div class="modal-body py-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small text-dark">Kênh gửi hướng dẫn</label>
-                        <select class="form-select py-2 px-3 rounded-3" name="kenh_gui">
-                            <option value="zalo">Gửi qua Zalo OA (Khuyên dùng)</option>
-                            <option value="app">Gửi qua ứng dụng Charm Spa</option>
-                            <option value="email">Gửi qua Email</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small text-dark">Nội dung dặn dò chi tiết</label>
-                        <textarea class="form-control p-3 rounded-3" id="send-content" name="noi_dung_dan_do" rows="5"></textarea>
-                    </div>
-
-                    <div class="p-3 rounded-3 bg-light border">
-                        <label class="form-label fw-semibold small text-dark mb-1">Lưu ý bổ sung cho dịch vụ này</label>
-                        <p class="text-muted small mb-0" id="send-note">Uống nhiều nước ấm và nghỉ ngơi nhẹ nhàng.</p>
-                    </div>
-                </div>
-
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-link text-muted text-decoration-none px-4" onclick="closeSendModal()">Hủy</button>
-                    <button type="submit" class="btn btn-charm-red px-4 py-2 rounded-3 fw-semibold"><i class="far fa-paper-plane me-1"></i> Xác nhận & Gửi ngay</button>
-                </div>
-            </form>
-        </div>
+<div id="hdcsModal" class="hdcs-modal" role="dialog" aria-modal="true" aria-labelledby="hdcsModalTitle" aria-hidden="true">
+ <div class="hdcs-modal-backdrop" data-hdcs-close="1"></div>
+ <div class="hdcs-modal-card">
+  <div class="hdcs-modal-top">
+   <div><div class="hdcs-eyebrow">CHARM GRAND SPA & WELLNESS</div><h2 id="hdcsModalTitle">Hướng dẫn sau liệu trình</h2></div>
+   <button type="button" class="hdcs-close" data-hdcs-close="1" aria-label="Đóng">&times;</button>
+  </div>
+  <div class="hdcs-modal-info">
+   <div><div class="hdcs-info-key">Khách hàng</div><div id="hdcsModalName" class="hdcs-info-val"></div></div>
+   <div><div class="hdcs-info-key">Mã lịch hẹn</div><div id="hdcsModalCode" class="hdcs-info-val"></div></div>
+   <div><div class="hdcs-info-key">Dịch vụ</div><div id="hdcsModalService" class="hdcs-info-val"></div></div>
+   <div><div class="hdcs-info-key">Kỹ thuật viên</div><div id="hdcsModalStaff" class="hdcs-info-val"></div></div>
+  </div>
+  <div id="hdcsComposeArea">
+    <label class="hdcs-label" for="hdcsTemplateSelect">Mẫu hướng dẫn chăm sóc</label>
+    <select id="hdcsTemplateSelect" class="hdcs-choice">
+      <option value="">— Tự soạn, không dùng mẫu —</option>
+      {% for mau in mau_huong_dan %}
+      <option value="{{ mau.pk|escape }}" data-service-id="{{ mau.ma_dv_id|default:''|escape }}">{{ mau.tieu_de }}</option>
+      {% endfor %}
+    </select>
+    <p id="hdcsTemplateHint" class="hdcs-template-hint">Chỉ hiển thị mẫu phù hợp với dịch vụ của khách.</p>
+    <div id="hdcsTemplateBox" class="hdcs-template-box" hidden>
+      <div class="hdcs-template-top"><span id="hdcsTemplateName">NỘI DUNG MẪU</span><span class="hdcs-template-status">✓ Đã chọn mẫu</span></div>
+      <div id="hdcsTemplatePreview" class="hdcs-template-body"></div>
     </div>
+    <label class="hdcs-label" for="hdcsContent">Ghi chú riêng cho khách hàng</label>
+    <div class="hdcs-editor">
+      <div class="hdcs-toolbar" aria-label="Công cụ định dạng ghi chú">
+        <button type="button" class="hdcs-tool" data-format="bold" title="In đậm"><b>B</b></button>
+        <button type="button" class="hdcs-tool" data-format="italic" title="In nghiêng"><i>I</i></button>
+        <button type="button" class="hdcs-tool" data-format="bullet" title="Gạch đầu dòng">☷</button>
+      </div>
+      <textarea id="hdcsContent" class="hdcs-textarea" maxlength="5000" placeholder="Ví dụ: Chị Ngọc thân mến, sau buổi chăm sóc tóc hôm nay, chị nên hạn chế nhiệt độ sấy cao và dùng dầu gội dịu nhẹ..."></textarea>
+    </div>
+    <div id="hdcsModalHelp" class="hdcs-help" role="status">Khách sẽ nhận hướng dẫn mẫu (nếu chọn) cùng ghi chú riêng trong cùng một thông báo.</div>
+  </div>
+  <div id="hdcsSentArea" hidden>
+    <label class="hdcs-label">Nội dung đã gửi cho khách hàng</label>
+    <div id="hdcsSentPreview" class="hdcs-template-box hdcs-template-body" style="max-height:390px;overflow-y:auto;white-space:pre-wrap"></div>
+    <div class="hdcs-help">Nội dung đã được gửi, không thể chỉnh sửa trực tiếp.</div>
+  </div>
+  <script id="hdcsTemplatesData" type="application/json">[
+    {% for mau in mau_huong_dan %}{"id":"{{ mau.pk|escapejs }}","service":"{{ mau.ma_dv_id|default:''|escapejs }}","title":"{{ mau.tieu_de|escapejs }}","content":"{{ mau.noi_dung|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+  ]</script>
+  <div id="hdcsModalError" class="hdcs-help" role="alert" style="display:none;color:#aa3737;font-weight:600"></div>
+  <form id="hdcsCsrfForm" style="display:none">{% csrf_token %}</form>
+  <div class="hdcs-modal-actions">
+   <button type="button" class="hdcs-btn" data-hdcs-close="1">Đóng</button>
+   <button type="button" id="hdcsSubmit" class="hdcs-btn primary">Gửi HDCS</button>
+  </div>
+ </div>
 </div>
 
-<!-- POP-UP 2: MODAL XEM NỘI DUNG ĐÃ GỬI -->
-<div class="modal fade" id="viewHdcsModal" tabindex="-1" aria-hidden="true" style="background-color: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content modal-content-custom shadow-lg">
-            <div class="modal-header border-0 pb-0 position-relative">
-                <div>
-                    <span class="text-uppercase text-success fw-semibold" style="font-size: 0.68rem; letter-spacing: 1px;">• ĐÃ GỬI NỘI DUNG CHĂM SÓC</span>
-                    <h3 class="modal-title font-serif fw-normal mt-1" style="color: #1e1e1e; font-size: 1.8rem;">Nội dung dặn dò: <span id="view-customer-name">...</span></h3>
-                    <p class="text-muted small mb-0">Dịch vụ: <strong id="view-service-name" class="text-dark">...</strong></p>
-                </div>
-                <button type="button" class="btn-close rounded-circle bg-light p-2 position-absolute top-0 end-0 m-3" onclick="closeViewModal()"></button>
-            </div>
-
-            <div class="modal-body py-4">
-                <div class="p-3 rounded-3 bg-light border mb-3">
-                    <div class="fw-semibold small text-dark mb-2"><i class="fas fa-check-circle text-success me-1"></i> Lời dặn đã gửi cho khách:</div>
-                    <p class="text-dark small mb-0" style="white-space: pre-line;" id="view-content">...</p>
-                </div>
-
-                <div class="p-3 rounded-3 border-start border-4 border-warning bg-light">
-                    <div class="fw-semibold small text-dark mb-1">Ghi chú lưu ý thêm</div>
-                    <p class="text-muted small mb-0" id="view-note">...</p>
-                </div>
-            </div>
-
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary px-4 py-2 rounded-3 fw-semibold" onclick="closeViewModal()">Đóng</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
 <script>
-    const URL_SEND_BASE = "{% url 'notifications:gui_hdcs_action' '0' %}".replace('0/', '');
+(function () {
+  const rows = Array.from(document.querySelectorAll('.hdcs-record'));
+  const search = document.getElementById('hdcsSearch');
+  const status = document.getElementById('hdcsStatus');
+  const modal = document.getElementById('hdcsModal');
+  const textarea = document.getElementById('hdcsContent');
+  const templateSelect = document.getElementById('hdcsTemplateSelect');
+  const templates = JSON.parse(document.getElementById('hdcsTemplatesData').textContent);
+  const templateBox = document.getElementById('hdcsTemplateBox');
+  let serviceId = '';
+  function refreshTemplate() {
+    const sample = templates.find(x => x.id === templateSelect.value);
+    templateBox.hidden = !sample;
+    document.getElementById('hdcsTemplateName').textContent = sample ? sample.title : '';
+    document.getElementById('hdcsTemplatePreview').textContent = sample ? sample.content : '';
+  }
+  templateSelect.addEventListener('change', refreshTemplate);
+  document.querySelectorAll('[data-format]').forEach(tool => tool.addEventListener('click', () => {
+    const start = textarea.selectionStart, end = textarea.selectionEnd;
+    const selected = textarea.value.slice(start, end);
+    let value;
+    if (tool.dataset.format === 'bold') value = '**' + (selected || 'nội dung') + '**';
+    else if (tool.dataset.format === 'italic') value = '*' + (selected || 'nội dung') + '*';
+    else value = '- ' + (selected || 'Nội dung ghi chú');
+    textarea.setRangeText(value, start, end, 'select');
+    textarea.focus();
+  }));
+  const submitButton = document.getElementById('hdcsSubmit');
+  const help = document.getElementById('hdcsModalHelp');
+  const errorBox = document.getElementById('hdcsModalError');
+  const csrf = document.querySelector('#hdcsCsrfForm [name=csrfmiddlewaretoken]').value;
+  let sendUrl = '';
+  let alreadySent = false;
+  let focusBeforeOpen = null;
 
-    function openSendModal(id) {
-        fetch(`/notifications/post-treatment/detail-json/${id}/`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('send-customer-name').innerText = data.ten_khach_hang;
-                document.getElementById('send-service-name').innerText = data.ten_dich_vu;
-                document.getElementById('send-content').value = data.noi_dung_dan_do;
-                document.getElementById('send-note').innerText = data.luu_y_dac_biet;
+  // Thống kê được tính từ các bản ghi thật, không dùng số liệu mẫu.
+  const today = new Date();
+  const todayStr = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+  document.getElementById('hdcsToday').textContent = rows.filter(r => r.dataset.date === todayStr).length;
+  document.getElementById('hdcsPending').textContent = rows.filter(r => r.dataset.status === 'pending').length;
+  document.getElementById('hdcsSent').textContent = rows.filter(r => r.dataset.status === 'sent').length;
 
-                document.getElementById('sendHdcsForm').action = URL_SEND_BASE + id + '/';
-
-                const modalEl = document.getElementById('sendHdcsModal');
-                modalEl.classList.add('show');
-                modalEl.style.display = 'block';
-                document.body.classList.add('modal-open');
-            });
+  function filterRows() {
+    const keyword = search.value.trim().toLocaleLowerCase('vi');
+    const selectedStatus = status.value;
+    let count = 0;
+    for (const row of rows) {
+      const matched = row.textContent.toLocaleLowerCase('vi').includes(keyword) && (selectedStatus === 'all' || row.dataset.status === selectedStatus);
+      row.style.display = matched ? '' : 'none';
+      if (matched) count++;
     }
+    document.getElementById('hdcsVisible').textContent = 'Hiển thị ' + count + ' / ' + rows.length + ' bản ghi';
+    document.getElementById('hdcsFilterEmpty').style.display = rows.length && !count ? 'block' : 'none';
+  }
+  search.addEventListener('input', filterRows);
+  status.addEventListener('change', filterRows);
+  filterRows();
 
-    function closeSendModal() {
-        const modalEl = document.getElementById('sendHdcsModal');
-        modalEl.classList.remove('show');
-        modalEl.style.display = 'none';
-        document.body.classList.remove('modal-open');
+  function openModal(button) {
+    focusBeforeOpen = document.activeElement;
+    const d = button.dataset;
+    document.getElementById('hdcsModalName').textContent = d.name || '—';
+    document.getElementById('hdcsModalCode').textContent = d.code || '—';
+    document.getElementById('hdcsModalService').textContent = d.service || '—';
+    document.getElementById('hdcsModalStaff').textContent = d.staff || '—';
+    document.getElementById('hdcsModalTitle').textContent = d.status === 'sent' ? 'Hướng dẫn đã gửi' : 'Soạn hướng dẫn chăm sóc';
+    alreadySent = d.status === 'sent';
+    sendUrl = d.sendUrl || '';
+    serviceId = d.serviceId || '';
+    document.getElementById('hdcsComposeArea').hidden = alreadySent;
+    document.getElementById('hdcsSentArea').hidden = !alreadySent;
+    document.getElementById('hdcsSentPreview').textContent = d.content || '';
+    textarea.value = '';
+    for (const opt of Array.from(templateSelect.options)) {
+      if (!opt.value) continue;
+      opt.hidden = !!opt.dataset.serviceId && opt.dataset.serviceId !== serviceId;
+      opt.disabled = opt.hidden;
     }
-
-    function openViewModal(id) {
-        fetch(`/notifications/post-treatment/detail-json/${id}/`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('view-customer-name').innerText = data.ten_khach_hang;
-                document.getElementById('view-service-name').innerText = data.ten_dich_vu;
-                document.getElementById('view-content').innerText = data.noi_dung_dan_do;
-                document.getElementById('view-note').innerText = data.luu_y_dac_biet;
-
-                const modalEl = document.getElementById('viewHdcsModal');
-                modalEl.classList.add('show');
-                modalEl.style.display = 'block';
-                document.body.classList.add('modal-open');
-            });
+    templateSelect.value = '';
+    const compatible = templates.filter(x => !x.service || x.service === serviceId);
+    const preferred = compatible.find(x => x.service === serviceId) || compatible[0];
+    if (preferred) templateSelect.value = preferred.id;
+    refreshTemplate();
+    document.getElementById('hdcsTemplateHint').textContent = compatible.length
+      ? 'Đã tìm thấy ' + compatible.length + ' mẫu phù hợp với dịch vụ.'
+      : 'Chưa có mẫu cho dịch vụ này. Bạn có thể viết ghi chú riêng để gửi.';
+    submitButton.style.display = alreadySent ? 'none' : '';
+    submitButton.disabled = false;
+    submitButton.textContent = 'Gửi HDCS';
+    errorBox.style.display = 'none';
+    help.textContent = alreadySent
+      ? 'Đây là nội dung đã gửi và được lưu trong nhật ký chăm sóc.'
+      : 'Khách nhận hướng dẫn mẫu (nếu chọn) cùng ghi chú riêng trong một thông báo.';
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    modal.querySelector('.hdcs-close').focus();
+  }
+  function closeModal() {
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (focusBeforeOpen) focusBeforeOpen.focus();
+  }
+  submitButton.addEventListener('click', async function () {
+    if (alreadySent || !sendUrl) return;
+    const content = textarea.value.trim();
+    const templateId = templateSelect.value;
+    errorBox.style.display = 'none';
+    if (!content && !templateId) {
+      errorBox.textContent = 'Vui lòng chọn mẫu hoặc nhập ghi chú riêng.';
+      errorBox.style.display = 'block';
+      textarea.focus();
+      return;
     }
+    if (!window.confirm('Bạn xác nhận gửi hướng dẫn này đến khách hàng?')) return;
 
-    function closeViewModal() {
-        const modalEl = document.getElementById('viewHdcsModal');
-        modalEl.classList.remove('show');
-        modalEl.style.display = 'none';
-        document.body.classList.remove('modal-open');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Đang gửi...';
+    try {
+      const body = new URLSearchParams({ ma_hd: templateId, ghi_chu: content });
+      const response = await fetch(sendUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrf,
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin',
+        body: body.toString()
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Gửi không thành công. Vui lòng thử lại.');
+      }
+      window.alert(data.message || 'Đã gửi HDCS thành công.');
+      window.location.reload();
+    } catch (error) {
+      errorBox.textContent = error.message || 'Không thể kết nối đến máy chủ.';
+      errorBox.style.display = 'block';
+      submitButton.disabled = false;
+      submitButton.textContent = 'Gửi HDCS';
     }
+  });
+
+  document.querySelectorAll('.hdcs-open').forEach(button => button.addEventListener('click', () => openModal(button)));
+  document.querySelectorAll('[data-hdcs-close]').forEach(el => el.addEventListener('click', closeModal));
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
+})();
 </script>
 {% endblock %}
