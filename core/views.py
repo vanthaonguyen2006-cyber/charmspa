@@ -6,6 +6,7 @@ from services.models import DichVu
 from django.core.paginator import Paginator
 
 
+
 # Trang chủ khách hàng
 def customer_home(request):
     return render(request, 'core/customer_home.html')
