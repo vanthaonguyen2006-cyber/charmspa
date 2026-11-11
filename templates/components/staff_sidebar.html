@@ -168,8 +168,7 @@
                class="sidebar-subitem {% if active_menu == 'reminders' %}active-sub{% endif %}">
                 Nhắc lịch & Tái hẹn
             </a>
-
-            <a href="/admin/care/huongdansauieutrinh/"
+            <a href="{% url 'notifications:cham_soc_sau_lieu_trinh' %}"
                class="sidebar-subitem {% if active_menu == 'aftercare' %}active-sub{% endif %}">
                 Hướng dẫn sau liệu trình
             </a>

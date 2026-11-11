@@ -1,10 +1,358 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+```
+{% extends 'layouts/customer_base.html' %}
+{% load static %}
+
+{% block title %}Trung tâm thông báo - Charm Grand Spa{% endblock %}
+
+{% block content %}
+<style>
+    .notice-page {max-width:900px;margin:0 auto;padding:36px 20px 70px;color:#30251d}
+    .notice-head,.notice-list {background:#fff;border:1px solid #eee6da;border-radius:17px;box-shadow:0 5px 24px rgba(45,31,20,.05)}
+    .notice-head {padding:23px;display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}
+    .notice-head h2 {font-size:20px;font-weight:700;margin:0 0 5px}
+    .notice-head p {font-size:12px;color:#85796d;margin:0}
+    .notice-count {white-space:nowrap;color:#89663f;background:#fff9ec;border:1px solid #e8d6b7;border-radius:20px;padding:7px 12px;font-size:12px}
+    .notice-list {overflow:hidden}
+    .notice-item {display:flex;gap:15px;padding:22px;border-bottom:1px solid #f1ebe4}
+    .notice-item:last-child {border-bottom:0}
+    .notice-item.unread {background:#fffcf7}
+    .notice-icon {width:42px;height:42px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#f7f0e7;color:#997449}
+    .notice-main {min-width:0;flex:1}
+    .notice-top {display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .notice-top h3 {font-size:14px;font-weight:700;line-height:1.5;margin:0}
+    .notice-time {font-size:12px;color:#988c80;white-space:nowrap}
+    .notice-preview {color:#74685d;font-size:13px;line-height:1.7;margin:9px 0 14px}
+    .notice-actions {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .notice-status {font-size:12px;color:#8a6a42}
+    .notice-status.read {color:#688677}
+    .notice-link {color:#8c6d4f;font-size:12px;font-weight:700;text-decoration:none;background:none;border:0;cursor:pointer;padding:4px}
+    .notice-link:hover {text-decoration:underline}
+    .notice-empty {text-align:center;padding:65px 20px;color:#80766c}
+    .notice-modal {position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:18px}
+    .notice-modal.open {display:flex}
+    .notice-overlay {position:absolute;inset:0;background:rgba(30,24,19,.68);backdrop-filter:blur(4px)}
+    .notice-dialog {position:relative;background:#fff;width:100%;max-width:600px;max-height:90vh;overflow:auto;border-radius:18px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.23)}
+    .notice-close {position:absolute;right:16px;top:11px;font-size:26px;color:#877868;border:0;background:none;cursor:pointer}
+    .notice-modal-title {text-align:center;font-family:Georgia,serif;font-size:24px;color:#352a20;margin:0 0 7px}
+    .notice-brand {text-align:center;font-size:10px;letter-spacing:2px;color:#ad824c;font-weight:700;margin:0 0 6px}
+    .notice-divider {border:0;border-top:1px solid #eadcca;margin:22px 0}
+    .notice-promo-image {width:100%;height:210px;object-fit:cover;border-radius:12px;margin-bottom:17px;display:none}
+    .notice-promo-name {font-family:Georgia,serif;color:#30251d;font-size:20px;line-height:1.45;font-weight:700;margin:0 0 10px}
+    .notice-promo-desc {font-size:13px;color:#76685a;line-height:1.8;white-space:pre-line;overflow-wrap:anywhere;margin:0 0 18px}
+    .notice-info {background:#fcf9f5;border:1px solid #ebdfce;border-radius:12px;padding:6px 16px;margin-bottom:18px}
+    .notice-row {display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #ede4d9;font-size:13px}
+    .notice-row:last-child {border-bottom:0}
+    .notice-row>span:first-child {color:#85776b}
+    .notice-row>span:last-child {font-weight:600;text-align:right;color:#392f26}
+    .notice-price {font-size:17px;color:#a36f35!important;font-weight:800!important}
+    .notice-section {font-weight:700;color:#8c6d4f;font-size:14px;margin:20px 0 9px}
+    .notice-note {border:1px solid #ede4d9;background:#fcf9f5;border-radius:10px;padding:14px;font-size:13px;color:#64564a;line-height:1.8;white-space:pre-line;overflow-wrap:anywhere}
+    .notice-message {font-size:13px;color:#64564a;line-height:1.8;white-space:pre-line;overflow-wrap:anywhere}
+    /* AFTERCARE: giao diện hướng dẫn dành riêng cho khách hàng */
+    .notice-dialog.aftercare-mode {max-width:730px;padding:0;overflow:auto;background:#fffdfa}
+    .aftercare-header {text-align:center;padding:30px 30px 24px;background:linear-gradient(145deg,#fffaf2,#f9eedb);border-bottom:1px solid #ead9bf}
+    .aftercare-emblem {width:54px;height:54px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border:1px solid #e1c59b;border-radius:50%;color:#a67b43;font-size:25px;background:#fffaf3}
+    .aftercare-kicker {font-size:10px;letter-spacing:2.5px;font-weight:800;color:#9b753f;margin:0 0 9px}
+    .aftercare-title {font-family:Georgia,serif;font-size:27px;line-height:1.4;color:#392d22;margin:0 auto 9px;max-width:590px}
+    .aftercare-meta {color:#9b8c7c;font-size:12px;margin:0}
+    .aftercare-body {padding:24px 30px 10px}
+    .aftercare-intro {font-size:14px;line-height:1.9;color:#615346;margin-bottom:17px}
+    .aftercare-section {border:1px solid #e9dccb;background:#fff;border-radius:15px;padding:19px 20px;margin:16px 0;box-shadow:0 5px 18px rgba(75,47,19,.035)}
+    .aftercare-section h4 {font-family:Georgia,serif;font-size:18px;line-height:1.5;font-weight:700;color:#7e5b31;margin:0 0 11px}
+    .aftercare-section.personal{background:#f5f0e9;border-color:#d9c4a6;border-left:4px solid #b88b54}
+    .aftercare-section.template{background:#fffdf8}
+    .aftercare-section.warning {background:#fffaf2;border-color:#ead4b7}
+    .aftercare-section.gratitude {background:#f8f2e9;text-align:center;border-color:#ead4b7}
+    .aftercare-line {font-size:14px;line-height:1.95;color:#65584b;margin:5px 0;overflow-wrap:anywhere}
+    .aftercare-bullet {display:flex;align-items:flex-start;gap:9px;margin:8px 0;font-size:14px;line-height:1.8;color:#65584b}
+    .aftercare-bullet:before {content:'✦';font-size:11px;color:#b78b50;flex:none;margin-top:4px}
+    .aftercare-line strong,.aftercare-bullet strong {color:#594027}
+    .aftercare-foot {text-align:center;padding:12px 30px 25px;color:#9b7953;font-size:12px;letter-spacing:.4px}
+    .notice-dialog.aftercare-mode .notice-close {z-index:1;top:14px;right:17px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.85);font-size:25px}
+    .notice-dialog.aftercare-mode .notice-secondary {width:calc(100% - 60px);margin:0 30px 25px;background:#8c6d4f;color:#fff;border-color:#8c6d4f}
+    @media(max-width:640px) {.aftercare-header{padding:28px 22px 21px}.aftercare-title{font-size:22px}.aftercare-body{padding:19px 18px 8px}.aftercare-section{padding:16px}.notice-dialog.aftercare-mode .notice-secondary{width:calc(100% - 36px);margin:0 18px 18px}}
+    .notice-primary,.notice-secondary {display:block;text-align:center;width:100%;box-sizing:border-box;border-radius:9px;padding:12px;font-size:13px;font-weight:700;margin-top:11px;text-decoration:none;cursor:pointer}
+    .notice-primary {background:#8c6d4f;color:#fff!important;border:0}
+    .notice-secondary {background:#fff;border:1px solid #dfd2c2;color:#735d46}
+    @media(max-width:640px){.notice-head{padding:18px}.notice-top{flex-direction:column;gap:5px}.notice-dialog{padding:22px 18px}.notice-row{gap:12px}}
+</style>
+
+<div class="notice-page">
+    <div class="notice-head">
+        <div>
+            <h2>🔔 Trung tâm thông báo &amp; Ưu đãi</h2>
+            <p>Cập nhật chương trình ưu đãi và thông báo từ Charm Grand Spa.</p>
+        </div>
+        <span class="notice-count">{{ thong_bao_list.count }} thông báo</span>
+    </div>
+
+    <div class="notice-list">
+        {% for item in thong_bao_list %}
+        <div class="notice-item {% if item.trang_thai_gui != 'Đã đọc' %}unread{% endif %}">
+            <div class="notice-icon"><i class="fas fa-bell"></i></div>
+            <div class="notice-main">
+                <div class="notice-top">
+                    <h3>{{ item.ma_tb.tieu_de }}</h3>
+                    <span class="notice-time">{{ item.thoi_gian_gui|date:'d/m/Y H:i' }}</span>
+                </div>
+                <p class="notice-preview">{{ item.ma_tb.noi_dung|truncatechars:150 }}</p>
+                <div class="notice-actions">
+                    <span class="notice-status {% if item.trang_thai_gui == 'Đã đọc' %}read{% endif %}">
+                        {% if item.trang_thai_gui == 'Đã đọc' %}✓ Đã đọc{% else %}● Chưa đọc{% endif %}
+                    </span>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                        {% if item.trang_thai_gui != 'Đã đọc' %}
+                        <a class="notice-link" href="{% url 'notifications:danh_dau_da_doc' item.ma_tbkh %}">Đánh dấu đã đọc</a>
+                        {% endif %}
+                        <button type="button" class="notice-link"
+                            data-type="{{ item.ma_tb.loai_tb }}"
+                            data-title="{{ item.ma_tb.tieu_de }}"
+                            data-content="{{ item.ma_tb.noi_dung }}"
+                            data-time="{{ item.thoi_gian_gui|date:'d/m/Y H:i' }}"
+                            data-name="{{ item.ma_tb.ma_ctud.ten_chuong_trinh }}"
+                            data-description="{{ item.ma_tb.ma_ctud.mo_ta }}"
+                            data-image="{{ item.ma_tb.ma_ctud.hinh_anh }}"
+                            data-price="{{ item.ma_tb.ma_ctud.gia_tri_uu_dai|floatformat:'0u' }}"
+                            data-original="{{ item.ma_tb.ma_ctud.gia_goc|floatformat:'0u' }}"
+                            data-start="{{ item.ma_tb.ma_ctud.ngay_bat_dau|date:'d/m/Y' }}"
+                            data-end="{{ item.ma_tb.ma_ctud.ngay_ket_thuc|date:'d/m/Y' }}"
+                            data-duration="{{ item.ma_tb.ma_ctud.thoi_luong }}"
+                            data-target="{{ item.ma_tb.ma_ctud.doi_tuong_ap_dung }}"
+                            data-location="{{ item.ma_tb.ma_ctud.dia_diem_ap_dung }}"
+                            data-benefits="{{ item.ma_tb.ma_ctud.quyen_loi }}"
+                            data-conditions="{{ item.ma_tb.ma_ctud.dieu_kien }}"
+                            data-url="{% if item.ma_tb.ma_ctud %}{% url 'notifications:chi_tiet_uu_dai' item.ma_tb.ma_ctud.pk %}{% endif %}"
+                            onclick="openCharmNotice(this)">◉ Xem chi tiết</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="notice-empty">
+            <div style="font-size:38px">📭</div>
+            <p>Hiện tại bạn chưa có thông báo nào.</p>
+            <a href="{% url 'core:home' %}" class="notice-primary" style="max-width:210px;margin:15px auto">Khám phá dịch vụ</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="charmNoticeModal" class="notice-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="noticeHeading">
+    <div class="notice-overlay" onclick="closeCharmNotice()"></div>
+    <div class="notice-dialog" id="charmNoticeDialog">
+        <button type="button" class="notice-close" aria-label="Đóng" onclick="closeCharmNotice()">&times;</button>
+        <p class="notice-brand">CHARM GRAND SPA &amp; WELLNESS</p>
+        <h2 id="noticeHeading" class="notice-modal-title">Chi tiết thông báo</h2>
+        <hr class="notice-divider">
+
+        <!-- Thông báo thường: chỉ hiện tiêu đề và nội dung thông báo. -->
+        <div id="noticeNormal">
+            <h3 id="noticeTitle" class="notice-promo-name"></h3>
+            <p id="noticeTime" class="notice-time" style="margin-bottom:15px"></p>
+            <div id="noticeContent" class="notice-message"></div>
+        </div>
+
+        <!-- HDCS: trình bày lại chính xác văn bản đã được Admin gửi. -->
+        <div id="noticeAftercare" style="display:none">
+            <div class="aftercare-header">
+                <div class="aftercare-emblem" aria-hidden="true">✿</div>
+                <p class="aftercare-kicker">CHARM GRAND SPA &amp; WELLNESS</p>
+                <h3 id="aftercareTitle" class="aftercare-title"></h3>
+                <p id="aftercareTime" class="aftercare-meta"></p>
+            </div>
+            <div id="aftercareContent" class="aftercare-body"></div>
+            <div class="aftercare-foot">✦ CHARM GRAND SPA &amp; WELLNESS ✦</div>
+        </div>
+
+        <!-- Thông báo ưu đãi: chỉ hiện thông tin mới nhất từ chương trình Admin. -->
+        <div id="noticePromotion" style="display:none">
+            <img id="noticeImage" class="notice-promo-image" alt="Hình ảnh ưu đãi">
+            <h3 id="noticeName" class="notice-promo-name"></h3>
+            <p id="noticeDescription" class="notice-promo-desc"></p>
+            <div class="notice-info">
+                <div class="notice-row"><span>Giá ưu đãi</span><span id="noticePrice" class="notice-price"></span></div>
+                <div class="notice-row"><span>Giá gốc</span><span id="noticeOriginal" style="text-decoration:line-through"></span></div>
+                <div class="notice-row"><span>Thời gian áp dụng</span><span id="noticeDates"></span></div>
+                <div class="notice-row"><span>Thời lượng</span><span id="noticeDuration"></span></div>
+                <div class="notice-row"><span>Đối tượng</span><span id="noticeTarget"></span></div>
+                <div class="notice-row"><span>Địa điểm</span><span id="noticeLocation"></span></div>
+            </div>
+            <div id="noticeBenefitsBox" style="display:none">
+                <h4 class="notice-section">✦ Quyền lợi khách hàng</h4>
+                <div id="noticeBenefits" class="notice-note"></div>
+            </div>
+            <div id="noticeConditionsBox" style="display:none">
+                <h4 class="notice-section">✦ Điều kiện áp dụng</h4>
+                <div id="noticeConditions" class="notice-note"></div>
+            </div>
+            <a id="noticePromoLink" class="notice-primary" href="#" style="display:none">Xem chương trình ưu đãi</a>
+        </div>
+        <button type="button" class="notice-secondary" onclick="closeCharmNotice()">Đóng chi tiết</button>
+    </div>
+</div>
+
+<script>
+let charmNoticeFocus = null;
+const charmNoticeModal = document.getElementById('charmNoticeModal');
+
+function charmNoticeText(id, value) {
+    document.getElementById(id).textContent = value || 'Chưa cập nhật';
+}
+
+function charmNoticeMoney(value) {
+    // floatformat:'0u' xuất số không có dấu phân cách và không có phần thập phân.
+    const amount = Number(value);
+    return value !== '' && Number.isFinite(amount)
+        ? new Intl.NumberFormat('vi-VN').format(amount) + 'đ'
+        : 'Chưa cập nhật';
+}
+
+// Chỉ dựng thẻ từ cấu trúc văn bản, KHÔNG đưa nội dung người gửi vào innerHTML.
+function aftercareInline(parent, value) {
+    const parts = String(value || '').split(/(\*\*[^*]+\*\*)/g);
+    parts.forEach(function(part) {
+        if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+            const strong = document.createElement('strong');
+            strong.textContent = part.slice(2, -2);
+            parent.appendChild(strong);
+        } else {
+            // Cac ghi chu *in nghieng* duoc tao bang nut I o phia Admin.
+            part.split(/(\*[^*]+\*)/g).forEach(function(piece) {
+                if (piece.startsWith('*') && piece.endsWith('*') && piece.length > 2) {
+                    const em = document.createElement('em');
+                    em.textContent = piece.slice(1, -1);
+                    parent.appendChild(em);
+                } else {
+                    parent.appendChild(document.createTextNode(piece));
+                }
+            });
+        }
+    });
+}
+
+function renderCharmAftercare(text) {
+    const target = document.getElementById('aftercareContent');
+    target.replaceChildren();
+    const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+    let section = null;
+
+    function addText(container, cls, value) {
+        const element = document.createElement('p');
+        element.className = cls;
+        aftercareInline(element, value);
+        container.appendChild(element);
+    }
+
+    lines.forEach(function(rawLine) {
+        const line = rawLine.trim();
+        if (!line) return;
+
+        // Bỏ qua dòng thương hiệu/tựa đầu thư nếu trùng phần đầu popup.
+        if (/^(?:🌿\s*)?CHARM GRAND SPA(?:\s*&\s*WELLNESS)?(?:\s*🌿)?$/i.test(line.replace(/\*/g, ''))) return;
+        if (/^HƯỚNG DẪN CHĂM SÓC SAU LIỆU TRÌNH$/i.test(line.replace(/[\*🌿]/g, '').trim())) return;
+
+        const heading = line.replace(/\*\*/g, '').trim();
+        const numbered = /^(?:[🌸💧🍃✨🌷🌼💌🧴]\s*)?(?:0?[1-9][0-9]?[.\-:]?\s+)(.+)/u.test(heading);
+        const strongHeading = /^\*\*[^*]+\*\*$/.test(line) && line.length < 115;
+        const emojiHeading = /^(?:[🌸💧🍃✨🌷🌼💌🧴]\s*)?(?:LƯU Ý|LỜI NHẮN|CHĂM SÓC|GIỮ TÓC|DUY TRÌ)/iu.test(heading)
+            && heading.length < 115;
+        const uppercaseHeading = heading.length < 100 && /[A-ZÀ-Ỹ]/u.test(heading)
+            && heading === heading.toLocaleUpperCase('vi-VN') && heading.length > 7;
+
+        if (numbered || strongHeading || emojiHeading || uppercaseHeading) {
+            section = document.createElement('section');
+            section.className = 'aftercare-section';
+            if (/GHI CHÚ RIÊNG/i.test(heading)) section.classList.add('personal');
+            if (/HƯỚNG DẪN TỪ CHUYÊN VIÊN/i.test(heading)) section.classList.add('template');
+            if (/LƯU Ý|CẢNH BÁO/i.test(heading)) section.classList.add('warning');
+            if (/LỜI NHẮN|CẢM ƠN|HẸN GẶP/i.test(heading)) section.classList.add('gratitude');
+            const h = document.createElement('h4');
+            h.textContent = heading;
+            section.appendChild(h);
+            target.appendChild(section);
+            return;
+        }
+
+        const container = section || target;
+        if (/^(?:[-•–]\s+|[✓✔]\s*)/.test(line)) {
+            addText(container, 'aftercare-bullet', line.replace(/^(?:[-•–]\s+|[✓✔]\s*)/, ''));
+        } else {
+            addText(container, section ? 'aftercare-line' : 'aftercare-intro', line);
+        }
+    });
+    if (!target.childElementCount) addText(target, 'aftercare-intro', 'Chưa có nội dung hướng dẫn.');
+}
+
+function openCharmNotice(button) {
+    charmNoticeFocus = button;
+    const d = button.dataset;
+    const isPromotion = Boolean(d.name && d.name.trim());
+    const isAftercare = !isPromotion && (
+        /chăm sóc sau liệu trình|cham soc sau lieu trinh|hdcs/i.test(d.type || '') ||
+        /hướng dẫn chăm sóc sau liệu trình/i.test(d.title || '')
+    );
+    const noticeDialog = document.getElementById('charmNoticeDialog');
+    noticeDialog.classList.toggle('aftercare-mode', isAftercare);
+    document.getElementById('noticeAftercare').style.display = isAftercare ? 'block' : 'none';
+    document.getElementById('noticeHeading').style.display = isAftercare ? 'none' : '';
+    document.querySelector('#charmNoticeModal > .notice-dialog > .notice-brand').style.display = isAftercare ? 'none' : '';
+    document.querySelector('#charmNoticeModal > .notice-dialog > .notice-divider').style.display = isAftercare ? 'none' : '';
+    document.getElementById('noticeNormal').style.display = (isPromotion || isAftercare) ? 'none' : 'block';
+    document.getElementById('noticePromotion').style.display = isPromotion ? 'block' : 'none';
+
+    if (isAftercare) {
+        charmNoticeText('aftercareTitle', d.title);
+        charmNoticeText('aftercareTime', d.time);
+        renderCharmAftercare(d.content);
+    } else if (isPromotion) {
+        charmNoticeText('noticeName', d.name);
+        charmNoticeText('noticeDescription', d.description);
+        charmNoticeText('noticePrice', charmNoticeMoney(d.price));
+        charmNoticeText('noticeOriginal', charmNoticeMoney(d.original));
+        charmNoticeText('noticeDates', (d.start || '...') + ' – ' + (d.end || '...'));
+        charmNoticeText('noticeDuration', d.duration);
+        charmNoticeText('noticeTarget', d.target);
+        charmNoticeText('noticeLocation', d.location);
+
+        const image = document.getElementById('noticeImage');
+        image.style.display = d.image ? 'block' : 'none';
+        if (d.image) image.src = d.image;
+        else image.removeAttribute('src');
+
+        document.getElementById('noticeBenefitsBox').style.display = d.benefits ? 'block' : 'none';
+        document.getElementById('noticeConditionsBox').style.display = d.conditions ? 'block' : 'none';
+        charmNoticeText('noticeBenefits', d.benefits);
+        charmNoticeText('noticeConditions', d.conditions);
+
+        const link = document.getElementById('noticePromoLink');
+        link.style.display = d.url ? 'block' : 'none';
+        if (d.url) link.href = d.url;
+        else link.removeAttribute('href');
+    } else {
+        charmNoticeText('noticeTitle', d.title);
+        charmNoticeText('noticeTime', d.time);
+        charmNoticeText('noticeContent', d.content);
+    }
+
+    charmNoticeModal.classList.add('open');
+    charmNoticeModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    charmNoticeModal.querySelector('.notice-close').focus();
+}
+
+function closeCharmNotice() {
+    charmNoticeModal.classList.remove('open');
+    charmNoticeModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (charmNoticeFocus) charmNoticeFocus.focus();
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && charmNoticeModal.classList.contains('open')) {
+        closeCharmNotice();
+    }
+});
+</script>
+{% endblock %}
+
+```

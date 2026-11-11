@@ -12,6 +12,7 @@ from django.db.models import Avg, Count, Q, Sum
 from services.models import DichVu, DichVuDaSuDung
 from chatbot.models import YeuCauTuVan
 
+
 # Trang chủ khách hàng
 def customer_home(request):
     return render(request, 'core/customer_home.html')
