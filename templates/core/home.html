@@ -8,12 +8,18 @@ Trang chủ | Charm Spa Grand
 
 
 {% block extra_css %}
+
+<!-- Tải font Montserrat từ Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <style>
 /* ==========================================
    TRANG CHỦ CHARM SPA GRAND
    Toàn bộ CSS đặt trong home.html
 ========================================== */
-
+/* Font chữ Montserrat áp dụng cho toàn bộ trang chủ */
 .home-page {
     --brown: #49372B;
     --dark: #2F251E;
@@ -23,7 +29,7 @@ Trang chủ | Charm Spa Grand
     --text: #71655A;
 
     color: var(--brown);
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Montserrat', sans-serif;
     overflow: hidden;
 }
 
@@ -79,7 +85,7 @@ Trang chủ | Charm Spa Grand
 }
 
 .home-hero h1 {
-    font-family: Georgia, serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: clamp(39px, 5vw, 65px);
     font-weight: 400;
     line-height: 1.2;
@@ -160,7 +166,7 @@ Trang chủ | Charm Spa Grand
 .home-highlight-item strong {
     display: block;
     color: var(--brown);
-    font-family: Georgia, serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: 25px;
     font-weight: 500;
     margin-bottom: 7px;
@@ -189,7 +195,7 @@ Trang chủ | Charm Spa Grand
 }
 
 .home-section-heading h2 {
-    font-family: Georgia, serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: clamp(30px, 4vw, 42px);
     font-weight: 400;
     color: var(--brown);
@@ -239,7 +245,7 @@ Trang chủ | Charm Spa Grand
 }
 
 .home-about-text h3 {
-    font-family: Georgia, serif;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 400;
     font-size: 31px;
     line-height: 1.4;
@@ -316,7 +322,7 @@ Trang chủ | Charm Spa Grand
 
 .home-service-info h3 {
     color: var(--brown);
-    font-family: Georgia, serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: 22px;
     font-weight: 400;
     margin-bottom: 13px;
@@ -375,7 +381,7 @@ Trang chủ | Charm Spa Grand
 }
 
 .home-advantage-card h3 {
-    font-family: Georgia, serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: 21px;
     font-weight: 400;
     margin-bottom: 14px;
@@ -454,7 +460,7 @@ Trang chủ | Charm Spa Grand
 }
 
 .home-booking-content h2 {
-    font-family: Georgia, serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: clamp(30px, 4vw, 45px);
     font-weight: 400;
     line-height: 1.35;
@@ -596,7 +602,8 @@ Trang chủ | Charm Spa Grand
 
             <div class="home-hero-buttons">
 
-                <a href="#booking"
+                <!-- Chuyển khách hàng đến trang đặt lịch của ứng dụng Bookings -->
+                <a href="/bookings/create/"
                    class="home-btn home-btn-primary">
                     ĐẶT LỊCH NGAY
                     <i class="fas fa-arrow-right" style="margin-left:8px;"></i>
@@ -735,7 +742,8 @@ Trang chủ | Charm Spa Grand
                         và tái tạo năng lượng sau những ngày bận rộn.
                     </p>
 
-                    <a href="#booking">
+                    <!-- Chuyển đến trang giới thiệu các liệu trình của Charm Spa -->
+                    <a href="{% url 'core:lieu_trinh_page' %}">
                         TÌM HIỂU THÊM →
                     </a>
 
@@ -761,10 +769,10 @@ Trang chủ | Charm Spa Grand
                         cảm giác thoải mái, dễ chịu.
                     </p>
 
-                    <a href="#booking">
+                    <!-- Chuyển đến trang giới thiệu các liệu trình của Charm Spa -->
+                    <a href="{% url 'core:lieu_trinh_page' %}">
                         TÌM HIỂU THÊM →
                     </a>
-
                 </div>
 
             </div>
@@ -787,7 +795,8 @@ Trang chủ | Charm Spa Grand
                         chăm sóc bản thân mỗi ngày.
                     </p>
 
-                    <a href="#booking">
+                    <!-- Chuyển đến trang giới thiệu các liệu trình của Charm Spa -->
+                    <a href="{% url 'core:lieu_trinh_page' %}">
                         TÌM HIỂU THÊM →
                     </a>
 
@@ -929,7 +938,8 @@ Trang chủ | Charm Spa Grand
                 sắc đẹp và yêu thương bản thân.
             </p>
 
-            <a href="tel:19006789"
+            <!-- Chuyển khách hàng đến trang đặt lịch thay vì gọi điện -->
+            <a href="/bookings/create/"
                class="home-btn home-btn-primary">
                 <i class="fas fa-phone-alt" style="margin-right:8px;"></i>
                 LIÊN HỆ ĐẶT LỊCH
