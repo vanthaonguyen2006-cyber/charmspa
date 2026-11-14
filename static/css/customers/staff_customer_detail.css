@@ -5,7 +5,7 @@
 @media(max-width:520px){.customer-detail-breadcrumb{font-size:11px;gap:6px}.detail-page-heading{gap:8px}.detail-page-heading h1{font-size:21px}.detail-heading-left{gap:9px}.back-button{width:36px;height:36px}.sync-status{white-space:normal}.customer-summary-card{gap:14px}.customer-identity{align-items:flex-start}.customer-subline{gap:7px 10px}.summary-metric{flex-basis:calc(50% - 8px)}.summary-actions>*{flex:1 1 100%}.personal-grid{grid-template-columns:minmax(0,1fr)}.personal-section-heading{align-items:flex-start}.history-heading{align-items:flex-start}.history-heading .btn-update-service{width:100%}.profile-form-actions>*{flex:1}}
 /* Layout refinements aligned with the customer profile reference. */
 .customer-detail-page {
-    font-family: Inter, Arial, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .customer-detail-page .customer-detail-breadcrumb {
@@ -16,7 +16,7 @@
 
 .customer-detail-page .detail-page-heading h1,
 .customer-detail-page .customer-name-line h2 {
-    font-family: Inter, Arial, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .customer-detail-page .customer-summary-card {
