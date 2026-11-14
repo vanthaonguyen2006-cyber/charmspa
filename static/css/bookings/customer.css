@@ -526,7 +526,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     }
 }
 
-.booking-customer-list .customer-booking-table{background:#fff;border:1px solid #eee2d5;border-radius:12px;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+.booking-customer-list .customer-booking-table{background:#fff;border:1px solid #eee2d5;border-radius:12px;overflow:hidden;font-family:'Montserrat',Arial,sans-serif}
 .booking-customer-list .customer-booking-table-head,.booking-customer-list .customer-booking-table-row{display:grid;grid-template-columns:minmax(108px,.9fr) minmax(220px,2.8fr) minmax(96px,1fr) minmax(65px,.65fr) minmax(65px,.65fr) minmax(105px,1fr) minmax(210px,1.7fr);align-items:center;column-gap:12px;padding:16px 20px}
 .booking-customer-list .customer-booking-table-head{background:#fcf8f3;color:#8f8173;text-transform:uppercase;font-size:12px;font-weight:700;letter-spacing:.3px;border-bottom:1px solid #eee2d5}
 .booking-customer-list .customer-booking-table-row{font-size:14px;line-height:1.45;min-height:79px;border-bottom:1px solid #f0e9e1;color:#4f453c}
@@ -569,10 +569,10 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
 /* ===== CHI TIẾT LỊCH HẸN KHÁCH HÀNG - BỐ CỤC NHƯ TRANG DANH SÁCH ===== */
 
-.booking-customer-detail{width:100%;max-width:1300px;margin:0 auto;padding:14px 0 52px;color:#352f2a;font-family:Arial,Helvetica,sans-serif}
+.booking-customer-detail{width:100%;max-width:1300px;margin:0 auto;padding:14px 0 52px;color:#352f2a;font-family:'Montserrat',Arial,sans-serif}
 .booking-customer-detail *{box-sizing:border-box}
 .booking-customer-detail .customer-detail-page-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:18px}
-.booking-customer-detail .customer-detail-page-head h1{font:700 29px/1.3 Arial,Helvetica,sans-serif;color:#3b3128;margin:0}
+.booking-customer-detail .customer-detail-page-head h1{font:700 29px/1.3 'Montserrat',Arial,sans-serif;color:#3b3128;margin:0}
 .booking-customer-detail .customer-detail-back{font-size:14px;color:#94764a;text-decoration:none;white-space:nowrap}
 .booking-customer-detail .customer-detail-back:hover{text-decoration:underline}
 .booking-customer-detail .customer-detail-summary,.booking-customer-detail .customer-detail-card{background:#fff;border:1px solid #e9e0d7;border-radius:11px;box-shadow:0 4px 12px rgba(62,43,22,.025)}
@@ -628,7 +628,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 .booking-customer-detail .customer-detail-page-head h1,
 .booking-customer-detail .customer-detail-summary-main h2,
 .booking-customer-detail .customer-detail-card h2 {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     font-weight: 700;
     letter-spacing: .2px;
 }
@@ -694,7 +694,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
 /* Font gọn hơn, chỉ áp dụng trong popup đổi lịch */
 .booking-reschedule-modal {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     font-size: 12px;
     line-height: 1.4;
 }
@@ -753,7 +753,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
 /* Tiêu đề DANH SÁCH LỊCH HẸN – chỉnh cỡ chữ tại đây */
 .booking-customer-list .booking-list-title {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     font-size: 30px;
     font-weight: 700;
     line-height: 1.3;
@@ -770,7 +770,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
    Chỉnh tại đây nếu muốn đổi kích thước chữ về sau.
    Không tác động vào popup Đổi lịch / Hủy lịch.
    =========================================================== */
-:root { --customer-booking-font: Arial, Helvetica, sans-serif; }
+:root { --customer-booking-font: 'Montserrat', Arial, sans-serif; }
 
 .booking-customer-detail {
     font-family: var(--customer-booking-font);
@@ -836,7 +836,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
 /* TIÊU ĐỀ RIÊNG TRANG TẠO LỊCH: chỉ chỉnh dòng ĐẶT LỊCH HẸN TRỰC TUYẾN */
 .booking-customer-create .booking-create-title {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     font-size: 28px !important;
     font-weight: 700;
     line-height: 1.25;
@@ -1077,7 +1077,7 @@ body:has(.booking-customer-detail)
 .booking-customer-create .booking-create-title,
 .booking-customer-list .booking-list-title,
 .booking-customer-detail .customer-detail-page-head h1 {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     font-size: 28px !important;
     font-weight: 700 !important;
     line-height: 1.3 !important;

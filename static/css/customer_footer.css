@@ -3,10 +3,10 @@
    ========================================= */
 
 .customer-footer {
-    background-color: #2F251E; /* Màu nền nâu đen sang trọng */
-    color: #D3C9BE; /* Màu chữ xám nhạt để dễ đọc trên nền tối */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 60px 5% 20px; /* Căn lề trên dưới trái phải */
+    background-color: #2F251E;
+    color: #D3C9BE;
+    font-family: 'Montserrat', Arial, sans-serif;
+    padding: 60px 5% 20px;
 }
 
 .footer-container {
