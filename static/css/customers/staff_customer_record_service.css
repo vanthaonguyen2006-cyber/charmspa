@@ -7,11 +7,10 @@
     --line: #ece6da;
     width: 100%;
     max-width: 1440px;
-    margin: 0 auto;
     padding: 28px 32px 44px;
     box-sizing: border-box;
     color: var(--ink);
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .record-service-page *,

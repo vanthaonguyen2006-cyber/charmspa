@@ -8,7 +8,7 @@
     width: 100%;
     min-width: 0;
     color: #292821;
-    font-family: Inter, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     padding: 0 2px 6px;
 }
 
@@ -23,7 +23,7 @@
 .customer-page-heading h1 {
     margin: 0 0 4px;
     color: #24231f;
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     font-size: clamp(25px, 2vw, 31px);
     font-weight: 700;
     line-height: 1.2;
