@@ -1,19 +1,34 @@
-/* Tải font Montserrat */
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
-/* ==========================================
-   FONT CHỮ CHUNG TOÀN BỘ MODULE
-   ========================================== */
 
+/* ==========================================================
+   CUSTOMER FEEDBACK LIST - CHARM GRAND SPA
+   Font: Montserrat
+   Cỡ chữ đồng bộ với module Lịch hẹn khách hàng
+   Giữ nguyên màu sắc, bố cục và hiệu ứng hiện tại
+========================================================== */
+
+/* 1. TẢI FONT MONTSERRAT */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+
+
+/* ==========================================================
+   2. FONT CHỮ CHUNG
+========================================================== */
+
+/* Áp dụng Montserrat cho các module phản hồi */
 .feedback-page,
-.feedback-page *,
 .staff-detail-page,
-.staff-detail-page *,
-.customer-feedback-list-page,
-.customer-feedback-list-page * {
+.customer-feedback-list-page {
     font-family: 'Montserrat', sans-serif !important;
 }
 
-/* Đồng bộ font cho các thành phần nhập liệu */
+/* Đồng bộ font cho nội dung, nhưng không ghi đè font icon */
+.feedback-page *:not(i):not([class*="fa-"]):not(.bi),
+.staff-detail-page *:not(i):not([class*="fa-"]):not(.bi),
+.customer-feedback-list-page *:not(i):not([class*="fa-"]):not(.bi) {
+    font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Các trường nhập liệu và nút bấm */
 .feedback-page input,
 .feedback-page select,
 .feedback-page textarea,
@@ -28,19 +43,19 @@
 .customer-feedback-list-page button {
     font-family: 'Montserrat', sans-serif !important;
 }
-/* =========================================
-   1. KHUNG CHUNG CỦA TRANG DANH SÁCH
-   ========================================= */
+
+/* Khung chung trang danh sách */
 .customer-feedback-list-page {
     width: 100%;
     color: #302a24;
-    font-family: Arial, sans-serif;
-    font-size: 13px;
+    font-size: 14px;
 }
 
-/* =========================================
-   2. TIÊU ĐỀ VÀ NÚT GỬI PHIẾU
-   ========================================= */
+
+/* ==========================================================
+   3. TIÊU ĐỀ VÀ NÚT GỬI PHIẾU
+========================================================== */
+
 .feedback-list-heading {
     display: flex;
     justify-content: space-between;
@@ -49,18 +64,23 @@
     margin: 20px 0 18px;
 }
 
-.feedback-list-heading h1 {
-    margin: 0 0 7px;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 25px;
-    font-weight: 400;
-    letter-spacing: 0.3px;
+/* Tiêu đề chính:
+   Dùng selector có độ ưu tiên cao để tránh bị layout cha ghi đè */
+body .customer-feedback-list-page .feedback-list-heading h1 {
+    margin: 0 0 7px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0.3px !important;
+    color: #302c28 !important;
+    font-synthesis: weight;
 }
 
 .feedback-list-heading p {
     margin: 0;
     color: #8c8175;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .feedback-create-button {
@@ -73,7 +93,8 @@
     background: #262522;
     color: #fff;
     text-decoration: none;
-    font-size: 12px;
+    font-size: 14px;
+    font-weight: 600;
     transition: background 0.2s;
 }
 
@@ -82,9 +103,11 @@
     color: #fff;
 }
 
-/* =========================================
-   3. THANH BỘ LỌC
-   ========================================= */
+
+/* ==========================================================
+   4. THANH BỘ LỌC
+========================================================== */
+
 .feedback-filter-form {
     display: flex;
     align-items: center;
@@ -105,7 +128,7 @@
 
 .feedback-filter-controls label {
     color: #766a5d;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 600;
 }
 
@@ -116,7 +139,7 @@
     border-radius: 6px;
     background: #fff;
     color: #51483f;
-    font-size: 11px;
+    font-size: 14px;
     outline: none;
 }
 
@@ -127,13 +150,15 @@
 .feedback-total {
     margin: 0;
     color: #8b8176;
-    font-size: 10px;
+    font-size: 13px;
     white-space: nowrap;
 }
 
-/* =========================================
-   4. BẢNG DANH SÁCH PHIẾU
-   ========================================= */
+
+/* ==========================================================
+   5. BẢNG DANH SÁCH PHIẾU
+========================================================== */
+
 .feedback-table-wrapper {
     overflow-x: auto;
     border: 1px solid #e9dfd2;
@@ -154,15 +179,15 @@
 .feedback-table th {
     padding: 15px 12px;
     color: #796f63;
-    font-size: 9px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     white-space: nowrap;
 }
 
 .feedback-table td {
     padding: 17px 12px;
     border-top: 1px solid #eee5da;
-    font-size: 11px;
+    font-size: 14px;
     vertical-align: middle;
 }
 
@@ -177,14 +202,14 @@
 /* Mã phiếu */
 .feedback-code {
     color: #956a2c;
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     white-space: nowrap;
 }
 
 /* Nhãn loại phiếu */
 .feedback-type {
-    font-size: 10px;
+    font-size: 14px;
     white-space: nowrap;
 }
 
@@ -200,27 +225,52 @@
 .feedback-subject {
     min-width: 180px;
     color: #29251f;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 13px !important;
+    font-size: 15px;
+    font-weight: 500;
 }
 
 /* Ngày gửi */
 .feedback-date {
     color: #82776b;
     white-space: nowrap;
-    font-size: 10px !important;
+    font-size: 13px;
 }
 
-/* =========================================
-   5. NHÃN TRẠNG THÁI XỬ LÝ
-   ========================================= */
+/* Liên kết xem chi tiết */
+.feedback-detail-link {
+    color: #987342;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.feedback-detail-link:hover {
+    color: #51391c;
+    text-decoration: underline;
+}
+
+/* Trường hợp danh sách rỗng */
+.feedback-empty {
+    padding: 35px 15px !important;
+    color: #8b8176;
+    text-align: center;
+    font-size: 14px;
+}
+
+
+/* ==========================================================
+   6. NHÃN TRẠNG THÁI XỬ LÝ
+========================================================== */
+
 .feedback-status {
     display: inline-flex;
     align-items: center;
     gap: 5px;
     padding: 5px 8px;
     border-radius: 20px;
-    font-size: 9px;
+    font-size: 13px;
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -246,29 +296,11 @@
     color: #956a2c;
 }
 
-/* Liên kết xem chi tiết */
-.feedback-detail-link {
-    color: #987342;
-    font-size: 10px;
-    text-decoration: none;
-    white-space: nowrap;
-}
 
-.feedback-detail-link:hover {
-    color: #51391c;
-    text-decoration: underline;
-}
+/* ==========================================================
+   7. CHÂN BẢNG VÀ PHÂN TRANG
+========================================================== */
 
-/* Khi danh sách rỗng */
-.feedback-empty {
-    padding: 35px 15px !important;
-    color: #8b8176;
-    text-align: center;
-}
-
-/* =========================================
-   6. CHÂN BẢNG VÀ PHÂN TRANG
-   ========================================= */
 .feedback-table-footer {
     display: flex;
     align-items: center;
@@ -284,7 +316,7 @@
 .feedback-table-footer p {
     margin: 0;
     color: #8b8176;
-    font-size: 10px;
+    font-size: 13px;
 }
 
 .feedback-pagination {
@@ -304,7 +336,7 @@
     border-radius: 6px;
     background: #fff;
     color: #554b40;
-    font-size: 12px;
+    font-size: 14px;
     text-decoration: none;
 }
 
@@ -323,9 +355,11 @@
     cursor: default;
 }
 
-/* =========================================
-   7. THÔNG BÁO CUỐI TRANG
-   ========================================= */
+
+/* ==========================================================
+   8. THÔNG BÁO CUỐI TRANG
+========================================================== */
+
 .feedback-care-note {
     display: flex;
     align-items: center;
@@ -335,7 +369,7 @@
     border-radius: 8px;
     background: #f3e8d0;
     color: #65543b;
-    font-size: 10px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -344,19 +378,26 @@
     font-size: 17px;
 }
 
-/* =========================================
-   8. GIAO DIỆN TRÊN MÀN HÌNH NHỎ
-   ========================================= */
+
+/* ==========================================================
+   9. RESPONSIVE - ĐIỆN THOẠI
+========================================================== */
+
 @media (max-width: 700px) {
+
+    /* Tiêu đề và nút gửi phiếu xếp thành hai hàng */
     .feedback-list-heading {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    .feedback-list-heading h1 {
-        font-size: 21px;
+    /* Tiêu đề vẫn đậm rõ trên điện thoại */
+    body .customer-feedback-list-page .feedback-list-heading h1 {
+        font-size: 24px !important;
+        font-weight: 700 !important;
     }
 
+    /* Bộ lọc chuyển thành bố cục dọc */
     .feedback-filter-form {
         align-items: flex-start;
         flex-direction: column;
@@ -376,15 +417,8 @@
         white-space: normal;
     }
 
+    /* Giữ bảng có thể cuộn ngang trên điện thoại */
     .feedback-table {
         min-width: 760px;
     }
-}
-
-/* ==========================================
-   FONT MONTSERRAT CHO TRANG KHÁCH HÀNG
-   ========================================== */
-.customer-feedback-list-page,
-.customer-feedback-list-page * {
-    font-family: 'Montserrat', sans-serif !important;
 }

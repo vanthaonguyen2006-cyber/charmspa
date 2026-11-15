@@ -243,14 +243,27 @@ def _thong_ke_trang_thai(phan_hoi):
     }
 
 
-# Ghi lịch sử thao tác của admin hoặc nhân viên
-def _ghi_lich_su(ph, tai_khoan, loai_thao_tac, noi_dung=""):
+# Ghi lịch sử thao tác của admin hoặc nhân viên.
+# Có thể lưu thêm nội dung riêng được phép hiển thị cho khách hàng.
+def _ghi_lich_su(
+    ph,
+    tai_khoan,
+    loai_thao_tac,
+    noi_dung="",
+    noi_dung_khach_hang=""
+):
     return LichSuXuLy.objects.create(
         ma_ls=_tao_ma("LS"),
         ma_ph=ph,
         ma_nguoi_thuc_hien=tai_khoan,
         loai_thao_tac=loai_thao_tac,
+
+        # Nội dung nội bộ, Admin và nhân viên được xem.
         noi_dung=noi_dung,
+
+        # Nội dung công khai, khách hàng được phép xem.
+        # Nếu không nhập thì lưu NULL.
+        noi_dung_khach_hang=noi_dung_khach_hang or None,
     )
 
 
@@ -369,9 +382,13 @@ def admin_feedback_detail(request, feedback_id):
     if loi:
         return loi
 
-    # Lấy phiếu cần xem
+    # Lấy phiếu cần xem và tải sẵn thông tin khách hàng liên kết.
+    # Chuỗi quan hệ:
+    # PhanHoiKhieuNai -> KhachHang -> TaiKhoan -> User
     ph = get_object_or_404(
-        PhanHoiKhieuNai,
+        PhanHoiKhieuNai.objects.select_related(
+            "ma_kh__ma_tk__user"
+        ),
         ma_ph=feedback_id
     )
 
@@ -452,7 +469,13 @@ def admin_feedback_detail(request, feedback_id):
                         ph,
                         tai_khoan,
                         "Đánh dấu không hợp lệ",
-                        noi_dung
+                        noi_dung,
+
+                        # Thông báo công khai cho khách hàng biết kết quả kiểm tra.
+                        noi_dung_khach_hang=(
+                            "Yêu cầu đã được kiểm tra và không đủ điều kiện "
+                            "để tiếp tục xử lý. Phiếu đã được đóng."
+                        )
                     )
 
                 messages.success(
@@ -517,14 +540,20 @@ def admin_feedback_detail(request, feedback_id):
                         update_fields=["trang_thai_xu_ly"]
                     )
 
-                    # Ghi lịch sử phân công
                     _ghi_lich_su(
                         ph,
                         tai_khoan,
                         "Phân công",
                         (
+                            # Lưu thông tin phân công nội bộ.
                             f"Admin phân công cho {nhan_vien.ho_ten} "
                             f"(mã {nhan_vien.ma_nv})."
+                        ),
+
+                        # Khách hàng chỉ thấy thông báo chung, không thấy tên nhân viên.
+                        noi_dung_khach_hang=(
+                            "Yêu cầu đã được chuyển đến bộ phận "
+                            "Chăm sóc khách hàng để tiếp tục xử lý."
                         )
                     )
 
@@ -559,6 +588,11 @@ def admin_feedback_detail(request, feedback_id):
                 ghi_chu = request.POST.get(
                     "noi_dung_xu_ly", ""
                 ).strip()
+                # Lấy thông báo riêng mà Admin muốn chia sẻ với khách hàng.
+                # Trường này không bắt buộc phải nhập.
+                thong_bao_khach_hang = request.POST.get(
+                    "noi_dung_khach_hang", ""
+                ).strip()
 
                 if trang_thai not in [
                     "Đã tiếp nhận",
@@ -582,16 +616,18 @@ def admin_feedback_detail(request, feedback_id):
                         ph.save(
                             update_fields=["trang_thai_xu_ly"]
                         )
-
-                        # Ghi lại ghi chú và người thực hiện
                         _ghi_lich_su(
                             ph,
                             tai_khoan,
                             "Cập nhật trạng thái",
                             (
+                                # Nội dung này chỉ dành cho nhân sự quản lý.
                                 f"Admin cập nhật trạng thái thành "
                                 f"'{trang_thai}'. Ghi chú: {ghi_chu}"
-                            )
+                            ),
+
+                            # Chỉ lưu thông báo công khai khi Admin có nhập.
+                            noi_dung_khach_hang=thong_bao_khach_hang
                         )
 
                     messages.success(
@@ -650,9 +686,13 @@ def admin_feedback_detail(request, feedback_id):
                             tai_khoan,
                             "Hoàn tất xử lý",
                             (
+                                # Lưu thông tin thao tác nội bộ.
                                 "Admin trực tiếp hoàn tất phiếu. "
                                 f"Phản hồi cuối cùng: {phan_hoi_cuoi}"
-                            )
+                            ),
+
+                            # Phản hồi cuối cùng chính là nội dung khách hàng được xem.
+                            noi_dung_khach_hang=phan_hoi_cuoi
                         )
 
                     messages.success(
@@ -758,7 +798,13 @@ def staff_feedback_detail(request, feedback_id):
     ):
         return HttpResponseForbidden("Phiếu này chưa được phân công cho bạn.")
 
-    ph = get_object_or_404(PhanHoiKhieuNai, ma_ph=feedback_id)
+    # Lấy phiếu và thông tin khách hàng cùng tài khoản liên kết.
+    ph = get_object_or_404(
+        PhanHoiKhieuNai.objects.select_related(
+            "ma_kh__ma_tk__user"
+        ),
+        ma_ph=feedback_id
+    )
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -784,6 +830,8 @@ def staff_feedback_detail(request, feedback_id):
         elif action == "update":
             trang_thai = request.POST.get("trang_thai_xu_ly", "")
             ghi_chu = request.POST.get("noi_dung_xu_ly", "").strip()
+            # Lấy thông báo tiến độ mà nhân viên muốn chia sẻ với khách hàng.
+            thong_bao_khach_hang = request.POST.get( "noi_dung_khach_hang", "").strip()
 
             if trang_thai not in ["Đã tiếp nhận", "Đang xử lý"]:
                 messages.error(request, "Trạng thái cập nhật không hợp lệ.")
@@ -796,9 +844,15 @@ def staff_feedback_detail(request, feedback_id):
 
                     # Ghi nội dung cập nhật vào lịch sử xử lý
                     _ghi_lich_su(
-                        ph, tai_khoan,
+                        ph,
+                        tai_khoan,
                         "Cập nhật trạng thái",
+
+                        # Ghi chú xử lý nội bộ của nhân viên.
                         ghi_chu,
+
+                        # Thông báo công khai nếu nhân viên có nhập.
+                        noi_dung_khach_hang=thong_bao_khach_hang
                     )
 
                 messages.success(request, "Đã lưu cập nhật xử lý.")
@@ -833,9 +887,15 @@ def staff_feedback_detail(request, feedback_id):
 
                     # Lưu phản hồi cuối cùng trong lịch sử xử lý
                     _ghi_lich_su(
-                        ph, tai_khoan,
+                        ph,
+                        tai_khoan,
                         "Hoàn tất xử lý",
+
+                        # Lưu phản hồi cuối cùng trong lịch sử nội bộ.
                         phan_hoi_cuoi,
+
+                        # Đồng thời hiển thị phản hồi cuối cùng cho khách hàng.
+                        noi_dung_khach_hang=phan_hoi_cuoi
                     )
 
                 messages.success(request, "Đã hoàn tất xử lý phiếu.")
@@ -886,6 +946,7 @@ def staff_feedback_detail(request, feedback_id):
         "lich_su_moi_nhat": lich_su_moi_nhat,
         "tep_dinh_kem": tep_dinh_kem,
         "phan_cong": phan_cong,
+        "lich_su_hoan_tat": lich_su_hoan_tat,
     })
 
     return render(
