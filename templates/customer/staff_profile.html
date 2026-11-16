@@ -1,0 +1,311 @@
+{% extends "layouts/staff_base.html" %}
+{% load static %}
+
+{% block title %}Thông tin cá nhân | Charm Spa Management{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/customers/staff_profile.css' %}?v=20261115_v1">
+{% endblock %}
+
+{% block content %}
+<section class="sp-profile-page">
+
+    <!-- TIÊU ĐỀ TRANG -->
+    <div class="sp-page-header">
+        <div>
+            <span class="sp-page-eyebrow">TÀI KHOẢN CỦA TÔI</span>
+            <h1>Thông tin cá nhân</h1>
+            <p>Xem và cập nhật thông tin tài khoản, hồ sơ công việc của bạn tại Charm Spa.</p>
+        </div>
+    </div>
+
+    <!-- THÔNG BÁO FLASH MESSAGE -->
+    {% if messages %}
+        <div class="sp-messages" role="status" aria-live="polite">
+            {% for message in messages %}
+                <div class="sp-alert {% if message.tags == 'success' %}sp-alert-success{% else %}sp-alert-error{% endif %}">
+                    {% if message.tags == 'success' %}
+                        <i data-lucide="circle-check"></i>
+                    {% else %}
+                        <i data-lucide="alert-circle"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- THÔNG BÁO LỖI CHUNG -->
+    {% if form.non_field_errors %}
+        <div class="sp-messages" role="alert">
+            {% for error in form.non_field_errors %}
+                <div class="sp-alert sp-alert-error">
+                    <i data-lucide="alert-circle"></i>
+                    <span>{{ error }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- SECTION 1: BANNER TÓM TẮT HỒ SƠ -->
+    <div class="sp-banner-card">
+        <div class="sp-identity">
+            <div class="sp-avatar">{{ avatar_initials }}</div>
+            <div>
+                <div class="sp-identity-name-row">
+                    <h2>{{ display_ho_ten }}</h2>
+                    <span class="sp-role-pill">{{ display_vai_tro }}</span>
+                </div>
+                <p class="sp-status-line {% if user_obj.is_active %}active{% else %}locked{% endif %}">
+                    <span class="sp-status-dot"></span>
+                    {{ display_trang_thai }}
+                </p>
+            </div>
+        </div>
+
+        <div class="sp-banner-metrics">
+            <div class="sp-metric-item">
+                <span class="sp-metric-label">Mã nhân viên</span>
+                <span class="sp-metric-value accent">{{ display_ma_nv }}</span>
+            </div>
+
+            <div class="sp-metric-item bordered">
+                <span class="sp-metric-label">Số điện thoại</span>
+                <span class="sp-metric-value">{{ display_so_dien_thoai|default:"Chưa cập nhật" }}</span>
+            </div>
+
+            <div class="sp-metric-item">
+                <span class="sp-metric-label">Vai trò</span>
+                <span class="sp-metric-value">{{ display_vai_tro }}</span>
+            </div>
+
+            <div>
+                <a href="{% url 'staff_change_password' %}" class="sp-btn-password">
+                    <i data-lucide="key-round"></i>
+                    <span>Đổi mật khẩu</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: THẺ THÔNG TIN CÁ NHÂN (XEM / CHỈNH SỬA TRỰC TIẾP) -->
+    <div class="sp-card">
+        <form method="POST" action="{% url 'staff_profile' %}" novalidate>
+            {% csrf_token %}
+
+            <div class="sp-card-header">
+                <div>
+                    <h3>
+                        {% if is_editing %}Chỉnh sửa thông tin cá nhân{% else %}THÔNG TIN CÁ NHÂN{% endif %}
+                    </h3>
+                    <p>Hồ sơ tài khoản của {{ display_ho_ten }} · Đồng bộ trực tiếp với hệ thống</p>
+                </div>
+
+                <div class="sp-card-header-actions">
+                    <span class="sp-verified-badge">
+                        <i data-lucide="shield-check"></i>
+                        <span>Đã xác thực thông tin</span>
+                    </span>
+
+                    {% if not is_editing %}
+                        <a href="?edit=true" class="sp-btn-edit">
+                            <i data-lucide="pencil"></i>
+                            <span>Chỉnh sửa</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="sp-form-grid">
+
+                <!-- 1. Họ và tên (Được chỉnh sửa) -->
+                <div class="sp-field">
+                    <label class="sp-label" for="id_ho_ten">
+                        Họ và tên <span class="sp-label-req">*</span>
+                    </label>
+                    <input type="text"
+                           id="id_ho_ten"
+                           name="ho_ten"
+                           value="{% if is_editing %}{{ form.ho_ten.value|default:'' }}{% else %}{{ display_ho_ten }}{% endif %}"
+                           placeholder="Nhập họ và tên"
+                           {% if not is_editing %}disabled{% endif %}
+                           class="sp-input {% if not is_editing %}is-readonly{% elif form.ho_ten.errors %}is-invalid{% else %}is-editing{% endif %}">
+                    {% if is_editing and form.ho_ten.errors %}
+                        {% for error in form.ho_ten.errors %}
+                            <p class="sp-error-text">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- 2. Tên đăng nhập (Hệ thống - Chỉ xem) -->
+                <div class="sp-field">
+                    <label class="sp-label">
+                        Tên đăng nhập (Username) <span class="sp-label-muted">(Hệ thống)</span>
+                    </label>
+                    <input type="text"
+                           value="{{ user_obj.username }}"
+                           disabled
+                           class="sp-input is-system">
+                </div>
+
+                <!-- 3. Số điện thoại (Được chỉnh sửa) -->
+                <div class="sp-field">
+                    <label class="sp-label" for="id_so_dien_thoai">
+                        Số điện thoại <span class="sp-label-req">*</span>
+                    </label>
+                    <input type="tel"
+                           id="id_so_dien_thoai"
+                           name="so_dien_thoai"
+                           value="{% if is_editing %}{{ form.so_dien_thoai.value|default:'' }}{% else %}{{ display_so_dien_thoai }}{% endif %}"
+                           placeholder="Chưa cập nhật"
+                           {% if not is_editing %}disabled{% endif %}
+                           class="sp-input {% if not is_editing %}is-readonly{% elif form.so_dien_thoai.errors %}is-invalid{% else %}is-editing{% endif %}">
+                    {% if is_editing and form.so_dien_thoai.errors %}
+                        {% for error in form.so_dien_thoai.errors %}
+                            <p class="sp-error-text">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- 4. Email (Được chỉnh sửa) -->
+                <div class="sp-field">
+                    <label class="sp-label" for="id_email">
+                        Email <span class="sp-label-req">*</span>
+                    </label>
+                    <input type="email"
+                           id="id_email"
+                           name="email"
+                           value="{% if is_editing %}{{ form.email.value|default:'' }}{% else %}{{ user_obj.email|default:'' }}{% endif %}"
+                           placeholder="Nhập địa chỉ email"
+                           {% if not is_editing %}disabled{% endif %}
+                           class="sp-input {% if not is_editing %}is-readonly{% elif form.email.errors %}is-invalid{% else %}is-editing{% endif %}">
+                    {% if is_editing and form.email.errors %}
+                        {% for error in form.email.errors %}
+                            <p class="sp-error-text">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- 5. Ngày sinh (Được chỉnh sửa) -->
+                <div class="sp-field">
+                    <label class="sp-label" for="id_ngay_sinh">
+                        Ngày sinh {% if nhan_vien %}<span class="sp-label-req">*</span>{% endif %}
+                    </label>
+                    <input type="date"
+                           id="id_ngay_sinh"
+                           name="ngay_sinh"
+                           value="{% if is_editing %}{% if form.ngay_sinh.value %}{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value }}{% endif %}{% elif nhan_vien and nhan_vien.ngay_sinh %}{{ nhan_vien.ngay_sinh|date:'Y-m-d' }}{% endif %}"
+                           {% if not is_editing %}disabled{% endif %}
+                           class="sp-input {% if not is_editing %}is-readonly{% elif form.ngay_sinh.errors %}is-invalid{% else %}is-editing{% endif %}">
+                    {% if is_editing and form.ngay_sinh.errors %}
+                        {% for error in form.ngay_sinh.errors %}
+                            <p class="sp-error-text">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- 6. Giới tính (Được chỉnh sửa) -->
+                <div class="sp-field">
+                    <label class="sp-label" for="id_gioi_tinh">
+                        Giới tính <span class="sp-label-req">*</span>
+                    </label>
+                    {% if is_editing %}
+                        <select id="id_gioi_tinh"
+                                name="gioi_tinh"
+                                class="sp-select {% if form.gioi_tinh.errors %}is-invalid{% else %}is-editing{% endif %}">
+                            <option value="Nam" {% if form.gioi_tinh.value == 'Nam' %}selected{% endif %}>Nam</option>
+                            <option value="Nữ" {% if form.gioi_tinh.value == 'Nữ' %}selected{% endif %}>Nữ</option>
+                            <option value="Khác" {% if form.gioi_tinh.value == 'Khác' %}selected{% endif %}>Khác</option>
+                        </select>
+                        {% for error in form.gioi_tinh.errors %}
+                            <p class="sp-error-text">{{ error }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <input type="text"
+                               value="{{ display_gioi_tinh }}"
+                               disabled
+                               class="sp-input is-readonly">
+                    {% endif %}
+                </div>
+
+                <!-- 7. Mã nhân viên (Hệ thống - Chỉ xem) -->
+                <div class="sp-field">
+                    <label class="sp-label">
+                        Mã nhân viên <span class="sp-label-muted">(Hệ thống)</span>
+                    </label>
+                    <input type="text"
+                           value="{{ display_ma_nv }}"
+                           disabled
+                           class="sp-input is-system">
+                </div>
+
+                <!-- 8. Vai trò tài khoản (Hệ thống - Chỉ xem) -->
+                <div class="sp-field">
+                    <label class="sp-label">
+                        Vai trò tài khoản <span class="sp-label-muted">(Hệ thống)</span>
+                    </label>
+                    <input type="text"
+                           value="{{ display_vai_tro }}"
+                           disabled
+                           class="sp-input is-system">
+                </div>
+
+                <!-- 9. Trạng thái tài khoản (Hệ thống - Chỉ xem) -->
+                <div class="sp-field">
+                    <label class="sp-label">
+                        Trạng thái tài khoản <span class="sp-label-muted">(Hệ thống)</span>
+                    </label>
+                    <input type="text"
+                           value="{{ display_trang_thai }}"
+                           disabled
+                           class="sp-input is-system">
+                </div>
+
+                <!-- 10. Mã tài khoản (Hệ thống - Chỉ xem) -->
+                <div class="sp-field">
+                    <label class="sp-label">
+                        Mã tài khoản <span class="sp-label-muted">(Hệ thống)</span>
+                    </label>
+                    <input type="text"
+                           value="{{ display_ma_tk }}"
+                           disabled
+                           class="sp-input is-system">
+                </div>
+
+                <!-- 11. Ngày tạo tài khoản (Hệ thống - Chỉ xem) -->
+                <div class="sp-field">
+                    <label class="sp-label">
+                        Ngày tạo tài khoản <span class="sp-label-muted">(Hệ thống)</span>
+                    </label>
+                    <input type="text"
+                           value="{{ display_ngay_tao }}"
+                           disabled
+                           class="sp-input is-system">
+                </div>
+
+            </div>
+
+            <!-- NÚT LƯU VÀ HỦY KHI Ở CHẾ ĐỘ CHỈNH SỬA -->
+            {% if is_editing %}
+                <div class="sp-form-actions">
+                    <a href="{% url 'staff_profile' %}" class="sp-btn-cancel">Hủy</a>
+                    <button type="submit" class="sp-btn-save">Lưu thay đổi</button>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
+    </script>
+{% endblock %}

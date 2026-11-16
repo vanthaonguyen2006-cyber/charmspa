@@ -18,7 +18,7 @@
   overflow-y: auto;
   outline: 0;
   color: #34302b;
-  font: 14px/1.5 Arial, Helvetica, sans-serif;
+  font: 14px/1.5 'Montserrat', Arial, sans-serif;
 }
 .booking-ui-modal.show { display: block !important; }
 .booking-ui-modal.fade { opacity: 0; transition: opacity .15s linear; }

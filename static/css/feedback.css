@@ -1,6 +1,5 @@
-/* ==========================================
-   ĐỒNG BỘ FONT VỚI MODULE QUẢN LÝ LỊCH
-   ========================================== */
+/* Tải font Montserrat */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
 
 /* Font nội dung toàn bộ module */
 .feedback-page,
@@ -40,13 +39,13 @@
     margin: 0;
     font-family: Georgia, serif;
     font-size: 31px;
-    font-weight: 400;
+    font-weight: 700 !important;
     text-transform: uppercase;
 }
 
 .feedback-subtitle {
     color: #8a847b;
-    font-size: 12px;
+    font-size: 14px;
     margin-top: 6px;
 }
 
@@ -72,7 +71,7 @@
     border-radius: 8px;
     color: #756c60;
     text-decoration: none;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .feedback-tabs a.active,
@@ -108,7 +107,7 @@
 
 .feedback-muted {
     color: #8b857b;
-    font-size: 11px;
+    font-size: 14px;
 }
 
 /* ================================
@@ -129,7 +128,7 @@
 }
 
 .feedback-stat-label {
-    font-size: 10px;
+    font-size: 14px;
     color: #81796e;
     font-weight: 600;
     text-transform: uppercase;
@@ -163,7 +162,7 @@
     background: #fcf9f4;
     color: #39352f;
     font: inherit;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .feedback-filter-actions {
@@ -185,7 +184,7 @@
     background: #252521;
     color: #fff;
     font: inherit;
-    font-size: 12px;
+    font-size: 14px;
     text-decoration: none;
     cursor: pointer;
 }
@@ -219,13 +218,13 @@
 .feedback-table th {
     background: #faf7f1;
     color: #7c766c;
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
 }
 
 .feedback-table td {
-    font-size: 11px;
+    font-size: 14px;
     color: #46423c;
 }
 
@@ -249,6 +248,34 @@
     font-weight: 600;
     text-decoration: none;
 }
+/* Nút xem chi tiết dạng icon con mắt */
+.feedback-view-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e9dcd0;
+    border-radius: 7px;
+    background: #fff;
+    color: #ad8550;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Kích thước icon con mắt */
+.feedback-view-button i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Hiệu ứng khi rê chuột */
+.feedback-view-button:hover {
+    background: #f6efe8;
+    border-color: #b99a6c;
+    color: #8b6b3e;
+}
 
 .feedback-badge {
     display: inline-block;
@@ -256,7 +283,7 @@
     border-radius: 30px;
     background: #eee9df;
     color: #78633e;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 .feedback-badge.processing { background: #e7f0f4; color: #356b83; }
@@ -310,7 +337,7 @@
 .feedback-type {
     color: #ad3931;
     text-transform: uppercase;
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
 }
 
@@ -329,12 +356,12 @@
 
 .feedback-info-label {
     color: #928a7e;
-    font-size: 10px;
+    font-size: 14px;
     margin-bottom: 5px;
 }
 
 .feedback-info-value {
-    font-size: 12px;
+    font-size: 14px;
     overflow-wrap: anywhere;
 }
 
@@ -343,12 +370,12 @@
     border-radius: 9px;
     padding: 15px;
     line-height: 1.7;
-    font-size: 12px;
+    font-size: 14px;
     overflow-wrap: anywhere;
 }
 
 .feedback-side-value {
-    font-size: 12px;
+    font-size: 14px;
     margin-top: 9px;
     overflow-wrap: anywhere;
 }
@@ -359,7 +386,7 @@
     gap: 10px;
     padding: 12px 0;
     border-bottom: 1px solid #eee5d8;
-    font-size: 11px;
+    font-size: 14px;
 }
 
 .feedback-history-item:last-child { border-bottom: 0; }
@@ -379,7 +406,7 @@
     padding: 12px;
     border-radius: 8px;
     overflow-wrap: anywhere;
-    font-size: 11px;
+    font-size: 14px;
 }
 
 /* ================================
@@ -443,7 +470,7 @@
     border: 1px solid #e7ddce;
     padding: 12px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
 }
 
@@ -462,7 +489,7 @@
     border-radius: 8px;
     background: #e5f4ec;
     color: #24815c;
-    font-size: 12px;
+    font-size: 14px;
     margin-bottom: 15px;
 }
 
@@ -513,7 +540,7 @@
     gap: 10px;
     align-items: center;
     margin: 20px 0;
-    font-size: 11px;
+    font-size: 14px;
 }
 
 .feedback-bar-bg {
@@ -545,7 +572,7 @@
     border: 1px solid #e7ddce;
     border-radius: 7px;
     background: #fff;
-    font-size: 11px;
+    font-size: 14px;
     text-decoration: none;
     color: #514b42;
 }
@@ -581,7 +608,7 @@
     padding: 12px 16px;
     margin-bottom: 14px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .staff-detail-alert.success {
@@ -607,7 +634,7 @@
 .staff-detail-heading h1 {
     font-family: Georgia, serif;
     font-size: 30px;
-    font-weight: 400;
+    font-weight: 700;
     text-transform: uppercase;
 }
 
@@ -619,7 +646,7 @@
 
 .staff-back-link {
     color: #9b783e;
-    font-size: 12px;
+    font-size: 14px;
     text-decoration: none;
 }
 
@@ -648,18 +675,18 @@
 .staff-ticket-title {
     margin: 7px 0 12px;
     font-family: Georgia, serif;
-    font-size: 21px;
+    font-size: 22px;
     font-weight: 500;
 }
 
 .staff-ticket-content {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.7;
     overflow-wrap: anywhere;
 }
 
 .staff-ticket-content strong {
-    font-size: 10px;
+    font-size: 14px;
     color: #34312c;
 }
 
@@ -686,11 +713,11 @@
 
 .staff-ticket-meta span {
     color: #898176;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 .staff-ticket-meta strong {
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 500;
     overflow-wrap: anywhere;
 }
@@ -724,7 +751,7 @@
     background: #f1e5cf;
     color: #a77e36;
     border-radius: 6px;
-    font-size: 17px;
+    font-size: 18px;
 }
 
 .staff-attachment-info {
@@ -736,12 +763,12 @@
 }
 
 .staff-attachment-info strong {
-    font-size: 10px;
+    font-size: 14px;
     overflow-wrap: anywhere;
 }
 
 .staff-attachment-info small {
-    font-size: 9px;
+    font-size: 12px;
     color: #898176;
 }
 
@@ -763,7 +790,7 @@
 .staff-note-group > label {
     display: block;
     margin-bottom: 9px;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -800,7 +827,7 @@
     background: #fff;
     color: #46423c;
     font-family: inherit;
-    font-size: 10px;
+    font-size: 14px;
     text-align: center;
     transition: .2s;
 }
@@ -837,7 +864,7 @@
     background: #fff;
     color: #39352f;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 14px;
     line-height: 1.6;
 }
 
@@ -858,7 +885,7 @@
 
 .staff-update-footer > span {
     color: #898176;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 /* Cột phải */
@@ -875,14 +902,14 @@
 
 .staff-detail-sidebar .feedback-card h2 {
     margin-bottom: 12px;
-    font-size: 17px;
+    font-size: 18px;
 }
 
 /* Thông tin khách hàng */
 .staff-customer-name {
     margin-bottom: 8px;
     color: #302b25;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
 }
 
@@ -891,7 +918,7 @@
     flex-direction: column;
     gap: 5px;
     color: #81796e;
-    font-size: 10px;
+    font-size: 14px;
     overflow-wrap: anywhere;
 }
 
@@ -950,19 +977,19 @@
 .staff-history-content strong {
     display: block;
     margin-bottom: 3px;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 .staff-history-content small {
     display: block;
     color: #989083;
-    font-size: 9px;
+    font-size: 12px;
 }
 
 .staff-history-content p {
     margin: 5px 0 0;
     color: #756e64;
-    font-size: 10px;
+    font-size: 14px;
     line-height: 1.5;
     overflow-wrap: anywhere;
 }
@@ -987,7 +1014,7 @@
 .staff-complete-card p {
     margin: 0 0 13px;
     color: #d0c8ba;
-    font-size: 10px;
+    font-size: 14px;
     line-height: 1.6;
 }
 
@@ -1003,7 +1030,7 @@
     background: #b58b43;
     color: #fff;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 14px;
     cursor: pointer;
     transition: .2s;
 }
@@ -1018,12 +1045,12 @@
     padding: 15px;
     border-radius: 8px;
     background: #fcf9f4;
-    font-size: 11px;
+    font-size: 14px;
     line-height: 1.7;
 }
 
 .staff-final-response strong {
-    font-size: 10px;
+    font-size: 14px;
 }
 
 .staff-final-response p {
@@ -1045,11 +1072,11 @@
 
 .staff-completed-info span {
     color: #898176;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 .staff-completed-info strong {
-    font-size: 11px;
+    font-size: 14px;
 }
 
 /* Modal */
@@ -1060,7 +1087,7 @@
 .staff-complete-modal label {
     display: block;
     margin: 15px 0 8px;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -1152,7 +1179,7 @@
     padding: 12px 14px;
     background: #fcf9f4;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 14px;
     line-height: 1.7;
 }
 
@@ -1167,7 +1194,7 @@
 .staff-detail-page .staff-status-option span {
     min-height: 38px;
     border-radius: 8px;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 /* Khu vực ghi chú */
@@ -1321,7 +1348,7 @@
     border-radius: 50%;
     background: #f5ead5;
     color: #a77c35;
-    font-size: 17px;
+    font-size: 18px;
 }
 
 .feedback-action-heading {
@@ -1340,7 +1367,7 @@
 .feedback-action-heading p {
     margin: 0;
     color: #91877a;
-    font-size: 10px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -1383,20 +1410,20 @@
 
 .feedback-action-code {
     color: #98702f;
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
 }
 
 .feedback-action-customer {
     color: #8b8175;
-    font-size: 9px;
+    font-size: 12px;
 }
 
 .feedback-action-summary-title {
     margin: 0;
     color: #302823;
     font-family: Georgia, serif;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     overflow-wrap: anywhere;
 }
@@ -1410,7 +1437,7 @@
     display: block;
     margin: 13px 0 7px;
     color: #38332d;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 700;
 }
 
@@ -1429,7 +1456,7 @@
     background: #fff;
     color: #39352f;
     font-family: Arial, sans-serif;
-    font-size: 11px;
+    font-size: 14px;
     line-height: 1.5;
     outline: none;
 }
@@ -1457,7 +1484,7 @@
 .feedback-action-hint {
     margin: 8px 0 0;
     color: #999084;
-    font-size: 9px;
+    font-size: 12px;
     line-height: 1.5;
 }
 
@@ -1475,7 +1502,7 @@
     box-sizing: border-box;
     padding: 10px 12px;
     border-radius: 8px;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 500;
 }
 
@@ -1533,7 +1560,7 @@
     }
 
     .feedback-action-heading h2 {
-        font-size: 17px;
+        font-size: 18px;
     }
 
     .feedback-action-footer {

@@ -8,9 +8,9 @@
     align-items: center;
     padding: 15px 5%;
     background-color: #FDFBF7;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Montserrat', Arial, sans-serif;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-     position: sticky;
+    position: sticky;
     top: 0;
     z-index: 1000;
     box-sizing: border-box;

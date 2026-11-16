@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.models import ROLE_STAFF, TaiKhoan
 from customers.models import HangThanhVien, KhachHang
 
 
@@ -11,8 +12,8 @@ class StaffCustomerAddViewTests(TestCase):
         self.staff = user_model.objects.create_user(
             username='customer_add_staff',
             password='test-password',
-            is_staff=True,
         )
+        TaiKhoan.objects.filter(user=self.staff).update(vai_tro=ROLE_STAFF)
         self.client.force_login(self.staff)
 
         self.lowest_tier = HangThanhVien.objects.create(

@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from accounts.models import ROLE_STAFF, TaiKhoan
+
 
 class AccountChangePasswordViewTests(TestCase):
     def setUp(self):
@@ -70,8 +72,8 @@ class StaffChangePasswordViewTests(TestCase):
         self.user = get_user_model().objects.create_user(
             username='staff_password_change',
             password='OldStaffPassword!2024',
-            is_staff=True,
         )
+        TaiKhoan.objects.filter(user=self.user).update(vai_tro=ROLE_STAFF)
         self.client.force_login(self.user)
 
     def test_staff_can_change_password_from_staff_layout_and_stay_logged_in(self):

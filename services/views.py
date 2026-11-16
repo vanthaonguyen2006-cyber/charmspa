@@ -4,7 +4,14 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from bookings.models import DichVu
-
+from datetime import date
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from bookings.models import DichVu
+from services.models import DichVuDaSuDung
+from customers.models import KhachHang
 def is_staff(user):
     return user.is_authenticated and (user.is_staff or getattr(user, 'vai_tro', '') in ['Staff', 'Admin'])
 
@@ -152,3 +159,68 @@ def api_them_dich_vu(request):
         })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+def is_customer_user(user):
+    return user.is_authenticated and not user.is_staff and not user.is_superuser
+
+
+@login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(is_customer_user, login_url='/home/staff/')
+def customer_service_history_view(request):
+    """Trang Lịch sử dịch vụ dành cho Khách hàng (thuộc app services)."""
+    if request.user.is_staff or request.user.is_superuser:
+        return redirect('/home/staff/')
+
+    tai_khoan = getattr(request.user, 'thong_tin_tai_khoan', None)
+
+    khach_hang = None
+    if tai_khoan:
+        khach_hang = getattr(tai_khoan, 'ho_so_khach_hang', None)
+    if not khach_hang:
+        khach_hang = (
+            KhachHang.objects.select_related('ma_tk', 'ma_tv')
+            .filter(ma_tk__user=request.user)
+            .first()
+        )
+
+    lich_su_dich_vu = []
+    tong_so_dich_vu = 0
+    if khach_hang and hasattr(khach_hang, 'ma_kh'):
+        try:
+            qs = (
+                DichVuDaSuDung.objects.filter(ma_kh=khach_hang)
+                .select_related('ma_dv', 'ma_nv')
+                .order_by('-ngay_su_dung')
+            )
+            tong_so_dich_vu = qs.count()
+            lich_su_dich_vu = list(qs)
+        except Exception as e:
+            print(f"Lỗi truy vấn lịch sử dịch vụ khách hàng: {e}")
+            lich_su_dich_vu = []
+            tong_so_dich_vu = 0
+
+    if not khach_hang:
+        class TempKhachHang:
+            ho_ten = request.user.get_full_name() or request.user.username
+            ngay_sinh = None
+            gioi_tinh = "Nam"
+            ma_kh = "Chưa có mã"
+            diem_tich_luy_kh = 0
+            ma_tv = None
+
+            @property
+            def ma_tk(self):
+                class DummyTk:
+                    so_dien_thoai = tai_khoan.so_dien_thoai if tai_khoan else ""
+                return DummyTk()
+
+        khach_hang = TempKhachHang()
+
+    context = {
+        'khach_hang': khach_hang,
+        'tai_khoan': tai_khoan,
+        'lich_su_dich_vu': lich_su_dich_vu,
+        'tong_so_dich_vu': tong_so_dich_vu,
+    }
+    return render(request, 'services/customer_service_history.html', context)
