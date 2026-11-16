@@ -5,8 +5,8 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
-    <link rel="stylesheet" href="{% static 'css/customers/staff_account_list.css' %}">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261115_v5">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_account_list.css' %}?v=20261115_v5">
 {% endblock %}
 
 {% block content %}
@@ -61,7 +61,7 @@
             <div class="stat-copy">
                 <span class="stat-label">Nhân sự quản trị</span>
                 <strong>{{ tong_nhan_su_display|default:"0" }}</strong>
-                <small class="stat-text-blue">Nhân viên & Admin</small>
+                <small class="stat-text-blue">Nhân viên & Quản lý</small>
             </div>
         </article>
 
@@ -91,9 +91,8 @@
             <select name="vai_tro" aria-label="Lọc theo vai trò">
                 <option value="">Tất cả vai trò</option>
                 <option value="Khách hàng" {% if vai_tro_selected == 'Khách hàng' %}selected{% endif %}>Khách hàng</option>
-                <option value="Nhân viên CSKH" {% if vai_tro_selected == 'Nhân viên CSKH' %}selected{% endif %}>Nhân viên CSKH</option>
-                <option value="Chuyên viên" {% if vai_tro_selected == 'Chuyên viên' %}selected{% endif %}>Chuyên viên</option>
-                <option value="Quản trị viên" {% if vai_tro_selected == 'Quản trị viên' or vai_tro_selected == 'Admin' %}selected{% endif %}>Quản trị viên (Admin)</option>
+                <option value="Nhân viên" {% if vai_tro_selected == 'Nhân viên' %}selected{% endif %}>Nhân viên</option>
+                <option value="Quản lý" {% if vai_tro_selected == 'Quản lý' %}selected{% endif %}>Quản lý</option>
             </select>
 
             <select name="trang_thai" aria-label="Lọc theo trạng thái">
@@ -104,7 +103,7 @@
 
             <button class="customer-filter-button" type="submit">
                 <i data-lucide="sliders-horizontal"></i>
-                <span>Bộ lọc</span>
+                <span>Lọc</span>
             </button>
         </div>
     </form>
@@ -117,10 +116,13 @@
                 <span class="customer-count-pill">{{ filtered_count_display|default:"0" }} tài khoản</span>
             </div>
             <div class="customer-table-tools tools-flex-gap">
-                <!-- Nút + Thêm nhân viên -->
-                <a class="btn-gold-action" href="{% url 'staff_account_add_staff' %}" title="Thêm mới nhân viên">
-                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
-                    <span>+ Thêm nhân viên</span>
+                <!-- Nút + Thêm nhân viên: Nền đen #262626, chữ và icon màu trắng -->
+                <a class="btn-gold-action staff-btn-dark"
+                   href="{% url 'staff_account_add_staff' %}"
+                   style="background-color: #262626 !important; color: #ffffff !important; border: 1px solid #262626 !important; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 18px; border-radius: 9px; font-size: 13.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.14);"
+                   title="Thêm mới nhân viên">
+                    <i data-lucide="user-plus" style="width: 16px; height: 16px; color: #ffffff !important; stroke: #ffffff !important;"></i>
+                    <span style="color: #ffffff !important;">+ Thêm nhân viên</span>
                 </a>
 
                 <!-- Nút xuất CSV -->
@@ -154,7 +156,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="customer-tier tier-badge-role">{{ tk.vai_tro }}</span>
+                                <span class="customer-tier tier-badge-role">{{ tk.normalized_vai_tro|default:tk.vai_tro }}</span>
                             </td>
                             <td>
                                 {% if tk.user.is_active %}
@@ -173,24 +175,28 @@
                                     </a>
 
                                     <!-- Nút Chỉnh sửa tài khoản & Phân quyền (Hình cây bút) -->
-                                    <button type="button" class="customer-icon-button"
-                                            onclick="openEditAccountModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|escapejs }}', '{{ tk.user.email|default:''|escapejs }}', '{{ tk.so_dien_thoai|escapejs }}', '{{ tk.vai_tro|escapejs }}', '{{ tk.display_gioi_tinh|default:'Nam'|escapejs }}', '{{ tk.display_ngay_sinh|default:''|escapejs }}')"
-                                            title="Chỉnh sửa tài khoản & Phân quyền" aria-label="Chỉnh sửa">
-                                        <i data-lucide="pencil"></i>
-                                    </button>
+                                    {% if tk.can_edit_account|default:True %}
+                                        <button type="button" class="customer-icon-button"
+                                                onclick="openEditAccountModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|escapejs }}', '{{ tk.user.email|default:''|escapejs }}', '{{ tk.so_dien_thoai|escapejs }}', '{{ tk.normalized_vai_tro|default:tk.vai_tro|escapejs }}', '{{ tk.display_gioi_tinh|default:'Nam'|escapejs }}', '{{ tk.display_ngay_sinh|default:''|escapejs }}')"
+                                                title="Chỉnh sửa tài khoản & Phân quyền" aria-label="Chỉnh sửa">
+                                            <i data-lucide="pencil"></i>
+                                        </button>
+                                    {% endif %}
 
-                                    {% if tk.user.is_active %}
-                                        <button type="button" class="customer-icon-button text-amber-700 bg-amber-50"
-                                                onclick="openLockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}')"
-                                                title="Khóa tài khoản" aria-label="Khóa tài khoản">
-                                            <i data-lucide="lock"></i>
-                                        </button>
-                                    {% else %}
-                                        <button type="button" class="customer-icon-button text-emerald-700 bg-emerald-50"
-                                                onclick="openUnlockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}', '{{ tk.so_dien_thoai }}', '{{ tk.user.email }}')"
-                                                title="Mở khóa tài khoản" aria-label="Mở khóa tài khoản">
-                                            <i data-lucide="unlock"></i>
-                                        </button>
+                                    {% if tk.can_toggle_lock|default:False %}
+                                        {% if tk.user.is_active %}
+                                            <button type="button" class="customer-icon-button text-amber-700 bg-amber-50"
+                                                    onclick="openLockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}')"
+                                                    title="Khóa tài khoản" aria-label="Khóa tài khoản">
+                                                <i data-lucide="lock"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="customer-icon-button text-emerald-700 bg-emerald-50"
+                                                    onclick="openUnlockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}', '{{ tk.so_dien_thoai }}', '{{ tk.user.email }}')"
+                                                    title="Mở khóa tài khoản" aria-label="Mở khóa tài khoản">
+                                                <i data-lucide="unlock"></i>
+                                            </button>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </td>
@@ -258,7 +264,7 @@
         <div class="modal-header">
             <div>
                 <h3 class="modal-title">Chỉnh sửa tài khoản & Phân quyền</h3>
-                <p class="modal-subtitle">Admin có thể cập nhật thông tin và thay đổi quyền truy cập của tài khoản.</p>
+                <p class="modal-subtitle">Cập nhật thông tin tài khoản và phân quyền giữa Nhân viên – Quản lý.</p>
             </div>
             <button type="button" class="modal-close-btn" onclick="closeEditAccountModal()">&times;</button>
         </div>
@@ -292,12 +298,12 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Vai trò <span class="req">*</span></label>
-                        <select name="vai_tro" id="editVaiTro" class="form-select" required>
-                            <option value="Admin">Admin</option>
-                            <option value="Nhân viên CSKH">Nhân viên CSKH</option>
-                            <option value="Chuyên viên">Chuyên viên</option>
-                            <option value="Khách hàng">Khách hàng</option>
+                        <select id="editVaiTro" class="form-select">
+                            <option value="Nhân viên">Nhân viên</option>
+                            <option value="Quản lý">Quản lý</option>
                         </select>
+                        <input type="text" id="editVaiTroReadonly" class="form-input" readonly style="display: none; background: #f7f4ee; font-weight: 600;">
+                        <input type="hidden" name="vai_tro" id="editVaiTroHidden">
                         <span class="field-error-text" id="editVaiTroError"></span>
                     </div>
                 </div>
@@ -413,14 +419,24 @@
             {% if show_add_modal %}
                 openAddStaffModal();
             {% endif %}
+
+            const vaiTroSelect = document.getElementById('editVaiTro');
+            const vaiTroHidden = document.getElementById('editVaiTroHidden');
+            if (vaiTroSelect && vaiTroHidden) {
+                vaiTroSelect.addEventListener('change', function () {
+                    vaiTroHidden.value = vaiTroSelect.value;
+                });
+            }
         });
 
         function openAddStaffModal() {
-            document.getElementById('addStaffModal').style.display = 'flex';
+            const m = document.getElementById('addStaffModal');
+            if (m) m.style.display = 'flex';
             if (window.lucide) window.lucide.createIcons();
         }
         function closeAddStaffModal() {
-            document.getElementById('addStaffModal').style.display = 'none';
+            const m = document.getElementById('addStaffModal');
+            if (m) m.style.display = 'none';
         }
 
         function togglePasswordVisibility(inputId, btn) {
@@ -435,7 +451,7 @@
             if (window.lucide) window.lucide.createIcons();
         }
 
-                // Xóa viền đỏ và text lỗi cũ
+        // Xóa viền đỏ và text lỗi cũ
         function clearEditErrors() {
             ['editHoTen', 'editEmail', 'editSoDienThoai', 'editVaiTro', 'editGioiTinh', 'editNgaySinh'].forEach(id => {
                 const el = document.getElementById(id);
@@ -453,6 +469,13 @@
             }
         }
 
+        function normalizeRoleClient(rawRole) {
+            const r = (rawRole || '').trim();
+            if (r === 'Admin' || r === 'Quản lý') return 'Quản lý';
+            if (r === 'Nhân viên CSKH' || r === 'Chuyên viên' || r === 'Nhân viên') return 'Nhân viên';
+            return 'Khách hàng';
+        }
+
         // Popup Chỉnh sửa tài khoản & Phân quyền
         function openEditAccountModal(maTk, hoTen, email, soDienThoai, vaiTro, gioiTinh, ngaySinh) {
             clearEditErrors();
@@ -468,15 +491,20 @@
             document.getElementById('editNgaySinh').value = ngaySinh || '';
 
             const vaiTroSelect = document.getElementById('editVaiTro');
-            let mappedRole = vaiTro;
-            if (vaiTro === 'Quản trị viên') mappedRole = 'Admin';
-            vaiTroSelect.value = mappedRole;
-            if (!vaiTroSelect.value) {
-                if (mappedRole.toLowerCase().includes('admin') || mappedRole.toLowerCase().includes('quản trị')) {
-                    vaiTroSelect.value = 'Admin';
-                } else {
-                    vaiTroSelect.value = 'Khách hàng';
-                }
+            const vaiTroReadonly = document.getElementById('editVaiTroReadonly');
+            const vaiTroHidden = document.getElementById('editVaiTroHidden');
+            const normalized = normalizeRoleClient(vaiTro);
+
+            if (normalized === 'Nhân viên' || normalized === 'Quản lý') {
+                vaiTroSelect.style.display = 'block';
+                vaiTroReadonly.style.display = 'none';
+                vaiTroSelect.value = normalized;
+                vaiTroHidden.value = normalized;
+            } else {
+                vaiTroSelect.style.display = 'none';
+                vaiTroReadonly.style.display = 'block';
+                vaiTroReadonly.value = normalized;
+                vaiTroHidden.value = normalized;
             }
 
             modal.style.display = 'flex';

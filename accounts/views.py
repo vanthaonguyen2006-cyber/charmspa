@@ -4,7 +4,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .models import TaiKhoan
+from .models import TaiKhoan, is_customer_role, is_staff_portal_user
 from .forms import DangKyForm, AccountPasswordChangeForm
 
 
@@ -20,9 +20,11 @@ def dang_ky_view(request):
 
 
 def dang_nhap_view(request):
-    # Nếu user đã đăng nhập rồi thì không cho hiện trang login nữa, tự động điều hướng luôn
+    # Nếu user đã đăng nhập rồi thì không cho hiện trang login nữa, tự động điều hướng theo vai trò
     if request.user.is_authenticated:
-        if request.user.is_superuser or request.user.is_staff:
+        if request.user.is_superuser and request.user.is_staff:
+            return redirect('/admin/')
+        elif is_staff_portal_user(request.user):
             return redirect('/home/staff/dashboard/')
         else:
             return redirect('/home/')
@@ -74,8 +76,10 @@ def dang_nhap_view(request):
                     # Không tích chọn: Phiên đăng nhập sẽ hết hạn ngay khi đóng trình duyệt
                     request.session.set_expiry(0)
 
-                # Phân quyền chuyển hướng
-                if user.is_superuser or user.is_staff:
+                # Điều hướng: Admin kỹ thuật -> /admin/, Quản lý & Nhân viên -> cổng nội bộ, Khách hàng -> /home/
+                if user.is_superuser and user.is_staff:
+                    return redirect('/admin/')
+                elif is_staff_portal_user(user):
                     return redirect('/home/staff/dashboard/')
                 else:
                     return redirect('/home/')
@@ -95,10 +99,13 @@ def dang_xuat_view(request):
     auth_logout(request)
     return redirect('dang_nhap')
 
+
 @login_required(login_url='/accounts/dang_nhap/')
 def account_change_password_view(request):
     """Change the password for a signed-in customer account."""
-    if request.user.is_staff or request.user.is_superuser:
+    if request.user.is_superuser and request.user.is_staff:
+        return redirect('/admin/')
+    if not is_customer_role(request.user):
         return redirect('/home/staff/')
 
     form = AccountPasswordChangeForm(
@@ -125,8 +132,10 @@ def account_change_password_view(request):
 
 @login_required(login_url='/accounts/dang_nhap/')
 def staff_change_password_view(request):
-    """Change the password for a signed-in staff or administrator account."""
-    if not (request.user.is_staff or request.user.is_superuser):
+    """Change the password for a signed-in staff or manager account."""
+    if request.user.is_superuser and request.user.is_staff:
+        return redirect('/admin/')
+    if not is_staff_portal_user(request.user):
         return redirect('/home/customer/')
 
     form = AccountPasswordChangeForm(
