@@ -1,14 +1,15 @@
 /* ==========================================================================
    CSS DÀNH RIÊNG CHO TRANG QUẢN TRỊ TÀI KHOẢN VÀ POPUP (CHARM SPA GRAND)
+   Đồng bộ Typography to rõ, chuẩn nét tương đương trang Customer List
    ========================================================================== */
 
-/* Flash Messages Thông báo */
+/* Flash Messages */
 .account-flash-wrap {
     margin-bottom: 16px;
 }
 
 .account-flash-msg {
-    padding: 12px 16px;
+    padding: 11px 16px;
     border-radius: 8px;
     font-size: 13.5px;
     margin-bottom: 8px;
@@ -29,14 +30,14 @@
     border: 1px solid #fad2cf;
 }
 
-/* Huy hiệu bảo mật trên tiêu đề */
+/* Huy hiệu bảo mật */
 .security-badge {
     background-color: #e6f4ea;
     color: #137333;
-    padding: 6px 16px;
+    padding: 7px 16px;
     border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 13.5px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -60,87 +61,136 @@
     color: #137333;
 }
 
-/* Thanh tìm kiếm & bộ lọc */
 .search-box-flex {
-    flex: 1;
+    flex: 1 1 0%;
+    max-width: none;
 }
 
 .tools-flex-gap {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
-/* Nút thêm mới nhân viên (Nâu vàng sang trọng) */
-.btn-gold-action {
-    background-color: #8C6D4F;
-    color: #ffffff;
-    padding: 8px 16px;
+/* NÚT THÊM MỚI NHÂN VIÊN: NỀN ĐEN #262626, CHỮ TRẮNG */
+.btn-gold-action,
+.btn-dark-action {
+    background-color: #262626 !important;
+    color: #ffffff !important;
+    border: 1px solid #262626 !important;
+    padding: 9px 18px;
+    min-height: 40px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     text-decoration: none;
-    border: none;
     cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
     transition: all 0.2s ease;
 }
 
-.btn-gold-action:hover {
-    background-color: #755a40;
-    color: #ffffff;
+.btn-gold-action:hover,
+.btn-dark-action:hover {
+    background-color: #765323FF !important;
+    border-color: #403e3b !important;
+    color: #ffffff !important;
     transform: translateY(-1px);
 }
 
-/* Nút viền trắng (Xuất dữ liệu / Nhật ký) */
+.btn-gold-action svg,
+.btn-dark-action svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    width: 16px;
+    height: 16px;
+}
+
+/* Nút viền trắng (Xuất dữ liệu) */
 .btn-outline-action {
     background-color: #ffffff;
     color: #4a4036;
     border: 1px solid #dcd6cc;
-    padding: 8px 16px;
+    padding: 8px 15px;
+    min-height: 36px;
     border-radius: 8px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-outline-action:hover {
-    background-color: #f9f7f4;
+    background-color: #faf7f3;
     border-color: #c4baa9;
 }
 
-/* Chi tiết dòng người dùng trong bảng */
+/* Kiểu chữ dòng dữ liệu trong bảng */
 .user-subinfo-small {
-    font-size: 11px;
+    font-size: 12.5px;
+    color: #8c867d;
+    display: block;
+    margin-top: 3px;
+}
+
+.customer-full-name {
+    font-size: 14px;
+    font-weight: 650;
+    color: #272520;
+}
+
+.customer-avatar {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    font-size: 12px;
 }
 
 .tier-badge-role {
-    background: #f3f4f6;
-    color: #374151;
+    background: #f2ede4;
+    color: #6d5d4d;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 11px;
+    min-height: 25px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .tier-badge-active {
     background: #e6f4ea;
     color: #137333;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 11px;
+    min-height: 25px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .tier-badge-locked {
     background: #fce8e6;
     color: #c5221f;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 11px;
+    min-height: 25px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* ==========================================================================
-   POPUP MODAL & OVERLAY
+   POPUP MODAL & OVERLAY (PHÂN QUYỀN & KHÓA TÀI KHOẢN)
    ========================================================================== */
-
-/* Khung nền mờ phủ toàn màn hình (Modal Backdrop) */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -154,9 +204,9 @@
     align-items: center;
     padding: 16px;
     box-sizing: border-box;
-    font-family: 'Montserrat', Arial, sans-serif !important;}
+    font-family: 'Montserrat', Arial, sans-serif !important;
+}
 
-/* Thẻ popup chính */
 .modal-card {
     background: #ffffff;
     width: 100%;
@@ -171,7 +221,7 @@
 }
 
 .modal-header {
-    padding: 20px 24px 16px;
+    padding: 18px 24px 14px;
     border-bottom: 1px solid #f0e9df;
     display: flex;
     justify-content: space-between;
@@ -189,11 +239,12 @@
 
 .modal-subtitle {
     font-family: 'Montserrat', Arial, sans-serif !important;
-    font-size: 13px;
+    font-size: 13.5px;
     color: #7a6e62;
-    margin: 5px 0 0;
+    margin: 4px 0 0;
     line-height: 1.4;
 }
+
 .modal-close-btn {
     background: none;
     border: none;
@@ -208,14 +259,12 @@
     color: #2b2118;
 }
 
-/* Nội dung Form bên trong Modal */
 .modal-body {
-    padding: 20px 24px;
+    padding: 18px 24px;
     max-height: 75vh;
     overflow-y: auto;
 }
 
-/* Thông báo lỗi chung trong Modal */
 .modal-general-error {
     display: none;
     margin-bottom: 14px;
@@ -227,18 +276,17 @@
     font-size: 13px;
 }
 
-/* Lưới 2 cột cho các ô nhập liệu */
 .form-grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: 14px;
+    margin-bottom: 14px;
 }
 
 @media (max-width: 580px) {
     .form-grid-2 {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 10px;
     }
 }
 
@@ -248,14 +296,9 @@
     gap: 6px;
 }
 
-.form-group-dynamic {
-    display: none;
-    margin-top: 14px;
-}
-
 .form-label {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 13.5px;
+    font-weight: 650;
     color: #3b2d24;
 }
 
@@ -264,10 +307,9 @@
     margin-left: 2px;
 }
 
-/* Ô nhập liệu và dropdown */
 .form-input, .form-select {
     width: 100%;
-    padding: 9px 12px;
+    padding: 9px 13px;
     border: 1px solid #dcd6cc;
     border-radius: 8px;
     font-size: 13.5px;
@@ -283,107 +325,32 @@
     box-shadow: 0 0 0 2px rgba(140, 109, 79, 0.15);
 }
 
-/* Trạng thái lỗi cho ô nhập liệu */
 .form-input.is-invalid,
-.form-select.is-invalid,
-.form-input.input-error,
-.form-select.input-error {
+.form-select.is-invalid {
     border: 1.5px solid #dc3545 !important;
     background-color: #fff8f8 !important;
 }
 
-.form-input.is-invalid:focus,
-.form-select.is-invalid:focus,
-.form-input.input-error:focus,
-.form-select.input-error:focus {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.18) !important;
-}
-
-/* Text thông báo lỗi ngay dưới từng ô nhập */
-.field-error-text,
-.field-error-msg {
+.field-error-text {
     display: none;
     color: #dc3545;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 500;
     margin-top: 4px;
     line-height: 1.4;
 }
 
-/* Wrapper chứa ô mật khẩu và icon mắt */
-.password-field-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-toggle-btn {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    color: #887b6d;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-}
-
-.form-hint {
-    font-size: 11.5px;
-    color: #8c7e70;
-    margin-top: 4px;
-}
-
-/* Khung hiển thị thông tin người dùng trong modal mở khóa */
-.user-unlock-preview {
-    background: #fdfbf7;
-    border: 1px solid #f0e6d2;
-    padding: 12px 16px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.user-unlock-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #e6dfd3;
-    color: #5c4a32;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-}
-
-.user-unlock-name {
-    font-weight: bold;
-    font-size: 14px;
-    color: #1a1a1a;
-}
-
-.user-unlock-email {
-    font-size: 12px;
-    color: #666666;
-}
-
-/* Chân Modal chứa nút bấm */
 .modal-footer {
     padding: 14px 24px;
     background: #fbf9f6;
     border-top: 1px solid #f0e9df;
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
+    gap: 10px;
 }
 
 .modal-btn-cancel {
-    padding: 9px 20px;
+    padding: 9px 18px;
     background: #ffffff;
     border: 1px solid #dcd6cc;
     border-radius: 8px;
@@ -393,12 +360,8 @@
     cursor: pointer;
 }
 
-.modal-btn-cancel:hover {
-    background: #f3efe9;
-}
-
 .modal-btn-submit {
-    padding: 9px 22px;
+    padding: 9px 20px;
     background: #8C6D4F;
     border: none;
     border-radius: 8px;
@@ -406,25 +369,9 @@
     font-weight: 600;
     color: #ffffff;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
 .modal-btn-submit:hover {
     background: #755a40;
 }
 
-.modal-btn-danger {
-    padding: 9px 20px;
-    background: #993D3D;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-size: 13.5px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s;
-}
-
-.modal-btn-danger:hover {
-    background: #802f2f;
-}

@@ -2,8 +2,72 @@
 {% load static %}
 
 {% block title %}Hồ sơ cá nhân - Charm Grand Spa{% endblock %}
-
 {% block profile_content %}
+<!-- ================================================================= -->
+<!-- CSS NÂNG CỠ CHỮ TO RÕ NHƯ TRANG CUSTOMER LIST (KHÔNG CẦN FILE PHỤ) -->
+<!-- ================================================================= -->
+<style>
+    /* 1. Nhãn các trường thông tin (Họ tên, SĐT, Email, Username, Ngày sinh, Giới tính, Mã KH) */
+    #tabContentProfile label,
+    #lockModal label {
+        font-size: 13.5px !important;
+        font-weight: 650 !important;
+        letter-spacing: 0.3px !important;
+        color: #4b463d !important;
+        text-transform: uppercase !important;
+        margin-bottom: 7px !important;
+        display: block !important;
+    }
+
+    /* 2. Ô nhập liệu và dropdown */
+    #tabContentProfile input,
+    #tabContentProfile select,
+    #lockModal select,
+    #lockModal textarea {
+        font-size: 14.5px !important;
+        min-height: 44px !important;
+        padding: 9px 14px !important;
+        color: #2b2118 !important;
+        border-radius: 9px !important;
+    }
+
+    /* 3. Tiêu đề khối (THÔNG TIN CÁ NHÂN) */
+    #tabContentProfile h3 {
+        font-size: 25px !important;
+        font-weight: 700 !important;
+        color: #242c36 !important;
+    }
+
+    /* 4. Dòng mô tả nhỏ và text phụ */
+    #tabContentProfile p.text-xs,
+    #lockModal p.text-sm {
+        font-size: 13px !important;
+        color: #77706a !important;
+    }
+
+    /* 5. Huy hiệu Đã xác thực thông tin */
+    #tabContentProfile .bg-emerald-50 {
+        font-size: 12.5px !important;
+        padding: 5px 12px !important;
+    }
+
+    /* 6. Các nút bấm (Chỉnh sửa, Lưu, Hủy) */
+    #tabContentProfile button,
+    #tabContentProfile a.rounded-xl,
+    #lockModal button {
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        padding: 10px 20px !important;
+    }
+
+    /* 7. Thông báo lỗi màu đỏ */
+    #tabContentProfile .text-red-600 {
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        margin-top: 6px !important;
+    }
+</style>
+
 <div class="space-y-6">
 
     <!-- THÔNG BÁO FLASH MESSAGE -->
@@ -27,9 +91,9 @@
     {% endif %}
 
     <!-- ================================================================= -->
-    <!-- TAB PANE 1: HỒ SƠ KHÁCH HÀNG (THÔNG TIN CÁ NHÂN)                 -->
+    <!-- HỒ SƠ KHÁCH HÀNG (THÔNG TIN CÁ NHÂN)                             -->
     <!-- ================================================================= -->
-    <div id="tabContentProfile" class="{% if request.GET.tab == 'history' %}hidden{% endif %}">
+    <div id="tabContentProfile">
         <form method="POST" action="{% url 'customer_profile' %}" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6" novalidate>
             {% csrf_token %}
 
@@ -165,115 +229,6 @@
         </form>
     </div>
 
-    <!-- ================================================================= -->
-    <!-- TAB PANE 2: LỊCH SỬ DỊCH VỤ                                       -->
-    <!-- ================================================================= -->
-    <div id="tabContentHistory" class="{% if request.GET.tab != 'history' %}hidden{% endif %}">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6">
-            <div class="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <span class="text-amber-700">✨</span> Lịch sử dịch vụ
-                    </h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Các liệu trình và dịch vụ bạn đã trải nghiệm tại Charm Spa</p>
-                </div>
-                {% if tong_so_dich_vu > 0 %}
-                    <span class="text-xs font-semibold px-3 py-1 bg-amber-50 text-[#8C6D4F] rounded-full border border-amber-200">
-                        {{ tong_so_dich_vu }} lượt sử dụng
-                    </span>
-                {% endif %}
-            </div>
-
-            {% if lich_su_dich_vu %}
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="bg-gray-50/80 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
-                                <th class="py-3 px-4">Tên dịch vụ</th>
-                                <th class="py-3 px-4">Ngày sử dụng</th>
-                                <th class="py-3 px-4">Nhân viên thực hiện</th>
-                                <th class="py-3 px-4 text-right">Giá dịch vụ</th>
-                                <th class="py-3 px-4 text-center">Điểm tích lũy</th>
-                                <th class="py-3 px-4 text-center">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 text-gray-700">
-                            {% for item in lich_su_dich_vu %}
-                                <tr class="hover:bg-amber-50/30 transition {% if forloop.counter > 5 %}extra-history-row hidden{% endif %}">
-                                    <td class="py-3.5 px-4">
-                                        <div class="font-semibold text-gray-900">{{ item.ma_dv.ten_dich_vu }}</div>
-                                        <div class="text-xs text-gray-400">{{ item.ma_dv.loai_dich_vu|default:"Dịch vụ chăm sóc" }}</div>
-                                    </td>
-                                    <td class="py-3.5 px-4 whitespace-nowrap text-gray-600">
-                                        {{ item.ngay_su_dung|date:"d/m/Y H:i" }}
-                                    </td>
-                                    <td class="py-3.5 px-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center gap-1.5 text-gray-800 font-medium">
-                                            <i class="fa-regular fa-user text-xs text-gray-400"></i>
-                                            {{ item.ma_nv.ho_ten|default:"Chuyên viên Spa" }}
-                                        </span>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-semibold text-gray-900 whitespace-nowrap">
-                                        {{ item.ma_dv.gia_dich_vu|floatformat:0 }} đ
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                                            +{{ item.ma_dv.diem_tich_luy_dich_vu|default:0 }} điểm
-                                        </span>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                        <button type="button"
-                                                onclick="openServiceDetailModal({
-                                                    ma_sd: '{{ item.ma_sd|escapejs }}',
-                                                    ten_dv: '{{ item.ma_dv.ten_dich_vu|escapejs }}',
-                                                    loai_dv: '{{ item.ma_dv.loai_dich_vu|default:'Dịch vụ chăm sóc'|escapejs }}',
-                                                    mo_ta: '{{ item.ma_dv.mo_ta|default:'Không có mô tả chi tiết.'|escapejs }}',
-                                                    thoi_luong: '{{ item.ma_dv.thoi_luong|default:0 }}',
-                                                    ngay_su_dung: '{{ item.ngay_su_dung|date:'d/m/Y H:i' }}',
-                                                    nhan_vien: '{{ item.ma_nv.ho_ten|default:'Chuyên viên Spa'|escapejs }}',
-                                                    vi_tri: '{{ item.ma_nv.vi_tri|default:'Chuyên viên'|escapejs }}',
-                                                    gia_dv: '{{ item.ma_dv.gia_dich_vu|floatformat:0 }}',
-                                                    diem: '{{ item.ma_dv.diem_tich_luy_dich_vu|default:0 }}'
-                                                })"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-200 text-[#8C6D4F] hover:bg-amber-50 text-xs font-semibold transition">
-                                            <i class="fa-regular fa-eye"></i> Xem chi tiết
-                                        </button>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Nút xem tất cả lịch sử dịch vụ -->
-                {% if tong_so_dich_vu > 5 %}
-                    <div class="mt-4 pt-4 border-t border-gray-100 text-center">
-                        <button type="button" id="btnToggleHistory" onclick="toggleAllHistory()"
-                                class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-[#8C6D4F] hover:bg-amber-50 transition border border-amber-200">
-                            <span>Xem tất cả lịch sử dịch vụ ({{ tong_so_dich_vu }} lượt)</span>
-                            <i class="fa-solid fa-chevron-down text-xs"></i>
-                        </button>
-                    </div>
-                {% endif %}
-
-            {% else %}
-                <!-- Thông báo khi chưa sử dụng dịch vụ -->
-                <div class="py-12 px-4 text-center">
-                    <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
-                        💆
-                    </div>
-                    <h4 class="text-sm font-semibold text-gray-800 mb-1">Chưa có lịch sử dịch vụ</h4>
-                    <p class="text-xs text-gray-400 max-w-sm mx-auto mb-4">
-                        Quý khách chưa có lần sử dụng dịch vụ nào tại Charm Spa Grand. Hãy đặt lịch hẹn để trải nghiệm dịch vụ chăm sóc cao cấp của chúng tôi.
-                    </p>
-                    <a href="{% url 'bookings:booking_customer_list' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#8C6D4F] text-white text-xs font-semibold rounded-xl hover:bg-[#785b40] transition">
-                        Đặt lịch ngay
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
 </div>
 
 <!-- ===================================================================== -->
@@ -314,125 +269,7 @@
     </div>
 </div>
 
-<!-- ===================================================================== -->
-<!-- MODAL XEM CHI TIẾT LỊCH SỬ DỊCH VỤ                                     -->
-<!-- ===================================================================== -->
-<div id="serviceDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative mx-4 animate-in fade-in zoom-in duration-200">
-        <button type="button" onclick="closeServiceDetailModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-lg">✕</button>
-
-        <div class="flex items-center gap-3 mb-5 pb-3 border-b border-gray-100">
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-[#8C6D4F] flex items-center justify-center text-lg font-bold">✨</div>
-            <div>
-                <h3 class="text-lg font-bold text-gray-900">Chi tiết dịch vụ đã sử dụng</h3>
-                <p class="text-xs text-gray-400">Mã sử dụng: <span id="modalMaSd" class="font-semibold text-gray-700"></span></p>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div class="bg-amber-50/40 border border-amber-100 rounded-xl p-4">
-                <div class="text-xs font-semibold uppercase text-amber-800 tracking-wider mb-1" id="modalLoaiDv"></div>
-                <h4 class="text-base font-bold text-gray-900 mb-1" id="modalTenDv"></h4>
-                <p class="text-xs text-gray-500 leading-relaxed" id="modalMoTa"></p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 text-xs">
-                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span class="text-gray-400 block mb-1">Ngày sử dụng:</span>
-                    <strong class="text-gray-800 text-sm" id="modalNgaySuDung"></strong>
-                </div>
-                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span class="text-gray-400 block mb-1">Thời lượng:</span>
-                    <strong class="text-gray-800 text-sm" id="modalThoiLuong"></strong>
-                </div>
-                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span class="text-gray-400 block mb-1">Nhân viên thực hiện:</span>
-                    <strong class="text-gray-800 text-sm" id="modalNhanVien"></strong>
-                </div>
-                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span class="text-gray-400 block mb-1">Điểm tích lũy nhận:</span>
-                    <strong class="text-emerald-600 text-sm" id="modalDiem"></strong>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between p-3.5 bg-[#FAF7F2] border border-[#EADBCC] rounded-xl">
-                <span class="text-sm font-medium text-gray-700">Giá dịch vụ:</span>
-                <span class="text-base font-bold text-[#8C6D4F]" id="modalGiaDv"></span>
-            </div>
-        </div>
-
-        <div class="flex justify-end mt-6 pt-3 border-t border-gray-100">
-            <button type="button" onclick="closeServiceDetailModal()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-semibold text-xs rounded-xl hover:bg-gray-200 transition">
-                Đóng
-            </button>
-        </div>
-    </div>
-</div>
-
 <script>
-    // XỬ LÝ CHUYỂN ĐỔI TAB ĐỒNG BỘ VÀ DUY NHẤT
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabNavProfile = document.getElementById('tabNavProfile');
-        const tabNavHistory = document.getElementById('tabNavHistory');
-        const tabContentProfile = document.getElementById('tabContentProfile');
-        const tabContentHistory = document.getElementById('tabContentHistory');
-
-        const CLASS_ACTIVE = "flex-1 text-center py-4 px-6 border-b-2 transition border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50";
-        const CLASS_INACTIVE = "flex-1 text-center py-4 px-6 border-b-2 transition border-transparent text-gray-500 hover:text-gray-700";
-
-        function activateTab(tab) {
-            if (tab === 'history') {
-                if (tabContentProfile) tabContentProfile.classList.add('hidden');
-                if (tabContentHistory) tabContentHistory.classList.remove('hidden');
-
-                if (tabNavHistory) tabNavHistory.className = CLASS_ACTIVE;
-                if (tabNavProfile) tabNavProfile.className = CLASS_INACTIVE;
-            } else {
-                if (tabContentProfile) tabContentProfile.classList.remove('hidden');
-                if (tabContentHistory) tabContentHistory.classList.add('hidden');
-
-                if (tabNavProfile) tabNavProfile.className = CLASS_ACTIVE;
-                if (tabNavHistory) tabNavHistory.className = CLASS_INACTIVE;
-            }
-        }
-
-        // Đồng bộ trạng thái tab theo URL khi vừa tải trang
-        const currentUrlParams = new URLSearchParams(window.location.search);
-        if (currentUrlParams.get('tab') === 'history') {
-            activateTab('history');
-        } else {
-            activateTab('profile');
-        }
-
-        // Sự kiện click Tab 1: Hồ sơ khách hàng
-        if (tabNavProfile) {
-            tabNavProfile.addEventListener('click', function(e) {
-                e.preventDefault();
-                activateTab('profile');
-                window.history.replaceState(null, '', '{% url "customer_profile" %}');
-            });
-        }
-
-        // Sự kiện click Tab 2: Lịch sử dịch vụ
-        if (tabNavHistory) {
-            tabNavHistory.addEventListener('click', function(e) {
-                e.preventDefault();
-                activateTab('history');
-                window.history.replaceState(null, '', '{% url "customer_profile" %}?tab=history');
-            });
-        }
-
-        // Lắng nghe nút Back/Forward của trình duyệt để đổi tab tương ứng
-        window.addEventListener('popstate', function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('tab') === 'history') {
-                activateTab('history');
-            } else {
-                activateTab('profile');
-            }
-        });
-    });
-
     // MODAL KHÓA TÀI KHOẢN
     function openLockModal() {
         document.getElementById('lockModal').classList.remove('hidden');
@@ -468,46 +305,6 @@
                 textarea.focus();
             }
         });
-    }
-
-    // MODAL XEM CHI TIẾT LỊCH SỬ DỊCH VỤ
-    function openServiceDetailModal(data) {
-        document.getElementById('modalMaSd').textContent = data.ma_sd || '—';
-        document.getElementById('modalTenDv').textContent = data.ten_dv || '—';
-        document.getElementById('modalLoaiDv').textContent = data.loai_dv || 'Dịch vụ chăm sóc';
-        document.getElementById('modalMoTa').textContent = data.mo_ta || 'Không có mô tả chi tiết.';
-        document.getElementById('modalThoiLuong').textContent = (data.thoi_luong || 0) + ' phút';
-        document.getElementById('modalNgaySuDung').textContent = data.ngay_su_dung || '—';
-        document.getElementById('modalNhanVien').textContent = data.nhan_vien + (data.vi_tri ? ' (' + data.vi_tri + ')' : '');
-        document.getElementById('modalGiaDv').textContent = new Intl.NumberFormat('vi-VN').format(Number(data.gia_dv) || 0) + ' đ';
-        document.getElementById('modalDiem').textContent = '+' + (data.diem || 0) + ' điểm';
-
-        document.getElementById('serviceDetailModal').classList.remove('hidden');
-    }
-
-    function closeServiceDetailModal() {
-        document.getElementById('serviceDetailModal').classList.add('hidden');
-    }
-
-    // TOGGLE HIỂN THỊ TẤT CẢ LỊCH SỬ DỊCH VỤ
-    function toggleAllHistory() {
-        const extraRows = document.querySelectorAll('.extra-history-row');
-        const toggleBtn = document.getElementById('btnToggleHistory');
-        const isHidden = extraRows.length > 0 && extraRows[0].classList.contains('hidden');
-
-        extraRows.forEach(row => {
-            if (isHidden) {
-                row.classList.remove('hidden');
-            } else {
-                row.classList.add('hidden');
-            }
-        });
-
-        if (toggleBtn) {
-            toggleBtn.innerHTML = isHidden
-                ? '<span>Thu gọn lịch sử dịch vụ</span><i class="fa-solid fa-chevron-up text-xs"></i>'
-                : '<span>Xem tất cả lịch sử dịch vụ ({{ tong_so_dich_vu }} lượt)</span><i class="fa-solid fa-chevron-down text-xs"></i>';
-        }
     }
 </script>
 {% endblock %}

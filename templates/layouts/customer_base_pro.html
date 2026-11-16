@@ -65,11 +65,11 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
             <nav class="flex flex-col sm:flex-row justify-around text-sm font-medium text-gray-500">
 
-                <!-- Mục 1: Hồ sơ khách hàng (Chỉ active khi ở customer_profile và KHÔNG có ?tab=history) -->
+                                <!-- Mục 1: Hồ sơ khách hàng -->
                 <a href="{% url 'customer_profile' %}"
                    id="tabNavProfile"
                    class="flex-1 text-center py-4 px-6 border-b-2 transition
-                   {% if request.resolver_match.url_name == 'customer_profile' and request.GET.tab != 'history' %}
+                   {% if request.resolver_match.url_name == 'customer_profile' %}
                        border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
                    {% else %}
                        border-transparent text-gray-500 hover:text-gray-700
@@ -77,11 +77,11 @@
                     1. Hồ sơ khách hàng
                 </a>
 
-                <!-- Mục 2: Lịch sử dịch vụ (Chỉ active khi ở customer_profile và CÓ ?tab=history) -->
-                <a href="{% url 'customer_profile' %}?tab=history"
+                <!-- Mục 2: Lịch sử dịch vụ (App services) -->
+                <a href="{% url 'services:customer_service_history' %}"
                    id="tabNavHistory"
                    class="flex-1 text-center py-4 px-6 border-b-2 transition
-                   {% if request.resolver_match.url_name == 'customer_profile' and request.GET.tab == 'history' %}
+                   {% if request.resolver_match.url_name == 'customer_service_history' %}
                        border-[#8C6D4F] text-[#8C6D4F] font-semibold bg-gray-50/50
                    {% else %}
                        border-transparent text-gray-500 hover:text-gray-700

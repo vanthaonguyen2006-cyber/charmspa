@@ -5,7 +5,7 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261115_7">
 {% endblock %}
 
 {% block content %}
@@ -15,10 +15,19 @@
             <h1>KHÁCH HÀNG</h1>
             <p>Quản lý hồ sơ, hạng thành viên và hành trình chăm sóc tại Charm Spa.</p>
         </div>
-      <a href="{% url 'staff_customer_add' %}" class="customer-primary-button" style="text-decoration: none;">
-          <i data-lucide="plus"></i>
-          <span>Thêm mới khách hàng</span>
-      </a>
+        <!-- Nút Thêm mới khách hàng: Nền đen #262626, chữ và icon màu trắng -->
+        <a href="{% url 'staff_customer_add' %}"
+           class="customer-primary-button staff-btn-dark"
+           style="background-color: #262626 !important; color: #ffffff !important; border: 1px solid #262626 !important; text-decoration: none;">
+            <i data-lucide="plus" style="width: 15px; height: 15px; color: #ffffff !important; stroke: #ffffff !important;"></i>
+            <span style="color: #ffffff !important;">Thêm mới khách hàng</span>
+        </a>
+    </div>
+
+    <!-- Thông báo thành công khi cập nhật từ Popup -->
+    <div id="customerAjaxAlert" class="customer-flash-msg" role="alert" style="display: none;">
+        <span id="customerAjaxAlertText"></span>
+        <button type="button" class="customer-flash-close" onclick="hideCustomerAlert()" aria-label="Đóng thông báo">&times;</button>
     </div>
 
     <div class="customer-stats">
@@ -69,14 +78,12 @@
                 {% endfor %}
             </select>
 
-            <!-- Lọc trạng thái tài khoản (đã bỏ lựa chọn Chưa có tài khoản) -->
             <select name="trang_thai" aria-label="Lọc theo trạng thái tài khoản">
                 <option value="">Tất cả trạng thái</option>
                 <option value="hoat_dong" {% if trang_thai_selected == 'hoat_dong' %}selected{% endif %}>Đang hoạt động</option>
                 <option value="da_khoa" {% if trang_thai_selected == 'da_khoa' %}selected{% endif %}>Đã khóa</option>
             </select>
 
-            <!-- Lọc theo ngày tham gia (bổ sung đầy đủ các khoảng thời gian) -->
             <select name="ngay_tham_gia" aria-label="Lọc theo ngày tham gia">
                 <option value="">Tất cả thời gian</option>
                 <option value="1_tuan" {% if ngay_tham_gia_selected == '1_tuan' %}selected{% endif %}>1 tuần gần đây</option>
@@ -88,7 +95,7 @@
 
             <button class="customer-filter-button" type="submit">
                 <i data-lucide="sliders-horizontal"></i>
-                <span>Bộ lọc</span>
+                <span>Lọc</span>
             </button>
         </div>
     </form>
@@ -122,7 +129,7 @@
                 </thead>
                 <tbody>
                     {% for kh in khach_hang_list %}
-                        <tr>
+                        <tr data-customer-row="{{ kh.ma_kh }}">
                             <td class="customer-code">{{ kh.ma_kh }}</td>
                             <td>
                                 <div class="customer-name-cell">
@@ -138,7 +145,10 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <span class="customer-points"><i data-lucide="gem"></i>{{ kh.points_display }}</span>
+                                <span class="customer-points">
+                                    <i data-lucide="sparkles"></i>
+                                    {{ kh.points_display }} điểm
+                                </span>
                             </td>
                             <td>
                                 {% if kh.ma_tv %}
@@ -149,20 +159,30 @@
                             </td>
                             <td>
                                 <div class="customer-row-actions">
-                                    {# Thay URL # bằng URL chi tiết khi bạn tạo trang hồ sơ khách hàng. #}
-                                    <a class="customer-detail-link"
-                                       href="{% url 'staff_customer_detail' kh.ma_kh %}">
-                                        Xem chi tiết
+                                    <!-- Nút Xem chi tiết: Icon Con mắt -->
+                                    <a class="customer-icon-button"
+                                       href="{% url 'staff_customer_detail' kh.ma_kh %}"
+                                       title="Xem chi tiết"
+                                       aria-label="Xem chi tiết">
+                                        <i data-lucide="eye"></i>
                                     </a>
 
-                                    <a class="customer-icon-button"
-                                       href="{% url 'staff_customer_detail' kh.ma_kh %}?edit=1"
-                                       title="Chỉnh sửa {{ kh.ho_ten }}"
-                                       aria-label="Chỉnh sửa {{ kh.ho_ten }}">
+                                    <!-- Nút Chỉnh sửa khách hàng: Mở Popup/Modal ngay trên trang -->
+                                    <button type="button"
+                                            class="customer-icon-button js-edit-customer-btn"
+                                            data-ma-kh="{{ kh.ma_kh }}"
+                                            data-update-url="{% url 'staff_customer_detail' kh.ma_kh %}"
+                                            data-ho-ten="{{ kh.ho_ten }}"
+                                            data-username="{% if kh.ma_tk and kh.ma_tk.user %}{{ kh.ma_tk.user.username }}{% endif %}"
+                                            data-so-dien-thoai="{% if kh.ma_tk and kh.ma_tk.so_dien_thoai %}{{ kh.ma_tk.so_dien_thoai }}{% endif %}"
+                                            data-email="{% if kh.ma_tk and kh.ma_tk.user and kh.ma_tk.user.email %}{{ kh.ma_tk.user.email }}{% endif %}"
+                                            data-ngay-sinh="{% if kh.ngay_sinh %}{{ kh.ngay_sinh|date:'Y-m-d' }}{% endif %}"
+                                            data-gioi-tinh="{{ kh.gioi_tinh|default:'' }}"
+                                            data-hang="{% if kh.ma_tv %}{{ kh.ma_tv.ten_hang }}{% else %}Thành viên mới{% endif %}"
+                                            data-diem="{{ kh.points_display }} điểm"
+                                            title="Chỉnh sửa {{ kh.ho_ten }}"
+                                            aria-label="Chỉnh sửa {{ kh.ho_ten }}">
                                         <i data-lucide="pencil"></i>
-                                    </a>
-                                    <button class="customer-more-button" type="button" title="Thao tác khác" aria-label="Thao tác khác">
-                                        <i data-lucide="ellipsis-vertical"></i>
                                     </button>
                                 </div>
                             </td>
@@ -207,7 +227,7 @@
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}" aria-label="Trang tiếp theo">
+                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ item.next_page_number }}" aria-label="Trang tiếp theo">
                             <i data-lucide="chevron-right"></i>
                         </a>
                     {% else %}
@@ -218,13 +238,340 @@
         </div>
     </section>
 </section>
+
+<!-- ===================================================================== -->
+<!-- MODAL: CHỈNH SỬA THÔNG TIN KHÁCH HÀNG                                 -->
+<!-- ===================================================================== -->
+<div id="editCustomerModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="editCustomerModalTitle">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h3 id="editCustomerModalTitle" class="modal-title">Chỉnh sửa thông tin khách hàng</h3>
+                <p class="modal-subtitle">Cập nhật thông tin hồ sơ và tài khoản liên kết của khách hàng.</p>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeEditCustomerModal()" aria-label="Đóng">&times;</button>
+        </div>
+
+        <form id="editCustomerForm" method="POST" novalidate>
+            {% csrf_token %}
+            <div class="modal-body">
+                <!-- Thông tin hệ thống chỉ đọc (không cho phép chỉnh sửa) -->
+                <div class="customer-modal-readonly-strip">
+                    <span>Mã KH: <strong id="editCustCodeDisplay">—</strong></span>
+                    <span>Hạng thành viên: <strong id="editCustTierDisplay">—</strong></span>
+                    <span>Điểm tích lũy: <strong id="editCustPointsDisplay">—</strong></span>
+                </div>
+
+                <!-- Thông báo lỗi chung (__all__ hoặc lỗi hệ thống) -->
+                <div id="editCustGeneralError" class="modal-general-error"></div>
+
+                <!-- Hàng 1: Họ và tên & Tên đăng nhập -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="editCustHoTen">Họ và tên <span class="req">*</span></label>
+                        <input type="text" name="ho_ten" id="editCustHoTen" placeholder="Nhập họ và tên" required class="form-input">
+                        <span class="field-error-text" id="editCustHoTenError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editCustUsername">Tên đăng nhập <span class="req">*</span></label>
+                        <input type="text" name="username" id="editCustUsername" placeholder="Nhập tên đăng nhập" required class="form-input">
+                        <span class="field-error-text" id="editCustUsernameError"></span>
+                    </div>
+                </div>
+
+                <!-- Hàng 2: Số điện thoại & Email -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="editCustSoDienThoai">Số điện thoại <span class="req">*</span></label>
+                        <input type="tel" name="so_dien_thoai" id="editCustSoDienThoai" placeholder="Nhập số điện thoại" required class="form-input">
+                        <span class="field-error-text" id="editCustSoDienThoaiError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editCustEmail">Email</label>
+                        <input type="email" name="email" id="editCustEmail" placeholder="Nhập địa chỉ email" class="form-input">
+                        <span class="field-error-text" id="editCustEmailError"></span>
+                    </div>
+                </div>
+
+                <!-- Hàng 3: Ngày sinh & Giới tính -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="editCustNgaySinh">Ngày sinh</label>
+                        <input type="date" name="ngay_sinh" id="editCustNgaySinh" class="form-input">
+                        <span class="field-error-text" id="editCustNgaySinhError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editCustGioiTinh">Giới tính</label>
+                        <select name="gioi_tinh" id="editCustGioiTinh" class="form-select">
+                            <option value="">Chưa cập nhật</option>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                        <span class="field-error-text" id="editCustGioiTinhError"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="modal-btn-cancel" onclick="closeEditCustomerModal()">Hủy</button>
+                <button type="submit" class="modal-btn-submit" id="btnSubmitEditCustomer">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
     {{ block.super }}
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (window.lucide) window.lucide.createIcons();
-        });
+        (function () {
+            const FIELD_MAP = {
+                ho_ten: { inputId: 'editCustHoTen', errorId: 'editCustHoTenError' },
+                username: { inputId: 'editCustUsername', errorId: 'editCustUsernameError' },
+                so_dien_thoai: { inputId: 'editCustSoDienThoai', errorId: 'editCustSoDienThoaiError' },
+                email: { inputId: 'editCustEmail', errorId: 'editCustEmailError' },
+                ngay_sinh: { inputId: 'editCustNgaySinh', errorId: 'editCustNgaySinhError' },
+                gioi_tinh: { inputId: 'editCustGioiTinh', errorId: 'editCustGioiTinhError' }
+            };
+
+            let activeEditBtn = null;
+
+            function clearEditCustomerErrors() {
+                Object.values(FIELD_MAP).forEach(function ({ inputId, errorId }) {
+                    const inputEl = document.getElementById(inputId);
+                    const errEl = document.getElementById(errorId);
+                    if (inputEl) inputEl.classList.remove('is-invalid');
+                    if (errEl) {
+                        errEl.textContent = '';
+                        errEl.style.display = 'none';
+                    }
+                });
+                const generalErr = document.getElementById('editCustGeneralError');
+                if (generalErr) {
+                    generalErr.textContent = '';
+                    generalErr.style.display = 'none';
+                }
+            }
+
+            function showGeneralError(message) {
+                const generalErr = document.getElementById('editCustGeneralError');
+                if (generalErr) {
+                    generalErr.textContent = message;
+                    generalErr.style.display = 'block';
+                }
+            }
+
+            window.showCustomerAlert = function (message) {
+                const alertBox = document.getElementById('customerAjaxAlert');
+                const alertText = document.getElementById('customerAjaxAlertText');
+                if (!alertBox || !alertText) return;
+                alertText.textContent = message;
+                alertBox.style.display = 'flex';
+            };
+
+            window.hideCustomerAlert = function () {
+                const alertBox = document.getElementById('customerAjaxAlert');
+                if (alertBox) alertBox.style.display = 'none';
+            };
+
+            window.openEditCustomerModal = function (btn) {
+                clearEditCustomerErrors();
+                activeEditBtn = btn;
+
+                const modal = document.getElementById('editCustomerModal');
+                const form = document.getElementById('editCustomerForm');
+                if (!modal || !form || !btn) return;
+
+                form.action = btn.dataset.updateUrl || '';
+
+                document.getElementById('editCustCodeDisplay').textContent = btn.dataset.maKh || '—';
+                document.getElementById('editCustTierDisplay').textContent = btn.dataset.hang || 'Thành viên mới';
+                document.getElementById('editCustPointsDisplay').textContent = btn.dataset.diem || '0 điểm';
+
+                document.getElementById('editCustHoTen').value = btn.dataset.hoTen || '';
+                document.getElementById('editCustUsername').value = btn.dataset.username || '';
+                document.getElementById('editCustSoDienThoai').value = btn.dataset.soDienThoai || '';
+                document.getElementById('editCustEmail').value = btn.dataset.email || '';
+                document.getElementById('editCustNgaySinh').value = btn.dataset.ngaySinh || '';
+                document.getElementById('editCustGioiTinh').value = btn.dataset.gioiTinh || '';
+
+                modal.style.display = 'flex';
+            };
+
+            window.closeEditCustomerModal = function () {
+                const modal = document.getElementById('editCustomerModal');
+                if (modal) modal.style.display = 'none';
+                clearEditCustomerErrors();
+                activeEditBtn = null;
+            };
+
+            function updateRowInTable(customer) {
+                if (!customer || !customer.ma_kh) return;
+                const row = document.querySelector('tr[data-customer-row="' + CSS.escape(customer.ma_kh) + '"]');
+                if (row) {
+                    const avatarEl = row.querySelector('.customer-avatar');
+                    if (avatarEl && customer.avatar_initials) {
+                        avatarEl.textContent = customer.avatar_initials;
+                    }
+
+                    const nameEl = row.querySelector('.customer-full-name');
+                    if (nameEl) {
+                        nameEl.textContent = customer.ho_ten || '';
+                    }
+
+                    const phoneCell = row.querySelector('.customer-phone');
+                    if (phoneCell) {
+                        if (customer.so_dien_thoai) {
+                            phoneCell.textContent = customer.so_dien_thoai;
+                        } else {
+                            phoneCell.innerHTML = '<span class="muted-dash">—</span>';
+                        }
+                    }
+                }
+
+                if (activeEditBtn) {
+                    activeEditBtn.dataset.hoTen = customer.ho_ten || '';
+                    activeEditBtn.dataset.username = customer.username || '';
+                    activeEditBtn.dataset.soDienThoai = customer.so_dien_thoai || '';
+                    activeEditBtn.dataset.email = customer.email || '';
+                    activeEditBtn.dataset.ngaySinh = customer.ngay_sinh || '';
+                    activeEditBtn.dataset.gioiTinh = customer.gioi_tinh || '';
+                    activeEditBtn.title = 'Chỉnh sửa ' + (customer.ho_ten || '');
+                    activeEditBtn.setAttribute('aria-label', 'Chỉnh sửa ' + (customer.ho_ten || ''));
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+
+                // Mở modal khi bấm nút cây bút trên từng dòng
+                document.addEventListener('click', function (e) {
+                    const editBtn = e.target.closest('.js-edit-customer-btn');
+                    if (editBtn) {
+                        e.preventDefault();
+                        window.openEditCustomerModal(editBtn);
+                        return;
+                    }
+
+                    // Bấm ra ngoài vùng thẻ modal để đóng mà không lưu
+                    if (e.target.id === 'editCustomerModal') {
+                        window.closeEditCustomerModal();
+                    }
+                });
+
+                // Nhấn phím Esc để đóng modal
+                document.addEventListener('keydown', function (e) {
+                    const modal = document.getElementById('editCustomerModal');
+                    if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+                        window.closeEditCustomerModal();
+                    }
+                });
+
+                // Xóa viền đỏ của trường khi người dùng bắt đầu chỉnh lại giá trị
+                Object.values(FIELD_MAP).forEach(function ({ inputId, errorId }) {
+                    const inputEl = document.getElementById(inputId);
+                    if (!inputEl) return;
+                    const eventName = inputEl.tagName === 'SELECT' ? 'change' : 'input';
+                    inputEl.addEventListener(eventName, function () {
+                        inputEl.classList.remove('is-invalid');
+                        const errEl = document.getElementById(errorId);
+                        if (errEl) {
+                            errEl.textContent = '';
+                            errEl.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Gửi form chỉnh sửa qua AJAX
+                const editForm = document.getElementById('editCustomerForm');
+                if (editForm) {
+                    editForm.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        clearEditCustomerErrors();
+
+                        const submitBtn = document.getElementById('btnSubmitEditCustomer');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = 'Đang lưu...';
+                        }
+
+                        const formData = new FormData(editForm);
+
+                        fetch(editForm.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(function (response) {
+                            return response.text().then(function (rawText) {
+                                let data = {};
+                                try {
+                                    data = JSON.parse(rawText);
+                                } catch (parseErr) {
+                                    data = {
+                                        success: false,
+                                        errors: { __all__: ['Phản hồi từ máy chủ không hợp lệ. Vui lòng thử lại.'] }
+                                    };
+                                }
+                                return { ok: response.ok, data: data };
+                            });
+                        })
+                        .then(function ({ ok, data }) {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = 'Lưu thay đổi';
+                            }
+
+                            if (ok && data.success) {
+                                updateRowInTable(data.customer);
+                                window.closeEditCustomerModal();
+                                window.showCustomerAlert(data.message || 'Cập nhật hồ sơ khách hàng thành công.');
+                                return;
+                            }
+
+                            if (data && data.errors) {
+                                let firstInvalidInput = null;
+                                for (const [field, msgs] of Object.entries(data.errors)) {
+                                    const msg = Array.isArray(msgs) ? msgs[0] : msgs;
+                                    const mapping = FIELD_MAP[field];
+
+                                    if (mapping) {
+                                        const inputEl = document.getElementById(mapping.inputId);
+                                        const errEl = document.getElementById(mapping.errorId);
+                                        if (inputEl) {
+                                            inputEl.classList.add('is-invalid');
+                                            if (!firstInvalidInput) firstInvalidInput = inputEl;
+                                        }
+                                        if (errEl) {
+                                            errEl.textContent = msg;
+                                            errEl.style.display = 'block';
+                                        }
+                                    } else {
+                                        showGeneralError(msg);
+                                    }
+                                }
+                                if (firstInvalidInput) {
+                                    firstInvalidInput.focus();
+                                }
+                            } else {
+                                showGeneralError('Không thể cập nhật thông tin. Vui lòng kiểm tra lại.');
+                            }
+                        })
+                        .catch(function () {
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = 'Lưu thay đổi';
+                            }
+                            showGeneralError('Có lỗi kết nối trong quá trình gửi dữ liệu. Vui lòng thử lại.');
+                        });
+                    });
+                }
+            });
+        })();
     </script>
 {% endblock %}
