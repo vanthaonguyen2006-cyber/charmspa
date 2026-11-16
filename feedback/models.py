@@ -55,6 +55,7 @@ class LichSuXuLy(models.Model):
     loai_thao_tac = models.CharField(max_length=50, choices=LOAI_THAO_TAC_CHOICES, verbose_name="Loại thao tác")
     noi_dung = models.TextField(null=True, blank=True, verbose_name="Chi tiết thao tác")
     ngay_thuc_hien = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian")
+    noi_dung_khach_hang = models.TextField( null=True, blank=True, verbose_name="Nội dung hiển thị cho khách hàng" )
 
     class Meta:
         db_table = 'LICH_SU_XU_LY'

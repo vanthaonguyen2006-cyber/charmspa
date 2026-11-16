@@ -2,7 +2,8 @@
 /* =========================================
    CHARM SPA - STAFF SIDEBAR
    ========================================= */
-
+/* Font Montserrat từ Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 /* 1. VARIABLES */
 :root {
     --sidebar-width: 270px;
@@ -691,6 +692,7 @@ body {
     min-height: 100%;
 }
 
+/* Font chính cho toàn bộ giao diện Staff */
 body {
     font-family: 'Montserrat', Arial, sans-serif;
     background: #f7f1e7;
@@ -920,11 +922,10 @@ body.sidebar-collapsed .staff-main {
     line-height: 1.7;
 }
 
-/* SIDEBAR REFINEMENTS */
+/* Đồng bộ font Montserrat cho toàn bộ Sidebar */
 .staff-sidebar {
     font-family: 'Montserrat', Arial, sans-serif;
 }
-
 .sidebar-logo {
     min-height: 94px;
 }

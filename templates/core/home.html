@@ -87,7 +87,7 @@ Trang chủ | Charm Spa Grand
 .home-hero h1 {
     font-family: 'Montserrat', sans-serif;
     font-size: clamp(39px, 5vw, 65px);
-    font-weight: 400;
+    font-weight: 700;
     line-height: 1.2;
     margin: 0 0 24px;
 }
@@ -197,7 +197,7 @@ Trang chủ | Charm Spa Grand
 .home-section-heading h2 {
     font-family: 'Montserrat', sans-serif;
     font-size: clamp(30px, 4vw, 42px);
-    font-weight: 400;
+    font-weight: 700;
     color: var(--brown);
     margin: 15px 0;
 }
@@ -246,7 +246,7 @@ Trang chủ | Charm Spa Grand
 
 .home-about-text h3 {
     font-family: 'Montserrat', sans-serif;
-    font-weight: 400;
+    font-weight: 700;
     font-size: 31px;
     line-height: 1.4;
     margin-bottom: 22px;
@@ -324,7 +324,7 @@ Trang chủ | Charm Spa Grand
     color: var(--brown);
     font-family: 'Montserrat', sans-serif;
     font-size: 22px;
-    font-weight: 400;
+    font-weight: 700;
     margin-bottom: 13px;
 }
 
@@ -383,7 +383,7 @@ Trang chủ | Charm Spa Grand
 .home-advantage-card h3 {
     font-family: 'Montserrat', sans-serif;
     font-size: 21px;
-    font-weight: 400;
+    font-weight: 700;
     margin-bottom: 14px;
 }
 
@@ -462,7 +462,7 @@ Trang chủ | Charm Spa Grand
 .home-booking-content h2 {
     font-family: 'Montserrat', sans-serif;
     font-size: clamp(30px, 4vw, 45px);
-    font-weight: 400;
+    font-weight: 700;
     line-height: 1.35;
     margin: 22px 0;
 }
@@ -609,7 +609,7 @@ Trang chủ | Charm Spa Grand
                     <i class="fas fa-arrow-right" style="margin-left:8px;"></i>
                 </a>
 
-                <a href="#services"
+                <a href="{% url 'core:lieu_trinh_page' %}"
                    class="home-btn home-btn-outline">
                     KHÁM PHÁ DỊCH VỤ
                 </a>
@@ -692,11 +692,10 @@ Trang chủ | Charm Spa Grand
                     chăm sóc và làm đẹp chu đáo cho mỗi khách hàng.
                 </p>
 
-                <a href="#services" class="home-about-link">
+                <a href="{% url 'core:lieu_trinh_page' %}" class="home-about-link">
                     KHÁM PHÁ DỊCH VỤ
                     <i class="fas fa-arrow-right" style="margin-left:6px;"></i>
                 </a>
-
             </div>
 
         </div>
