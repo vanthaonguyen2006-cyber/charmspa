@@ -123,8 +123,11 @@
         </a>
 
         <!-- PHẢN HỒI & KHIẾU NẠI -->
+
+        {% with role=request.user.thong_tin_tai_khoan.vai_tro %}
+
         <a
-            href="{% if request.user.is_superuser %}{% url 'feedback:admin_feedback_list' %}{% else %}{% url 'feedback:staff_feedback_list' %}{% endif %}"
+            href="{% if role == 'Quản lý' or role == 'Admin' or role == 'Quản trị viên' %}{% url 'feedback:admin_feedback_list' %}{% elif role == 'Nhân viên' or role == 'Nhân viên CSKH' or role == 'Chuyên viên' %}{% url 'feedback:staff_feedback_list' %}{% else %}#{% endif %}"
             title="Phản hồi & Khiếu nại"
             class="sidebar-item {% if active_menu == 'feedback' %}active{% endif %}"
         >
@@ -134,6 +137,8 @@
                 Phản hồi & Khiếu nại
             </span>
         </a>
+
+{% endwith %}
 
         <!-- Đã sửa href trỏ đúng đường dẫn quản lý ưu đãi tùy chỉnh -->
         <a href="{% url 'notifications:admin_promotion_list' %}" title="Quản lý ưu đãi"

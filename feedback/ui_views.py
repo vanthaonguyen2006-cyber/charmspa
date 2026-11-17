@@ -15,78 +15,116 @@ from .models import (
     LichSuXuLy,
     TepDinhKem,
 )
-from accounts.models import TaiKhoan, NhanVien
-
+from accounts.models import (TaiKhoan,NhanVien,ROLE_STAFF,is_manager_role,is_staff_role,is_staff_portal_user,is_customer_role,)
+from django.contrib.auth.decorators import user_passes_test
 
 # Tạo mã duy nhất cho bản ghi phân công và lịch sử xử lý
 def _tao_ma(prefix):
     return f"{prefix}{uuid.uuid4().hex[:12].upper()}"
 
 
-# Kiểm tra đăng nhập và quyền truy cập trang admin/nhân viên
+# Kiểm tra đăng nhập và quyền truy cập theo vai trò nghiệp vụ
 def _kiem_tra_quyen(request, vai_tro):
+    # Chưa đăng nhập thì chuyển về trang đăng nhập
     if not request.user.is_authenticated:
         return redirect("dang_nhap")
 
-    # Admin là superuser; nhân viên là tài khoản is_staff không phải superuser
-    if vai_tro == "admin":
-        co_quyen = request.user.is_superuser
-    else:
+    # Kiểm tra quyền theo từng khu vực
+    if vai_tro == "portal":
+        # Cổng nội bộ: Quản lý và Nhân viên
+        co_quyen = is_staff_portal_user(request.user)
+
+    elif vai_tro == "customer":
+        # Cổng khách hàng
+        co_quyen = is_customer_role(request.user)
+
+    elif vai_tro == "admin":
+        # Trang quản lý phản hồi và khiếu nại
         co_quyen = (
-            request.user.is_staff
-            and not request.user.is_superuser
+            is_staff_portal_user(request.user)
+            and is_manager_role(request.user)
         )
 
+    elif vai_tro == "staff":
+        # Trang nhân viên xử lý phản hồi và khiếu nại
+        co_quyen = (
+            is_staff_portal_user(request.user)
+            and is_staff_role(request.user)
+        )
+
+    else:
+        co_quyen = False
+
+    # Không đủ quyền thì từ chối truy cập
     if not co_quyen:
-        return HttpResponseForbidden("Bạn không có quyền truy cập trang này.")
+        return HttpResponseForbidden(
+            "Bạn không có quyền truy cập trang này."
+        )
 
     return None
-
 
 # Lấy tài khoản nghiệp vụ liên kết với tài khoản Django đang đăng nhập
 def _tai_khoan_hien_tai(request):
     return TaiKhoan.objects.filter(user=request.user).first()
 
 
-# Lấy hồ sơ nhân viên và lưu mã nhân viên vào session
+# Lấy hồ sơ nhân viên đang đăng nhập
 def _nhan_vien_hien_tai(request):
+
+    # Chỉ tài khoản có vai trò Nhân viên mới được lấy hồ sơ này
+    if not is_staff_role(request.user):
+        return None
+
+    # Lấy hồ sơ nhân viên liên kết với tài khoản đang đăng nhập
     nhan_vien = NhanVien.objects.filter(
         ma_tk__user=request.user
-    ).select_related("ma_tk__user").first()
+    ).select_related(
+        "ma_tk__user"
+    ).first()
 
+    # Lưu mã nhân viên vào session để sử dụng khi cần
     if nhan_vien:
         request.session["ma_nv"] = nhan_vien.ma_nv
 
     return nhan_vien
 
-
 # Lấy thông tin cho sidebar và header trong staff_base.html
 def _layout_context(request, is_admin):
+
+    # Nếu là giao diện Quản lý thì không cần lấy hồ sơ nhân viên
+    # Nếu là giao diện Nhân viên thì lấy hồ sơ đang đăng nhập
     nhan_vien = None if is_admin else _nhan_vien_hien_tai(request)
 
+    # Xác định tên và vai trò hiển thị trên giao diện
     if nhan_vien:
         ten_hien_thi = nhan_vien.ho_ten
-        vi_tri = nhan_vien.vi_tri
+        vai_tro_hien_thi = "Nhân viên"
+
     else:
+        # Quản lý hoặc tài khoản chưa có hồ sơ nhân viên
         ten_hien_thi = (
             request.user.get_full_name()
             or request.user.get_username()
         )
-        vi_tri = "Quản trị viên" if is_admin else "Nhân viên CSKH"
+
+        vai_tro_hien_thi = "Quản lý" if is_admin else "Nhân viên"
 
     # Tạo chữ viết tắt hiển thị trong avatar
     initials = "".join(
         tu[0] for tu in ten_hien_thi.split() if tu
     )[:2].upper()
 
-    # Đếm tổng phiếu admin hoặc số phiếu thuộc nhân viên đang đăng nhập
+    # Đếm tổng phiếu của Quản lý hoặc số phiếu được giao cho Nhân viên
     if is_admin:
         feedback_count = PhanHoiKhieuNai.objects.count()
+
     elif nhan_vien:
         ma_ph = _ma_ph_nhan_vien(nhan_vien.ma_nv)
+
         feedback_count = PhanHoiKhieuNai.objects.filter(
             ma_ph__in=ma_ph
         ).count()
+
     else:
         feedback_count = 0
 
@@ -95,10 +133,14 @@ def _layout_context(request, is_admin):
         "active_menu": "feedback",
         "staff_name": ten_hien_thi,
         "staff_initials": initials or "?",
-        "staff_position": vi_tri,
+
+        # Giữ nguyên tên biến staff_position để không phải sửa
+        # ngay các template staff_base.html đang sử dụng.
+        # Giá trị này giờ lấy từ vai trò nghiệp vụ, không lấy từ model.
+        "staff_position": vai_tro_hien_thi,
+
         "feedback_count": feedback_count,
     }
-
 
 # Xác định nhân viên hiện đang phụ trách từng phiếu
 def _phan_cong_moi_nhat(ma_ph_list=None):
@@ -311,10 +353,8 @@ def _danh_sach_view(request, is_admin, mode, title, subtitle):
 
 
 # ADMIN: Danh sách tất cả phản hồi và khiếu nại
+@user_passes_test(is_manager_role, login_url="dang_nhap")
 def admin_feedback_list(request):
-    loi = _kiem_tra_quyen(request, "admin")
-    if loi:
-        return loi
 
     return _danh_sach_view(
         request, True, "all",
@@ -324,11 +364,8 @@ def admin_feedback_list(request):
 
 
 # ADMIN: Danh sách phiếu chưa phân công
+@user_passes_test(is_manager_role, login_url="dang_nhap")
 def admin_feedback_unassigned(request):
-    loi = _kiem_tra_quyen(request, "admin")
-    if loi:
-        return loi
-
     return _danh_sach_view(
         request, True, "unassigned",
         "Phiếu chưa phân công",
@@ -337,11 +374,8 @@ def admin_feedback_unassigned(request):
 
 
 # ADMIN: Danh sách phiếu không hợp lệ
+@user_passes_test(is_manager_role, login_url="dang_nhap")
 def admin_feedback_invalid(request):
-    loi = _kiem_tra_quyen(request, "admin")
-    if loi:
-        return loi
-
     return _danh_sach_view(
         request, True, "invalid",
         "Phiếu không hợp lệ",
@@ -350,6 +384,7 @@ def admin_feedback_invalid(request):
 
 
 # NHÂN VIÊN: Danh sách phiếu được phân công
+@user_passes_test(is_staff_role, login_url="dang_nhap")
 def staff_feedback_list(request):
     loi = _kiem_tra_quyen(request, "staff")
     if loi:
@@ -363,6 +398,7 @@ def staff_feedback_list(request):
 
 
 # NHÂN VIÊN: Danh sách phiếu đã giải quyết
+@user_passes_test(is_staff_role, login_url="dang_nhap")
 def staff_feedback_resolved(request):
     loi = _kiem_tra_quyen(request, "staff")
     if loi:
@@ -376,12 +412,8 @@ def staff_feedback_resolved(request):
 
 # ADMIN: Xem chi tiết, phân công, đánh dấu không hợp lệ,
 # cập nhật trạng thái và hoàn tất phiếu
+@user_passes_test(is_manager_role, login_url="dang_nhap")
 def admin_feedback_detail(request, feedback_id):
-    # Kiểm tra quyền quản trị viên
-    loi = _kiem_tra_quyen(request, "admin")
-    if loi:
-        return loi
-
     # Lấy phiếu cần xem và tải sẵn thông tin khách hàng liên kết.
     # Chuỗi quan hệ:
     # PhanHoiKhieuNai -> KhachHang -> TaiKhoan -> User
@@ -490,10 +522,10 @@ def admin_feedback_detail(request, feedback_id):
         elif action == "assign":
             ma_nv = request.POST.get("ma_nv", "").strip()
 
-            # Chỉ cho phép phân công cho nhân viên có vai trò Nhân viên CSKH
+            # Chỉ cho phép phân công cho tài khoản có vai trò Nhân viên
             nhan_vien = NhanVien.objects.filter(
                 ma_nv=ma_nv,
-                ma_tk__vai_tro="Nhân viên CSKH"
+                ma_tk__vai_tro=ROLE_STAFF
             ).first()
 
             if not ma_nv or not nhan_vien:
@@ -742,9 +774,15 @@ def admin_feedback_detail(request, feedback_id):
         "-thoi_gian_pc"
     ).first()
 
-    # Chỉ lấy nhân viên có vai trò Nhân viên CSKH để phân công
+    # Lấy nhân viên có vai trò Nhân viên hoặc Nhân viên CSKH
+    # để hiển thị trong danh sách phân công phiếu chăm sóc khách hàng.
     danh_sach_nhan_vien = NhanVien.objects.filter(
-        ma_tk__vai_tro="Nhân viên CSKH"
+        ma_tk__vai_tro__in=[
+            ROLE_STAFF,
+            "Nhân viên CSKH",
+        ]
+    ).select_related(
+        "ma_tk__user"
     ).order_by("ho_ten")
 
     # Context giao diện
@@ -770,6 +808,7 @@ def admin_feedback_detail(request, feedback_id):
     )
 
 # NHÂN VIÊN: Xem chi tiết phiếu, cập nhật và hoàn tất xử lý
+@user_passes_test(is_staff_role, login_url="dang_nhap")
 def staff_feedback_detail(request, feedback_id):
     loi = _kiem_tra_quyen(request, "staff")
     if loi:
@@ -798,13 +837,7 @@ def staff_feedback_detail(request, feedback_id):
     ):
         return HttpResponseForbidden("Phiếu này chưa được phân công cho bạn.")
 
-    # Lấy phiếu và thông tin khách hàng cùng tài khoản liên kết.
-    ph = get_object_or_404(
-        PhanHoiKhieuNai.objects.select_related(
-            "ma_kh__ma_tk__user"
-        ),
-        ma_ph=feedback_id
-    )
+    ph = get_object_or_404(PhanHoiKhieuNai, ma_ph=feedback_id)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -957,11 +990,8 @@ def staff_feedback_detail(request, feedback_id):
 
 
 # ADMIN: Thống kê theo loại phiếu và trạng thái xử lý
+@user_passes_test(is_manager_role, login_url="dang_nhap")
 def admin_feedback_statistics(request):
-    loi = _kiem_tra_quyen(request, "admin")
-    if loi:
-        return loi
-
     tat_ca = PhanHoiKhieuNai.objects.all()
     tong_so = tat_ca.count()
 
