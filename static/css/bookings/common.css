@@ -1,3 +1,6 @@
+/* Montserrat được tải một lần cho toàn bộ module đặt lịch. */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 /* BOOKING MODULE - CHARM SPA GRAND
    Chỉ khai báo biến màu và tiện ích an toàn, không ghi đè layout chung. */
 :root {
@@ -20,4 +23,22 @@
 .booking-staff-create .service-card img,
 .booking-staff-list .service-card img {
     object-fit: cover;
+}
+
+/* ==============================================================
+   BỘ QUY CHUẨN FONT CHỮ CHARM SPA - CHỈ ÁP DỤNG MODULE BOOKINGS
+   Sửa các giá trị này khi muốn đổi cỡ chữ đồng loạt.
+   =============================================================== */
+:root {
+    --booking-font-family: 'Montserrat', Arial, sans-serif;
+    --booking-font-title: 28px;
+    --booking-font-title-mobile: 23px;
+    --booking-font-section: 16px;
+    --booking-font-body: 13px;
+    --booking-font-label: 12px;
+    --booking-font-small: 11px;
+    --booking-font-tiny: 11px;
+    --booking-font-button: 13px;
+    --booking-font-calendar-status: 14px;
+    --booking-font-stat-value: 20px;
 }
