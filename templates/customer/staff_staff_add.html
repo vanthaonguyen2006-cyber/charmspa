@@ -147,9 +147,8 @@
                     <label class="form-label fw-semibold" style="font-size: 14px;">Vai trò <span class="text-danger">*</span></label>
                     <select name="vai_tro" class="form-select py-2 px-3 {% if form.vai_tro.errors %}is-invalid{% endif %}"
                             style="border-radius: 8px; font-size: 14px;" required>
-                        <option value="Nhân viên CSKH" {% if form.vai_tro.value == 'Nhân viên CSKH' or not form.vai_tro.value %}selected{% endif %}>Nhân viên CSKH</option>
-                        <option value="Chuyên viên" {% if form.vai_tro.value == 'Chuyên viên' %}selected{% endif %}>Chuyên viên</option>
-                        <option value="Quản trị viên" {% if form.vai_tro.value == 'Quản trị viên' %}selected{% endif %}>Quản trị viên</option>
+                        <option value="Nhân viên" {% if form.vai_tro.value == 'Nhân viên' or not form.vai_tro.value %}selected{% endif %}>Nhân viên</option>
+                        <option value="Quản lý" {% if form.vai_tro.value == 'Quản lý' %}selected{% endif %}>Quản lý</option>
                     </select>
                     {% for error in form.vai_tro.errors %}
                         <div class="invalid-feedback">{{ error }}</div>

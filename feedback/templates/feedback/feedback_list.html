@@ -4,6 +4,11 @@
 {% block title %}{{ page_title }} | Charm Spa{% endblock %}
 
 {% block extra_css %}
+<!-- Tải Bootstrap Icons để sử dụng icon con mắt -->
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<!-- CSS riêng của module Feedback -->
 <link rel="stylesheet" href="{% static 'css/feedback.css' %}">
 {% endblock %}
 
@@ -16,10 +21,6 @@
             <h1>{{ page_title }}</h1>
             <p class="feedback-subtitle">{{ page_subtitle }}</p>
         </div>
-        {% if is_admin %}
-            <a href="{% url 'feedback:admin_feedback_statistics' %}"
-               class="feedback-btn light">Thống kê</a>
-        {% endif %}
     </div>
 
     <!-- Menu chuyển giữa các trang admin hoặc nhân viên -->
@@ -135,7 +136,7 @@
                 <div class="feedback-filter-actions">
 
                     <button class="feedback-btn gold" type="submit">
-                        Lọc danh sách
+                        Lọc
                     </button>
 
                     {% if is_admin %}
@@ -229,17 +230,32 @@
                         {% endif %}
 
                         <td>
-                            <!-- Mở trang chi tiết của từng phiếu -->
+                            <!-- Nút hình con mắt mở trang chi tiết phiếu -->
+
                             {% if is_admin %}
-                                <a class="feedback-link"
+
+                                <!-- Admin: xem chi tiết phiếu -->
+                                <a class="feedback-view-button"
+                                   title="Xem chi tiết"
+                                   aria-label="Xem chi tiết phiếu {{ ph.ma_ph }}"
                                    href="{% url 'feedback:admin_feedback_detail' ph.ma_ph %}">
-                                    Xem →
+
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+
                                 </a>
+
                             {% else %}
-                                <a class="feedback-link"
+
+                                <!-- Nhân viên CSKH: mở trang xử lý phiếu -->
+                                <a class="feedback-view-button"
+                                   title="Xử lý phiếu"
+                                   aria-label="Xử lý phiếu {{ ph.ma_ph }}"
                                    href="{% url 'feedback:staff_feedback_detail' ph.ma_ph %}">
-                                    Xử lý →
+
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+
                                 </a>
+
                             {% endif %}
                         </td>
                     </tr>

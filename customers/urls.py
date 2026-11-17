@@ -1,4 +1,3 @@
-
 from django.urls import path
 from . import views
 
@@ -9,12 +8,15 @@ urlpatterns = [
     path('staff/customer/<str:ma_kh>/', views.staff_customer_detail_view, name='staff_customer_detail'),
     path('staff/customer/<str:ma_kh>/record-service/', views.staff_customer_record_service_view, name='staff_customer_record_service'),
 
+    # Hồ sơ cá nhân dành cho Nhân viên và Quản lý
+    path('staff/profile/', views.staff_profile_view, name='staff_profile'),
+
     # Hồ sơ và trạng thái tài khoản khách hàng
     path('profile/', views.customer_profile_view, name='customer_profile'),
     path('profile/lock/', views.customer_lock_account_view, name='customer_lock_account'),
     path('profile/locked/', views.account_locked_view, name='account_locked'),
 
-    # Quản lý tài khoản dành cho nhân viên
+    # Quản lý tài khoản dành cho Quản lý
     path('staff/account_list/', views.staff_account_list_view, name='staff_account_list'),
     path('staff/account/add/', views.staff_account_add_staff_view, name='staff_account_add_staff'),
     path('staff/account/<str:ma_tk>/', views.staff_account_detail_view, name='staff_account_detail'),

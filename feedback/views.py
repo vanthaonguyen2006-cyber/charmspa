@@ -1,5 +1,4 @@
 import os
-import re
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -10,7 +9,8 @@ from django.db import transaction
 from customers.models import KhachHang
 from .forms import PhanHoiKhieuNaiForm
 from .models import PhanHoiKhieuNai, TepDinhKem
-from .models import PhanCongXuLy, LichSuXuLy
+from .models import  LichSuXuLy
+from accounts.models import get_user_role, ROLE_CUSTOMER
 
 
 # ============================================================
@@ -18,13 +18,19 @@ from .models import PhanCongXuLy, LichSuXuLy
 # ============================================================
 
 def _get_current_customer(request):
-    # Chưa đăng nhập thì không lấy hồ sơ của khách hàng khác
+    # Bước 1: Kiểm tra người dùng đã đăng nhập chưa.
     if not request.user.is_authenticated:
         return None
 
-    # Tìm đúng hồ sơ khách hàng liên kết với tài khoản Django hiện tại
+    # Bước 2: Chỉ cho phép tài khoản có role Khách hàng.
+    if get_user_role(request.user) != ROLE_CUSTOMER:
+        return None
+
+    # Bước 3: Tìm đúng hồ sơ khách hàng thuộc tài khoản đang đăng nhập.
+    # Kiểm tra thêm role trong database để tránh lấy nhầm hồ sơ.
     return KhachHang.objects.filter(
-        ma_tk__user=request.user
+        ma_tk__user=request.user,
+        ma_tk__vai_tro=ROLE_CUSTOMER
     ).first()
 
 
@@ -296,12 +302,13 @@ def customer_feedback_list(request):
 # 7. KHÁCH HÀNG: CHI TIẾT MỘT PHIẾU
 # ============================================================
 
+
 def customer_feedback_detail(request, feedback_id):
-    # Yêu cầu đăng nhập
+    # Yêu cầu khách hàng đăng nhập trước khi xem chi tiết phiếu.
     if not request.user.is_authenticated:
         return redirect("dang_nhap")
 
-    # Lấy đúng hồ sơ của khách hàng đang đăng nhập
+    # Lấy hồ sơ khách hàng đang đăng nhập.
     khach_hang = _get_current_customer(request)
 
     if not khach_hang:
@@ -311,43 +318,34 @@ def customer_feedback_detail(request, feedback_id):
         )
         return redirect("feedback:customer_feedback_list")
 
-    # Chỉ cho phép xem phiếu thuộc khách hàng hiện tại
+    # Chỉ cho phép khách hàng xem phiếu thuộc chính tài khoản của mình.
     phan_hoi = get_object_or_404(
         PhanHoiKhieuNai,
         ma_ph=feedback_id,
         ma_kh_id=khach_hang.ma_kh
     )
 
-    # Gắn khách hàng đã lấy sẵn để template có thể sử dụng
+    # Gắn hồ sơ khách hàng đã lấy sẵn để template có thể sử dụng.
     phan_hoi._state.fields_cache["ma_kh"] = khach_hang
 
-    # Lấy các tệp đính kèm của phiếu
+    # Lấy danh sách tệp đính kèm của phiếu.
     tep_dinh_kem = TepDinhKem.objects.filter(
         ma_ph_id=phan_hoi.ma_ph
     )
 
-    # Lấy lần phân công mới nhất và thông tin nhân viên
-    phan_cong = (
-        PhanCongXuLy.objects.filter(ma_ph_id=phan_hoi.ma_ph)
-        .select_related("ma_nv")
-        .order_by("-thoi_gian_pc")
-        .first()
+    # Chỉ lấy những cập nhật đã được Admin hoặc nhân viên
+    # cho phép hiển thị công khai cho khách hàng.
+    # Không lấy trường noi_dung vì đây là ghi chú nội bộ.
+    lich_su_cong_khai = (
+        LichSuXuLy.objects.filter(
+            ma_ph_id=phan_hoi.ma_ph,
+            noi_dung_khach_hang__isnull=False
+        )
+        .exclude(noi_dung_khach_hang__exact="")
+        .order_by("ngay_thuc_hien")
     )
 
-    # Lấy lịch sử xử lý, mới nhất trước
-    lich_su = (
-        LichSuXuLy.objects.filter(ma_ph_id=phan_hoi.ma_ph)
-        .order_by("-ngay_thuc_hien")
-    )
-
-    # Lấy cập nhật gần nhất có nội dung để hiển thị cho khách hàng
-    lich_su_moi_nhat = (
-        lich_su.exclude(noi_dung__isnull=True)
-        .exclude(noi_dung__exact="")
-        .first()
-    )
-
-    # Xác định bước tiến độ dựa trên trạng thái hiện tại
+    # Xác định bước tiến độ dựa trên trạng thái hiện tại của phiếu.
     if phan_hoi.trang_thai_xu_ly == "Đã giải quyết":
         status_level = 3
     elif phan_hoi.trang_thai_xu_ly == "Đang xử lý":
@@ -355,7 +353,7 @@ def customer_feedback_detail(request, feedback_id):
     else:
         status_level = 1
 
-    # Gửi dữ liệu sang giao diện chi tiết
+    # Truyền dữ liệu cần thiết sang giao diện chi tiết khách hàng.
     return render(
         request,
         "feedback/customer_feedback_detail.html",
@@ -363,11 +361,11 @@ def customer_feedback_detail(request, feedback_id):
             "khach_hang": khach_hang,
             "phan_hoi": phan_hoi,
             "tep_dinh_kem": tep_dinh_kem,
-            "phan_cong": phan_cong,
-            "lich_su": lich_su,
-            "lich_su_moi_nhat": lich_su_moi_nhat,
+
+            # Chỉ truyền lịch sử có nội dung công khai.
+            "lich_su_cong_khai": lich_su_cong_khai,
+
+            # Cấp độ tiến độ để hiển thị thanh 3 bước.
             "status_level": status_level,
         }
     )
-
-

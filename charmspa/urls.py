@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/customer/', permanent=False)),
+    path('', RedirectView.as_view(url='/home/', permanent=False)),
     path('admin/', admin.site.urls),
     path('notifications/', include('notifications.urls')),
     path('feedback/', include('feedback.urls')),

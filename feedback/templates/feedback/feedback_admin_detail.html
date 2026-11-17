@@ -152,16 +152,67 @@
 
             <!-- Thông tin khách hàng -->
             <section class="feedback-card">
+
                 <h2>Thông tin khách hàng</h2>
 
-                <div class="feedback-side-value">
-                    <strong>Mã khách hàng: {{ ph.ma_kh_id }}</strong>
-                </div>
+                {% if customer %}
 
-                <p class="feedback-muted">
-                    Tên, số điện thoại và email sẽ hiển thị khi thống nhất
-                    lại liên kết model khách hàng với database.
-                </p>
+                    <!-- Họ tên lấy trực tiếp từ model KhachHang -->
+                    <div class="feedback-side-value">
+                        <strong>
+                            {{ customer.ho_ten|default:"Chưa cập nhật họ tên" }}
+                        </strong>
+                    </div>
+
+                    <!-- Mã khách hàng -->
+                    <div class="feedback-side-value">
+                        <span class="feedback-muted">Mã khách hàng:</span>
+                        <strong>{{ ph.ma_kh_id }}</strong>
+                    </div>
+
+                    <!-- Thông tin liên hệ lấy thông qua TaiKhoan -->
+                    {% if customer.ma_tk %}
+
+                        <!-- Số điện thoại lưu trong model TaiKhoan -->
+                        <div class="feedback-side-value">
+                            <span class="feedback-muted">Số điện thoại:</span>
+
+                            {% if customer.ma_tk.so_dien_thoai %}
+                                <strong>{{ customer.ma_tk.so_dien_thoai }}</strong>
+                            {% else %}
+                                <span class="feedback-muted">Chưa cập nhật</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email lấy từ User liên kết với TaiKhoan -->
+                        <div class="feedback-side-value">
+                            <span class="feedback-muted">Email:</span>
+
+                            {% if customer.ma_tk.user and customer.ma_tk.user.email %}
+                                <strong>{{ customer.ma_tk.user.email }}</strong>
+                            {% else %}
+                                <span class="feedback-muted">Chưa cập nhật</span>
+                            {% endif %}
+                        </div>
+
+                    {% else %}
+
+                        <!-- Trường hợp hồ sơ khách hàng chưa liên kết tài khoản -->
+                        <p class="feedback-muted">
+                            Hồ sơ khách hàng chưa được liên kết với tài khoản đăng nhập.
+                        </p>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <!-- Trường hợp phiếu không tìm thấy hồ sơ khách hàng -->
+                    <p class="feedback-muted">
+                        Không tìm thấy thông tin khách hàng của phiếu này.
+                    </p>
+
+                {% endif %}
+
             </section>
 
             <!-- Thông tin phân công -->
@@ -502,9 +553,26 @@
                       required
                       placeholder="Nhập nội dung cập nhật, kết quả kiểm tra hoặc ghi chú xử lý..."></textarea>
 
-            <!-- Giải thích cho Admin biết ghi chú được lưu ở đâu -->
+            <!-- Ghi chú nội bộ chỉ dành cho Admin và nhân viên -->
             <p class="feedback-action-hint">
-                Ghi chú sẽ được lưu vào lịch sử xử lý của phiếu.
+                Ghi chú xử lý chỉ lưu trong lịch sử nội bộ,
+                không hiển thị cho khách hàng.
+            </p>
+
+            <!-- Ô nhập thông báo công khai dành cho khách hàng -->
+            <label for="adminCustomerUpdateMessage">
+                Thông báo dành cho khách hàng
+                <span style="color:#888;font-weight:400">(Không bắt buộc)</span>
+            </label>
+
+            <textarea id="adminCustomerUpdateMessage"
+                      name="noi_dung_khach_hang"
+                      rows="4"
+                      placeholder="Ví dụ: Yêu cầu của bạn đang được bộ phận Chăm sóc khách hàng kiểm tra..."></textarea>
+
+            <p class="feedback-action-hint">
+                Nội dung này sẽ xuất hiện trong phần tiến độ xử lý
+                mà khách hàng có thể theo dõi.
             </p>
 
             <!-- Hai nút thao tác ở cuối popup -->
