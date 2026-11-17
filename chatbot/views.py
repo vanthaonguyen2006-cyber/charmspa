@@ -8,11 +8,39 @@ from django.contrib import messages
 from .models import PhienHoiThoai, TinNhan, BuocChatbot, KichBanChatbot, YeuCauTuVan
 from .permissions import admin_required
 
-# Thử kết nối Model Dịch vụ từ app dịch vụ (nếu có)
+# Kết nối Model Dịch vụ từ app services
 try:
     from services.models import DichVu
 except ImportError:
     DichVu = None
+
+
+def get_services_catalog_from_db():
+    """Lấy toàn bộ danh sách Dịch vụ và Loại dịch vụ từ CSDL để đổ vào Flow Builder"""
+    if not DichVu:
+        return {'services': [], 'categories': []}
+    try:
+        qs = DichVu.objects.all().order_by('loai_dich_vu', 'ten_dich_vu')
+        services_list = []
+        categories_list = []
+        for dv in qs:
+            loai = (dv.loai_dich_vu or 'Dịch vụ khác').strip()
+            if loai and loai not in categories_list:
+                categories_list.append(loai)
+            services_list.append({
+                'ma_dv': str(dv.ma_dv),
+                'ten_dich_vu': dv.ten_dich_vu,
+                'loai_dich_vu': loai,
+                'mo_ta': dv.mo_ta or '',
+                'thoi_luong': int(dv.thoi_luong or 60),
+                'gia_dich_vu': int(dv.gia_dich_vu or 0),
+            })
+        return {
+            'services': services_list,
+            'categories': categories_list,
+        }
+    except Exception:
+        return {'services': [], 'categories': []}
 
 
 def get_or_create_session(session_id, user):
@@ -124,13 +152,14 @@ def chatbot_reply(request):
                 phien.save()
                 bot_reply = "Dạ, yêu cầu của bạn đã được chuyển tới Nhân viên CSKH. Nhân viên tư vấn của Charm Grand Spa sẽ phản hồi trực tiếp ngay tại đây!"
 
-            elif option_type == 'dichvu' or 'dịch vụ' in msg_lower:
+            elif option_type == 'dichvu' or 'dịch vụ' in msg_lower or 'giá' in msg_lower:
                 if DichVu and DichVu.objects.exists():
-                    dich_vus = DichVu.objects.all()[:5]
-                    items = "".join(
-                        [f"• <strong>{dv.ten_dich_vu}</strong> - {getattr(dv, 'gia', 'Liên hệ')}đ<br>" for dv in dich_vus]
-                    )
-                    bot_reply = f"Charm Grand Spa xin gửi bạn danh sách các dịch vụ nổi bật:<br>{items}"
+                    dich_vus = DichVu.objects.all()
+                    items = "".join([
+                        f"• <strong>{dv.ten_dich_vu}</strong> ({dv.thoi_luong} phút) - {int(dv.gia_dich_vu):,} đ<br>".replace(",", ".")
+                        for dv in dich_vus
+                    ])
+                    bot_reply = f"Charm Grand Spa xin gửi bạn bảng giá các dịch vụ hiện có:<br>{items}"
                 else:
                     bot_reply = "Charm Grand Spa cung cấp các dịch vụ cao cấp:<br>• <strong>Massage Body Thư Giãn</strong><br>• <strong>Chăm Sóc Da Mặt Chuyên Sâu</strong><br>• <strong>Gội Đầu Dưỡng Sinh</strong>"
 
@@ -303,7 +332,7 @@ def customer_chat_history(request):
 # --- CÁC HÀM QUẢN LÝ HỘI THOẠI ADMIN / CSKH THEO THIẾT KẾ BÁO CÁO ---
 
 def admin_conversation_list(request):
-    """Trang danh sách quản lý hội thoại Admin/CSKH (Báo cáo - Ảnh 2)"""
+    """Trang danh sách quản lý hội thoại Admin/CSKH"""
     conversations = PhienHoiThoai.objects.all().order_by('-pk')
 
     for item in conversations:
@@ -354,7 +383,6 @@ def admin_conversation_detail(request, session_id):
 
     messages_list = TinNhan.objects.filter(ma_pht=conversation).order_by('thoi_gian')
 
-    # Khởi tạo thông tin mặc định
     customer_info = {
         'fullname': getattr(conversation.ma_kh, 'ho_ten', 'Khách vãng lai') if conversation.ma_kh else 'Khách vãng lai',
         'phone': getattr(conversation.ma_kh, 'so_dien_thoai', 'Chưa cung cấp') if conversation.ma_kh else 'Chưa cung cấp',
@@ -362,7 +390,6 @@ def admin_conversation_detail(request, session_id):
         'topic': 'Tư vấn chung'
     }
 
-    # Lấy bản ghi Yêu cầu tư vấn mới nhất từ CSDL để bóc tách thông tin
     yctv = YeuCauTuVan.objects.filter(ma_pht=conversation).order_by('-thoi_gian_yeu_cau').first()
     if yctv and yctv.noi_dung:
         if '|' in yctv.noi_dung:
@@ -388,7 +415,7 @@ def admin_conversation_detail(request, session_id):
 
 
 def admin_conversation_complete(request, session_id):
-    """Xử lý xác nhận Hoàn tất hội thoại từ Modal Popup (Báo cáo - Ảnh 4)"""
+    """Xử lý xác nhận Hoàn tất hội thoại từ Modal Popup"""
     if request.method == 'POST':
         conversation = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
         ghi_chu = request.POST.get('ghi_chu_xu_ly', '').strip()
@@ -408,8 +435,7 @@ def admin_conversation_complete(request, session_id):
 # --- QUẢN LÝ KỊCH BẢN CHATBOT ---
 @admin_required
 def admin_script_list(request):
-    """1. Màn hình Danh sách Kịch bản Chatbot (Ảnh 13) - Đã sửa lỗi FieldError"""
-    # Sửa từ -thoi_gian_tao sang -pk vì model KichBanChatbot dùng khóa chính thay vì trường thời gian
+    """1. Màn hình Danh sách Kịch bản Chatbot"""
     scripts = KichBanChatbot.objects.all().order_by('-pk')
     status_filter = request.GET.get('status', '')
     search_query = request.GET.get('q', '')
@@ -425,6 +451,7 @@ def admin_script_list(request):
         'search_query': search_query,
     }
     return render(request, 'chatbot/admin_script_list.html', context)
+
 
 @admin_required
 def admin_script_create(request):
@@ -453,21 +480,24 @@ def admin_script_create(request):
 
     return redirect('chatbot:admin_script_list')
 
+
 @admin_required
 def admin_script_detail(request, pk):
-    """2. Màn hình Chi tiết Luồng Kịch bản (Ảnh 14)"""
+    """2. Màn hình Chi tiết Luồng Kịch bản"""
     script = get_object_or_404(KichBanChatbot, pk=pk)
     steps = BuocChatbot.objects.filter(ma_kb=script).order_by('thu_tu')
 
     context = {
         'script': script,
         'steps': steps,
+        'services_catalog': get_services_catalog_from_db(),
     }
     return render(request, 'chatbot/admin_script_detail.html', context)
 
+
 @admin_required
 def admin_script_edit(request, pk):
-    """3. Màn hình Chỉnh sửa / Flow Builder Kịch bản (Ảnh 15)"""
+    """3. Màn hình Chỉnh sửa / Flow Builder Kịch bản"""
     script = get_object_or_404(KichBanChatbot, pk=pk)
     steps = BuocChatbot.objects.filter(ma_kb=script).order_by('thu_tu')
 
@@ -488,12 +518,14 @@ def admin_script_edit(request, pk):
     context = {
         'script': script,
         'steps': steps,
+        'services_catalog': get_services_catalog_from_db(),
     }
     return render(request, 'chatbot/admin_script_edit.html', context)
 
+
 @admin_required
 def admin_script_preview(request, pk):
-    """4. Màn hình Xem trước Kịch bản (Ảnh 17)"""
+    """4. Màn hình Xem trước Kịch bản"""
     script = get_object_or_404(KichBanChatbot, pk=pk)
     steps = BuocChatbot.objects.filter(ma_kb=script).order_by('thu_tu')
 
@@ -501,17 +533,20 @@ def admin_script_preview(request, pk):
         'script': script,
         'first_step': steps.first(),
         'steps': steps,
+        'services_catalog': get_services_catalog_from_db(),
     }
     return render(request, 'chatbot/admin_script_preview.html', context)
 
+
 @admin_required
 def admin_script_delete(request, pk):
-    """5. Xác nhận & Thực hiện Xóa Kịch bản (Ảnh 16)"""
+    """5. Xác nhận & Thực hiện Xóa Kịch bản"""
     if request.method == 'POST':
         script = get_object_or_404(KichBanChatbot, pk=pk)
         script.delete()
         messages.success(request, 'Đã xóa kịch bản thành công!')
     return redirect('chatbot:admin_script_list')
+
 
 @admin_required
 def admin_script_toggle_status(request, pk):
@@ -525,15 +560,14 @@ def admin_script_toggle_status(request, pk):
     return redirect('chatbot:admin_script_list')
 
 
-
 def get_conversation_messages_api(request, session_id):
     """API lấy danh sách tin nhắn mới nhất của phiên hội thoại"""
     try:
         conversation = PhienHoiThoai.objects.get(ma_pht=session_id)
-        messages = TinNhan.objects.filter(ma_pht=conversation).order_by('thoi_gian')
+        messages_qs = TinNhan.objects.filter(ma_pht=conversation).order_by('thoi_gian')
 
         data = []
-        for msg in messages:
+        for msg in messages_qs:
             data.append({
                 'id': msg.ma_tn,
                 'sender_type': msg.loai_nguoi_gui,
@@ -543,3 +577,8 @@ def get_conversation_messages_api(request, session_id):
         return JsonResponse({'status': 'success', 'messages': data})
     except PhienHoiThoai.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Không tìm thấy hội thoại'}, status=404)
+
+@csrf_exempt
+def services_catalog_api(request):
+    """API trả về toàn bộ danh sách Dịch vụ & Loại dịch vụ từ CSDL cho Flow Builder"""
+    return JsonResponse(get_services_catalog_from_db())
