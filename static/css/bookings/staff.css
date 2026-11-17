@@ -6,7 +6,7 @@
 body:has(.booking-staff-create) {
         background-color: var(--bg-beige) !important;
         color: var(--text-dark);
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'Montserrat', Arial, sans-serif;
     }
 
 body:has(.booking-staff-create) .service-card {
@@ -193,7 +193,7 @@ body:has(.booking-staff-create) .customer-option-item:hover {
 body:has(.booking-staff-list) {
         background-color: var(--bg-beige) !important;
         color: var(--text-dark);
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'Montserrat', Arial, sans-serif;
     }
 
 body:has(.booking-staff-list) .table th {
@@ -347,8 +347,8 @@ body:has(.booking-staff-list) .flatpickr-calendar {
    (trang đang dùng .staff-booking-page, không phải .booking-staff-list)
    Giữ style cũ để không làm mất giao diện và hành vi bộ lọc.
    ========================================================== */
-.staff-booking-page{background:#f7f1e9;min-height:100vh;padding:26px 28px 50px;color:#302c29;font-family:Arial,sans-serif}
-.staff-booking-page .staff-title{font-family:Arial,Helvetica,sans-serif;font-size:30px;color:#242c36;font-weight:700;margin:0}
+.staff-booking-page{background:#f7f1e9;min-height:100vh;padding:26px 28px 50px;color:#302c29;font-family:'Montserrat', Arial, sans-serif}
+.staff-booking-page .staff-title{font-family:'Montserrat', Arial, sans-serif;font-size:30px;color:#242c36;font-weight:700;margin:0}
 .staff-booking-page .staff-sub{color:#77706a;margin:8px 0 0;font-size:14px}
 .staff-booking-page .staff-btn-dark{background:#262626;color:#fff;border:0;border-radius:9px;padding:12px 17px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap}
 .staff-booking-page .staff-btn-dark:hover{color:#fff;background:#574a3d}
@@ -362,8 +362,8 @@ body:has(.booking-staff-list) .flatpickr-calendar {
 .staff-booking-page .filters input[type=search]{flex:2 1 240px;min-width:200px}.staff-booking-page .filters select{flex:1 1 140px}
 .staff-booking-page .staff-btn-light{padding:9px 14px;border:1px solid #e4d8cb;background:#faf7f3;border-radius:9px;color:#6b5b4d;font-size:13px}
 .staff-booking-page .table-frame{padding:0;overflow:hidden}
-.staff-booking-page .table-heading{padding:17px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:18px}
-.staff-booking-page .count-label{font-family:Arial,sans-serif;font-size:12px;color:#a48a65;font-weight:500}
+.staff-booking-page .table-heading{padding:17px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-family:'Montserrat', Arial, sans-serif;font-weight:700;font-size:18px}
+.staff-booking-page .count-label{font-family:'Montserrat', Arial, sans-serif;font-size:12px;color:#a48a65;font-weight:500}
 .staff-booking-page .table-scroll{overflow-x:auto}
 .staff-booking-page table{width:100%;min-width:1020px;border-collapse:collapse;font-size:13px}
 .staff-booking-page thead{background:#efe7dc}.staff-booking-page th{font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:#857b6e;text-align:left;padding:13px 11px;white-space:nowrap}
@@ -445,10 +445,10 @@ body:has(.booking-staff-list) .flatpickr-calendar {
    STAFF DETAIL - chuyển style nội tuyến sang CSS dùng chung
    Giữ bố cục cột trái cao bằng tổng 2 thẻ cột phải.
    ========================================================== */
-.staff-detail-page{background:#f7f0e8;min-height:100vh;padding:28px clamp(16px,3vw,42px) 55px;color:#302d2a;font-family:Arial,sans-serif}
+.staff-detail-page{background:#f7f0e8;min-height:100vh;padding:28px clamp(16px,3vw,42px) 55px;color:#302d2a;font-family:'Montserrat', Arial, sans-serif}
 .staff-detail-page *{box-sizing:border-box}
 .staff-detail-page .detail-top{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-.staff-detail-page .detail-top h1{font-family:Arial,Helvetica,sans-serif;font-size:30px;letter-spacing:.3px;font-weight:600;color:#272725;margin:0}
+.staff-detail-page .detail-top h1{font-family:'Montserrat', Arial, sans-serif;font-size:30px;letter-spacing:.3px;font-weight:600;color:#272725;margin:0}
 .staff-detail-page .top-actions{display:flex;gap:9px;flex-wrap:wrap}
 .staff-detail-page .detail-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #e7dacc;background:#fff;padding:11px 17px;border-radius:9px;text-decoration:none;color:#4b4138;font-size:13px;font-weight:600;cursor:pointer}
 .staff-detail-page .detail-btn.dark{background:#262523;color:#fff;border-color:#262523}
@@ -470,7 +470,7 @@ body:has(.booking-staff-list) .flatpickr-calendar {
 .staff-detail-page .detail-column{min-width:0;display:grid;gap:18px}
 .staff-detail-page .detail-grid > .detail-column:first-child > .detail-card{height:100%}
 .staff-detail-page .detail-card{background:#fff;border:1px solid #eee2d7;border-radius:15px;padding:22px 24px;box-shadow:0 2px 8px rgba(57,37,19,.035)}
-.staff-detail-page .card-head{font-family:Arial,Helvetica,sans-serif;font-size:19px;font-weight:700;margin:0 0 18px;color:#292825}
+.staff-detail-page .card-head{font-family:'Montserrat', Arial, sans-serif;font-size:19px;font-weight:700;margin:0 0 18px;color:#292825}
 .staff-detail-page .booking-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:21px 24px}
 .staff-detail-page .fact-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9a8c7c;margin-bottom:6px;font-weight:700}
 .staff-detail-page .fact-value{font-size:14px;color:#302c28;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
@@ -547,7 +547,7 @@ body:has(.staff-detail-page) {
 .booking-staff-create :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,small,button,input,select,textarea,a),
 .staff-booking-page :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,small,button,input,select,textarea,a,table,th,td),
 .staff-detail-page :is(h1,h2,h3,h4,h5,h6,p,span,div,label,strong,small,button,input,select,textarea,a) {
-    font-family: Arial, Helvetica, sans-serif !important;
+    font-family: 'Montserrat', Arial, sans-serif !important;
 }
 
 /* CREATE - tieu de chinh + cac muc */
@@ -708,7 +708,7 @@ body:has(.booking-staff-create) .booking-staff-create #main_service_container .s
 }
 .staff-booking-page .staff-assignees-trigger .staff-assignees-chevron { font-size: 10px; }
 /* Bootstrap gắn popover trực tiếp vào body để vượt overflow-x:auto của table-scroll. */
-.staff-assignees-popover { --bs-popover-max-width: 285px; --bs-popover-border-color: #e8ded0; --bs-popover-border-radius: 12px; --bs-popover-body-padding-x: 14px; --bs-popover-body-padding-y: 13px; font-family: Arial, Helvetica, sans-serif; box-shadow: 0 8px 26px rgba(44, 31, 17, .13); }
+.staff-assignees-popover { --bs-popover-max-width: 285px; --bs-popover-border-color: #e8ded0; --bs-popover-border-radius: 12px; --bs-popover-body-padding-x: 14px; --bs-popover-body-padding-y: 13px; font-family: 'Montserrat', Arial, sans-serif; box-shadow: 0 8px 26px rgba(44, 31, 17, .13); }
 .staff-assignees-popover .staff-assignees-popover-heading { color: #302c29; font-size: 14px; font-weight: 700; }
 .staff-assignees-popover .staff-assignees-popover-subheading { color: #9b8260; font-size: 11px; margin-top: 3px; margin-bottom: 8px; }
 .staff-assignees-popover .staff-assignees-person { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-top: 1px solid #f1eae1; }
@@ -737,7 +737,7 @@ body:has(.booking-staff-create) .booking-staff-create #main_service_container .s
     display: inline-flex; align-items: center; gap: 7px;
     padding: 7px 10px; border: 1px solid #d6c4a9;
     background: #faf6ee; color: #80623b;
-    border-radius: 8px; font: 600 12px Arial, Helvetica, sans-serif;
+    border-radius: 8px; font: 600 12px 'Montserrat', Arial, sans-serif;
     white-space: nowrap; cursor: pointer;
 }
 .staff-booking-page .staff-assignees-trigger:hover,
@@ -749,7 +749,7 @@ body:has(.booking-staff-create) .booking-staff-create #main_service_container .s
 }
 .staff-booking-page .staff-assignees-trigger .staff-assignees-chevron { font-size: 10px; }
 /* Bootstrap gắn popover trực tiếp vào body để vượt overflow-x:auto của table-scroll. */
-.staff-assignees-popover { --bs-popover-max-width: 285px; --bs-popover-border-color: #e8ded0; --bs-popover-border-radius: 12px; --bs-popover-body-padding-x: 14px; --bs-popover-body-padding-y: 13px; font-family: Arial, Helvetica, sans-serif; box-shadow: 0 8px 26px rgba(44, 31, 17, .13); }
+.staff-assignees-popover { --bs-popover-max-width: 285px; --bs-popover-border-color: #e8ded0; --bs-popover-border-radius: 12px; --bs-popover-body-padding-x: 14px; --bs-popover-body-padding-y: 13px; font-family: 'Montserrat', Arial, sans-serif; box-shadow: 0 8px 26px rgba(44, 31, 17, .13); }
 .staff-assignees-popover .staff-assignees-popover-heading { color: #302c29; font-size: 14px; font-weight: 700; }
 .staff-assignees-popover .staff-assignees-popover-subheading { color: #9b8260; font-size: 11px; margin-top: 3px; margin-bottom: 8px; }
 .staff-assignees-popover .staff-assignees-person { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-top: 1px solid #f1eae1; }

@@ -12,7 +12,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     /* Tổng thể trang chi tiết */
     .ticket-detail-page {
         color: #302b25;
-        font-size: 13px;
+        font-size: 14px;
     }
 
     /* Tiêu đề và nút quay lại */
@@ -24,18 +24,19 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         margin-bottom: 20px;
     }
 
+    /* Tiêu đề chính trang Chi tiết phản hồi/khiếu nại */
     .ticket-heading h1 {
         margin: 0 0 7px;
         font-family: 'Montserrat', sans-serif;
         font-size: 30px;
-        font-weight: 400;
+        font-weight: 700; /* In đậm ExtraBold */
         text-transform: uppercase;
     }
 
     .ticket-meta {
         margin: 0;
         color: #898176;
-        font-size: 11px;
+        font-size: 14px;
     }
 
     .ticket-back {
@@ -75,7 +76,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         display: block;
         margin-bottom: 8px;
         color: #bd493b;
-        font-size: 10px;
+        font-size: 13px;
         font-weight: 700;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -92,7 +93,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         flex-shrink: 0;
         padding: 6px 11px;
         border-radius: 20px;
-        font-size: 10px;
+        font-size: 13px;
         font-weight: 600;
     }
 
@@ -176,13 +177,13 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     .timeline-label {
         display: block;
         margin-bottom: 6px;
-        font-size: 11px;
+        font-size: 14px;
         font-weight: 600;
     }
 
     .timeline-date {
         color: #898176;
-        font-size: 9px;
+        font-size: 12px;
     }
 
     /* Bố cục nội dung và cột thông tin bên phải */
@@ -223,12 +224,12 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         display: block;
         margin-bottom: 6px;
         color: #898176;
-        font-size: 10px;
+        font-size: 13px;
     }
 
     .ticket-service {
         color: #302b25;
-        font-size: 11px;
+        font-size: 14px;
     }
 
     /* Nội dung phiếu */
@@ -244,7 +245,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         display: block;
         margin-bottom: 8px;
         color: #987542;
-        font-size: 10px;
+        font-size: 13px;
         font-weight: 700;
         text-transform: uppercase;
     }
@@ -299,19 +300,19 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     .ticket-file-name {
         display: block;
         overflow-wrap: anywhere;
-        font-size: 10px;
+        font-size: 13px;
     }
 
     .ticket-file-type {
         display: block;
         margin-top: 4px;
         color: #898176;
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .ticket-empty {
         color: #898176;
-        font-size: 11px;
+        font-size: 14px;
     }
 
     /* Nhân viên xử lý */
@@ -336,13 +337,13 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
 
     .ticket-staff-name {
         margin-bottom: 5px;
-        font-size: 11px;
+        font-size: 14px;
         font-weight: 600;
     }
 
     .ticket-staff-role {
         color: #898176;
-        font-size: 9px;
+        font-size: 12px;
         line-height: 1.5;
     }
 
@@ -350,7 +351,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     .ticket-support-text {
         margin: 0 0 14px;
         color: #898176;
-        font-size: 11px;
+        font-size: 14px;
         line-height: 1.7;
     }
 
@@ -372,8 +373,47 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     .ticket-reply-time {
         margin-left: auto;
         color: #898176;
-        font-size: 9px;
+        font-size: 12px;
         white-space: nowrap;
+    }
+
+    /* Phân cách các mốc cập nhật công khai */
+    .ticket-public-update + .ticket-public-update {
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid #eee7dc;
+    }
+
+    /* Tiêu đề và thời gian của từng mốc */
+    .ticket-public-update-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .ticket-public-update-heading strong {
+        color: #302b25;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* Nội dung thông báo công khai */
+    .ticket-public-update p {
+        margin: 0;
+        color: #655e54;
+        font-size: 14px;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+    }
+
+    /* Điều chỉnh trên màn hình nhỏ */
+    @media (max-width: 520px) {
+        .ticket-public-update-heading {
+            flex-direction: column;
+            gap: 5px;
+        }
     }
 
     .ticket-reply-heading {
@@ -388,7 +428,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
     }
 
     .ticket-reply-content {
-        font-size: 11px;
+        font-size: 14px;
         line-height: 1.9;
         overflow-wrap: anywhere;
     }
@@ -401,7 +441,7 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         margin-top: 12px;
         color: #987542;
         font-family: 'Montserrat', sans-serif;
-        font-size: 13px;
+        font-size: 14px;
         font-style: italic;
     }
 
@@ -436,11 +476,11 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         }
 
         .timeline-label {
-            font-size: 10px;
+            font-size: 13px;
         }
 
         .timeline-date {
-            font-size: 8px;
+            font-size: 12px;
         }
 
         .ticket-reply-heading {
@@ -614,33 +654,72 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
                 </div>
             </section>
 
-            <!-- Phản hồi hoặc cập nhật mới nhất -->
+            <!-- Tiến độ cập nhật công khai dành cho khách hàng -->
             <section class="ticket-card">
-                <div class="ticket-reply-heading">
-                    <h3>Phản hồi từ Charm Grand</h3>
 
-                    {% if lich_su_moi_nhat %}
-                        <span class="ticket-reply-time">
-                            {{ lich_su_moi_nhat.ngay_thuc_hien|date:"H:i · d/m/Y" }}
-                        </span>
-                    {% endif %}
+                <div class="ticket-reply-heading">
+                    <h3>Tiến độ xử lý từ Charm Grand</h3>
                 </div>
 
                 <div class="ticket-reply-content">
-                    {% if lich_su_moi_nhat %}
-                        <p>{{ lich_su_moi_nhat.noi_dung|linebreaksbr }}</p>
-                    {% else %}
+
+                    <!-- Duyệt các cập nhật đã được Admin/nhân viên cho phép công khai -->
+                    {% for ls in lich_su_cong_khai %}
+
+                        <div class="ticket-public-update">
+
+                            <!-- Tiêu đề sự kiện được viết thân thiện với khách hàng -->
+                            <div class="ticket-public-update-heading">
+
+                                <strong>
+                                    {% if ls.loai_thao_tac == "Phân công" %}
+                                        Đã chuyển đến bộ phận Chăm sóc khách hàng
+
+                                    {% elif ls.loai_thao_tac == "Cập nhật trạng thái" %}
+                                        Cập nhật tiến độ xử lý
+
+                                    {% elif ls.loai_thao_tac == "Hoàn tất xử lý" %}
+                                        Kết quả xử lý
+
+                                    {% elif ls.loai_thao_tac == "Đánh dấu không hợp lệ" %}
+                                        Thông báo kết quả kiểm tra
+
+                                    {% else %}
+                                        Thông tin cập nhật
+                                    {% endif %}
+                                </strong>
+
+                                <!-- Thời gian cập nhật công khai -->
+                                <span class="ticket-reply-time">
+                                    {{ ls.ngay_thuc_hien|date:"H:i · d/m/Y" }}
+                                </span>
+
+                            </div>
+
+                            <!-- Chỉ hiển thị nội dung công khai, không hiển thị noi_dung nội bộ -->
+                            <p>
+                                {{ ls.noi_dung_khach_hang|linebreaksbr }}
+                            </p>
+
+                        </div>
+
+                    {% empty %}
+
+                        <!-- Hiển thị khi chưa có cập nhật công khai -->
                         <p>
                             Charm Grand đã tiếp nhận phản hồi của bạn.
-                            Nội dung cập nhật sẽ hiển thị tại đây khi có
-                            thông tin xử lý mới.
+                            Chúng tôi sẽ cập nhật tiến độ xử lý tại đây
+                            khi có thông tin mới.
                         </p>
-                    {% endif %}
+
+                    {% endfor %}
+
                 </div>
 
                 <div class="ticket-signature">
                     Trân trọng · Bộ phận Chăm sóc Khách hàng
                 </div>
+
             </section>
 
         </div>
@@ -648,31 +727,34 @@ Chi tiết phản hồi/khiếu nại | Charm Grand Spa
         <!-- Cột thông tin bên phải -->
         <aside class="ticket-sidebar">
 
-            <!-- Nhân viên phụ trách -->
-            <section class="ticket-side-card">
-                <h3>Nhân viên xử lý</h3>
+        <!-- Bộ phận phụ trách xử lý -->
+        <section class="ticket-side-card">
 
-                {% if phan_cong %}
-                    <div class="ticket-staff">
-                        <div class="ticket-staff-avatar">NV</div>
+            <h3>Bộ phận phụ trách</h3>
 
-                        <div>
-                            <div class="ticket-staff-name">
-                                {{ phan_cong.ma_nv }}
-                            </div>
+            <div class="ticket-staff">
 
-                            <div class="ticket-staff-role">
-                                Nhân viên phụ trách phiếu
-                            </div>
-                        </div>
+                <!-- Avatar đại diện bộ phận -->
+                <div class="ticket-staff-avatar">
+                    CS
+                </div>
+
+                <div>
+
+                    <div class="ticket-staff-name">
+                        Bộ phận Chăm sóc khách hàng
                     </div>
-                {% else %}
-                    <p class="ticket-empty">
-                        Phiếu đang chờ phân công nhân viên xử lý.
-                    </p>
-                {% endif %}
-            </section>
 
+                    <div class="ticket-staff-role">
+                        Tiếp nhận, theo dõi và hỗ trợ giải quyết
+                        phản hồi/khiếu nại của khách hàng.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
             <!-- Hỗ trợ thêm -->
             <section class="ticket-side-card">
                 <h3>Bạn cần hỗ trợ thêm?</h3>

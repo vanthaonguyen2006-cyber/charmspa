@@ -5,11 +5,181 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_account_detail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_account_detail.css' %}?v=20261115">
+    <style>
+        /* Đồng bộ Typography cho trang Chi tiết tài khoản chuẩn theo Lịch hẹn */
+        .info-item label {
+            display: block;
+            font-size: 13.5px !important;
+            color: #554e43 !important;
+            margin-bottom: 7px !important;
+            font-weight: 650 !important;
+            letter-spacing: 0.2px !important;
+        }
+
+        .info-item .form-input,
+        .info-item .form-select {
+            width: 100%;
+            min-height: 44px !important;
+            padding: 9px 14px !important;
+            border: 1px solid #dcd6cc;
+            border-radius: 9px !important;
+            font-size: 14.5px !important;
+            font-weight: 500;
+            color: #2b2118;
+            background: #ffffff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .info-item .form-input:focus,
+        .info-item .form-select:focus {
+            border-color: #B99552;
+            box-shadow: 0 0 0 3px rgba(185, 149, 82, 0.18);
+        }
+
+        /* Viền đỏ và nền khi có lỗi */
+        .info-item .form-input.is-invalid,
+        .info-item .form-select.is-invalid {
+            border: 1.5px solid #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
+
+        .info-item .field-error-text {
+            color: #dc3545;
+            font-size: 13px !important;
+            margin-top: 6px !important;
+            display: block;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .info-item label .req {
+            color: #dc3545;
+            margin-left: 2px;
+        }
+
+        .info-item .readonly-value {
+            min-height: 44px !important;
+            display: flex;
+            align-items: center;
+            color: #302D27 !important;
+            background: #f7f4ee;
+            padding: 9px 14px !important;
+            border-radius: 9px !important;
+            border: 1px dashed #dcd6cc;
+            font-size: 14.5px !important;
+            font-weight: 600 !important;
+        }
+
+        .section-heading-with-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-heading-with-btn h3 {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #242c36 !important;
+        }
+
+        .section-heading-with-btn p {
+            font-size: 14px !important;
+            color: #77706a !important;
+        }
+
+        .btn-edit-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px !important;
+            border: 1px solid #EEE8DD;
+            border-radius: 9px;
+            background: #ffffff;
+            color: #302D27 !important;
+            font-size: 14px !important;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit-action:hover {
+            background: #FAF7F0;
+            border-color: #B99552;
+            color: #242c36;
+        }
+
+        .account-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid #EEE8DD;
+        }
+
+        .btn-cancel-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 22px !important;
+            border: 1px solid #dcd6cc;
+            border-radius: 9px;
+            background: #ffffff;
+            color: #4a4036;
+            font-size: 14px !important;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel-action:hover {
+            background: #f3efe9;
+            border-color: #c4baa9;
+        }
+
+        .btn-save-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 26px !important;
+            border: 1px solid #B99552;
+            border-radius: 9px;
+            background: #B99552;
+            color: #ffffff;
+            font-size: 14px !important;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-save-action:hover {
+            background: #a38140;
+            border-color: #a38140;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
 <section class="account-detail-page">
+
+    <!-- Flash Messages Thông báo -->
+    {% if messages %}
+        <div class="account-flash-wrap" style="margin-bottom: 16px;">
+            {% for message in messages %}
+                <div class="account-flash-msg {% if message.tags == 'success' %}success{% else %}error{% endif %}">
+                    <span>{% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}</span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <!-- Điều hướng breadcrumb -->
     <nav class="account-detail-breadcrumb" aria-label="Điều hướng">
@@ -29,9 +199,17 @@
                 <p>Hồ sơ định danh tài khoản và nhật ký lịch sử quản trị hệ thống.</p>
             </div>
         </div>
-        <a class="account-back-button btn-back-text" href="{% url 'staff_account_list' %}">
-            <i data-lucide="list" style="width: 16px; height: 16px;"></i> Quay lại danh sách
-        </a>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            {% if not is_editing and can_edit_target|default:True %}
+                <a href="?edit=1" class="btn-edit-action" id="btnHeadingEdit">
+                    <i data-lucide="pencil" style="width: 15px; height: 15px;"></i>
+                    <span>Chỉnh sửa</span>
+                </a>
+            {% endif %}
+            <a class="account-back-button btn-back-text" href="{% url 'staff_account_list' %}">
+                <i data-lucide="list" style="width: 16px; height: 16px;"></i> Quay lại danh sách
+            </a>
+        </div>
     </div>
 
     <!-- Thẻ tóm tắt tài khoản -->
@@ -49,7 +227,7 @@
         </div>
 
         <div class="summary-badges-wrap">
-            <span class="badge-role">{{ tai_khoan.vai_tro }}</span>
+            <span class="badge-role">{{ vai_tro_display|default:tai_khoan.vai_tro }}</span>
             {% if user_obj.is_active %}
                 <span class="badge-status active">
                     <span class="status-dot"></span> Đang hoạt động
@@ -62,68 +240,250 @@
         </div>
     </div>
 
-    <!-- Thẻ 1: Thông tin chi tiết tài khoản -->
+    <!-- THẺ THÔNG TIN TÀI KHOẢN (CHUYỂN ĐỔI CHẾ ĐỘ TRỰC TIẾP TẠI ĐÂY) -->
     <div class="detail-card">
-        <div class="section-title-wrap">
-            <h3>Thông tin tài khoản</h3>
-            <p>Dữ liệu thông tin liên lạc và định danh đã đồng bộ với hệ thống</p>
+        <div class="section-heading-with-btn">
+            <div class="section-title-wrap" style="margin-bottom: 0;">
+                <h3>Thông tin tài khoản</h3>
+                <p>Dữ liệu thông tin liên lạc và định danh đã đồng bộ với hệ thống</p>
+            </div>
+            {% if not is_editing and can_edit_target|default:True %}
+                <a href="?edit=1" class="btn-edit-action" id="btnSectionEdit">
+                    <i data-lucide="pencil" style="width: 15px; height: 15px;"></i>
+                    Chỉnh sửa
+                </a>
+            {% endif %}
         </div>
 
-        <div class="info-grid">
-            <div class="info-item">
-                <label>Mã tài khoản</label>
-                <div class="value">{{ tai_khoan.ma_tk }}</div>
+        {% if form.non_field_errors %}
+            <div class="account-general-error">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
             </div>
+        {% endif %}
 
-            <div class="info-item">
-                <label>Họ và tên</label>
-                <div class="value">{{ ho_ten }}</div>
-            </div>
+        {% if is_editing %}
+            <!-- FORM CHỈNH SỬA TRỰC TIẾP TRÊN TRANG (KHÔNG SỬ DỤNG MODAL) -->
+            <form method="post" action="{% url 'staff_account_detail' tai_khoan.ma_tk %}" id="accountInlineEditForm" novalidate>
+                {% csrf_token %}
 
-            <div class="info-item">
-                <label>Tên đăng nhập (Username)</label>
-                <div class="value">{{ user_obj.username }}</div>
-            </div>
+                <div class="info-grid">
+                    <!-- 1. Mã tài khoản (Chỉ đọc) -->
+                    <div class="info-item">
+                        <label>Mã tài khoản</label>
+                        <div class="value readonly-value">{{ tai_khoan.ma_tk }}</div>
+                    </div>
 
-            <div class="info-item">
-                <label>Số điện thoại</label>
-                <div class="value">{{ tai_khoan.so_dien_thoai|default:"Chưa cập nhật" }}</div>
-            </div>
+                    <!-- 2. Họ và tên (Chỉnh sửa) -->
+                    <div class="info-item">
+                        <label for="id_ho_ten">Họ và tên <span class="req">*</span></label>
+                        <input type="text"
+                               name="ho_ten"
+                               id="id_ho_ten"
+                               class="form-input {% if form.ho_ten.errors %}is-invalid{% endif %}"
+                               value="{{ form.ho_ten.value|default:'' }}"
+                               required
+                               placeholder="Nhập họ và tên">
+                        {% for error in form.ho_ten.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_ho_ten" style="display: none;"></span>
+                    </div>
 
-            <div class="info-item">
-                <label>Địa chỉ Email</label>
-                <div class="value">{{ user_obj.email|default:"Chưa cập nhật" }}</div>
-            </div>
+                    <!-- 3. Tên đăng nhập (Chỉ đọc) -->
+                    <div class="info-item">
+                        <label>Tên đăng nhập (Username)</label>
+                        <div class="value readonly-value">@{{ user_obj.username }}</div>
+                    </div>
 
-            <div class="info-item">
-                <label>Vai trò hệ thống</label>
-                <div class="value">{{ tai_khoan.vai_tro }}</div>
-            </div>
+                    <!-- 4. Số điện thoại (Chỉnh sửa) -->
+                    <div class="info-item">
+                        <label for="id_so_dien_thoai">Số điện thoại <span class="req">*</span></label>
+                        <input type="tel"
+                               name="so_dien_thoai"
+                               id="id_so_dien_thoai"
+                               class="form-input {% if form.so_dien_thoai.errors %}is-invalid{% endif %}"
+                               value="{{ form.so_dien_thoai.value|default:'' }}"
+                               required
+                               placeholder="Nhập số điện thoại">
+                        {% for error in form.so_dien_thoai.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_so_dien_thoai" style="display: none;"></span>
+                    </div>
 
-            <div class="info-item">
-                <label>Trạng thái tài khoản</label>
-                <div class="value">
-                    {% if user_obj.is_active %}
-                        <span class="status-text-active">Đang hoạt động</span>
-                    {% else %}
-                        <span class="status-text-locked">Đã khóa</span>
-                    {% endif %}
+                    <!-- 5. Địa chỉ Email (Chỉnh sửa) -->
+                    <div class="info-item">
+                        <label for="id_email">Địa chỉ Email <span class="req">*</span></label>
+                        <input type="email"
+                               name="email"
+                               id="id_email"
+                               class="form-input {% if form.email.errors %}is-invalid{% endif %}"
+                               value="{{ form.email.value|default:'' }}"
+                               required
+                               placeholder="Nhập email">
+                        {% for error in form.email.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_email" style="display: none;"></span>
+                    </div>
+
+                    <!-- 6. Vai trò hệ thống (Chỉ chuyển đổi giữa Nhân viên và Quản lý) -->
+                    <div class="info-item">
+                        <label for="id_vai_tro">Vai trò hệ thống <span class="req">*</span></label>
+                        {% if can_change_role %}
+                            <select name="vai_tro"
+                                    id="id_vai_tro"
+                                    class="form-select {% if form.vai_tro.errors %}is-invalid{% endif %}"
+                                    required>
+                                <option value="Nhân viên" {% if form.vai_tro.value == 'Nhân viên' or form.vai_tro.value == 'Nhân viên CSKH' or form.vai_tro.value == 'Chuyên viên' %}selected{% endif %}>Nhân viên</option>
+                                <option value="Quản lý" {% if form.vai_tro.value == 'Quản lý' %}selected{% endif %}>Quản lý</option>
+                            </select>
+                        {% else %}
+                            <div class="value readonly-value">{{ vai_tro_display|default:tai_khoan.vai_tro }}</div>
+                            <input type="hidden" name="vai_tro" id="id_vai_tro" value="{{ vai_tro_display|default:tai_khoan.vai_tro }}">
+                        {% endif %}
+                        {% for error in form.vai_tro.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_vai_tro" style="display: none;"></span>
+                    </div>
+
+                    <!-- 7. Giới tính (Chỉnh sửa) -->
+                    <div class="info-item">
+                        <label for="id_gioi_tinh">Giới tính <span class="req">*</span></label>
+                        <select name="gioi_tinh"
+                                id="id_gioi_tinh"
+                                class="form-select {% if form.gioi_tinh.errors %}is-invalid{% endif %}"
+                                required>
+                            <option value="Nam" {% if form.gioi_tinh.value == 'Nam' %}selected{% endif %}>Nam</option>
+                            <option value="Nữ" {% if form.gioi_tinh.value == 'Nữ' %}selected{% endif %}>Nữ</option>
+                            <option value="Khác" {% if form.gioi_tinh.value == 'Khác' %}selected{% endif %}>Khác</option>
+                        </select>
+                        {% for error in form.gioi_tinh.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_gioi_tinh" style="display: none;"></span>
+                    </div>
+
+                    <!-- 8. Ngày sinh (Chỉnh sửa) -->
+                    <div class="info-item">
+                        <label for="id_ngay_sinh">Ngày sinh</label>
+                        <input type="date"
+                               name="ngay_sinh"
+                               id="id_ngay_sinh"
+                               class="form-input {% if form.ngay_sinh.errors %}is-invalid{% endif %}"
+                               value="{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:'' }}">
+                        {% for error in form.ngay_sinh.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_ngay_sinh" style="display: none;"></span>
+                    </div>
+
+                    <!-- 9. Trạng thái tài khoản (Chỉ đọc) -->
+                    <div class="info-item">
+                        <label>Trạng thái tài khoản</label>
+                        <div class="value readonly-value">
+                            {% if user_obj.is_active %}
+                                <span class="status-text-active">Đang hoạt động</span>
+                            {% else %}
+                                <span class="status-text-locked">Đã khóa</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 10. Ngày tạo tài khoản (Chỉ đọc) -->
+                    <div class="info-item">
+                        <label>Ngày tạo tài khoản</label>
+                        <div class="value readonly-value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i:s" }}</div>
+                    </div>
+
+                    <!-- 11. Ngày cập nhật gần nhất (Chỉ đọc) -->
+                    <div class="info-item">
+                        <label>Ngày cập nhật gần nhất</label>
+                        <div class="value readonly-value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i:s" }}</div>
+                    </div>
+                </div>
+
+                <!-- CẶP NÚT HỦY VÀ LƯU THAY ĐỔI -->
+                <div class="account-form-actions">
+                    <a href="{% url 'staff_account_detail' tai_khoan.ma_tk %}" class="btn-cancel-action">
+                        Hủy
+                    </a>
+                    <button type="submit" class="btn-save-action" id="btnSubmitAccountEdit">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <!-- HIỂN THỊ DỮ LIỆU TĨNH KHI CHƯA NHẤN CHỈNH SỬA -->
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Mã tài khoản</label>
+                    <div class="value">{{ tai_khoan.ma_tk }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Họ và tên</label>
+                    <div class="value">{{ ho_ten }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Tên đăng nhập (Username)</label>
+                    <div class="value">{{ user_obj.username }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Số điện thoại</label>
+                    <div class="value">{{ tai_khoan.so_dien_thoai|default:"Chưa cập nhật" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Địa chỉ Email</label>
+                    <div class="value">{{ user_obj.email|default:"Chưa cập nhật" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Vai trò hệ thống</label>
+                    <div class="value">{{ vai_tro_display|default:tai_khoan.vai_tro }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Giới tính</label>
+                    <div class="value">{{ gioi_tinh|default:"Nam" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Ngày sinh</label>
+                    <div class="value">{{ ngay_sinh|default:"Chưa cập nhật" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Trạng thái tài khoản</label>
+                    <div class="value">
+                        {% if user_obj.is_active %}
+                            <span class="status-text-active">Đang hoạt động</span>
+                        {% else %}
+                            <span class="status-text-locked">Đã khóa</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <label>Ngày tạo tài khoản</label>
+                    <div class="value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i:s" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Ngày cập nhật gần nhất</label>
+                    <div class="value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i:s" }}</div>
                 </div>
             </div>
-
-            <div class="info-item">
-                <label>Ngày tạo tài khoản</label>
-                <div class="value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i:s" }}</div>
-            </div>
-
-            <div class="info-item">
-                <label>Ngày cập nhật gần nhất</label>
-                <div class="value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i:s" }}</div>
-            </div>
-        </div>
+        {% endif %}
     </div>
 
-    <!-- Thẻ 2: Lịch sử khóa và mở khóa tài khoản -->
+    <!-- THẺ LỊCH SỬ KHÓA VÀ MỞ KHÓA TÀI KHOẢN -->
     <div class="detail-card">
         <div class="section-title-wrap">
             <h3>Lịch sử khóa và mở khóa tài khoản</h3>
@@ -177,6 +537,74 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             if (window.lucide) window.lucide.createIcons();
+
+            // Kiểm tra tính hợp lệ dữ liệu ngay tại Frontend khi bấm Lưu
+            const inlineForm = document.getElementById('accountInlineEditForm');
+            if (inlineForm) {
+                inlineForm.addEventListener('submit', function (e) {
+                    let hasError = false;
+
+                    // Xóa các thông báo lỗi JS cũ
+                    ['ho_ten', 'so_dien_thoai', 'email', 'vai_tro', 'gioi_tinh', 'ngay_sinh'].forEach(function(field) {
+                        const inputEl = document.getElementById('id_' + field);
+                        const errEl = document.getElementById('js_error_' + field);
+                        if (inputEl) inputEl.classList.remove('is-invalid');
+                        if (errEl) {
+                            errEl.textContent = '';
+                            errEl.style.display = 'none';
+                        }
+                    });
+
+                    function showFieldError(field, msg) {
+                        const inputEl = document.getElementById('id_' + field);
+                        const errEl = document.getElementById('js_error_' + field);
+                        if (inputEl) inputEl.classList.add('is-invalid');
+                        if (errEl) {
+                            errEl.textContent = msg;
+                            errEl.style.display = 'block';
+                        }
+                        hasError = true;
+                    }
+
+                    // 1. Kiểm tra Họ và tên
+                    const hoTen = document.getElementById('id_ho_ten') ? document.getElementById('id_ho_ten').value.trim() : '';
+                    if (!hoTen) {
+                        showFieldError('ho_ten', 'Họ và tên không được để trống.');
+                    }
+
+                    // 2. Kiểm tra Số điện thoại (bắt buộc, 9-11 số)
+                    const sdt = document.getElementById('id_so_dien_thoai') ? document.getElementById('id_so_dien_thoai').value.trim() : '';
+                    const phoneRegex = /^[0-9]{9,11}$/;
+                    if (!sdt) {
+                        showFieldError('so_dien_thoai', 'Số điện thoại không được để trống.');
+                    } else if (!phoneRegex.test(sdt)) {
+                        showFieldError('so_dien_thoai', 'Số điện thoại không hợp lệ (phải từ 9 đến 11 chữ số).');
+                    }
+
+                    // 3. Kiểm tra Email (bắt buộc, định dạng email)
+                    const email = document.getElementById('id_email') ? document.getElementById('id_email').value.trim() : '';
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!email) {
+                        showFieldError('email', 'Email không được để trống.');
+                    } else if (!emailRegex.test(email)) {
+                        showFieldError('email', 'Địa chỉ email không đúng định dạng.');
+                    }
+
+                    // 4. Kiểm tra Ngày sinh (nếu có, không lớn hơn ngày hiện tại)
+                    const ngaySinh = document.getElementById('id_ngay_sinh') ? document.getElementById('id_ngay_sinh').value : '';
+                    if (ngaySinh) {
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        if (ngaySinh > todayStr) {
+                            showFieldError('ngay_sinh', 'Ngày sinh không được lớn hơn ngày hiện tại.');
+                        }
+                    }
+
+                    // Nếu có lỗi, chặn submit và giữ nguyên các dữ liệu người dùng đã nhập
+                    if (hasError) {
+                        e.preventDefault();
+                    }
+                });
+            }
         });
     </script>
 {% endblock %}

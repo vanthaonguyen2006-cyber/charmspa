@@ -3,6 +3,30 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+        <!-- GOOGLE FONTS: MONTSERRAT (Hỗ trợ tiếng Việt đầy đủ) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+    <!-- Cấu hình Tailwind CSS ưu tiên Montserrat -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Thiết lập font mặc định toàn trang khách hàng -->
+    <style>
+        body, button, input, select, textarea {
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+    </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
 

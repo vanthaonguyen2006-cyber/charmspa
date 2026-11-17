@@ -1,0 +1,492 @@
+/* ==========================================================================
+   GIAO DIỆN TRANG THÔNG TIN CÁ NHÂN NHÂN VIÊN & QUẢN TRỊ VIÊN
+   Tham khảo thiết kế Customer Profile & đồng bộ trên nền staff_base.html
+   ========================================================================== */
+
+.sp-profile-page,
+.sp-profile-page * {
+    box-sizing: border-box;
+}
+
+.sp-profile-page {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    color: #292821;
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+
+/* 1. TIÊU ĐỀ TRANG */
+.sp-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.sp-page-eyebrow {
+    display: inline-block;
+    color: #9e7b3f;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.sp-page-header h1 {
+    margin: 0 0 4px;
+    color: #22201b;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.sp-page-header p {
+    margin: 0;
+    color: #7d786e;
+    font-size: 13.5px;
+}
+
+/* 2. FLASH MESSAGES */
+.sp-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.sp-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.sp-alert svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.sp-alert-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.sp-alert-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+/* 3. BANNER TÓM TẮT HỒ SƠ (PHONG CÁCH CUSTOMER BASE PRO) */
+.sp-banner-card {
+    background: #ffffff;
+    border: 1px solid #eee7dd;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 4px rgba(77, 53, 34, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.sp-identity {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.sp-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f3efea;
+    border: 1px solid #d4c5b9;
+    color: #8c6d4f;
+    font-size: 21px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sp-identity-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sp-identity-name-row h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.sp-role-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.sp-status-line {
+    margin: 5px 0 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.sp-status-line.active {
+    color: #059669;
+}
+
+.sp-status-line.locked {
+    color: #dc2626;
+}
+
+.sp-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    background: currentColor;
+}
+
+.sp-banner-metrics {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.sp-metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sp-metric-item.bordered {
+    padding: 0 24px;
+    border-left: 1px solid #f1ece4;
+    border-right: 1px solid #f1ece4;
+}
+
+.sp-metric-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #9ca3af;
+}
+
+.sp-metric-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.sp-metric-value.accent {
+    color: #b45309;
+}
+
+.sp-btn-password {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid #e5ddd1;
+    background: #faf7f2;
+    color: #4b3f35;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+
+.sp-btn-password:hover {
+    background: #f2ebe0;
+    border-color: #c8b08a;
+    color: #2b2118;
+}
+
+.sp-btn-password svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* 4. CARD THÔNG TIN CÁ NHÂN (PHONG CÁCH CUSTOMER PROFILE) */
+.sp-card {
+    background: #ffffff;
+    border: 1px solid #eee7dd;
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 1px 4px rgba(77, 53, 34, 0.04);
+}
+
+.sp-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.sp-card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #242c36;
+}
+
+.sp-card-header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #77706a;
+}
+
+.sp-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.sp-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #059669;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.sp-verified-badge svg {
+    width: 15px;
+    height: 15px;
+}
+
+.sp-btn-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.sp-btn-edit:hover {
+    background: #f9fafb;
+    border-color: #c7b28e;
+    color: #111827;
+}
+
+.sp-btn-edit svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* 5. LƯỚI TRƯỜNG THÔNG TIN 2 CỘT */
+.sp-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+}
+
+.sp-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.sp-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: 0.3px;
+    color: #4b463d;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.sp-label-req {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+.sp-label-muted {
+    color: #9ca3af;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 12.5px;
+}
+
+.sp-input,
+.sp-select {
+    width: 100%;
+    min-height: 45px;
+    padding: 10px 15px;
+    border-radius: 11px;
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #1f2937;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+/* Trạng thái xem hoặc trường hệ thống chỉ đọc */
+.sp-input.is-readonly,
+.sp-input:disabled {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    cursor: default;
+}
+
+.sp-input.is-system {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-weight: 600;
+    cursor: not-allowed;
+}
+
+/* Trạng thái đang chỉnh sửa */
+.sp-input.is-editing,
+.sp-select.is-editing {
+    background: #ffffff;
+    border: 1px solid #d97706;
+    box-shadow: 0 0 0 1px #d97706;
+}
+
+.sp-input.is-editing:focus,
+.sp-select.is-editing:focus {
+    border-color: #8c6d4f;
+    box-shadow: 0 0 0 3px rgba(140, 109, 79, 0.18);
+}
+
+/* Trạng thái lỗi validation */
+.sp-input.is-invalid,
+.sp-select.is-invalid {
+    background: #fef2f2 !important;
+    border: 1.5px solid #ef4444 !important;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25) !important;
+}
+
+.sp-error-text {
+    margin: 6px 0 0;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* 6. CÁC NÚT HÀNH ĐỘNG LƯU / HỦY */
+.sp-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.sp-btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+
+.sp-btn-cancel:hover {
+    background: #f9fafb;
+    color: #111827;
+}
+
+.sp-btn-save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    border: 1px solid #8c6d4f;
+    border-radius: 11px;
+    background: #8c6d4f;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    transition: all 0.18s ease;
+}
+
+.sp-btn-save:hover {
+    background: #785b40;
+    border-color: #785b40;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .sp-metric-item.bordered {
+        padding: 0;
+        border-left: none;
+        border-right: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .sp-form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .sp-banner-card,
+    .sp-card {
+        padding: 18px;
+    }
+
+    .sp-page-header h1 {
+        font-size: 22px;
+    }
+}

@@ -1,15 +1,16 @@
 /* ==========================================================================
    CSS DÀNH RIÊNG CHO TRANG CHI TIẾT TÀI KHOẢN (CHARM SPA GRAND)
+   Đồng bộ Typography và phong cách theo chuẩn trang Lịch hẹn (Bookings)
    ========================================================================== */
 
 .account-detail-page {
     box-sizing: border-box;
     width: 100%;
-    padding: 28px 32px 36px;
+    padding: 26px 30px 40px;
     background: #F6F2EA;
     color: #302D27;
-    font-family: Inter, Arial, sans-serif;
-    font-size: 14px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 14.5px;
     line-height: 1.5;
 }
 
@@ -19,12 +20,12 @@
     gap: 9px;
     align-items: center;
     margin: 0 0 18px;
-    color: #898276;
-    font-size: 12px;
+    color: #77706a;
+    font-size: 13.5px;
 }
 
 .account-detail-breadcrumb a {
-    color: #898276;
+    color: #77706a;
     text-decoration: none;
     transition: color 0.15s ease;
 }
@@ -57,8 +58,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: 1px solid #EEE8DD;
     border-radius: 11px;
     background: #ffffff;
@@ -75,23 +76,23 @@
 
 .btn-back-text {
     width: auto;
-    padding: 0 16px;
+    padding: 0 18px;
     gap: 8px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
 }
 
 .account-page-heading h1 {
     margin: 0;
-    color: #302D27;
-    font-size: 24px;
+    color: #242c36;
+    font-size: 28px;
     font-weight: 700;
 }
 
 .account-page-heading p {
-    margin: 4px 0 0;
-    color: #898276;
-    font-size: 13px;
+    margin: 5px 0 0;
+    color: #77706a;
+    font-size: 14px;
 }
 
 /* Thẻ tổng quan người dùng */
@@ -101,12 +102,12 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 20px;
-    padding: 22px;
-    margin-bottom: 20px;
+    padding: 24px;
+    margin-bottom: 22px;
     border: 1px solid #EEE8DD;
-    border-radius: 15px;
+    border-radius: 16px;
     background: #ffffff;
-    box-shadow: 0 4px 16px rgba(69, 57, 27, 0.04);
+    box-shadow: 0 2px 9px rgba(77, 53, 34, 0.04);
 }
 
 .summary-user-wrap {
@@ -116,13 +117,13 @@
 }
 
 .summary-avatar {
-    width: 58px;
-    height: 58px;
+    width: 62px;
+    height: 62px;
     border-radius: 50%;
     background: #f8f3e9;
     border: 1px solid #e5d6b5;
     color: #B99552;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -132,18 +133,18 @@
 
 .summary-info h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
-    color: #302D27;
+    color: #242c36;
 }
 
 .summary-subline {
     margin-top: 6px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    color: #898276;
+    gap: 14px;
+    font-size: 14px;
+    color: #77706a;
 }
 
 .summary-badges-wrap {
@@ -153,15 +154,14 @@
     flex-wrap: wrap;
 }
 
-/* Badges vai trò & trạng thái */
 .badge-role {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 5px 14px;
     border-radius: 20px;
     background: #f3f4f6;
     color: #374151;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 
@@ -169,9 +169,9 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
+    padding: 5px 14px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 
@@ -186,8 +186,8 @@
 }
 
 .status-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
 }
 
@@ -202,58 +202,58 @@
 /* Thẻ card nội dung */
 .detail-card {
     border: 1px solid #EEE8DD;
-    border-radius: 15px;
+    border-radius: 16px;
     background: #ffffff;
-    box-shadow: 0 4px 16px rgba(69, 57, 27, 0.04);
-    margin-bottom: 20px;
+    box-shadow: 0 2px 9px rgba(77, 53, 34, 0.04);
+    margin-bottom: 22px;
     overflow: hidden;
-    padding: 22px 24px;
+    padding: 26px;
 }
 
 .section-title-wrap {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
 
 .section-title-wrap h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
-    color: #302D27;
+    color: #242c36;
 }
 
 .section-title-wrap p {
-    margin: 4px 0 0;
-    font-size: 12px;
-    color: #898276;
+    margin: 5px 0 0;
+    font-size: 14px;
+    color: #77706a;
 }
 
 /* Lưới thông tin chi tiết */
 .info-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 18px;
 }
 
 .info-item {
     background: #FCFAF6;
     border: 1px solid #EEE8DD;
-    border-radius: 10px;
-    padding: 12px 16px;
+    border-radius: 11px;
+    padding: 14px 18px;
 }
 
 .info-item label {
     display: block;
-    font-size: 11.5px;
-    color: #898276;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    font-size: 13.5px;
+    color: #615a50;
+    margin-bottom: 7px;
+    font-weight: 650;
+    letter-spacing: 0.2px;
 }
 
 .info-item .value {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    color: #302D27;
+    color: #242c36;
     word-break: break-word;
 }
 
@@ -274,26 +274,28 @@
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    margin-top: 10px;
+    margin-top: 12px;
+    font-size: 14px;
 }
 
 .history-table th {
-    padding: 12px 14px;
+    padding: 14px 16px;
     background: #F6F2EA;
     border-top: 1px solid #EEE8DD;
     border-bottom: 1px solid #EEE8DD;
     color: #817b70;
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 700;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.35px;
     white-space: nowrap;
+    text-transform: uppercase;
 }
 
 .history-table td {
-    padding: 14px;
+    padding: 14px 16px;
     border-bottom: 1px solid #f1ede6;
     color: #4b473f;
-    font-size: 13px;
+    font-size: 14px;
     vertical-align: middle;
 }
 
@@ -302,15 +304,16 @@
 }
 
 .col-code {
-    font-weight: 600;
+    font-weight: 700;
+    color: #a17e48;
 }
 
 .badge-action {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 16px;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
 }
 
@@ -326,18 +329,17 @@
     border: 1px solid #ceead6;
 }
 
-/* Trạng thái rỗng */
 .empty-history {
     text-align: center;
-    padding: 40px 20px;
+    padding: 44px 20px;
     color: #898276;
-    font-size: 14px;
+    font-size: 14.5px;
 }
 
 .empty-icon {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 8px;
+    width: 38px;
+    height: 38px;
+    margin-bottom: 10px;
     color: #B99552;
     display: inline-block;
 }
@@ -347,7 +349,142 @@
     font-weight: 500;
 }
 
-/* Responsive */
+/* Các trường khi chỉnh sửa tại chỗ (In-place editing) */
+.info-item .form-input,
+.info-item .form-select {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 14px;
+    border: 1px solid #dcd6cc;
+    border-radius: 9px;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #2b2118;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.info-item .form-input:focus,
+.info-item .form-select:focus {
+    border-color: #B99552;
+    box-shadow: 0 0 0 3px rgba(185, 149, 82, 0.18);
+}
+
+.info-item .form-input.is-invalid,
+.info-item .form-select.is-invalid {
+    border: 1.5px solid #dc3545 !important;
+    background-color: #fff8f8 !important;
+}
+
+.info-item .field-error-text {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 6px;
+    display: block;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.info-item label .req {
+    color: #dc3545;
+    margin-left: 2px;
+}
+
+.info-item .readonly-value {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    color: #302D27;
+    background: #f7f4ee;
+    padding: 9px 14px;
+    border-radius: 9px;
+    border: 1px dashed #dcd6cc;
+    font-size: 14.5px;
+    font-weight: 600;
+}
+
+.section-heading-with-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-edit-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border: 1px solid #EEE8DD;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #302D27;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-edit-action:hover {
+    background: #FAF7F0;
+    border-color: #B99552;
+    color: #242c36;
+}
+
+.account-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #EEE8DD;
+}
+
+.btn-cancel-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    border: 1px solid #dcd6cc;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #4a4036;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel-action:hover {
+    background: #f3efe9;
+    border-color: #c4baa9;
+}
+
+.btn-save-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 26px;
+    border: 1px solid #B99552;
+    border-radius: 9px;
+    background: #B99552;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save-action:hover {
+    background: #a38140;
+    border-color: #a38140;
+}
+
 @media (max-width: 992px) {
     .info-grid {
         grid-template-columns: repeat(2, 1fr);
