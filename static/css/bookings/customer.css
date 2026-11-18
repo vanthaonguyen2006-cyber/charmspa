@@ -1356,9 +1356,22 @@ body:has(.booking-customer-detail)
 .booking-service-chooser .modal-body {min-height:0;overflow-y:auto;}
 .booking-reschedule-modal [id^="bed_capacity_info_"] {font-size:10px !important;white-space:nowrap;padding:4px 6px !important;}
 
-/* Hộp Hủy lịch nới tới hết danh sách lý do khi người dùng mở select. */
-.booking-customer-detail .customer-cancel-dialog:has(select:focus) .modal-content,
-.booking-customer-list .customer-cancel-dialog:has(select:focus) .modal-content { min-height:410px; }
+/* Hủy lịch: mở lý do thì danh sách đẩy footer xuống; chọn xong tự thu lại. */
+.customer-cancel-dialog .modal-content{height:auto;max-height:calc(100dvh - 32px);overflow-y:auto;}
+.customer-cancel-dialog .modal-body{overflow:visible;}
+.customer-cancel-dialog .popup-expanding-picker{font-size:13px;}
+
+/* Dropdown lý do trong popup: xổ trong luồng, khung tự nở rồi co lại. */
+.popup-expanding-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;}
+.popup-expanding-picker{position:relative;width:100%;font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif);}
+.popup-expanding-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:43px;padding:9px 13px;background:#fff;border:1px solid #d8cdc3;border-radius:8px;color:#302c29;text-align:left;font:inherit;cursor:pointer;}
+.popup-expanding-chevron{flex-shrink:0;color:#81766c;font-size:19px;line-height:1;}
+.popup-expanding-choices{display:flex;flex-direction:column;margin-top:4px;max-height:min(250px,38dvh);overflow-y:auto;border:1px solid #e2d8cf;border-radius:8px;background:#fff;}
+.popup-expanding-choices[hidden]{display:none!important;}
+.popup-expanding-option{display:block;width:100%;padding:10px 13px;text-align:left;border:0;background:#fff;color:#302c29;font:inherit;cursor:pointer;}
+.popup-expanding-option:hover,.popup-expanding-option:focus-visible{background:#f5eee6;outline:none;}
+.popup-expanding-option[aria-selected="true"]{background:#f8f2ea;font-weight:600;}
+
 /* Xem chi tiết: cỡ chữ bằng Trạng thái Hoàn thành. */
 .booking-customer-list .customer-action-detail { font-size:var(--booking-font-label) !important; line-height:1.4; }
 /* Thẻ dịch vụ không còn hiệu ứng nháy/nhảy khi chọn. */
@@ -1368,7 +1381,7 @@ body:has(.booking-customer-detail)
 /* Modal danh sách dịch vụ không dùng fade, tăng độ ổn định khi mở lại. */
 .booking-service-chooser.modal {transition:none !important;}
 
-.booking-customer-list .booking-ui-modal .bk-c-div-04:has(select:focus) .modal-content {min-height:410px;}
+/* Lý do hủy ở trang danh sách dùng chung popup tự nở phía trên. */
 
 
 /* NOV FIX: Nested service chooser - one backdrop, never hide/reopen the edit modal. */

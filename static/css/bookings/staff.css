@@ -19,7 +19,9 @@
 /* Nội dung */
 /* Cỡ chữ chung theo trang Hoạt động: nội dung 13px; riêng form khách hàng dễ đọc hơn. */
 .booking-staff-create :is(#main_service_container .service-card > div.fw-bold,.form-control-custom-date), .staff-detail-page :is(.fact-value,.summary-value,.person-name){font-size:var(--booking-font-body) !important;}
-.booking-staff-create :is(.form-control,.form-control-custom,.customer-dropdown-toggle,.customer-search-input,#summary_service_name){font-size:15px !important;}
+/* Trang Tạo lịch: chữ trong các ô thông tin khách hàng nhỏ hơn 1px. */
+.booking-staff-create :is(.form-control,.form-control-custom,.customer-dropdown-toggle,.customer-search-input){font-size:14px !important;}
+.booking-staff-create #summary_service_name{font-size:15px !important;}
 /* Nhãn + bộ lọc + nội dung bảng: phải gọn để cột không tràn */
 .booking-staff-create label, .staff-detail-page :is(.fact-label,.summary-label,.assign-controls label){font-size:var(--booking-font-label) !important;}
 .staff-booking-page .filters :is(input,select,button), .staff-booking-page .table-scroll tbody td{font-size:13px !important;}
@@ -58,14 +60,23 @@
 .staff-cancel-modal .modal-content{border-radius:12px;border:0;}
 .staff-cancel-modal .modal-body{padding:16px 20px;min-height:0;}
 /* Danh sách lý do mở ngay trong luồng modal: chiều cao nở đúng bằng các lựa chọn. */
-.staff-cancel-modal .modal-content{height:auto;min-height:0;}
+.staff-cancel-modal .modal-content{height:auto;min-height:0;max-height:calc(100dvh - 32px);overflow-y:auto;}
 .staff-cancel-modal .modal-footer, .staff-cancel-modal .modal-header{padding:16px 20px;}
 .staff-cancel-modal .form-control, .staff-cancel-modal .form-select{font-size:13px;}
+.popup-expanding-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;}
+.popup-expanding-picker{position:relative;width:100%;font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif);}
+.popup-expanding-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:43px;padding:9px 13px;background:#fff;border:1px solid #d8cdc3;border-radius:8px;color:#302c29;text-align:left;font:inherit;cursor:pointer;}
+.popup-expanding-chevron{flex-shrink:0;color:#81766c;font-size:19px;line-height:1;}
+.popup-expanding-choices{display:flex;flex-direction:column;margin-top:4px;max-height:min(250px,38dvh);overflow-y:auto;border:1px solid #e2d8cf;border-radius:8px;background:#fff;}
+.popup-expanding-choices[hidden]{display:none!important;}
+.popup-expanding-option{display:block;width:100%;padding:10px 13px;text-align:left;border:0;background:#fff;color:#302c29;font:inherit;cursor:pointer;}
+.popup-expanding-option:hover,.popup-expanding-option:focus-visible{background:#f5eee6;outline:none;}
+.popup-expanding-option[aria-selected="true"]{background:#f8f2ea;font-weight:600;}
 .staff-cancel-modal .staff-cancel-note{font-size:12px;color:#78695b;}
 .staff-cancel-modal .staff-cancel-other{margin-top:12px;}
 .staff-cancel-modal .staff-cancel-other[hidden]{display:none;}
 /* Popup Xóa lịch cũng chỉ nở theo chiều cao của danh sách khi được mở. */
-.staff-delete-modal .modal-content{height:auto;min-height:0;}
+.staff-delete-modal .modal-content{height:auto;min-height:0;max-height:calc(100dvh - 32px);overflow-y:auto;}
 :is(.staff-delete-modal,.staff-cancel-modal) .staff-reason-native{position:absolute;width:1px;height:1px;padding:0;opacity:0;pointer-events:none;}
 :is(.staff-delete-modal,.staff-cancel-modal) .staff-reason-picker{position:relative;width:100%;}
 :is(.staff-delete-modal,.staff-cancel-modal) .staff-reason-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:42px;padding:9px 13px;text-align:left;border:1px solid #d8cdc3;border-radius:7px;background:#fff;color:#302c29;cursor:pointer;font-size:13px;font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif);}
@@ -564,12 +575,15 @@ body:has(.booking-staff-create) .booking-staff-create #main_service_container .s
    CHINH KHOANG CACH HEADER -> TIEU DE CHINH
    DUNG CHUNG CHO CREATE - LIST - DETAIL
    ================================================== */
-/* CHI CAN DOI SO NAY */
-:root{--sb-page-top-spacing:25px;}
-/* Khoang cach chung tu header xuong noi dung */
-.staff-content:has( .booking-staff-create, .staff-booking-page, .staff-detail-page ){padding-top:var(--sb-page-top-spacing) !important;}
-/* Bo khoang cach thua cua tung trang */
-.staff-content .booking-staff-create, .staff-content .staff-booking-page, .staff-content .staff-detail-page{padding-top:0 !important;margin-top:0 !important;}
+/* Khoang cach chung: tren 25px, ben trai 35px (Create / List / Detail) */
+:root{--sb-page-top-spacing:25px;--sb-page-left-spacing:35px;}
+/* Chinh khoang cach tu Sidebar den noi dung tai khung chung */
+.staff-content:has( .booking-staff-create, .staff-booking-page, .staff-detail-page ){
+    padding-top:var(--sb-page-top-spacing) !important;
+    padding-left:var(--sb-page-left-spacing) !important;
+}
+/* Bo khoang cach thua ben trong tung trang de tong le trai la 35px */
+.staff-content .booking-staff-create, .staff-content .staff-booking-page, .staff-content .staff-detail-page{padding-top:0 !important;padding-left:0 !important;margin-top:0 !important;}
 /* Bo margin phia tren cua tieu de */
 .booking-staff-create > .d-flex:first-child, .staff-booking-page .staff-title, .staff-detail-page .detail-top{margin-top:0 !important;}
 /* Phân công nhiều nhân viên - trang chi tiết */
@@ -689,4 +703,6 @@ body>.flatpickr-calendar{z-index:13000 !important;}
 /* Chỉ bỏ in đậm 2 dòng mô tả dưới tiêu đề trang Staff. */
 .booking-staff-create > .d-flex:first-child p.text-muted, .staff-booking-page .staff-sub{font-weight:400 !important;}
 .booking-staff-create > .d-flex:first-child p.text-muted{font-size:var(--booking-font-body) !important;}
+
+
 

@@ -26,21 +26,10 @@
 /* ADMIN ACTIVITY DAYS - admin_activity_day.html
    Trang gốc chủ yếu dùng Tailwind utility classes.
    Các khai báo dưới đây chỉ hỗ trợ giao diện quản lý ngày hoạt động. */
-
-body:has(.booking-admin-activity) .booking-activity-calendar {
-    overflow-x: auto;
-}
-
-body:has(.booking-admin-activity) .booking-activity-calendar .booking-day-cell {
-    min-width: 0;
-}
-
+body:has(.booking-admin-activity) .booking-activity-calendar { overflow-x: auto; }
+body:has(.booking-admin-activity) .booking-activity-calendar .booking-day-cell { min-width: 0; }
 /* Đảm bảo modal khóa ngày có thể cuộn khi màn hình thấp. */
-#khoaNgayModal {
-    padding: 16px;
-    overflow-y: auto;
-}
-
+#khoaNgayModal { padding: 16px; overflow-y: auto; }
 #khoaNgayModal > .activity-lock-dialog {
     width: min(700px, calc(100vw - 32px));
     max-width: 700px;
@@ -51,16 +40,23 @@ body:has(.booking-admin-activity) .booking-activity-calendar .booking-day-cell {
     overflow-x: visible;
     flex-shrink: 0;
 }
+/* Popup lý do khóa ngày xổ trong luồng, đẩy các nút xuống bên dưới. */
+#khoaNgayModal .popup-expanding-picker{font-size:var(--booking-font-body);}
+.popup-expanding-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;}
+.popup-expanding-picker{position:relative;width:100%;font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif);}
+.popup-expanding-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:43px;padding:9px 13px;background:#fff;border:1px solid #d8cdc3;border-radius:8px;color:#302c29;text-align:left;font:inherit;cursor:pointer;}
+.popup-expanding-chevron{flex-shrink:0;color:#81766c;font-size:19px;line-height:1;}
+.popup-expanding-choices{display:flex;flex-direction:column;margin-top:4px;max-height:min(250px,38dvh);overflow-y:auto;border:1px solid #e2d8cf;border-radius:8px;background:#fff;}
+.popup-expanding-choices[hidden]{display:none!important;}
+.popup-expanding-option{display:block;width:100%;padding:10px 13px;text-align:left;border:0;background:#fff;color:#302c29;font:inherit;cursor:pointer;}
+.popup-expanding-option:hover,.popup-expanding-option:focus-visible{background:#f5eee6;outline:none;}
+.popup-expanding-option[aria-selected="true"]{background:#f8f2ea;font-weight:600;}
 /* Popup mở khóa dùng cùng khung gọn và font với popup khóa ngày. */
 #moKhoaNgayModal {padding:16px;overflow-y:auto;}
 #moKhoaNgayModal, #moKhoaNgayModal * {font-family:var(--booking-font-family) !important;}
 #moKhoaNgayModal > .activity-unlock-dialog {
-    width:min(560px,calc(100vw - 32px));
-    max-width:560px;
-    height:auto;
-    max-height:calc(100dvh - 32px);
-    overflow-y:auto;
-    flex-shrink:0;
+    width:min(560px,calc(100vw - 32px));max-width:560px;height:auto;
+    max-height:calc(100dvh - 32px);overflow-y:auto;flex-shrink:0;
 }
 #moKhoaNgayModal h3 {font-size:var(--booking-font-section) !important;}
 #moKhoaNgayModal .activity-modal-close {font-size:28px;line-height:1;font-weight:400;background:transparent;border:0;padding:0 4px;color:#78716c;cursor:pointer;}
@@ -70,17 +66,9 @@ body:has(.booking-admin-activity) .booking-activity-calendar .booking-day-cell {
 #moKhoaNgayModal button:not(.activity-modal-close) {font-size:var(--booking-font-button) !important;}
 /* Flatpickr portal gắn vào body để không bị cắt bởi dialog. */
 body > .flatpickr-calendar { z-index: 100000 !important; max-width: calc(100vw - 32px); }
-@media(max-height:640px) {
-    #khoaNgayModal > .activity-lock-dialog { overflow-y: auto; }
-}
-
+@media(max-height:640px) { #khoaNgayModal > .activity-lock-dialog { overflow-y: auto; } }
 /* Màu focus nhất quán với form của module. */
-#khoaNgayModal input:focus,
-#khoaNgayModal select:focus,
-#khoaNgayModal textarea:focus {
-    outline-color: #ab8e56;
-}
-
+#khoaNgayModal input:focus,#khoaNgayModal select:focus,#khoaNgayModal textarea:focus {outline-color:#ab8e56;}
 
 /* ===== STYLE CHUYỂN TỪ HTML: KHÔNG ĐỔI LOGIC ===== */
 /* CSS chuyển từ trang admin_activity_day.html */
@@ -88,30 +76,19 @@ body > .flatpickr-calendar { z-index: 100000 !important; max-width: calc(100vw -
    NGAY HOAT DONG - CHINH FONT VA KHOANG CACH RIENG TRANG
    Khong anh huong Header, Sidebar, Create, List, Detail.
    ======================================================== */
+/* Khoảng cách riêng cho trang Quản lý ngày hoạt động */
 :root { --activity-top-gap: 20px; }
-
-/* Giam khoang trong do .staff-content (30px) + pt-4 (16px) cong lai */
 .staff-content:has(> .booking-admin-activity) {
     padding-top: var(--activity-top-gap) !important;
+    padding-left: 35px !important;
+    padding-right: 35px !important;
 }
 .staff-content > .booking-admin-activity {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
+    padding-top: 0 !important;padding-left: 0 !important;
+    padding-right: 0 !important;margin-top: 0 !important;
 }
-
 /* Dong bo Arial, loai font-serif cua Tailwind chi trong trang nay */
-.booking-admin-activity > div:first-child h1 {
-    letter-spacing: 0;
-    margin: 0;
-}
-.booking-admin-activity > .bg-white h3 {
-
-    font-weight: 700 !important;
-    letter-spacing: 0 !important;
-}
-.booking-admin-activity > div:first-child {
-    margin-bottom: 22px !important;
-}
-.booking-admin-activity .booking-activity-calendar {
-    margin-bottom: 20px !important;
-}
+.booking-admin-activity > div:first-child h1 { letter-spacing: 0; margin: 0; }
+.booking-admin-activity > .bg-white h3 { font-weight: 700 !important; letter-spacing: 0 !important; }
+.booking-admin-activity > div:first-child { margin-bottom: 22px !important; }
+.booking-admin-activity .booking-activity-calendar { margin-bottom: 20px !important; }
