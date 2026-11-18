@@ -1,19 +1,19 @@
 /* ==========================================================================
-   FlowEngine - v\u1ebd v\u00e0 ch\u1ec9nh s\u1eeda s\u01a1 \u0111\u1ed3 k\u1ecbch b\u1ea3n chatbot b\u1eb1ng JS thu\u1ea7n + SVG.
-   D\u00f9ng chung cho 3 trang: Ch\u1ec9nh s\u1eeda (k\u00e9o th\u1ea3), Chi ti\u1ebft (ch\u1ec9 xem), Xem tr\u01b0\u1edbc.
+   FlowEngine - vẽ và chỉnh sửa sơ đồ kịch bản chatbot bằng JS thuần + SVG.
+   Dùng chung cho 3 trang: Chỉnh sửa (kéo thả), Chi tiết (chỉ xem), Xem trước.
    ========================================================================== */
 (function (global) {
     'use strict';
 
     var SVG_NS = 'http://www.w3.org/2000/svg';
     var TYPE_LABEL = {
-        bat_dau: 'B\u1eaeT \u0110\u1ea6U',
-        tin_nhan: 'TIN NH\u1eaeN',
-        hinh_anh: 'H\u00ccNH \u1ea2NH',
-        dich_vu: 'D\u1ecaCH V\u1ee4',
-        form: 'FORM TH\u00d4NG TIN',
-        chuyen_nhan_vien: 'CHUY\u1ec2N NH\u00c2N VI\u00caN',
-        chat_truc_tiep: 'CHAT TR\u1ef0C TI\u1ebeP'
+        bat_dau: 'BẮT ĐẦU',
+        tin_nhan: 'TIN NHẮN',
+        hinh_anh: 'HÌNH ẢNH',
+        dich_vu: 'DỊCH VỤ',
+        form: 'FORM THÔNG TIN',
+        chuyen_nhan_vien: 'CHUYỂN NHÂN VIÊN',
+        chat_truc_tiep: 'CHAT TRỰC TIẾP'
     };
     var ARROW = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
         'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
@@ -44,6 +44,7 @@
             n.type = n.type || 'tin_nhan';
             n.title = n.title || '';
             n.content = n.content || '';
+            n.ma_dv = n.ma_dv || '';
             n.x = Number(n.x) || 0;
             n.y = Number(n.y) || 0;
             n.options = (Array.isArray(n.options) ? n.options : []).map(function (o) {
@@ -52,14 +53,14 @@
         });
         if (!g.nodes.some(function (n) { return n.type === 'bat_dau'; })) {
             g.nodes.unshift({
-                id: 'start_node', type: 'bat_dau', title: 'B\u1eaft \u0111\u1ea7u', content: '', x: 20, y: 20,
+                id: 'start_node', type: 'bat_dau', title: 'Bắt đầu', content: '', x: 20, y: 20,
                 options: [{ id: uid('o'), text: '', nextId: '' }]
             });
         }
         return g;
     }
 
-    /* ---------------- T\u1ea1o node m\u1edbi theo lo\u1ea1i ---------------- */
+    /* ---------------- Tạo node mới theo loại ---------------- */
     function createNodes(type, x, y) {
         function base(t, title, content, ox, oy, opts) {
             return {
@@ -68,29 +69,28 @@
             };
         }
         if (type === 'hinh_anh') {
-            var img = base('hinh_anh', '\u1ea2nh d\u1ecbch v\u1ee5', 'M\u00f4 t\u1ea3 \u1ea3nh', 0, 0, []);
+            var img = base('hinh_anh', 'Ảnh dịch vụ', 'Mô tả ảnh', 0, 0, []);
             img.image_url = '';
             return [img];
         }
         if (type === 'dich_vu') {
-            var dv = base('dich_vu', 'T\u00ean d\u1ecbch v\u1ee5', 'M\u00f4 t\u1ea3 ng\u1eafn v\u1ec1 d\u1ecbch v\u1ee5', 0, 0, ['Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n']);
-            dv.duration = 60; dv.price = 0;
+            var dv = base('dich_vu', 'Tên dịch vụ', 'Mô tả ngắn về dịch vụ', 0, 0, ['Yêu cầu tư vấn']);
+            dv.duration = 60; dv.price = 0; dv.ma_dv = '';
             return [dv];
         }
         if (type === 'chuyen_nhan_vien') {
-            // Chu\u1ed7i 3 h\u1ed9p: Form th\u00f4ng tin -> Ch\u1edd ti\u1ebfp nh\u1eadn -> Chat tr\u1ef1c ti\u1ebfp
-            var form = base('form', 'Y\u00eau c\u1ea7u t\u01b0 v\u1ea5n', 'H\u1ecd t\u00ean, S\u1ed1 \u0111i\u1ec7n tho\u1ea1i, Nhu c\u1ea7u t\u01b0 v\u1ea5n', 0, 0, ['G\u1eedi y\u00eau c\u1ea7u']);
-            var wait = base('chuyen_nhan_vien', 'Ch\u1edd ti\u1ebfp nh\u1eadn', 'Sau khi g\u1eedi form', 300, 0, ['Khi nh\u00e2n vi\u00ean ti\u1ebfp nh\u1eadn']);
-            var chat = base('chat_truc_tiep', 'Nh\u00e2n vi\u00ean ti\u1ebfp nh\u1eadn', 'Nh\u00e2n vi\u00ean t\u01b0 v\u1ea5n \u00b7 M\u1edf \u00f4 nh\u1eadp tin nh\u1eafn', 300, 170, []);
+            var form = base('form', 'Yêu cầu tư vấn', 'Họ tên, Số điện thoại, Nhu cầu tư vấn', 0, 0, ['Gửi yêu cầu']);
+            var wait = base('chuyen_nhan_vien', 'Chờ tiếp nhận', 'Sau khi gửi form', 300, 0, ['Khi nhân viên tiếp nhận']);
+            var chat = base('chat_truc_tiep', 'Nhân viên tiếp nhận', 'Nhân viên tư vấn · Mở ô nhập tin nhắn', 300, 170, []);
             form.options[0].nextId = wait.id;
             wait.options[0].nextId = chat.id;
             return [form, wait, chat];
         }
-        return [base('tin_nhan', 'Tin nh\u1eafn m\u1edbi', 'N\u1ed9i dung ph\u1ea3n h\u1ed3i...', 0, 0, [])];
+        return [base('tin_nhan', 'Tin nhắn mới', 'Nội dung phản hồi...', 0, 0, [])];
     }
 
     /* ======================================================================
-       L\u1edbp FlowEngine
+       Lớp FlowEngine
        ====================================================================== */
     function FlowEngine(viewport, graph, opts) {
         opts = opts || {};
@@ -124,7 +124,7 @@
     };
     P.getGraph = function () { return clone(this.graph); };
 
-    /* ---------------- D\u1ef1ng khung ---------------- */
+    /* ---------------- Dựng khung ---------------- */
     P._build = function () {
         var vp = this.vp, self = this;
         vp.classList.add('fb-viewport');
@@ -135,7 +135,7 @@
             '<marker id="fbArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">' +
             '<path d="M0 0L10 5L0 10z" fill="#C4B49C"/></marker>' +
             '<marker id="fbArrowOn" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">' +
-            '<path d="M0 0L10 5L0 10z" fill="#8B1515"/></marker></defs><g class="fb-links-g"></g></svg>' +
+            '<path d="M0 0L10 5L0 10z" fill="#1a1a1a"/></marker></defs><g class="fb-links-g"></g></svg>' +
             '<div class="fb-nodes"></div></div>';
         this.world = vp.querySelector('.fb-world');
         this.gLinks = vp.querySelector('.fb-links-g');
@@ -144,7 +144,7 @@
         vp.addEventListener('wheel', function (e) { self._onWheel(e); }, { passive: false });
     };
 
-    /* ---------------- V\u1ebd node ---------------- */
+    /* ---------------- Vẽ node ---------------- */
     P._makeEl = function (n) {
         var el = document.createElement('div');
         el.className = 'fb-node fb-t-' + n.type + (n.id === this.selectedId ? ' is-selected' : '');
@@ -153,25 +153,25 @@
         el.style.top = n.y + 'px';
 
         if (n.type === 'bat_dau') {
-            el.innerHTML = '<div class="fb-opt" data-idx="0"><span class="fb-dot"></span><span>B\u1eaft \u0111\u1ea7u</span><i class="fb-port"></i></div>';
+            el.innerHTML = '<div class="fb-opt" data-idx="0"><span class="fb-dot"></span><span>Bắt đầu</span><i class="fb-port"></i></div>';
         } else {
             var html = '<div class="fb-node-head"><span class="fb-badge">' + TYPE_LABEL[n.type] + '</span>' +
-                '<span class="fb-more">\u00b7\u00b7\u00b7</span></div>' +
-                '<div class="fb-title">' + esc(n.title || '(Ch\u01b0a \u0111\u1eb7t t\u00ean)') + '</div>';
+                '<span class="fb-more">···</span></div>' +
+                '<div class="fb-title">' + esc(n.title || '(Chưa đặt tên)') + '</div>';
             if (n.type === 'dich_vu') {
-                html += '<div class="fb-meta">' + esc(n.duration || 0) + ' ph\u00fat \u00b7 ' + money(n.price) + ' \u0111</div>';
+                html += '<div class="fb-meta">' + esc(n.duration || 0) + ' phút · ' + money(n.price) + ' đ</div>';
             }
             if (n.type === 'hinh_anh') {
                 var url = safeUrl(n.image_url);
                 html += url
                     ? '<div class="fb-img" style="background-image:url(\'' + esc(url) + '\')"></div>'
-                    : '<div class="fb-img">Ch\u01b0a c\u00f3 \u1ea3nh</div>';
+                    : '<div class="fb-img">Chưa có ảnh</div>';
             }
-            var desc = n.type === 'form' ? 'H\u1ecd t\u00ean \u00b7 S\u1ed1 \u0111i\u1ec7n tho\u1ea1i \u00b7 Nhu c\u1ea7u t\u01b0 v\u1ea5n' : n.content;
+            var desc = n.type === 'form' ? 'Họ tên · Số điện thoại · Nhu cầu tư vấn' : n.content;
             if (desc) html += '<div class="fb-desc">' + esc(desc) + '</div>';
             if (n.options.length) {
                 html += '<div class="fb-options">' + n.options.map(function (o, i) {
-                    return '<div class="fb-opt" data-idx="' + i + '"><span>' + esc(o.text || '(N\u00fat ch\u01b0a \u0111\u1eb7t t\u00ean)') +
+                    return '<div class="fb-opt" data-idx="' + i + '"><span>' + esc(o.text || '(Nút chưa đặt tên)') +
                         '</span>' + ARROW + '<i class="fb-port"></i></div>';
                 }).join('') + '</div>';
             }
@@ -203,7 +203,7 @@
         this.drawLinks();
     };
 
-    /* ---------------- \u0110\u01b0\u1eddng n\u1ed1i ---------------- */
+    /* ---------------- Đường nối ---------------- */
     P._portPos = function (id, idx) {
         var nodeEl = this.els[id], n = this.node(id);
         var port = nodeEl && nodeEl.querySelector('.fb-opt[data-idx="' + idx + '"] .fb-port');
@@ -232,7 +232,7 @@
         }, this);
     };
 
-    /* ---------------- Ch\u1ecdn node ---------------- */
+    /* ---------------- Chọn node ---------------- */
     P._setSel = function (id) {
         this.selectedId = id;
         for (var k in this.els) this.els[k].classList.toggle('is-selected', k === id);
@@ -243,7 +243,7 @@
         this.cb.select(id);
     };
 
-    /* ---------------- T\u1ecda \u0111\u1ed9 & pan/zoom ---------------- */
+    /* ---------------- Tọa độ & pan/zoom ---------------- */
     P.toWorld = function (cx, cy) {
         var r = this.vp.getBoundingClientRect();
         return { x: (cx - r.left - this.panX) / this.zoom, y: (cy - r.top - this.panY) / this.zoom };
@@ -301,10 +301,10 @@
         }
     };
 
-    /* ---------------- K\u00e9o canvas (pan) ---------------- */
+    /* ---------------- Kéo canvas (pan) ---------------- */
     P._onVpDown = function (e) {
         if (e.button !== 0 && e.button !== 1) return;
-        if (!this.readOnly && e.target.closest('.fb-node')) return; // node t\u1ef1 x\u1eed l\u00fd
+        if (!this.readOnly && e.target.closest('.fb-node')) return;
         var self = this, sx = e.clientX, sy = e.clientY, px = this.panX, py = this.panY, moved = false;
         var hitNode = e.target.closest('.fb-node');
         this.vp.classList.add('is-panning');
@@ -326,7 +326,7 @@
         window.addEventListener('pointercancel', up);
     };
 
-    /* ---------------- K\u00e9o node / k\u00e9o n\u1ed1i ---------------- */
+    /* ---------------- Kéo node / kéo nối ---------------- */
     P._onNodeDown = function (e, id) {
         if (this.readOnly || e.button !== 0) return;
         e.stopPropagation();
@@ -407,7 +407,7 @@
         window.addEventListener('pointercancel', up);
     };
 
-    /* ---------------- L\u1ecbch s\u1eed (undo / redo) ---------------- */
+    /* ---------------- Lịch sử (undo / redo) ---------------- */
     P.commit = function (reason) {
         var now = this._serialize();
         if (now === this.snap) return;
@@ -442,7 +442,6 @@
     P.canUndo = function () { return this.undoStack.length > 0; };
     P.canRedo = function () { return this.redoStack.length > 0; };
 
-    /* Sau khi l\u01b0u, server g\u00e1n m\u00e3 b\u01b0\u1edbc (ma_buoc) cho node m\u1edbi */
     P.applyServerIds = function (serverGraph) {
         var self = this;
         (serverGraph.nodes || []).forEach(function (sn) {
@@ -452,7 +451,7 @@
         this.snap = this._serialize();
     };
 
-    /* ---------------- Thao t\u00e1c ch\u1ec9nh s\u1eeda ---------------- */
+    /* ---------------- Thao tác chỉnh sửa ---------------- */
     P.add = function (nodes, selectId) {
         nodes.forEach(function (n) {
             this.graph.nodes.push(n);
@@ -483,19 +482,19 @@
         if (!n || n.type === 'bat_dau') return null;
         var c = clone(n);
         c.id = uid('n'); c.x += 40; c.y += 40;
-        c.title = (n.title || '') + ' (b\u1ea3n sao)';
+        c.title = (n.title || '') + ' (bản sao)';
         delete c.ma_buoc;
         c.options.forEach(function (o) { o.id = uid('o'); });
         this.add([c], c.id);
         return c.id;
     };
-    P.update = function (id, patch) {            // c\u1eadp nh\u1eadt t\u1ee9c th\u1eddi (ch\u01b0a ghi l\u1ecbch s\u1eed)
+    P.update = function (id, patch) {
         var n = this.node(id);
         if (!n) return;
         for (var k in patch) n[k] = patch[k];
         this.refreshNode(id);
     };
-    P.updateOption = function (id, idx, patch) { // c\u1eadp nh\u1eadt t\u1ee9c th\u1eddi n\u00fat l\u1ef1a ch\u1ecdn
+    P.updateOption = function (id, idx, patch) {
         var n = this.node(id);
         if (!n || !n.options[idx]) return;
         for (var k in patch) n.options[idx][k] = patch[k];
@@ -504,7 +503,7 @@
     P.addOption = function (id, text) {
         var n = this.node(id);
         if (!n) return;
-        n.options.push({ id: uid('o'), text: text || 'L\u1ef1a ch\u1ecdn m\u1edbi', nextId: '' });
+        n.options.push({ id: uid('o'), text: text || 'Lựa chọn mới', nextId: '' });
         this.refreshNode(id);
         this.commit('structure');
     };
@@ -516,7 +515,7 @@
         this.commit('structure');
     };
 
-    /* ---------------- Th\u1ed1ng k\u00ea ---------------- */
+    /* ---------------- Thống kê ---------------- */
     P._stats = function () {
         var start = this.graph.nodes.filter(function (n) { return n.type === 'bat_dau'; })[0];
         var first = start && start.options[0] && this.node(start.options[0].nextId);

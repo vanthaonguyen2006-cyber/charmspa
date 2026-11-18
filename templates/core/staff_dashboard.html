@@ -4,7 +4,42 @@
 {% block title %}Tổng quan Quản lý - Charm Spa Grand{% endblock %}
 
 {% block extra_css %}
+<!-- Nhúng font Montserrat từ Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
+    /* 1. Áp dụng font Montserrat cho toàn bộ trang */
+    body, .container-fluid, button, input, select, textarea, table {
+        font-family: 'Montserrat', sans-serif !important;
+    }
+
+    /* 2. In đậm các thẻ tiêu đề là 700 */
+    h1, h2, h3, h4, h5, h6, .page-heading {
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 700 !important;
+    }
+
+    /* 3. Nút bấm và Tab đang hoạt động chuyển sang màu đen */
+    #supportTab .nav-link {
+        color: #1a1a1a !important;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    #supportTab .nav-link.active {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+    }
+    .btn-dark-custom {
+        background-color: #1a1a1a !important;
+        border-color: #1a1a1a !important;
+        color: #ffffff !important;
+    }
+    .btn-dark-custom:hover {
+        background-color: #333333 !important;
+        border-color: #333333 !important;
+        color: #ffffff !important;
+    }
+
     .kpi-card {
         background: #ffffff;
         border: 1px solid #e9ecef;
@@ -39,16 +74,11 @@
 
 {% block content %}
 <div class="container-fluid p-4">
-    <!-- TIÊU ĐỀ HỆ THỐNG -->
+    <!-- TIÊU ĐỀ HỆ THỐNG (Đã bỏ ô Hôm nay: dd/mm/yyyy ở góc phải và đổi sang font Montserrat 700) -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-dark mb-1" style="font-family: 'Playfair Display', serif;">TỔNG QUAN HOẠT ĐỘNG MANAGEMENT</h4>
+            <h4 class="page-heading text-dark mb-1">TỔNG QUAN HOẠT ĐỘNG MANAGEMENT</h4>
             <p class="text-muted small mb-0">Theo dõi tất cả chỉ số kinh doanh, hỗ trợ khách hàng và vận hành spa theo thời gian thực.</p>
-        </div>
-        <div>
-            <button class="btn btn-outline-secondary btn-sm px-3 rounded-3 d-flex align-items-center gap-1" disabled>
-                <i data-lucide="calendar" style="width: 16px;"></i> Hôm nay: {% now "d/m/Y" %}
-            </button>
         </div>
     </div>
 
@@ -192,7 +222,6 @@
                         <tbody>
                             {% for item in recent_bookings %}
                             <tr>
-                                <!-- Dòng 195: Đã sửa thành item.ma_lh -->
                                 <td class="fw-bold text-dark">{{ item.ma_lh }}</td>
                                 <td>{{ item.ma_kh.ho_ten|default:"Khách vãng lai" }}</td>
                                 <td>{{ item.ma_dv.ten_dich_vu|default:"Dịch vụ Spa" }}</td>
@@ -205,8 +234,7 @@
                                     <span class="badge badge-soft-info px-2 py-1">{{ item.get_trang_thai_display|default:item.trang_thai }}</span>
                                 </td>
                                 <td class="text-end">
-                                    <!-- Dòng 201: Đã sửa tham số URL thành item.ma_lh -->
-                                    <a href="{% url 'bookings:staff_booking_detail' item.ma_lh %}" class="btn btn-sm btn-outline-dark rounded-2 py-1 px-2">Chi tiết</a>
+                                    <a href="{% url 'bookings:staff_booking_detail' item.ma_lh %}" class="btn btn-sm btn-dark-custom rounded-2 py-1 px-2">Chi tiết</a>
                                 </td>
                             </tr>
                             {% empty %}
@@ -223,13 +251,13 @@
         <!-- Cột phải: Phản hồi/Khiếu nại & Yêu cầu Chatbot -->
         <div class="col-lg-5">
             <div class="chart-container-card h-100">
-                <!-- Tab Tiêu đề -->
-                <ul class="nav nav-pills mb-3 border-bottom pb-2" id="supportTab" role="tablist">
+                <!-- Tab Tiêu đề (Đã chỉnh nút active sang màu đen) -->
+                <ul class="nav nav-pills mb-3 border-bottom pb-2 gap-2" id="supportTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active py-1 px-3 fs-6 fw-bold text-dark" id="feedback-tab" data-bs-toggle="pill" data-bs-target="#feedback-panel" type="button" role="tab">Phản hồi / Khiếu nại</button>
+                        <button class="nav-link active py-1 px-3 fs-6 fw-bold" id="feedback-tab" data-bs-toggle="pill" data-bs-target="#feedback-panel" type="button" role="tab">Phản hồi / Khiếu nại</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link py-1 px-3 fs-6 fw-bold text-dark" id="chatbot-tab" data-bs-toggle="pill" data-bs-target="#chatbot-panel" type="button" role="tab">Tư vấn Chatbot</button>
+                        <button class="nav-link py-1 px-3 fs-6 fw-bold" id="chatbot-tab" data-bs-toggle="pill" data-bs-target="#chatbot-panel" type="button" role="tab">Tư vấn Chatbot</button>
                     </li>
                 </ul>
 
@@ -294,7 +322,11 @@ document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     }
 
-    // Hàm đọc JSON an toàn (chống lỗi crash JS nếu thiếu thẻ HTML)
+    // Đặt font mặc định cho biểu đồ Chart.js sang Montserrat
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.font.family = "'Montserrat', sans-serif";
+    }
+
     function getJsonData(id) {
         const el = document.getElementById(id);
         try {

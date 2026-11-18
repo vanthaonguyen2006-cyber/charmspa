@@ -4,11 +4,32 @@
 {% block title %}Chỉnh sửa kịch bản {{ script.ma_kb }} - Charm Spa{% endblock %}
 
 {% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'chatbot/css/flow_builder.css' %}">
+<style>
+    body, .script-edit-page, .script-edit-page *, #fbViewport, #fbViewport *, #fbPanelBody, #fbPanelBody * {
+        font-family: 'Montserrat', sans-serif !important;
+    }
+    h1, h2, h3, h4, h5, h6, .fb-palette h3, .fb-panel-head h3 {
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 700 !important;
+    }
+    .fb-primary, #fbSave {
+        background-color: #1a1a1a !important;
+        border-color: #1a1a1a !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    .fb-primary:hover, #fbSave:hover {
+        background-color: #333333 !important;
+        border-color: #333333 !important;
+        color: #ffffff !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
+<div class="container-fluid py-3 script-edit-page">
 
     <!-- TIÊU ĐỀ -->
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
@@ -16,7 +37,7 @@
             <a href="{% url 'chatbot:admin_script_list' %}" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-1">
                 <i data-lucide="arrow-left" style="width:14px;height:14px"></i> Quay lại danh sách kịch bản
             </a>
-            <h3 class="mb-1" style="font-family:'Playfair Display',Georgia,serif;font-weight:700;color:#2B2118">CHỈNH SỬA KỊCH BẢN</h3>
+            <h3 class="mb-1 text-dark">CHỈNH SỬA KỊCH BẢN</h3>
             <div class="text-muted small">{{ script.ten_kich_ban }} · Thiết lập nội dung và bước tiếp theo cho từng lựa chọn.</div>
         </div>
         <div class="d-flex gap-2">
@@ -42,6 +63,14 @@
                 <span class="fb-block-ico"><i data-lucide="message-square"></i></span>
                 <strong>Tin nhắn</strong><small>Nội dung chatbot</small>
             </div>
+            <div class="fb-block" draggable="true" data-type="dich_vu">
+                <span class="fb-block-ico"><i data-lucide="sparkles"></i></span>
+                <strong>Dịch vụ & Giá (CSDL)</strong><small>Lấy dịch vụ, giá từ CSDL</small>
+            </div>
+            <div class="fb-block" draggable="true" data-type="khuyen_mai">
+                <span class="fb-block-ico"><i data-lucide="gift"></i></span>
+                <strong>Ưu đãi & Khuyến mãi (CSDL)</strong><small>Lấy ưu đãi từ CSDL</small>
+            </div>
             <div class="fb-block" draggable="true" data-type="hinh_anh">
                 <span class="fb-block-ico"><i data-lucide="image"></i></span>
                 <strong>Hình ảnh</strong><small>Ảnh dịch vụ</small>
@@ -64,7 +93,8 @@
                         <button type="button" class="fb-btn" id="fbAddBtn"><i data-lucide="plus"></i> Thêm node</button>
                         <div class="fb-menu" id="fbAddMenu">
                             <button type="button" data-type="tin_nhan"><i data-lucide="message-square"></i> Tin nhắn</button>
-                            <button type="button" data-type="dich_vu"><i data-lucide="sparkles"></i> Dịch vụ</button>
+                            <button type="button" data-type="dich_vu"><i data-lucide="sparkles"></i> Dịch vụ (từ CSDL)</button>
+                            <button type="button" data-type="khuyen_mai"><i data-lucide="gift"></i> Ưu đãi & Khuyến mãi (CSDL)</button>
                             <button type="button" data-type="hinh_anh"><i data-lucide="image"></i> Hình ảnh</button>
                             <button type="button" data-type="chuyen_nhan_vien"><i data-lucide="headphones"></i> Chuyển nhân viên</button>
                         </div>
@@ -106,6 +136,7 @@
 <div class="fb-toasts" id="fbToasts"></div>
 {% csrf_token %}
 {{ graph|json_script:"flow-graph-data" }}
+{{ services_catalog|json_script:"services-catalog-data" }}
 <script>
     window.FLOW_CONFIG = {
         saveUrl: "{% url 'chatbot:admin_script_graph_save' script.pk %}",
