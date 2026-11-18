@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Trang "Ch\u1ec9nh s\u1eeda k\u1ecbch b\u1ea3n": palette k\u00e9o th\u1ea3, b\u1ea3ng thu\u1ed9c t\u00ednh, toolbar, l\u01b0u.
+   Trang "Chỉnh sửa kịch bản": Tự động tải Dịch vụ & Chương trình Ưu đãi từ CSDL
    ========================================================================== */
 (function () {
     'use strict';
@@ -17,25 +17,88 @@
         var btnUndo = $('#fbUndo'), btnRedo = $('#fbRedo');
         var graph = JSON.parse($('#flow-graph-data').textContent);
 
+        // 1. Đọc danh sách Dịch vụ & Chương trình Ưu đãi từ thẻ json_script (nếu có)
+        var catalog = { services: [], categories: [], promotions: [] };
+        var catalogEl = $('#services-catalog-data');
+        if (catalogEl && catalogEl.textContent) {
+            try {
+                var parsed = JSON.parse(catalogEl.textContent);
+                if (parsed) {
+                    catalog.services = Array.isArray(parsed.services) ? parsed.services : [];
+                    catalog.categories = Array.isArray(parsed.categories) ? parsed.categories : [];
+                    catalog.promotions = Array.isArray(parsed.promotions) ? parsed.promotions : [];
+                }
+            } catch (e) {}
+        }
+
         var dirty = false, saving = false, cascade = 0;
-        var LINKABLE = ['tin_nhan', 'hinh_anh', 'dich_vu'];       // lo\u1ea1i h\u1ed9p \u0111\u01b0\u1ee3c th\u00eam/x\u00f3a n\u00fat l\u1ef1a ch\u1ecdn
-        var PALETTE_TYPES = ['tin_nhan', 'hinh_anh', 'nut_lua_chon', 'chuyen_nhan_vien', 'dich_vu'];
+        var LINKABLE = ['tin_nhan', 'hinh_anh', 'dich_vu'];
+        var PALETTE_TYPES = ['tin_nhan', 'hinh_anh', 'nut_lua_chon', 'chuyen_nhan_vien', 'dich_vu', 'khuyen_mai'];
 
         var engine = new FlowEngine(vp, graph, {
             onSelect: renderPanel,
             onChange: onChange,
             onZoom: function (z) { $('#fbZoomLabel').textContent = Math.round(z * 100) + '%'; },
             onStats: function (s) {
-                $('#fbStats').textContent = s.steps + ' b\u01b0\u1edbc' +
-                    (s.firstTitle ? ' \u00b7 ' + s.branches + ' nh\u00e1nh t\u1eeb ' + s.firstTitle : '');
+                $('#fbStats').textContent = s.steps + ' bước' +
+                    (s.firstTitle ? ' · ' + s.branches + ' nhánh từ ' + s.firstTitle : '');
             }
         });
+
+        // 2. Nếu catalog chưa đủ dữ liệu, tự động gọi API lấy cả Dịch vụ & Khuyến mãi từ CSDL
+        if (!catalog.services.length || !catalog.promotions.length) {
+            fetch('/chatbot/api/services-catalog/', { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data) {
+                        catalog.services = Array.isArray(data.services) ? data.services : catalog.services;
+                        catalog.categories = Array.isArray(data.categories) ? data.categories : catalog.categories;
+                        catalog.promotions = Array.isArray(data.promotions) ? data.promotions : catalog.promotions;
+                        syncExistingNodes();
+                        if (engine.selectedId) renderPanel(engine.selectedId);
+                    }
+                })
+                .catch(function () {});
+        } else {
+            syncExistingNodes();
+        }
+
+        function syncExistingNodes() {
+            if (!engine.graph || !Array.isArray(engine.graph.nodes)) return;
+            var changed = false;
+            engine.graph.nodes.forEach(function (nd) {
+                if (nd.type === 'dich_vu') {
+                    // Kiểm tra xem node có khớp với Chương trình ưu đãi trong CSDL không
+                    var matchedPromo = catalog.promotions.find(function (ct) {
+                        return (nd.ma_ctud && ct.ma_ctud === nd.ma_ctud) || ct.ten_chuong_trinh === nd.title;
+                    });
+                    if (matchedPromo) {
+                        nd.ma_ctud = matchedPromo.ma_ctud;
+                        nd.price = matchedPromo.gia_tri_uu_dai;
+                        nd.duration = matchedPromo.thoi_luong;
+                        changed = true;
+                        return;
+                    }
+                    // Kiểm tra xem node có khớp với Dịch vụ trong CSDL không
+                    var matchedDv = catalog.services.find(function (dv) {
+                        return (nd.ma_dv && dv.ma_dv === nd.ma_dv) || dv.ten_dich_vu === nd.title;
+                    });
+                    if (matchedDv) {
+                        nd.ma_dv = matchedDv.ma_dv;
+                        nd.price = matchedDv.gia_dich_vu;
+                        nd.duration = matchedDv.thoi_luong;
+                        changed = true;
+                    }
+                }
+            });
+            if (changed) engine.render();
+        }
 
         refreshHistoryButtons();
         renderPanel(null);
         if (window.lucide) window.lucide.createIcons();
 
-        /* ---------------- Th\u00f4ng b\u00e1o nh\u1ecf ---------------- */
+        /* ---------------- Thông báo nhỏ ---------------- */
         function toast(msg, kind) {
             var box = $('#fbToasts'), t = document.createElement('div');
             t.className = 'fb-toast' + (kind ? ' ' + kind : '');
@@ -58,13 +121,13 @@
             if (reason === 'structure' || reason === 'link') renderPanel(engine.selectedId);
         }
 
-        /* ---------------- B\u1ea3ng thu\u1ed9c t\u00ednh (b\u00ean ph\u1ea3i) ---------------- */
+        /* ---------------- Bảng thuộc tính (bên phải) ---------------- */
         function nextSelect(node, opt, idx) {
-            var html = '<select class="fb-select" data-opt-next="' + idx + '"><option value="">\u2014 Ch\u01b0a n\u1ed1i \u2014</option>';
+            var html = '<select class="fb-select" data-opt-next="' + idx + '"><option value="">— Chưa nối —</option>';
             engine.graph.nodes.forEach(function (t) {
                 if (t.type === 'bat_dau' || t.id === node.id) return;
                 html += '<option value="' + esc(t.id) + '"' + (opt.nextId === t.id ? ' selected' : '') + '>' +
-                    esc(t.title || '(Ch\u01b0a \u0111\u1eb7t t\u00ean)') + ' \u00b7 ' + FlowEngine.TYPE_LABEL[t.type].toLowerCase() + '</option>';
+                    esc(t.title || '(Chưa đặt tên)') + ' · ' + FlowEngine.TYPE_LABEL[t.type].toLowerCase() + '</option>';
             });
             return html + '</select>';
         }
@@ -72,73 +135,146 @@
         function renderPanel(id) {
             var n = id && engine.node(id);
             if (!n) {
-                panelSub.textContent = 'Ch\u1ecdn m\u1ed9t b\u01b0\u1edbc \u0111\u1ec3 ch\u1ec9nh s\u1eeda';
-                panelBody.innerHTML = '<div class="fb-empty">B\u1ea5m v\u00e0o m\u1ed9t kh\u1ed1i tr\u00ean s\u01a1 \u0111\u1ed3 \u0111\u1ec3 s\u1eeda n\u1ed9i dung v\u00e0 n\u1ed1i c\u00e1c b\u01b0\u1edbc.<br>' +
-                    'K\u00e9o t\u1eeb ch\u1ea5m tr\u00f2n \u1edf cu\u1ed1i m\u1ed7i n\u00fat l\u1ef1a ch\u1ecdn sang m\u1ed9t kh\u1ed1i kh\u00e1c \u0111\u1ec3 n\u1ed1i.</div>';
+                panelSub.textContent = 'Chọn một bước để chỉnh sửa';
+                panelBody.innerHTML = '<div class="fb-empty">Bấm vào một khối trên sơ đồ để sửa nội dung và nối các bước.<br>' +
+                    'Kéo từ chấm tròn ở cuối mỗi nút lựa chọn sang một khối khác để nối.</div>';
                 setToolsEnabled(false);
                 return;
             }
             setToolsEnabled(n.type !== 'bat_dau');
-            panelSub.textContent = (n.title || 'B\u01b0\u1edbc') + ' \u00b7 ' + FlowEngine.TYPE_LABEL[n.type].toLowerCase();
+            panelSub.textContent = (n.title || 'Bước') + ' · ' + FlowEngine.TYPE_LABEL[n.type].toLowerCase();
 
             if (n.type === 'bat_dau') {
                 var o = n.options[0];
                 panelBody.innerHTML =
-                    '<div class="fb-note" style="margin-bottom:14px">Kh\u1ed1i "B\u1eaft \u0111\u1ea7u" t\u1ef1 ch\u1ea1y khi kh\u00e1ch m\u1edf chatbot. ' +
-                    'Ch\u1ecdn b\u01b0\u1edbc \u0111\u1ea7u ti\u00ean m\u00e0 chatbot s\u1ebd hi\u1ec3n th\u1ecb.</div>' +
-                    '<div class="fb-field"><label>B\u01b0\u1edbc \u0111\u1ea7u ti\u00ean</label>' + nextSelect(n, o, 0) + '</div>';
+                    '<div class="fb-note" style="margin-bottom:14px">Khối "Bắt đầu" tự chạy khi khách mở chatbot. ' +
+                    'Chọn bước đầu tiên mà chatbot sẽ hiển thị.</div>' +
+                    '<div class="fb-field"><label>Bước đầu tiên</label>' + nextSelect(n, o, 0) + '</div>';
                 return;
             }
 
             var h = '';
-            h += '<div class="fb-field"><label>T\u00ean b\u01b0\u1edbc</label>' +
-                '<input class="fb-input" data-f="title" value="' + esc(n.title) + '" maxlength="150"></div>';
+
+            // NẾU LÀ KHỐI DỊCH VỤ / ƯU ĐÃI: Cho phép chọn Dịch vụ HOẶC Chương trình ưu đãi từ CSDL
+            if (n.type === 'dich_vu') {
+                h += '<div class="fb-field">' +
+                    '<label>Chọn Dịch vụ (từ CSDL Quản lý dịch vụ)</label>' +
+                    '<select class="fb-select" data-db-service style="font-weight:600">' +
+                    '<option value="">-- Chọn dịch vụ có sẵn trong CSDL --</option>';
+                catalog.services.forEach(function (dv) {
+                    var selected = (n.ma_dv === dv.ma_dv || n.title === dv.ten_dich_vu) ? ' selected' : '';
+                    h += '<option value="' + esc(dv.ma_dv) + '"' + selected + '>' +
+                        '[' + esc(dv.ma_dv) + '] ' + esc(dv.ten_dich_vu) + ' — ' + FlowEngine.money(dv.gia_dich_vu) + ' đ</option>';
+                });
+                h += '</select></div>';
+
+                if (catalog.promotions.length) {
+                    h += '<div class="fb-field">' +
+                        '<label style="color:#8B1515">Hoặc chọn Chương trình Ưu đãi / Khuyến mãi (từ CSDL)</label>' +
+                        '<select class="fb-select" data-db-promo style="font-weight:600;border-color:#E5C3C3">' +
+                        '<option value="">-- Chọn chương trình ưu đãi từ CSDL --</option>';
+                    catalog.promotions.forEach(function (ct) {
+                        var selected = (n.ma_ctud === ct.ma_ctud || n.title === ct.ten_chuong_trinh) ? ' selected' : '';
+                        h += '<option value="' + esc(ct.ma_ctud) + '"' + selected + '>' +
+                            '[' + esc(ct.ma_ctud) + '] ' + esc(ct.ten_chuong_trinh) + ' — ' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ (' + esc(ct.trang_thai) + ')</option>';
+                    });
+                    h += '</select></div>';
+                }
+
+                h += '<div class="fb-field"><label>Tên hiển thị trên thẻ</label>' +
+                    '<input class="fb-input" data-f="title" value="' + esc(n.title) + '" maxlength="150" placeholder="Tự động điền khi chọn từ CSDL..."></div>';
+            } else {
+                h += '<div class="fb-field"><label>Tên bước</label>' +
+                    '<input class="fb-input" data-f="title" value="' + esc(n.title) + '" maxlength="150"></div>';
+            }
 
             if (n.type === 'form') {
-                h += '<div class="fb-note" style="margin-bottom:14px">Form thu th\u1eadp: H\u1ecd t\u00ean, S\u1ed1 \u0111i\u1ec7n tho\u1ea1i, Nhu c\u1ea7u t\u01b0 v\u1ea5n. ' +
-                    'Kh\u00e1ch \u0111\u00e3 \u0111\u0103ng nh\u1eadp \u0111\u01b0\u1ee3c \u0111i\u1ec1n s\u1eb5n t\u1eeb t\u00e0i kho\u1ea3n.</div>';
+                h += '<div class="fb-note" style="margin-bottom:14px">Form thu thập: Họ tên, Số điện thoại, Nhu cầu tư vấn. ' +
+                    'Khách đã đăng nhập được điền sẵn từ tài khoản.</div>';
             } else {
-                var label = n.type === 'hinh_anh' ? 'Ch\u00fa th\u00edch \u1ea3nh' : (n.type === 'dich_vu' ? 'M\u00f4 t\u1ea3 d\u1ecbch v\u1ee5' : 'N\u1ed9i dung tin nh\u1eafn');
+                var label = n.type === 'hinh_anh' ? 'Chú thích ảnh' : (n.type === 'dich_vu' ? 'Mô tả dịch vụ / ưu đãi (tự lấy từ CSDL)' : 'Nội dung tin nhắn');
                 h += '<div class="fb-field"><label>' + label + '</label>' +
                     '<textarea class="fb-textarea" data-f="content" maxlength="1000">' + esc(n.content) + '</textarea></div>';
             }
+
             if (n.type === 'dich_vu') {
-                h += '<div class="fb-row"><div class="fb-field"><label>Th\u1eddi l\u01b0\u1ee3ng (ph\u00fat)</label>' +
+                h += '<div class="fb-row"><div class="fb-field"><label>Thời lượng (phút)</label>' +
                     '<input class="fb-input" type="number" min="0" data-f="duration" value="' + (n.duration || 0) + '"></div>' +
-                    '<div class="fb-field"><label>Gi\u00e1 (\u0111)</label>' +
+                    '<div class="fb-field"><label>Giá từ CSDL (đ)</label>' +
                     '<input class="fb-input" type="number" min="0" step="1000" data-f="price" value="' + (n.price || 0) + '"></div></div>';
             }
+
             if (n.type === 'hinh_anh') {
                 var imgUrl = FlowEngine.safeUrl(n.image_url);
-                h += '<div class="fb-field"><label>\u1ea2nh</label><div class="fb-upload" data-drop>' +
+                h += '<div class="fb-field"><label>Ảnh</label><div class="fb-upload" data-drop>' +
                     (imgUrl ? '<img class="fb-upload-prev" alt="" src="' + esc(imgUrl) + '">'
-                            : '<div class="fb-upload-empty">Ch\u01b0a c\u00f3 \u1ea3nh \u00b7 k\u00e9o \u1ea3nh v\u00e0o \u0111\u00e2y ho\u1eb7c b\u1ea5m T\u1ea3i \u1ea3nh l\u00ean</div>') +
+                            : '<div class="fb-upload-empty">Chưa có ảnh · kéo ảnh vào đây hoặc bấm Tải ảnh lên</div>') +
                     '<div class="fb-upload-actions"><label class="fb-addopt fb-upload-btn">' +
-                    (imgUrl ? '\u0110\u1ed5i \u1ea3nh' : 'T\u1ea3i \u1ea3nh l\u00ean') +
+                    (imgUrl ? 'Đổi ảnh' : 'Tải ảnh lên') +
                     '<input type="file" hidden data-upload accept="image/jpeg,image/png,image/webp,image/gif"></label>' +
-                    (imgUrl ? '<button type="button" class="fb-addopt" data-act="clear-img">X\u00f3a \u1ea3nh</button>' : '') +
-                    '</div></div><div class="fb-help" id="fbUpMsg">JPG, PNG, WEBP ho\u1eb7c GIF, t\u1ed1i \u0111a 5 MB.</div></div>' +
-                    '<div class="fb-field"><label>Ho\u1eb7c d\u00e1n \u0111\u01b0\u1eddng d\u1eabn \u1ea3nh</label>' +
+                    (imgUrl ? '<button type="button" class="fb-addopt" data-act="clear-img">Xóa ảnh</button>' : '') +
+                    '</div></div><div class="fb-help" id="fbUpMsg">JPG, PNG, WEBP hoặc GIF, tối đa 5 MB.</div></div>' +
+                    '<div class="fb-field"><label>Hoặc dán đường dẫn ảnh</label>' +
                     '<input class="fb-input" data-f="image_url" placeholder="https://..." value="' + esc(n.image_url || '') + '"></div>';
             }
 
             if (n.type !== 'chat_truc_tiep') {
-                h += '<div class="fb-field"><label>N\u00fat l\u1ef1a ch\u1ecdn (\u0111i\u1ec1u h\u01b0\u1edbng)</label>';
+                h += '<div class="fb-field"><label>Nút lựa chọn (điều hướng)</label>';
                 n.options.forEach(function (opt, idx) {
                     var fixed = LINKABLE.indexOf(n.type) === -1;
                     h += '<div class="fb-optcard"><div class="fb-optline">' +
                         '<input class="fb-input" data-opt-text="' + idx + '" value="' + esc(opt.text) + '" maxlength="100">' +
                         (fixed ? '' : '<button type="button" class="fb-iconbtn" data-act="del-opt" data-idx="' + idx +
-                            '" title="X\u00f3a n\u00fat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+                            '" title="Xóa nút"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
                             'stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>') +
-                        '</div><small>B\u01b0\u1edbc ti\u1ebfp theo</small>' + nextSelect(n, opt, idx) + '</div>';
+                        '</div><small>Bước tiếp theo</small>' + nextSelect(n, opt, idx) + '</div>';
                 });
+
                 if (LINKABLE.indexOf(n.type) !== -1) {
-                    h += '<button type="button" class="fb-addopt" data-act="add-opt">+ Th\u00eam n\u00fat l\u1ef1a ch\u1ecdn</button>';
+                    // 1. Hộp công cụ chọn nút bấm từ CSDL KHUYẾN MÃI / ƯU ĐÃI
+                    if (catalog.promotions && catalog.promotions.length) {
+                        h += '<div style="background:#FFF8F6;padding:10px;border-radius:10px;border:1px solid #F1D2CE;margin-bottom:8px">' +
+                            '<small style="display:block;font-weight:700;color:#8B1515;margin-bottom:6px">★ Thêm nút bấm từ CSDL Khuyến mãi / Ưu đãi:</small>' +
+                            '<div style="display:flex;gap:6px;margin-bottom:6px">' +
+                            '<select class="fb-select" id="fbQuickPromoOpt" style="flex:1">' +
+                            '<option value="">-- Chọn chương trình ưu đãi --</option>';
+                        catalog.promotions.forEach(function (ct) {
+                            h += '<option value="' + esc(ct.ma_ctud) + '">[' + esc(ct.ma_ctud) + '] ' + esc(ct.ten_chuong_trinh) + ' (' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ)</option>';
+                        });
+                        h += '</select>' +
+                            '<button type="button" class="fb-addopt" data-act="add-db-promo-opt" style="width:auto;padding:6px 10px;white-space:nowrap;font-size:12px;background:#1a1a1a;color:#fff">+ Thêm nút</button>' +
+                            '</div>' +
+                            '<button type="button" class="fb-addopt" data-act="add-all-db-promos" style="font-size:12px">' +
+                            '+ Thêm tất cả chương trình Ưu đãi từ CSDL (' + catalog.promotions.length + ' ưu đãi)</button>' +
+                            '</div>';
+                    }
+
+                    // 2. Hộp công cụ chọn nút bấm từ CSDL DỊCH VỤ
+                    if (catalog.services.length) {
+                        h += '<div style="background:#FAF7F2;padding:10px;border-radius:10px;border:1px solid #E8DFD2;margin-bottom:8px">' +
+                            '<small style="display:block;font-weight:700;color:#9A7B3E;margin-bottom:6px">★ Thêm nút bấm từ CSDL Dịch vụ:</small>' +
+                            '<div style="display:flex;gap:6px;margin-bottom:6px">' +
+                            '<select class="fb-select" id="fbQuickServiceOpt" style="flex:1">' +
+                            '<option value="">-- Chọn dịch vụ trong CSDL --</option>';
+                        catalog.services.forEach(function (dv) {
+                            h += '<option value="' + esc(dv.ma_dv) + '">' + esc(dv.ten_dich_vu) + ' (' + FlowEngine.money(dv.gia_dich_vu) + ' đ)</option>';
+                        });
+                        h += '</select>' +
+                            '<button type="button" class="fb-addopt" data-act="add-db-service-opt" style="width:auto;padding:6px 10px;white-space:nowrap;font-size:12px;background:#1a1a1a;color:#fff">+ Thêm nút</button>' +
+                            '</div>';
+
+                        if (catalog.categories && catalog.categories.length) {
+                            h += '<button type="button" class="fb-addopt" data-act="add-db-categories" style="font-size:12px">' +
+                                '+ Thêm các nút Loại dịch vụ từ CSDL (' + catalog.categories.length + ' loại)</button>';
+                        }
+                        h += '</div>';
+                    }
+
+                    h += '<button type="button" class="fb-addopt" data-act="add-opt">+ Thêm nút lựa chọn tự gõ</button>';
                 }
                 h += '</div>';
             } else {
-                h += '<div class="fb-note">\u0110\u00e2y l\u00e0 b\u01b0\u1edbc cu\u1ed1i: nh\u00e2n vi\u00ean trao \u0111\u1ed5i tr\u1ef1c ti\u1ebfp v\u1edbi kh\u00e1ch trong khung chat.</div>';
+                h += '<div class="fb-note">Đây là bước cuối: nhân viên trao đổi trực tiếp với khách trong khung chat.</div>';
             }
             panelBody.innerHTML = h;
         }
@@ -148,7 +284,6 @@
             $('#fbDel').disabled = !on;
         }
 
-        // G\u00f5 trong b\u1ea3ng thu\u1ed9c t\u00ednh: c\u1eadp nh\u1eadt t\u1ee9c th\u1eddi l\u00ean s\u01a1 \u0111\u1ed3
         panelBody.addEventListener('input', function (e) {
             var t = e.target, id = engine.selectedId;
             if (!id) return;
@@ -161,10 +296,51 @@
                 engine.updateOption(id, parseInt(t.dataset.optText, 10), { text: t.value });
             }
         });
-        // R\u1eddi \u00f4 nh\u1eadp / \u0111\u1ed5i l\u1ef1a ch\u1ecdn: ghi v\u00e0o l\u1ecbch s\u1eed (undo)
+
         panelBody.addEventListener('change', function (e) {
             var t = e.target, id = engine.selectedId;
             if (!id) return;
+
+            // Khi chọn 1 Dịch vụ từ Dropdown CSDL -> Tự động điền Tên, Mô tả, Thời lượng, Giá tiền
+            if (t.dataset.dbService !== undefined) {
+                var maDv = t.value;
+                var dv = catalog.services.find(function (x) { return x.ma_dv === maDv; });
+                if (dv) {
+                    engine.update(id, {
+                        ma_dv: dv.ma_dv,
+                        ma_ctud: '',
+                        title: dv.ten_dich_vu,
+                        content: dv.mo_ta || ('Loại dịch vụ: ' + dv.loai_dich_vu + ' · Thời lượng: ' + dv.thoi_luong + ' phút'),
+                        duration: dv.thoi_luong,
+                        price: dv.gia_dich_vu
+                    });
+                    engine.commit('structure');
+                    renderPanel(id);
+                    toast('Đã cập nhật dịch vụ "' + dv.ten_dich_vu + '" (' + FlowEngine.money(dv.gia_dich_vu) + ' đ) từ CSDL.');
+                }
+                return;
+            }
+
+            // Khi chọn 1 Chương trình Ưu đãi từ Dropdown CSDL -> Tự động điền Tên ưu đãi, Mô tả, Thời lượng, Giá ưu đãi
+            if (t.dataset.dbPromo !== undefined) {
+                var maCtud = t.value;
+                var ct = catalog.promotions.find(function (x) { return x.ma_ctud === maCtud; });
+                if (ct) {
+                    engine.update(id, {
+                        ma_ctud: ct.ma_ctud,
+                        ma_dv: '',
+                        title: ct.ten_chuong_trinh,
+                        content: ct.mo_ta,
+                        duration: ct.thoi_luong,
+                        price: ct.gia_tri_uu_dai
+                    });
+                    engine.commit('structure');
+                    renderPanel(id);
+                    toast('Đã cập nhật ưu đãi "' + ct.ten_chuong_trinh + '" (' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ) từ CSDL.');
+                }
+                return;
+            }
+
             if (t.dataset.upload !== undefined) {
                 if (t.files && t.files[0]) uploadImage(id, t.files[0]);
                 t.value = '';
@@ -177,25 +353,142 @@
                 engine.commit('text');
             }
         });
+
+        // Hàm trợ giúp tạo hoặc tìm Node chi tiết cho 1 Chương trình Ưu đãi
+        function ensurePromoTargetNode(parentNode, ct, offsetIndex) {
+            var targetNode = engine.graph.nodes.find(function (x) {
+                return x.type === 'dich_vu' && (x.ma_ctud === ct.ma_ctud || x.title === ct.ten_chuong_trinh);
+            });
+            if (!targetNode) {
+                var newNodes = FlowEngine.createNodes('dich_vu', parentNode.x + 320, parentNode.y + (offsetIndex * 110));
+                targetNode = newNodes[0];
+                targetNode.ma_ctud = ct.ma_ctud;
+                targetNode.title = ct.ten_chuong_trinh;
+                targetNode.content = ct.mo_ta;
+                targetNode.duration = ct.thoi_luong;
+                targetNode.price = ct.gia_tri_uu_dai;
+                engine.graph.nodes.push(targetNode);
+            }
+            return targetNode;
+        }
+
         panelBody.addEventListener('click', function (e) {
             var b = e.target.closest('[data-act]'), id = engine.selectedId;
             if (!b || !id) return;
+            var n = engine.node(id);
+            if (!n) return;
+
             if (b.dataset.act === 'clear-img') { engine.update(id, { image_url: '' }); engine.commit('structure'); }
             if (b.dataset.act === 'add-opt') engine.addOption(id);
             if (b.dataset.act === 'del-opt') engine.removeOption(id, parseInt(b.dataset.idx, 10));
+
+            // Thêm 1 nút bấm Khuyến mãi / Ưu đãi từ CSDL kèm tạo hộp báo giá ưu đãi
+            if (b.dataset.act === 'add-db-promo-opt') {
+                var selPromo = $('#fbQuickPromoOpt');
+                var maCtud = selPromo ? selPromo.value : '';
+                var ct = catalog.promotions.find(function (x) { return x.ma_ctud === maCtud; });
+                if (!ct) {
+                    toast('Hãy chọn 1 chương trình ưu đãi trong danh sách trước khi bấm Thêm nút.', 'warn');
+                    return;
+                }
+                var targetPromoNode = ensurePromoTargetNode(n, ct, n.options.length);
+                n.options.push({
+                    id: FlowEngine.uid('o'),
+                    text: ct.ten_chuong_trinh.slice(0, 100),
+                    nextId: targetPromoNode.id
+                });
+                engine.render();
+                engine.commit('structure');
+                toast('Đã thêm nút ưu đãi "' + ct.ten_chuong_trinh + '" & nối tới hộp giá (' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ).');
+            }
+
+            // Thêm TẤT CẢ chương trình Ưu đãi từ CSDL thành các nút lựa chọn & nối sẵn hộp giá
+            if (b.dataset.act === 'add-all-db-promos') {
+                var addedPromo = 0;
+                catalog.promotions.forEach(function (ct) {
+                    var btnLabel = ct.ten_chuong_trinh.slice(0, 100);
+                    var exists = n.options.some(function (o) { return o.text === btnLabel; });
+                    if (!exists) {
+                        var targetPromoNode = ensurePromoTargetNode(n, ct, n.options.length);
+                        n.options.push({
+                            id: FlowEngine.uid('o'),
+                            text: btnLabel,
+                            nextId: targetPromoNode.id
+                        });
+                        addedPromo++;
+                    }
+                });
+                if (addedPromo > 0) {
+                    engine.render();
+                    engine.commit('structure');
+                    toast('Đã thêm ' + addedPromo + ' chương trình Ưu đãi từ CSDL kèm hộp chi tiết giá.');
+                } else {
+                    toast('Tất cả chương trình Ưu đãi trong CSDL đã có sẵn ở bước này.', 'warn');
+                }
+            }
+
+            // Thêm các nút Loại dịch vụ từ CSDL
+            if (b.dataset.act === 'add-db-categories') {
+                var added = 0;
+                catalog.categories.forEach(function (catName) {
+                    var exists = n.options.some(function (o) { return o.text === catName; });
+                    if (!exists) {
+                        n.options.push({ id: FlowEngine.uid('o'), text: catName, nextId: '' });
+                        added++;
+                    }
+                });
+                if (added > 0) {
+                    engine.refreshNode(id);
+                    engine.commit('structure');
+                    toast('Đã thêm ' + added + ' nút Loại dịch vụ từ CSDL.');
+                } else {
+                    toast('Các Loại dịch vụ này đã có sẵn trong bước hiện tại.', 'warn');
+                }
+            }
+
+            // Thêm 1 nút Dịch vụ từ CSDL kèm hộp báo giá
+            if (b.dataset.act === 'add-db-service-opt') {
+                var sel = $('#fbQuickServiceOpt');
+                var maDv = sel ? sel.value : '';
+                var dv = catalog.services.find(function (x) { return x.ma_dv === maDv; });
+                if (!dv) {
+                    toast('Hãy chọn 1 dịch vụ trong danh sách trước khi bấm Thêm nút.', 'warn');
+                    return;
+                }
+                var targetNode = engine.graph.nodes.find(function (x) {
+                    return x.type === 'dich_vu' && (x.ma_dv === dv.ma_dv || x.title === dv.ten_dich_vu);
+                });
+                if (!targetNode) {
+                    var newNodes = FlowEngine.createNodes('dich_vu', n.x + 300, n.y + (n.options.length * 90));
+                    targetNode = newNodes[0];
+                    targetNode.ma_dv = dv.ma_dv;
+                    targetNode.title = dv.ten_dich_vu;
+                    targetNode.content = dv.mo_ta || ('Loại dịch vụ: ' + dv.loai_dich_vu);
+                    targetNode.duration = dv.thoi_luong;
+                    targetNode.price = dv.gia_dich_vu;
+                    engine.graph.nodes.push(targetNode);
+                }
+                n.options.push({
+                    id: FlowEngine.uid('o'),
+                    text: dv.ten_dich_vu,
+                    nextId: targetNode.id
+                });
+                engine.render();
+                engine.commit('structure');
+                toast('Đã thêm nút "' + dv.ten_dich_vu + '" & nối tới hộp giá (' + FlowEngine.money(dv.gia_dich_vu) + ' đ).');
+            }
         });
 
-
-        /* ---------------- T\u1ea3i \u1ea3nh l\u00ean ---------------- */
+        /* ---------------- Tải ảnh lên ---------------- */
         var IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
         function upMsg(text, bad) {
             var m = $('#fbUpMsg');
-            if (m) { m.textContent = text; m.style.color = bad ? '#8B1515' : ''; }
+            if (m) { m.textContent = text; m.style.color = bad ? '#dc3545' : ''; }
         }
         function uploadImage(id, file) {
-            if (IMG_TYPES.indexOf(file.type) === -1) { upMsg('Ch\u1ec9 nh\u1eadn \u1ea3nh JPG, PNG, WEBP ho\u1eb7c GIF.', true); return; }
-            if (file.size > 5 * 1024 * 1024) { upMsg('\u1ea2nh qu\u00e1 l\u1edbn, t\u1ed1i \u0111a 5 MB.', true); return; }
-            upMsg('\u0110ang t\u1ea3i \u1ea3nh l\u00ean...');
+            if (IMG_TYPES.indexOf(file.type) === -1) { upMsg('Chỉ nhận ảnh JPG, PNG, WEBP hoặc GIF.', true); return; }
+            if (file.size > 5 * 1024 * 1024) { upMsg('Ảnh quá lớn, tối đa 5 MB.', true); return; }
+            upMsg('Đang tải ảnh lên...');
             var fd = new FormData();
             fd.append('image', file);
             fetch(cfg.uploadUrl, {
@@ -204,7 +497,7 @@
             }).then(function (res) {
                 return res.json().catch(function () { return null; }).then(function (data) {
                     if (!res.ok || !data || !data.ok) {
-                        throw new Error((data && data.error) || ('L\u1ed7i m\u00e1y ch\u1ee7 (' + res.status + ')'));
+                        throw new Error((data && data.error) || ('Lỗi máy chủ (' + res.status + ')'));
                     }
                     return data;
                 });
@@ -212,12 +505,11 @@
                 if (!engine.node(id)) return;
                 engine.update(id, { image_url: data.url });
                 engine.commit('structure');
-                toast('\u0110\u00e3 t\u1ea3i \u1ea3nh l\u00ean. Nh\u1edb b\u1ea5m L\u01b0u thay \u0111\u1ed5i.');
+                toast('Đã tải ảnh lên. Nhớ bấm Lưu thay đổi.');
             }).catch(function (err) {
-                upMsg('Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c \u1ea3nh: ' + err.message, true);
+                upMsg('Không tải được ảnh: ' + err.message, true);
             });
         }
-        // K\u00e9o th\u1ea3 file \u1ea3nh v\u00e0o khung t\u1ea3i \u1ea3nh
         panelBody.addEventListener('dragover', function (e) {
             if (e.target.closest('[data-drop]')) e.preventDefault();
         });
@@ -228,18 +520,18 @@
             if (f && engine.selectedId) uploadImage(engine.selectedId, f);
         });
 
-        /* ---------------- Th\u00eam node ---------------- */
+        /* ---------------- Thêm node ---------------- */
         function addByType(type, opt) {
             opt = opt || {};
             if (type === 'nut_lua_chon') {
                 var tid = opt.dropNode || engine.selectedId, tn = tid && engine.node(tid);
                 if (!tn || LINKABLE.indexOf(tn.type) === -1) {
-                    toast('H\u00e3y ch\u1ecdn m\u1ed9t kh\u1ed1i Tin nh\u1eafn, H\u00ecnh \u1ea3nh ho\u1eb7c D\u1ecbch v\u1ee5 r\u1ed3i th\u00eam n\u00fat l\u1ef1a ch\u1ecdn.', 'warn');
+                    toast('Hãy chọn một khối Tin nhắn, Hình ảnh hoặc Dịch vụ rồi thêm nút lựa chọn.', 'warn');
                     return;
                 }
                 engine.select(tid);
                 engine.addOption(tid);
-                toast('\u0110\u00e3 th\u00eam m\u1ed9t n\u00fat l\u1ef1a ch\u1ecdn m\u1edbi v\u00e0o "' + (tn.title || 'b\u01b0\u1edbc') + '".');
+                toast('Đã thêm một nút lựa chọn mới vào "' + (tn.title || 'bước') + '".');
                 return;
             }
             var x = opt.x, y = opt.y;
@@ -248,7 +540,35 @@
                 x = c.x - 120 + cascade; y = c.y - 60 + cascade;
                 cascade = (cascade + 28) % 140;
             }
+
+            // Khi kéo hoặc bấm thêm mới khối "Ưu đãi & Khuyến mãi (CSDL)"
+            if (type === 'khuyen_mai') {
+                var promoNodes = FlowEngine.createNodes('dich_vu', Math.round(x), Math.round(y));
+                if (catalog.promotions && catalog.promotions.length) {
+                    var firstPromo = catalog.promotions[0];
+                    promoNodes[0].ma_ctud = firstPromo.ma_ctud;
+                    promoNodes[0].title = firstPromo.ten_chuong_trinh;
+                    promoNodes[0].content = firstPromo.mo_ta;
+                    promoNodes[0].duration = firstPromo.thoi_luong;
+                    promoNodes[0].price = firstPromo.gia_tri_uu_dai;
+                } else {
+                    promoNodes[0].title = 'Chương trình ưu đãi';
+                    promoNodes[0].content = 'Ưu đãi đặc quyền tại Charm Spa.';
+                }
+                engine.add(promoNodes, promoNodes[0].id);
+                return;
+            }
+
             var nodes = FlowEngine.createNodes(type, Math.round(x), Math.round(y));
+            // Khi kéo hoặc bấm thêm mới khối "Dịch vụ & Giá (CSDL)", tự động gán dịch vụ đầu tiên trong CSDL
+            if (type === 'dich_vu' && catalog.services.length) {
+                var firstDv = catalog.services[0];
+                nodes[0].ma_dv = firstDv.ma_dv;
+                nodes[0].title = firstDv.ten_dich_vu;
+                nodes[0].content = firstDv.mo_ta || ('Loại dịch vụ: ' + firstDv.loai_dich_vu);
+                nodes[0].duration = firstDv.thoi_luong;
+                nodes[0].price = firstDv.gia_dich_vu;
+            }
             engine.add(nodes, nodes[0].id);
         }
 
@@ -292,7 +612,7 @@
             engine.remove(id);
         }
 
-        /* ---------------- Ph\u00edm t\u1eaft ---------------- */
+        /* ---------------- Phím tắt ---------------- */
         document.addEventListener('keydown', function (e) {
             var tag = (e.target.tagName || '').toLowerCase();
             var typing = tag === 'input' || tag === 'textarea' || tag === 'select';
@@ -304,7 +624,7 @@
             else if (e.key === 'Delete') { deleteSelected(); }
         });
 
-        /* ---------------- L\u01b0u ---------------- */
+        /* ---------------- Lưu ---------------- */
         function csrf() {
             var el = document.querySelector('[name=csrfmiddlewaretoken]');
             return el ? el.value : '';
@@ -328,18 +648,18 @@
             }).then(function (res) {
                 return res.json().catch(function () { return null; }).then(function (data) {
                     if (!res.ok || !data || !data.ok) {
-                        throw new Error((data && data.error) || ('L\u1ed7i m\u00e1y ch\u1ee7 (' + res.status + ')'));
+                        throw new Error((data && data.error) || ('Lỗi máy chủ (' + res.status + ')'));
                     }
                     return data;
                 });
             }).then(function (data) {
                 engine.applyServerIds(data.graph);
                 setDirty(false);
-                toast('\u0110\u00e3 l\u01b0u thay \u0111\u1ed5i k\u1ecbch b\u1ea3n l\u00fac ' + data.saved_at + '.');
+                toast('Đã lưu thay đổi kịch bản lúc ' + data.saved_at + '.');
                 var loose = countLoose();
-                if (loose) setTimeout(function () { toast(loose + ' n\u00fat l\u1ef1a ch\u1ecdn ch\u01b0a \u0111\u01b0\u1ee3c n\u1ed1i t\u1edbi b\u01b0\u1edbc n\u00e0o.', 'warn'); }, 600);
+                if (loose) setTimeout(function () { toast(loose + ' nút lựa chọn chưa được nối tới bước nào.', 'warn'); }, 600);
             }).catch(function (err) {
-                toast('Kh\u00f4ng l\u01b0u \u0111\u01b0\u1ee3c: ' + err.message, 'error');
+                toast('Không lưu được: ' + err.message, 'error');
             }).then(function () {
                 saving = false;
                 btnSave.disabled = false;
@@ -347,17 +667,16 @@
         }
         btnSave.addEventListener('click', save);
 
-        // C\u1ea3nh b\u00e1o khi r\u1eddi trang m\u00e0 ch\u01b0a l\u01b0u
         window.addEventListener('beforeunload', function (e) {
             if (dirty) { e.preventDefault(); e.returnValue = ''; }
         });
         var previewBtn = $('#fbPreview');
         if (previewBtn) previewBtn.addEventListener('click', function (e) {
-            if (dirty && !window.confirm('B\u1ea1n c\u00f3 thay \u0111\u1ed5i ch\u01b0a l\u01b0u. Xem tr\u01b0\u1edbc s\u1ebd d\u00f9ng b\u1ea3n \u0111\u00e3 l\u01b0u g\u1ea7n nh\u1ea5t. V\u1eabn ti\u1ebfp t\u1ee5c?')) {
+            if (dirty && !window.confirm('Bạn có thay đổi chưa lưu. Xem trước sẽ dùng bản đã lưu gần nhất. Vẫn tiếp tục?')) {
                 e.preventDefault();
             }
         });
 
-        window.__flowEngine = engine; // ph\u1ee5c v\u1ee5 g\u1ee1 l\u1ed7i tr\u00ean console
+        window.__flowEngine = engine;
     });
 })();

@@ -27,6 +27,7 @@ from . import flow_utils
 from . import identity
 from .identity import customer_contact
 from .models import BuocChatbot, KichBanChatbot, PhienHoiThoai, TinNhan, YeuCauTuVan
+from .permissions import staff_portal_required
 
 SESSION_RE = re.compile(r'^[A-Za-z0-9]{6,10}$')
 MAX_MESSAGE_LEN = 1000
@@ -181,13 +182,12 @@ def chat_flow(request):
 
     phien = get_or_create_session(sid, request.user)
     if not _can_access(request, phien):
-        # Mã phiên cũ thuộc người khác: cấp mã mới thay vì báo lỗi
         sid = 'P' + uuid.uuid4().hex[:9].upper()
         phien = get_or_create_session(sid, request.user)
     graph = _graph_of(phien)
 
     node_id = str(data.get('node_id') or '')[:40]
-    if not node_id:                                   # bắt đầu kịch bản
+    if not node_id:
         target = cl.start_target(graph)
         if target is not None and not TinNhan.objects.filter(ma_pht=phien).exists():
             _log(phien, 'Chatbot', cl.node_log_text(target), target)
@@ -246,10 +246,8 @@ def chat_state(request):
     if phien is None:
         return JsonResponse({'ok': True, 'exists': False})
     if not _can_access(request, phien):
-        # Phiên thuộc người khác: báo cho widget tự cấp mã phiên mới
         return JsonResponse({'ok': True, 'exists': False, 'forbidden': True})
 
-    # Khách chat lúc chưa đăng nhập rồi đăng nhập sau: gắn hội thoại vào hồ sơ khách để hiện ở "Lịch sử hội thoại"
     kh = identity.get_khach_hang(request.user)
     if kh is not None and phien.ma_kh_id is None:
         phien.ma_kh = kh
@@ -301,7 +299,7 @@ def chat_send(request):
 
 
 # ==========================================================================
-# PHẦN B - Quản lý hội thoại (Admin / CSKH)
+# PHẦN B - Quản lý hội thoại (Nhân viên / Quản lý / Superuser)
 # ==========================================================================
 def _short(text, limit=70):
     text = ' '.join(cl.plain_text(text).split())
@@ -315,7 +313,7 @@ def _conversation_rows():
 
     requests_by_session = {}
     for yc in YeuCauTuVan.objects.filter(ma_pht_id__in=ids).order_by('thoi_gian_yeu_cau'):
-        requests_by_session[yc.ma_pht_id] = yc          # bản ghi sau (mới hơn) ghi đè bản trước
+        requests_by_session[yc.ma_pht_id] = yc
 
     last_by_session = {}
     for row in (TinNhan.objects.filter(ma_pht_id__in=ids).order_by('thoi_gian')
@@ -360,10 +358,9 @@ def _filter_rows(rows, q, period):
     return rows
 
 
+@staff_portal_required
 def admin_conversation_list(request):
     """Quản lý hội thoại: tab trạng thái có số lượng, tìm kiếm, lọc thời gian, phân trang, xuất báo cáo."""
-    if not identity.is_staff_user(request.user):
-        return redirect('dang_nhap')
     q = (request.GET.get('q') or '').strip()[:100]
     status = request.GET.get('status') or ''
     period = request.GET.get('period') or 'all'
@@ -418,7 +415,7 @@ def admin_conversation_list(request):
 def _export_csv(rows):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="hoi_thoai_{_now_local():%Y%m%d_%H%M}.csv"'
-    response.write('\ufeff')                       # BOM để Excel đọc đúng tiếng Việt
+    response.write('\ufeff')
     writer = csv.writer(response)
     writer.writerow(['Mã hội thoại', 'Khách hàng', 'Số điện thoại', 'Email', 'Nhu cầu',
                      'Nội dung gần nhất', 'Thời gian', 'Nhân viên phụ trách', 'Trạng thái'])
@@ -428,10 +425,9 @@ def _export_csv(rows):
     return response
 
 
+@staff_portal_required
 def admin_conversation_detail(request, session_id):
     """Chi tiết hội thoại: danh sách trong ngày | nội dung trao đổi | thông tin khách và lịch sử xử lý."""
-    if not identity.is_staff_user(request.user):
-        return redirect('dang_nhap')
     conv = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
     yc = _latest_request(conv)
     info = _request_summary(yc) if yc else {'fullname': '', 'phone': '', 'email': '', 'topic': ''}
@@ -500,7 +496,7 @@ def _accept(yc, user):
 
 
 def _staff_denied(request):
-    """JsonResponse lỗi nếu người dùng không phải nhân viên / quản trị viên; None nếu hợp lệ."""
+    """JsonResponse lỗi nếu người dùng không phải Nhân viên / Quản lý / Superuser; None nếu hợp lệ."""
     if not request.user.is_authenticated:
         return _err('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.', 401)
     if not identity.is_staff_user(request.user):
@@ -557,12 +553,10 @@ def admin_conversation_reply(request, session_id):
     return JsonResponse({'ok': True, 'id': tn.ma_tn, 'time': _fmt(tn.thoi_gian, '%H:%M'), 'staff': name})
 
 
+@staff_portal_required
 def admin_conversation_complete(request, session_id):
     """Xác nhận hoàn tất hội thoại từ hộp thoại (kèm ghi chú xử lý)."""
     if request.method != 'POST':
-        return redirect('chatbot:admin_conversation_detail', session_id=session_id)
-    if not identity.is_staff_user(request.user):
-        dj_messages.error(request, 'Bạn cần đăng nhập bằng tài khoản nhân viên để thực hiện thao tác này.')
         return redirect('chatbot:admin_conversation_detail', session_id=session_id)
 
     conv = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
@@ -607,7 +601,7 @@ def admin_conversation_messages(request, session_id):
 
 
 # ==========================================================================
-# Lịch sử hội thoại cá nhân của khách hàng (thay cho bản cũ trong views.py)
+# Lịch sử hội thoại cá nhân của khách hàng
 # ==========================================================================
 def customer_chat_history(request):
     if not request.user.is_authenticated:

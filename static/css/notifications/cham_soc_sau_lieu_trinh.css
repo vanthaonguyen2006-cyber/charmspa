@@ -1,0 +1,100 @@
+/* Charm Grand Spa | Aftercare | Scoped to hdcs components */
+.hdcs-page{--hdcs-ink:#302d27;--hdcs-muted:#8a8176;--hdcs-gold:#b58a50;--hdcs-gold-dark:#8c6d4f;--hdcs-line:#e9dfd3;--hdcs-soft:#faf7f1;box-sizing:border-box;background:#f8f5ef;color:var(--hdcs-ink);min-height:calc(100vh - 90px);padding:28px 26px 60px;font-family:'Montserrat','Segoe UI',Arial,sans-serif}
+.hdcs-page *, .hdcs-modal *{box-sizing:border-box}
+.hdcs-page svg, .hdcs-modal svg{width:17px;height:17px;stroke-width:1.85;flex-shrink:0}
+.hdcs-wrap{max-width:1360px;margin:0 auto}
+.hdcs-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.hdcs-eyebrow{display:flex;align-items:center;gap:7px;color:#a57d49;font-size:10px;letter-spacing:1.65px;font-weight:800;text-transform:uppercase}
+.hdcs-eyebrow svg{width:15px;height:15px}
+.hdcs-heading h1{font-family:inherit;font-size:26px;font-weight:750;letter-spacing:-.6px;line-height:1.28;margin:9px 0 6px}
+.hdcs-heading p{font-size:12px;color:var(--hdcs-muted);line-height:1.65;margin:0}
+.hdcs-note{display:flex;align-items:center;gap:9px;color:#8c6d4f;font-size:11px;font-weight:600;padding:10px 13px;border:1px solid #e7daca;background:#fff;border-radius:10px;line-height:1.6}
+.hdcs-note svg{width:16px;height:16px}
+.hdcs-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:22px}
+.hdcs-metric{min-height:114px;background:#fff;border:1px solid #ece3d8;border-radius:14px;padding:19px 21px;box-shadow:0 3px 15px rgba(50,36,20,.025)}
+.hdcs-metric:first-child{background:#fff9ef;border-color:#e7d9c4}
+.hdcs-metric-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hdcs-metric-name{color:#84796d;font-size:12px;font-weight:600}
+.hdcs-metric-icon{width:35px;height:35px;display:flex;align-items:center;justify-content:center;background:#f8f2e9;color:#a77c44;border-radius:10px}
+.hdcs-metric:first-child .hdcs-metric-icon{background:#f0e3ce}
+.hdcs-metric-value{font-size:32px;line-height:1.1;font-weight:750;letter-spacing:-1px;margin-top:5px;color:#302d27;font-variant-numeric:tabular-nums}
+.hdcs-panel{background:#fff;border:1px solid #e9e1d6;border-radius:16px;box-shadow:0 4px 20px rgba(50,36,20,.035);overflow:hidden}
+.hdcs-panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:19px 22px;border-bottom:1px solid #eee6dc}
+.hdcs-panel-title{display:flex;align-items:center;gap:11px}
+.hdcs-heading-icon{display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#faf4eb;color:#a77d4b;border-radius:11px}
+.hdcs-panel-head h2{font-family:inherit;font-size:17px;font-weight:750;margin:0 0 3px}
+.hdcs-panel-head p{font-size:11px;color:#978c80;margin:0}
+.hdcs-controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.hdcs-search-wrap{display:flex;align-items:center;gap:8px;border:1px solid #e7ddd1;border-radius:10px;padding:0 12px;background:#fff;min-width:245px}
+.hdcs-search-wrap svg{color:#a19485;width:16px;height:16px}
+.hdcs-search{width:230px;max-width:100%;height:39px;outline:0;background:transparent;border:0;font-family:inherit;font-size:12px;color:#40362d}
+.hdcs-filter{height:41px;background:#fff;border:1px solid #e7ddd1;border-radius:10px;color:#594e42;padding:0 12px;font-family:inherit;font-size:12px;outline:0}
+.hdcs-search-wrap:focus-within,.hdcs-filter:focus{border-color:#b58a50;box-shadow:0 0 0 3px rgba(181,138,80,.12)}
+.hdcs-table-wrap{overflow-x:auto}
+.hdcs-table{width:100%;border-collapse:collapse;min-width:890px;font-size:12px}
+.hdcs-table thead{background:#faf7f2}
+.hdcs-table th{text-align:left;padding:15px 18px;font-size:10px;font-weight:800;color:#928375;letter-spacing:.5px;white-space:nowrap}
+.hdcs-table td{padding:15px 18px;border-top:1px solid #f0e9e1;vertical-align:middle;color:#554a40}
+.hdcs-table tbody tr:hover{background:#fdfaf6}
+.hdcs-name{color:#342e28;font-weight:750;font-size:12px}
+.hdcs-sub{color:#a59789;font-size:10px;margin-top:5px}
+.hdcs-pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:750;white-space:nowrap}
+.hdcs-pill::before{content:'';width:6px;height:6px;background:currentColor;border-radius:50%}
+.hdcs-pill.pending{background:#fff3e9;color:#ac7340}
+.hdcs-pill.sent{background:#e9f5ec;color:#43845b}
+.hdcs-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #e3d5c4;background:#fff;color:#8c6d4f;font-family:inherit;font-weight:750;font-size:11px;min-height:37px;padding:9px 13px;border-radius:9px;cursor:pointer;transition:background .15s,border-color .15s}
+.hdcs-btn svg{width:14px;height:14px}
+.hdcs-btn:hover{background:#faf4ea;border-color:#c9b08e}
+.hdcs-btn.primary{background:#b58a50;color:#fff;border-color:#b58a50}
+.hdcs-btn.primary:hover{background:#97703e;border-color:#97703e}
+.hdcs-btn:disabled{opacity:.58;cursor:not-allowed}
+.hdcs-empty{padding:45px 20px;color:#8e8071;font-size:12px;text-align:center}
+.hdcs-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 22px;border-top:1px solid #eee7df;font-size:11px;color:#9b8e7f}
+.hdcs-modal{--hdcs-modal-gold:#b58a50;position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:18px;font-family:'Montserrat','Segoe UI',Arial,sans-serif;color:#302d27}
+.hdcs-modal.is-open{display:flex}
+.hdcs-modal-backdrop{position:absolute;inset:0;background:rgba(31,25,19,.60);backdrop-filter:blur(4px)}
+.hdcs-modal-card{position:relative;width:100%;max-width:670px;max-height:92vh;overflow:auto;padding:24px 27px 20px;background:#fffdfa;border:1px solid #eadccc;border-radius:17px;box-shadow:0 25px 90px rgba(20,14,10,.24)}
+.hdcs-modal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:17px;border-bottom:1px solid #eee3d5}
+.hdcs-modal-top h2{font-family:inherit;font-size:21px;letter-spacing:-.5px;font-weight:750;margin:8px 0 0}
+.hdcs-close{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #eee3d5;border-radius:9px;color:#8e7e70;background:#fff;cursor:pointer}
+.hdcs-close:hover{background:#f8efe3}
+.hdcs-modal-info{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:17px 0 20px;padding:17px;border-radius:12px;border:1px solid #ecdfcd;background:#faf7f1}
+.hdcs-info-key{font-size:11px;color:#8e8070;margin-bottom:5px}
+.hdcs-info-val{font-weight:750;font-size:12px;color:#473a2e;overflow-wrap:anywhere}
+.hdcs-label{display:block;color:#504336;font-weight:750;font-size:12px;margin:15px 0 8px}
+.hdcs-choice{display:block;width:100%;min-height:42px;padding:10px 12px;border:1px solid #e4d8c9;border-radius:10px;background:#fff;color:#51463a;font-family:inherit;font-size:12px}
+.hdcs-choice:focus{outline:0;border-color:#b58a50;box-shadow:0 0 0 3px rgba(181,138,80,.14)}
+.hdcs-template-hint,.hdcs-help{font-size:11px;line-height:1.6;color:#958777;margin:8px 0}
+.hdcs-template-box{padding:14px;border:1px solid #e9dccb;background:#faf7f1;border-radius:11px;margin:13px 0}
+.hdcs-template-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;font-weight:800;color:#936f40}
+.hdcs-template-status{display:flex;align-items:center;gap:4px;color:#478462}
+.hdcs-template-status svg{width:13px;height:13px}
+.hdcs-template-body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8;color:#605446;max-height:185px;overflow-y:auto;margin:11px 0 0}
+.hdcs-editor{border:1px solid #e4d7c7;border-radius:11px;overflow:hidden;background:#fff}
+.hdcs-editor:focus-within{border-color:#b58a50;box-shadow:0 0 0 3px rgba(181,138,80,.12)}
+.hdcs-toolbar{background:#faf6f0;border-bottom:1px solid #eee3d5;display:flex;gap:4px;padding:6px 9px}
+.hdcs-tool{display:flex;align-items:center;justify-content:center;width:31px;height:30px;background:transparent;border:0;border-radius:7px;cursor:pointer;color:#907148;font-size:13px}
+.hdcs-tool:hover{background:#efe3d2}
+.hdcs-tool svg{width:16px;height:16px}
+.hdcs-textarea{display:block;width:100%;min-height:116px;resize:vertical;border:0;outline:0;padding:13px;font-family:inherit;font-size:12px;line-height:1.8;color:#46392d;background:#fff}
+.hdcs-modal-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;padding-top:15px;margin-top:17px;border-top:1px solid #eee5d9}
+.hdcs-modal [hidden]{display:none!important}
+@media(max-width:1080px){.hdcs-panel-head{align-items:flex-start}.hdcs-controls{width:100%}.hdcs-search-wrap{flex:1}.hdcs-search{width:100%}}
+@media(max-width:760px){.hdcs-page{padding:22px 13px 45px}.hdcs-heading h1{font-size:23px}.hdcs-metrics{grid-template-columns:1fr;gap:10px}.hdcs-metric{min-height:auto;padding:15px 18px}.hdcs-metric-value{font-size:27px}.hdcs-panel-head{padding:16px}.hdcs-panel-title{align-items:flex-start}.hdcs-controls{flex-direction:column;align-items:stretch}.hdcs-search-wrap,.hdcs-filter{width:100%}.hdcs-modal-card{padding:18px}.hdcs-modal-info{grid-template-columns:1fr}.hdcs-footer{display:block}.hdcs-footer span{display:block;margin:5px 0}}
+
+/* Aftercare polish: neutral background and compact list actions */
+.hdcs-page{background:transparent}
+.hdcs-metric:first-child{background:#fff;border-color:#ece3d8}
+.hdcs-metric:first-child .hdcs-metric-icon{background:#f8f2e9}
+.hdcs-table th:nth-child(3),.hdcs-table td:nth-child(3){width:142px;max-width:142px}
+.hdcs-table th:last-child,.hdcs-table td:last-child{width:150px;text-align:center}
+.hdcs-table td:last-child .hdcs-btn{min-height:32px;padding:7px 9px;font-size:10px;gap:5px;max-width:132px}
+.hdcs-table td:last-child .hdcs-btn svg{width:12px;height:12px}
+/* Review step inside the existing compose modal */
+.hdcs-review{margin:14px 0;border:1px solid #e6d9c6;border-radius:12px;background:#fff;overflow:hidden}
+.hdcs-review-head{padding:12px 14px;background:#fbf8f3;display:flex;align-items:center;gap:8px;color:#765937;font-size:12px;font-weight:750;border-bottom:1px solid #eee5d9}
+.hdcs-review-content{font-size:12px;line-height:1.85;color:#47392e;padding:15px;white-space:pre-wrap;overflow-wrap:anywhere;max-height:290px;overflow-y:auto}
+.hdcs-review-note{font-size:11px;color:#8d8071;margin:6px 0 0;line-height:1.55}
+.hdcs-btn.review-button{border-color:#b58a50;color:#8c6d4f;background:#fffaf3}
+.hdcs-btn.review-button:hover{background:#f9eddc}
+.hdcs-modal-actions .hdcs-btn{font-size:12px;min-height:37px}

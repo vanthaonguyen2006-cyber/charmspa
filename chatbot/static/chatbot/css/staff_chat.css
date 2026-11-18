@@ -1,4 +1,23 @@
-/* Giao diện Bảng điều khiển Chat CSKH */
+@charset "UTF-8";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+/* Giao diện Bảng điều khiển Chat CSKH - Font Montserrat, Tiêu đề 700, Nút đen */
+.staff-chat-container, .staff-chat-container * {
+    font-family: 'Montserrat', sans-serif !important;
+}
+
+.staff-chat-container h1,
+.staff-chat-container h2,
+.staff-chat-container h3,
+.staff-chat-container h4,
+.staff-chat-container h5,
+.staff-chat-container h6,
+.chat-header h5,
+.chat-header h6 {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 700 !important;
+}
+
 .staff-chat-container {
     display: flex;
     height: 85vh;
@@ -29,12 +48,12 @@
 
 .session-item.active {
     background-color: #e2e8f0;
-    border-left: 4px solid #0d6efd;
+    border-left: 4px solid #1a1a1a;
 }
 
 .session-item .customer-name {
-    font-weight: 600;
-    color: #212529;
+    font-weight: 700;
+    color: #1a1a1a;
     margin-bottom: 2px;
 }
 
@@ -63,7 +82,7 @@
     background-color: #f4f6f8;
 }
 
-/* Bóng bóng tin nhắn */
+/* Bong bóng tin nhắn */
 .message-bubble {
     max-width: 70%;
     margin-bottom: 12px;
@@ -82,7 +101,7 @@
 }
 
 .message-bubble.staff {
-    background-color: #0d6efd;
+    background-color: #1a1a1a;
     color: #ffffff;
     align-self: flex-end;
     margin-left: auto;
@@ -95,7 +114,7 @@
     border: 1px dashed #ced4da;
 }
 
-/* Ô nhập liệu */
+/* Ô nhập liệu & Nút gửi màu đen */
 .chat-input-area {
     padding: 15px;
     border-top: 1px solid #e0e0e0;
@@ -110,4 +129,13 @@
     border: 1px solid #ced4da;
     border-radius: 6px;
     padding: 10px;
+}
+
+.chat-input-area button,
+.staff-chat-container .btn-primary,
+.staff-chat-container .btn-dark {
+    background-color: #1a1a1a !important;
+    border-color: #1a1a1a !important;
+    color: #ffffff !important;
+    font-weight: 600;
 }

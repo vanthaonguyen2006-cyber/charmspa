@@ -1,7 +1,6 @@
 """
 Các view quản lý kịch bản chatbot dạng kéo thả (Flow Builder).
-Thay thế 4 view cũ trong views.py: admin_script_create / detail / edit / preview.
-Các view list, delete, toggle_status vẫn dùng bản trong views.py.
+Chỉ dành cho Quản lý (is_manager_role) và Superuser.
 """
 import json
 import uuid
@@ -16,9 +15,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from . import flow_utils, identity
+from . import flow_utils
 from .permissions import admin_required
 from .models import KichBanChatbot
+from .views import get_services_catalog_from_db
+
 
 @admin_required
 def admin_script_create(request):
@@ -45,6 +46,7 @@ def admin_script_create(request):
     messages.success(request, 'Tạo kịch bản thành công!')
     return redirect('chatbot:admin_script_edit', pk=script.pk)
 
+
 @admin_required
 def admin_script_detail(request, pk):
     """Chi tiết kịch bản: sơ đồ chỉ xem."""
@@ -52,7 +54,9 @@ def admin_script_detail(request, pk):
     return render(request, 'chatbot/admin_script_detail.html', {
         'script': script,
         'graph': flow_utils.load_graph(script),
+        'services_catalog': get_services_catalog_from_db(),
     })
+
 
 @admin_required
 def admin_script_edit(request, pk):
@@ -61,7 +65,9 @@ def admin_script_edit(request, pk):
     return render(request, 'chatbot/admin_script_edit.html', {
         'script': script,
         'graph': flow_utils.load_graph(script),
+        'services_catalog': get_services_catalog_from_db(),
     })
+
 
 @admin_required
 def admin_script_preview(request, pk):
@@ -70,18 +76,14 @@ def admin_script_preview(request, pk):
     return render(request, 'chatbot/admin_script_preview.html', {
         'script': script,
         'graph': flow_utils.load_graph(script),
+        'services_catalog': get_services_catalog_from_db(),
     })
 
 
 @require_POST
+@admin_required
 def admin_script_graph_save(request, pk):
-    """API lưu sơ đồ (JSON). Trình duyệt gọi bằng fetch kèm CSRF token."""
-    if not request.user.is_authenticated:
-        return JsonResponse(
-            {'ok': False, 'error': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'}, status=401)
-    if not identity.is_admin(request.user):
-        return JsonResponse({'ok': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'}, status=403)
-
+    """API lưu sơ đồ (JSON). Chỉ Quản lý và Superuser được phép lưu."""
     script = get_object_or_404(KichBanChatbot, pk=pk)
     try:
         payload = json.loads(request.body.decode('utf-8'))
@@ -100,7 +102,7 @@ def admin_script_graph_save(request, pk):
 
 @require_GET
 def script_graph_api(request):
-    """API công khai: trả sơ đồ của kịch bản đang hoạt động để widget chatbot chạy theo (dùng ở bước sau)."""
+    """API công khai: trả sơ đồ của kịch bản đang hoạt động để widget chatbot chạy theo."""
     script = KichBanChatbot.objects.filter(trang_thai='Đang hoạt động').order_by('pk').first()
     if script is None:
         return JsonResponse({'ok': False, 'graph': None})
@@ -110,11 +112,6 @@ def script_graph_api(request):
     return JsonResponse({'ok': True, 'script': script.ten_kich_ban, 'graph': graph})
 
 
-# --------------------------------------------------------------------------
-# Tải ảnh lên cho hộp "Hình ảnh"
-# Ảnh lưu tại <BASE_DIR>/media/chatbot/ và được phục vụ qua /chatbot/media/<tên>,
-# nên không cần cấu hình MEDIA_ROOT / MEDIA_URL trong settings.
-# --------------------------------------------------------------------------
 def _upload_dir():
     folder = Path(settings.BASE_DIR) / 'media' / 'chatbot'
     folder.mkdir(parents=True, exist_ok=True)
@@ -122,13 +119,8 @@ def _upload_dir():
 
 
 @require_POST
+@admin_required
 def admin_script_image_upload(request):
-    if not request.user.is_authenticated:
-        return JsonResponse(
-            {'ok': False, 'error': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'}, status=401)
-    if not identity.is_admin(request.user):
-        return JsonResponse({'ok': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'}, status=403)
-
     upload = request.FILES.get('image')
     if upload is None:
         return JsonResponse({'ok': False, 'error': 'Chưa chọn ảnh.'}, status=400)
