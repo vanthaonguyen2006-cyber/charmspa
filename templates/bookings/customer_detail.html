@@ -3,14 +3,14 @@
 {% block extra_css %}
    {{ block.super }}
    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
-   <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_20261117_fix1">
+   <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_popup_expand_20261118">
    <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_fix1">
 {% endblock %}
 {% block profile_content %}
 
 
 <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
-<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_20261117_fix1">
+<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_popup_expand_20261118">
 <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_fix1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
@@ -660,5 +660,101 @@
            updateModalSummary(id);
        });
    });
-   </script>
+
+
+// Chỉ thay cách HIỂN THỊ danh sách lý do bên trong popup;
+// select gốc vẫn giữ name, value, onchange và dữ liệu gửi về Django.
+function initializePopupExpandingReason(select) {
+    if (!select || select.dataset.popupExpandingReady === '1') return;
+
+    const picker = document.createElement('div');
+    picker.className = 'popup-expanding-picker';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'popup-expanding-trigger';
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    const label = document.createElement('span');
+    label.className = 'popup-expanding-current';
+    const chevron = document.createElement('span');
+    chevron.className = 'popup-expanding-chevron';
+    chevron.textContent = '⌄';
+    chevron.setAttribute('aria-hidden', 'true');
+    trigger.append(label, chevron);
+
+    const list = document.createElement('div');
+    list.className = 'popup-expanding-choices';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+    const id = select.id || 'reason-' + Math.random().toString(36).slice(2);
+    list.id = id + '-choices';
+    trigger.setAttribute('aria-controls', list.id);
+
+    const setClosed = () => {
+        list.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+    };
+    const sync = () => {
+        const current = select.options[select.selectedIndex];
+        label.textContent = current ? current.textContent.trim() : 'Chọn lý do';
+        list.querySelectorAll('.popup-expanding-option').forEach(button => {
+            button.setAttribute('aria-selected', String(button.dataset.value === select.value));
+        });
+    };
+
+    Array.from(select.options).forEach(option => {
+        if (option.hidden) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'popup-expanding-option';
+        button.setAttribute('role', 'option');
+        button.dataset.value = option.value;
+        button.textContent = option.textContent.trim();
+        button.disabled = option.disabled;
+        button.addEventListener('click', () => {
+            select.value = option.value;
+            // Phát change để giữ nguyên logic hiển thị ô nhập 'Khác'.
+            select.dispatchEvent(new Event('change', {bubbles: true}));
+            sync();
+            setClosed();
+            trigger.focus({preventScroll: true});
+        });
+        list.appendChild(button);
+    });
+
+    trigger.addEventListener('click', () => {
+        const shouldOpen = list.hidden;
+        // Chỉ một danh sách lý do được mở tại một thời điểm.
+        document.querySelectorAll('.popup-expanding-choices:not([hidden])').forEach(other => {
+            other.hidden = true;
+            other.parentElement?.querySelector('.popup-expanding-trigger')?.setAttribute('aria-expanded', 'false');
+        });
+        list.hidden = !shouldOpen;
+        trigger.setAttribute('aria-expanded', String(shouldOpen));
+    });
+    select.addEventListener('change', sync);
+    document.addEventListener('pointerdown', event => {
+        if (!picker.contains(event.target)) setClosed();
+    });
+    picker.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            setClosed();
+            trigger.focus({preventScroll: true});
+        }
+    });
+
+    select.parentNode.insertBefore(picker, select);
+    picker.append(select, trigger, list);
+    select.classList.add('popup-expanding-native');
+    select.tabIndex = -1;
+    select.dataset.popupExpandingReady = '1';
+    sync();
+}
+
+
+    // Popup Hủy lịch: xổ lý do thì khung tự cao lên, chọn xong thì thu lại.
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.customer-cancel-dialog select[name="ly_do_huy"]').forEach(initializePopupExpandingReason);
+    });
+</script>
 {% endblock %}

@@ -50,7 +50,7 @@
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-bold m-0">1. Chọn dịch vụ trị liệu</h6>
-                        <button type="button" class="btn-all-services" data-bs-toggle="modal" data-bs-target="#modalAllServices">
+                        <button type="button" class="btn-all-services" onclick="openStaffAllServices()">
                             Xem tất cả dịch vụ &rarr;
                         </button>
                     </div>
@@ -342,6 +342,15 @@
         updateAvailableSlots();
     }
 
+    // Chỉ sử dụng một instance Bootstrap để mở/đóng popup dịch vụ.
+    // Tránh data-bs-toggle khởi chạy thêm một instance khi layout đã nạp Bootstrap.
+    function openStaffAllServices() {
+        const modal = document.getElementById('modalAllServices');
+        if (modal && window.bootstrap?.Modal) {
+            bootstrap.Modal.getOrCreateInstance(modal).show();
+        }
+    }
+
     // Hàm chọn dịch vụ từ Modal (giống bên phía khách hàng)
     function chooseFromModal(serviceId, serviceName, duration, price, imgUrl) {
         const container = document.getElementById('main_service_container');
@@ -388,7 +397,7 @@
         selectService(selectedCard, serviceId, serviceName, duration, price);
         const modalToClose = document.getElementById('modalAllServices');
         if (modalToClose && window.bootstrap?.Modal) {
-            bootstrap.Modal.getInstance(modalToClose)?.hide();
+            bootstrap.Modal.getOrCreateInstance(modalToClose).hide();
         }
     }
 
