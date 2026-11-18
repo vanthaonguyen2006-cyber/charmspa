@@ -8,11 +8,12 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from uuid import uuid4
+from functools import wraps
 from accounts.models import (
     TaiKhoan, is_manager_role, is_staff_portal_user, is_customer_role
 )
 from .models import ThongBao, ThongBaoKhachHang, ChuongTrinhUuDai, NhatKyGuiHDCS
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponseForbidden
 from customers.models import KhachHang
 from bookings.models import LichHen, PhanCongLichHen
 from services.models import DichVu
@@ -22,6 +23,24 @@ from .models import HuongDanChamSoc
 # Sử dụng duy nhất quyền nghiệp vụ theo TaiKhoan.vai_tro.
 # Không dùng Django user.is_staff/is_superuser cho portal website.
 LOGIN_URL = '/accounts/dang_nhap/'
+
+
+def permission_required(check, *, json_response=False):
+    """Redirect anonymous visitors to login; return HTTP 403 for wrong business role."""
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required(login_url=LOGIN_URL)
+        def inner(request, *args, **kwargs):
+            if not check(request.user):
+                if json_response:
+                    return JsonResponse(
+                        {'success': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'},
+                        status=403,
+                    )
+                return HttpResponseForbidden('Bạn không có quyền truy cập chức năng này.')
+            return view_func(request, *args, **kwargs)
+        return inner
+    return decorator
 
 
 def _khach_hang_cua_user(user):
@@ -168,8 +187,7 @@ def chi_tiet_uu_dai(request, promo_code):
     return render(request, 'notifications/chi_tiet_uu_dai.html', context)
 
 
-@login_required(login_url=LOGIN_URL)
-@user_passes_test(is_manager_role, login_url=LOGIN_URL)
+@permission_required(is_staff_portal_user)
 def admin_promotion_list(request):
     ds_uu_dai = ChuongTrinhUuDai.objects.select_related('ma_dv').all().order_by('-pk')
     hien_tai = timezone.now()
@@ -192,12 +210,13 @@ def admin_promotion_list(request):
         'promotions': ds_uu_dai,
         'ds_dich_vu': ds_dich_vu,
         'dich_vu_list': ds_dich_vu,
+        'can_manage_promotions': is_manager_role(request.user),
+        'active_menu': 'promotions',
     }
     return render(request, 'notifications/admin_promotion_list.html', context)
 
 
-@login_required(login_url=LOGIN_URL)
-@user_passes_test(is_manager_role, login_url=LOGIN_URL)
+@permission_required(is_manager_role, json_response=True)
 @require_POST
 def api_them_hoac_sua_uu_dai(request):
     """Quan ly them/sua uu dai: moi uu dai lien ket toi mot DichVu.
@@ -317,8 +336,7 @@ def api_them_hoac_sua_uu_dai(request):
         return JsonResponse({'success': False, 'error': loi}, status=400)
 
 
-@login_required(login_url=LOGIN_URL)
-@user_passes_test(is_manager_role, login_url=LOGIN_URL)
+@permission_required(is_manager_role, json_response=True)
 @require_POST
 def api_gui_thong_bao_uu_dai(request):
     """
@@ -410,8 +428,7 @@ def api_gui_thong_bao_uu_dai(request):
         return JsonResponse({'success': False, 'error': 'Không thể gửi thông báo. Vui lòng thử lại.'}, status=500)
 
 
-@login_required(login_url=LOGIN_URL)
-@user_passes_test(is_manager_role, login_url=LOGIN_URL)
+@permission_required(is_staff_portal_user, json_response=True)
 def get_promotion_detail(request, ma_ctud):
     promo = get_object_or_404(ChuongTrinhUuDai, pk=ma_ctud)
     data = {
@@ -426,8 +443,7 @@ def get_promotion_detail(request, ma_ctud):
     return JsonResponse(data)
 
 
-@login_required(login_url=LOGIN_URL)
-@user_passes_test(is_manager_role, login_url=LOGIN_URL)
+@permission_required(is_manager_role)
 @require_POST
 def xoa_uu_dai(request, ma_ctud):
     promo = get_object_or_404(ChuongTrinhUuDai, pk=ma_ctud)
@@ -435,14 +451,12 @@ def xoa_uu_dai(request, ma_ctud):
     return redirect('notifications:admin_promotion_list')
 
 
-@login_required(login_url=LOGIN_URL)
-@user_passes_test(is_manager_role, login_url=LOGIN_URL)
+@permission_required(is_manager_role)
 def them_uu_dai(request):
     return redirect('notifications:admin_promotion_list')
 
 
-@login_required(login_url=LOGIN_URL)
-@user_passes_test(is_manager_role, login_url=LOGIN_URL)
+@permission_required(is_manager_role)
 def chinh_sua_uu_dai(request, ma_ctud):
     return redirect('notifications:admin_promotion_list')
 

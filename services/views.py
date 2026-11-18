@@ -8,12 +8,15 @@ import re
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-from django.contrib.auth.decorators import login_required, user_passes_test
+from functools import wraps
+
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
-from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
+from accounts.models import is_customer_role, is_manager_role, is_staff_portal_user
 from customers.models import KhachHang
 from services.models import DichVu, DichVuDaSuDung
 
@@ -21,10 +24,25 @@ logger = logging.getLogger(__name__)
 LOGIN_URL = '/accounts/dang_nhap/'
 
 
-def is_staff(user):
-    return user.is_authenticated and (
-        user.is_staff or getattr(user, 'vai_tro', '') in ('Staff', 'Admin')
-    )
+def role_required(check_role, *, api=False):
+    """Enforce business roles from TaiKhoan.vai_tro (not Django is_staff).
+
+    Authentication is handled by the outer @login_required decorator.
+    Authenticated users without access receive 403 instead of a login redirect.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped(request, *args, **kwargs):
+            if not check_role(request.user):
+                if api:
+                    return JsonResponse(
+                        {'success': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'},
+                        status=403,
+                    )
+                return HttpResponseForbidden('Bạn không có quyền truy cập trang này.')
+            return view_func(request, *args, **kwargs)
+        return wrapped
+    return decorator
 
 
 def _parse_service_data(post, existing=None):
@@ -81,7 +99,7 @@ def _service_payload(item):
 
 
 @login_required(login_url=LOGIN_URL)
-@user_passes_test(is_staff, login_url=LOGIN_URL)
+@role_required(is_staff_portal_user)
 def staff_services(request):
     queryset = DichVu.objects.all().order_by('ma_dv')
     services = [_service_payload(item) for item in queryset]
@@ -89,6 +107,7 @@ def staff_services(request):
         'today': date.today(),
         'services': services,
         'active_menu': 'dich_vu',
+        'can_manage_services': is_manager_role(request.user),
         'tong_dich_vu': len(services),
         'so_loai_dich_vu': len({row['loai_dich_vu'] for row in services}),
     }
@@ -96,7 +115,7 @@ def staff_services(request):
 
 
 @login_required(login_url=LOGIN_URL)
-@user_passes_test(is_staff, login_url=LOGIN_URL)
+@role_required(is_manager_role, api=True)
 @require_POST
 def api_them_dich_vu(request):
     try:
@@ -123,7 +142,7 @@ def api_them_dich_vu(request):
 
 
 @login_required(login_url=LOGIN_URL)
-@user_passes_test(is_staff, login_url=LOGIN_URL)
+@role_required(is_manager_role, api=True)
 @require_POST
 def api_sua_dich_vu(request):
     code = request.POST.get('ma_dv', '').strip()
@@ -148,7 +167,7 @@ def api_sua_dich_vu(request):
 
 
 @login_required(login_url=LOGIN_URL)
-@user_passes_test(is_staff, login_url=LOGIN_URL)
+@role_required(is_manager_role, api=True)
 @require_POST
 def api_xoa_dich_vu(request):
     """Delete only services with zero references in any related model."""
@@ -178,16 +197,10 @@ def api_xoa_dich_vu(request):
         return JsonResponse({'success': False, 'error': 'Không thể xóa dịch vụ do có dữ liệu liên quan hoặc lỗi hệ thống.'}, status=409)
 
 
-def is_customer_user(user):
-    return user.is_authenticated and not user.is_staff and not user.is_superuser
-
-
 @login_required(login_url=LOGIN_URL)
-@user_passes_test(is_customer_user, login_url='/home/staff/')
+@role_required(is_customer_role)
 def customer_service_history_view(request):
-    """Original customer history flow, retained to avoid breaking team code."""
-    if request.user.is_staff or request.user.is_superuser:
-        return redirect('/home/staff/')
+    """Customer-only service history, using the current business role system."""
     tai_khoan = getattr(request.user, 'thong_tin_tai_khoan', None)
     khach_hang = getattr(tai_khoan, 'ho_so_khach_hang', None) if tai_khoan else None
     if not khach_hang:
