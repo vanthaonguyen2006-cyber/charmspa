@@ -1,11 +1,95 @@
 {% extends 'layouts/staff_base.html' %}
 {% load static %}
-{% block title %}Chi tiết lịch hẹn - Charm Spa{% endblock %}
+{% block title %}Chi tiết lịch hẹn - Charm Spa
+<script>
+// Dropdown riêng cho phân công: luôn mở xuống, giữ select gốc để gửi nhan_vien_ids.
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.staff-detail-page .assign-controls:not(.staff-clear-assign)').forEach(function (form) {
+    const dropdowns = [...form.querySelectorAll('.staff-assignee-dropdown')];
+    function closeAll(except) {
+      dropdowns.forEach(function (dropdown) {
+        if (dropdown === except) return;
+        dropdown.querySelector('.staff-assignee-options').hidden = true;
+        dropdown.querySelector('.staff-assignee-trigger').setAttribute('aria-expanded', 'false');
+      });
+    }
+    dropdowns.forEach(function (dropdown) {
+      const select = dropdown.previousElementSibling;
+      const trigger = dropdown.querySelector('.staff-assignee-trigger');
+      const label = dropdown.querySelector('.staff-assignee-trigger-text');
+      const list = dropdown.querySelector('.staff-assignee-options');
+      function sync() {
+        label.textContent = select.selectedOptions[0]?.textContent || '-- Chọn nhân viên --';
+        list.querySelectorAll('[role="option"]').forEach(function (item) {
+          item.setAttribute('aria-selected', String(item.dataset.value === select.value));
+        });
+      }
+      [...select.options].forEach(function (option) {
+        if (option.disabled) return;
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'staff-assignee-option';
+        item.setAttribute('role', 'option');
+        item.dataset.value = option.value;
+        item.textContent = option.textContent;
+        item.addEventListener('click', function () {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          sync();
+          closeAll();
+          trigger.focus();
+        });
+        list.appendChild(item);
+      });
+      sync();
+      trigger.addEventListener('click', function () {
+        const opening = list.hidden;
+        closeAll();
+        list.hidden = !opening;
+        trigger.setAttribute('aria-expanded', String(opening));
+        if (opening) {
+          // Bố trí đủ không gian để danh sách mở phía dưới, thay vì bị khuất cuối trang.
+          const bottom = Math.min(list.scrollHeight, 220) + trigger.getBoundingClientRect().bottom + 12;
+          if (bottom > window.innerHeight) window.scrollBy({top: bottom - window.innerHeight + 16, behavior: 'smooth'});
+        }
+      });
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') { closeAll(); return; }
+        if (event.key === 'ArrowDown' && list.hidden) {
+          event.preventDefault(); trigger.click();
+          list.querySelector('[role="option"]')?.focus();
+        }
+      });
+      list.addEventListener('keydown', function (event) {
+        const items = [...list.querySelectorAll('[role="option"]')];
+        const index = items.indexOf(document.activeElement);
+        if (event.key === 'Escape') { event.preventDefault(); closeAll(); trigger.focus(); }
+        if (event.key === 'ArrowDown') { event.preventDefault(); items[Math.min(index + 1, items.length - 1)]?.focus(); }
+        if (event.key === 'ArrowUp') { event.preventDefault(); (index <= 0 ? trigger : items[index - 1])?.focus(); }
+      });
+    });
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.staff-assignee-dropdown')) closeAll();
+    });
+    form.addEventListener('submit', function (event) {
+      const empty = [...form.querySelectorAll('.staff-assignee-native-select')].find(select => !select.value);
+      if (empty) {
+        event.preventDefault();
+        const trigger = empty.nextElementSibling.querySelector('.staff-assignee-trigger');
+        trigger.focus();
+        trigger.click();
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=phan_cong_nhieu_nv_1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_incremental2">
+<link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=charmspa_20261117_incremental2">
 <div class="staff-detail-page">
   {% if messages %}
     {% for message in messages %}
@@ -20,12 +104,16 @@
       <a class="detail-btn" href="{% url 'bookings:staff_booking_list' %}"><i class="bi bi-arrow-left"></i> Quay lại</a>
       {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
       <form method="POST" action="{% url 'bookings:staff_booking_complete' lich_hen.ma_lh %}" class="m-0" onsubmit="return confirm('Xác nhận hoàn thành lịch hẹn này?');">
-        {% csrf_token %}<button type="submit" class="detail-btn dark"><i class="bi bi-check-circle"></i> Hoàn thành</button>
+        {% csrf_token %}<button type="submit" class="detail-btn complete"><i class="bi bi-check-circle"></i> Hoàn thành</button>
       </form>
       {% endif %}
-      {% if request.user.is_superuser %}
+      {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
+      <button type="button" class="detail-btn dark" data-bs-toggle="modal" data-bs-target="#staffEditModal"><i class="bi bi-calendar2-range"></i> Đổi lịch</button>
+      <button type="button" class="detail-btn cancel-action" data-bs-toggle="modal" data-bs-target="#staffCancelModal{{ lich_hen.ma_lh }}"><i class="bi bi-x-circle"></i> Hủy lịch</button>
+      {% endif %}
+      {% if is_manager %}
         {% if lich_hen.trang_thai != 'Đã xóa' %}
-          <button type="button" class="detail-btn danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ lich_hen.ma_lh }}"><i class="bi bi-trash"></i> Xóa lịch</button>
+          <button type="button" class="detail-btn delete-action" data-bs-toggle="modal" data-bs-target="#deleteModal{{ lich_hen.ma_lh }}"><i class="bi bi-trash"></i> Xóa lịch</button>
         {% endif %}
       {% endif %}
     </div>
@@ -53,7 +141,7 @@
         </div>
         <div class="note-area"><div class="fact-label">Ghi chú</div><div class="fact-value">{{ lich_hen.ghi_chu|default:'Không có ghi chú' }}</div></div>
         {% if lich_hen.ly_do_huy %}
-        <div class="note-area staff-detail-inline-2"><div class="fact-label staff-detail-inline-3">Lý do hủy</div><div class="fact-value">{{ lich_hen.ly_do_huy }}</div></div>
+        <div class="note-area staff-detail-inline-2"><div class="fact-label staff-detail-inline-3">{% if lich_hen.trang_thai == 'Đã xóa' %}Lý do xóa{% else %}Lý do hủy{% endif %}</div><div class="fact-value">{{ lich_hen.ly_do_huy }}</div></div>
         {% endif %}
       </section>
     </div>
@@ -80,7 +168,7 @@
         {% empty %}
           <div class="unassigned-message"><i class="bi bi-person-exclamation me-1"></i> Lịch hẹn chưa được phân công nhân viên.</div>
         {% endfor %}
-        {% if request.user.is_superuser %}
+        {% if is_manager %}
           {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Đã xóa' and lich_hen.trang_thai != 'Hoàn thành' %}
           <form method="POST" action="{% url 'bookings:assign_staff' lich_hen.ma_lh %}" class="assign-controls">
             {% csrf_token %}
@@ -88,7 +176,7 @@
             {% for o in o_phan_cong %}
               <div class="staff-assignee-slot">
                 <label for="assignedEmployee{{ o.stt }}">Nhân viên phục vụ khách {{ o.stt }}</label>
-                <select id="assignedEmployee{{ o.stt }}" name="nhan_vien_ids" required>
+                <select id="assignedEmployee{{ o.stt }}" name="nhan_vien_ids" class="staff-assignee-native-select" tabindex="-1" aria-hidden="true">
                   <option value="">-- Chọn nhân viên --</option>
                   {% for nv in danh_sach_nhan_vien %}
                     <option value="{{ nv.pk }}" {% if o.nhan_vien_id == nv.pk|stringformat:'s' %}selected{% endif %}>{{ nv.ho_ten }}{% if nv.vi_tri %} – {{ nv.vi_tri }}{% endif %}</option>
@@ -96,6 +184,13 @@
                     <option value="" disabled>Chưa có nhân viên trong hệ thống</option>
                   {% endfor %}
                 </select>
+                <div class="staff-assignee-dropdown">
+                  <button type="button" class="staff-assignee-trigger" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="staff-assignee-trigger-text">-- Chọn nhân viên --</span>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                  </button>
+                  <div class="staff-assignee-options" role="listbox" hidden></div>
+                </div>
               </div>
             {% endfor %}
             {% if not danh_sach_nhan_vien %}
@@ -117,16 +212,16 @@
             <p class="section-note mb-0">Lịch đã kết thúc hoặc hủy, không thể phân công thêm.</p>
           {% endif %}
         {% else %}
-          <p class="section-note mb-0">Chỉ quản trị viên được phân công nhân viên.</p>
+          <p class="section-note mb-0">Chỉ quản lý được phân công nhân viên.</p>
         {% endif %}
       </section>
     </aside>
   </div>
 </div>
 
-{% if request.user.is_superuser %}
+{% if is_manager %}
 <!-- ================= MODAL XÓA LỊCH HẸN ================= -->
-<div class="modal fade" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+<div class="modal fade staff-delete-modal" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content staff-detail-inline-4">
             <form method="POST" action="{% url 'bookings:booking_admin_delete' lich_hen.ma_lh %}">
@@ -136,7 +231,19 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4 text-start">
-                    <p class="text-muted mb-0">Hành động này sẽ chuyển lịch hẹn sang trạng thái <strong>Đã xóa</strong> và giải phóng chỗ trống giường. Bạn có chắc chắn muốn thực hiện không?</p>
+                    <p class="text-muted mb-3">Hành động này sẽ chuyển lịch hẹn sang trạng thái <strong>Đã xóa</strong> và giải phóng chỗ trống giường. Bạn có chắc chắn muốn thực hiện không?</p>
+                    <label for="deleteReason{{ lich_hen.ma_lh }}" class="form-label fw-semibold">Lý do xóa *</label>
+                    <select id="deleteReason{{ lich_hen.ma_lh }}" name="ly_do_xoa" class="form-select" required>
+                        <option value="" selected disabled>-- Chọn lý do xóa --</option>
+                        <option value="Lịch tạo nhầm">Lịch tạo nhầm</option>
+                        <option value="Lịch bị trùng">Lịch bị trùng</option>
+                        <option value="Spa không thể phục vụ">Spa không thể phục vụ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <div id="deleteOtherReason{{ lich_hen.ma_lh }}" class="mt-3" hidden>
+                        <label for="deleteOtherText{{ lich_hen.ma_lh }}" class="form-label fw-semibold">Ghi rõ lý do khác *</label>
+                        <textarea id="deleteOtherText{{ lich_hen.ma_lh }}" name="ly_do_xoa_khac" class="form-control" rows="2" maxlength="500" placeholder="Nhập lý do xóa lịch..."></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer border-top-0 pb-3 px-4">
                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
@@ -149,5 +256,373 @@
 
 {% endif %}
 
+{% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
+<div class="modal staff-edit-modal" id="staffEditModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'bookings:booking_customer_reschedule' lich_hen.ma_lh %}" id="staffDetailEditForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-calendar2-range me-2"></i>Đổi lịch hẹn #{{ lich_hen.ma_lh }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="ma_dv_moi" id="staffDetailServiceId" value="{{ lich_hen.ma_dv.pk }}">
+          <input type="hidden" name="gio_hen_moi" id="staffDetailTime" value="{{ lich_hen.gio_hen|time:'H:i' }}">
+          <div class="row g-3">
+            <div class="col-lg-8">
+              <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                <h6 class="staff-edit-heading">1. Chọn dịch vụ trị liệu mới</h6>
+                <button type="button" class="staff-edit-all" id="staffDetailAllButton">Xem tất cả dịch vụ →</button>
+              </div>
+              <div class="row g-2" id="staffDetailServices">
+                {% for dv in dich_vu_list %}
+                <div class="col-md-4 staff-edit-service-col {% if forloop.counter > 3 and dv.pk != lich_hen.ma_dv.pk %}d-none{% endif %}">
+                  <button type="button" class="staff-edit-service {% if dv.pk == lich_hen.ma_dv.pk %}selected{% endif %}" data-id="{{ dv.pk }}" data-name="{{ dv.ten_dich_vu }}" data-duration="{{ dv.thoi_luong|default:150 }}" data-type="{% if 'shampoo' in dv.ten_dich_vu|lower %}shampoo{% else %}massage{% endif %}">
+                    <img src="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg" alt="">
+                    <strong>{{ dv.ten_dich_vu }}</strong><small>{{ dv.thoi_luong|default:150 }} phút · {{ dv.gia_dich_vu }}đ</small><span class="staff-edit-selected">{% if dv.pk == lich_hen.ma_dv.pk %}✓ Đã chọn{% else %}○ Chọn dịch vụ{% endif %}</span>
+                  </button>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-5">
+                  <div class="calendar-box staff-edit-panel h-100">
+                    <h6 class="staff-edit-heading mb-2">2. Chọn ngày hẹn mới</h6>
+                    <div class="custom-date-container">
+                      <input type="text" id="staffDetailNewDate" name="ngay_hen_moi" class="form-control form-control-custom-date" value="{{ lich_hen.ngay_hen|date:'d/m/Y' }}" placeholder="Chọn ngày hẹn" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-7"><div class="staff-edit-panel">
+                  <h6 class="staff-edit-heading">3. Khung giờ trống</h6>
+                  <div class="row g-2" id="staffDetailSlots"></div>
+                </div></div>
+              </div>
+            </div>
+            <div class="col-lg-4"><div class="staff-edit-panel">
+              <h6 class="staff-edit-heading">4. Thông tin lịch hẹn</h6>
+              <label>Khách hàng</label><input type="text" value="{{ lich_hen.ma_kh.ho_ten }}" readonly>
+              <label>Số lượng khách</label><input type="number" name="so_luong_khach_moi" id="staffDetailGuests" min="1" max="10" value="{{ lich_hen.so_luong_khach }}" required>
+              <label>Ghi chú</label><textarea name="ghi_chu_moi" rows="3">{{ lich_hen.ghi_chu|default:'' }}</textarea>
+              <div class="staff-edit-summary"><small>TÓM TẮT THAY ĐỔI</small><strong id="staffDetailSummaryName">{{ lich_hen.ma_dv.ten_dich_vu }}</strong><p id="staffDetailSummaryLine"></p></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button><button type="submit" class="btn btn-warning">Lưu thay đổi</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ const form = document.getElementById('staffDetailEditForm');
+ if (!form) return;
+ const editor = document.getElementById('staffEditModal');
+ if (editor && editor.parentElement !== document.body) document.body.appendChild(editor);
+ const grid = document.getElementById('staffDetailServices'), dateInput = document.getElementById('staffDetailNewDate'), timeInput = document.getElementById('staffDetailTime');
+ const allButton = document.getElementById('staffDetailAllButton'), guests = document.getElementById('staffDetailGuests');
+ const slots = document.getElementById('staffDetailSlots'), serviceId = document.getElementById('staffDetailServiceId');
+ const cards = [...grid.querySelectorAll('.staff-edit-service')];
+ const locked = new Set({{ locked_dates_json|safe|default:'[]' }});
+ const times=['09:00','10:30','12:00','13:30','15:00','16:30','18:00','19:30','21:00'];
+ let current = cards.find(c=>c.classList.contains('selected')) || cards[0], serial = 0;
+ // Khi dịch vụ đang chọn không nằm trong 3 dịch vụ đầu: đưa lên đầu,
+ // ẩn những ô còn lại để màn hình Đổi lịch luôn có đúng 3 thẻ.
+ if (current) {
+   const selectedCol = current.closest('.staff-edit-service-col');
+   if (selectedCol && grid.firstElementChild !== selectedCol) grid.prepend(selectedCol);
+ }
+ grid.querySelectorAll('.staff-edit-service-col').forEach((col, index) => {
+   col.classList.toggle('d-none', index >= 3);
+ });
+ function iso(d) {return [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-');}
+
+ const picker = flatpickr(dateInput,{
+   locale:'vn',
+   dateFormat:'d/m/Y',
+   minDate:'today',
+   disable:[d=>locked.has(iso(d))],
+   static:true,
+   onChange:()=>{timeInput.value='';renderSlots();}
+ });
+
+ function summary(){const name=current?.dataset.name||'';document.getElementById('staffDetailSummaryName').textContent=name;document.getElementById('staffDetailSummaryLine').textContent=`${dateInput.value} · ${timeInput.value||'Chưa chọn giờ'} · ${current?.dataset.duration||150} phút · ${guests.value} khách`;}
+
+ function choose(card){
+   current = card;
+   serviceId.value = card.dataset.id;
+
+   // Cập nhật trạng thái selected cho tất cả các nút dịch vụ
+   cards.forEach(c => {
+     const yes = c === card;
+     c.classList.toggle('selected', yes);
+     const selSpan = c.querySelector('.staff-edit-selected');
+     if(selSpan) selSpan.textContent = yes ? '✓ Đã chọn' : '○ Chọn dịch vụ';
+   });
+
+   // Đưa cột chứa dịch vụ được chọn lên đầu danh sách và chỉ hiển thị tối đa 3 thẻ đầu tiên
+   const col = card.closest('.staff-edit-service-col');
+   if(col && grid.firstElementChild !== col) {
+     grid.prepend(col);
+   }
+   grid.querySelectorAll('.staff-edit-service-col').forEach((c, i) => {
+     c.classList.toggle('d-none', i >= 3);
+   });
+
+   timeInput.value = '';
+   renderSlots();
+ }
+
+ cards.forEach(card=>card.addEventListener('click',()=>choose(card)));
+
+ allButton.addEventListener('click',()=>{
+  let layer=document.getElementById('staffDetailAllServices');
+  const parent=document.querySelector('#staffEditModal > .modal-dialog > .modal-content');
+  if(!layer){
+   layer=document.createElement('div');layer.id='staffDetailAllServices';
+   layer.className='staff-detail-services-layer';
+   layer.innerHTML='<div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">DANH SÁCH DỊCH VỤ CHARM SPA</h5><button type="button" class="btn-close" aria-label="Đóng"></button></div><div class="modal-body"><div class="row g-3"></div></div></div></div>';
+   parent.appendChild(layer);
+   layer.querySelector('.btn-close').addEventListener('click',()=>layer.classList.remove('show'));
+   layer.addEventListener('click',e=>{if(e.target===layer)layer.classList.remove('show');});
+   layer.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();e.preventDefault();layer.classList.remove('show');}});
+   editor.addEventListener('hidden.bs.modal',()=>layer.classList.remove('show'));
+  }
+  const area=layer.querySelector('.row');area.replaceChildren();
+  cards.forEach(card=>{
+   const col=document.createElement('div');col.className='col-md-4';
+   const copy=card.cloneNode(true);copy.addEventListener('click',()=>{
+    choose(card);layer.classList.remove('show');
+   });col.appendChild(copy);area.appendChild(col);
+  });
+  layer.classList.add('show');layer.querySelector('.btn-close').focus({preventScroll:true});
+ });
+ async function renderSlots(){const seq=++serial;const pieces=dateInput.value.split('/');if(pieces.length!==3)return;const date=pieces.reverse().join('-');const qty=Number(guests.value);slots.replaceChildren();if(locked.has(date)){slots.textContent='Ngày này đã khóa.';return;}const now=new Date();const dateNow=iso(now);const type=current?.dataset.type||'massage';const cap=type==='shampoo'?6:30;
+ for(const time of times){const el=document.createElement('div');el.className='col-4';const btn=document.createElement('button');btn.type='button';btn.className='staff-edit-slot';btn.innerHTML=`<strong>${time}</strong><small>Đang kiểm tra...</small>`;el.appendChild(btn);slots.appendChild(el);const [h,m]=time.split(':').map(Number);const expired=date<dateNow||(date===dateNow&&(h*60+m<=now.getHours()*60+now.getMinutes()));if(expired){btn.disabled=true;btn.querySelector('small').textContent='Đã qua';continue;}
+ try{const response=await fetch(`{% url 'bookings:api_kiem_tra_giuong' %}?ngay=${date}&gio=${time}&loai=${type}`);const data=await response.json();if(seq!==serial)return;const left=Number(data.con_lai??cap);const enough=left>=qty;btn.disabled=!enough;btn.querySelector('small').textContent=enough?`Còn ${left} giường`:'Kín chỗ';}catch(e){btn.disabled=true;btn.querySelector('small').textContent='Không kiểm tra được';}
+ btn.addEventListener('click',()=>{slots.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');timeInput.value=time;summary();});if(time===timeInput.value&&!btn.disabled)btn.classList.add('selected');}
+ summary();}
+ guests.addEventListener('change',()=>{timeInput.value='';renderSlots();});
+ form.addEventListener('submit',e=>{if(!dateInput.value||!timeInput.value||!serviceId.value){e.preventDefault();alert('Hãy chọn dịch vụ, ngày và khung giờ còn trống trước khi lưu.');}});
+ document.getElementById('staffEditModal').addEventListener('shown.bs.modal',renderSlots);
+ summary();
+});
+</script>
+{% endif %}
+
+{% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
+<div class="modal fade staff-cancel-modal" id="staffCancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-labelledby="staffCancelTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'bookings:staff_booking_complete' lich_hen.ma_lh %}">
+        {% csrf_token %}
+        <input type="hidden" name="booking_action" value="cancel">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staffCancelTitle"><i class="bi bi-exclamation-triangle me-2"></i>Hủy lịch #{{ lich_hen.ma_lh }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <p class="staff-cancel-note">Hủy thông thường phải trước giờ hẹn ít nhất <strong>6 tiếng</strong>.</p>
+          <label for="staffCancelReason" class="form-label">Lý do hủy *</label>
+          <select id="staffCancelReason" name="ly_do_huy" class="form-select" required>
+            <option value="">-- Chọn lý do --</option>
+            <option value="Bận việc đột xuất/Không thể đến">Bận việc đột xuất / Không thể đến</option>
+            <option value="Thay đổi kế hoạch cá nhân">Thay đổi kế hoạch cá nhân</option>
+            <option value="Không còn nhu cầu sử dụng dịch vụ">Không còn nhu cầu sử dụng dịch vụ</option>
+            {% if spa_closed %}<option value="Spa đóng cửa">Spa đóng cửa (ngoại lệ 6 tiếng)</option>{% endif %}
+            <option value="Khác">Khác</option>
+          </select>
+          <div class="staff-cancel-other" hidden>
+            <label for="staffCancelOther" class="form-label">Ghi rõ lý do khác *</label>
+            <textarea id="staffCancelOther" name="ly_do_khac" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+          <button type="submit" class="btn btn-danger">Xác nhận hủy lịch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+<script>
+// Menu lý do nằm trong modal (không dùng popup select do trình duyệt vẽ ngoài khung).
+// Giữ nguyên select name để backend nhận POST y như trước.
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.staff-delete-modal, .staff-cancel-modal').forEach(modal => {
+    const select = modal.querySelector('select[name="ly_do_xoa"], select[name="ly_do_huy"]');
+    if (!select) return;
+    select.classList.add('staff-reason-native');
+    select.removeAttribute('required'); // Bắt buộc chọn được kiểm tra ở form bên dưới.
+    select.tabIndex = -1;
+    const picker = document.createElement('div');
+    picker.className = 'staff-reason-picker';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'staff-reason-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    const caption = document.createElement('span');
+    caption.textContent = select.options[select.selectedIndex]?.textContent || '-- Chọn lý do --';
+    const arrow = document.createElement('i');
+    arrow.className = 'bi bi-chevron-down';
+    arrow.setAttribute('aria-hidden', 'true');
+    trigger.append(caption, arrow);
+    const list = document.createElement('div');
+    list.className = 'staff-reason-list';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+    [...select.options].filter(opt => opt.value && !opt.disabled).forEach(opt => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'staff-reason-option';
+      item.setAttribute('role', 'option');
+      item.dataset.value = opt.value;
+      item.textContent = opt.textContent;
+      item.setAttribute('aria-selected', String(opt.value === select.value));
+      item.addEventListener('click', () => {
+        select.value = opt.value;
+        select.dispatchEvent(new Event('change', {bubbles: true}));
+        caption.textContent = opt.textContent;
+        list.querySelectorAll('[role="option"]').forEach(el => el.setAttribute('aria-selected', String(el === item)));
+        list.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      });
+      list.appendChild(item);
+    });
+    select.insertAdjacentElement('afterend', picker);
+    picker.append(trigger, list);
+    trigger.addEventListener('click', () => {
+      list.hidden = !list.hidden;
+      trigger.setAttribute('aria-expanded', String(!list.hidden));
+    });
+    trigger.addEventListener('keydown', event => {
+      if (event.key === 'ArrowDown') { event.preventDefault(); if (list.hidden) trigger.click(); list.querySelector('button')?.focus(); }
+      if (event.key === 'Escape' && !list.hidden) { event.preventDefault(); list.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+    });
+    list.addEventListener('keydown', event => {
+      const items = [...list.querySelectorAll('button')];
+      const index = items.indexOf(document.activeElement);
+      if (event.key === 'Escape') {event.preventDefault();list.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus();}
+      if (event.key === 'ArrowDown') {event.preventDefault();items[Math.min(index+1,items.length-1)]?.focus();}
+      if (event.key === 'ArrowUp') {event.preventDefault();(index<=0?trigger:items[index-1])?.focus();}
+    });
+    document.addEventListener('click', event => {
+      if (!picker.contains(event.target)) {list.hidden=true;trigger.setAttribute('aria-expanded','false');}
+    });
+    modal.addEventListener('hidden.bs.modal', () => {list.hidden=true;trigger.setAttribute('aria-expanded','false');});
+    const otherBox = modal.querySelector(select.name === 'ly_do_xoa' ? '[id^="deleteOtherReason"]' : '.staff-cancel-other');
+    const otherText = otherBox?.querySelector('textarea');
+    const syncOther = () => {
+      if (!otherBox || !otherText) return;
+      const isOther = select.value === 'Khác';
+      otherBox.hidden = !isOther;
+      otherText.required = isOther;
+      if (!isOther) otherText.value = '';
+    };
+    select.addEventListener('change', syncOther);
+    syncOther();
+    const form = select.closest('form');
+    form.addEventListener('submit', event => {
+      if (!select.value) {
+        event.preventDefault();
+        trigger.focus();
+        if (list.hidden) trigger.click();
+      }
+    });
+  });
+});
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Dropdown riêng cho phân công: luôn mở xuống, giữ select gốc để gửi nhan_vien_ids.
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.staff-detail-page .assign-controls:not(.staff-clear-assign)').forEach(function (form) {
+    const dropdowns = [...form.querySelectorAll('.staff-assignee-dropdown')];
+    function closeAll(except) {
+      dropdowns.forEach(function (dropdown) {
+        if (dropdown === except) return;
+        dropdown.querySelector('.staff-assignee-options').hidden = true;
+        dropdown.querySelector('.staff-assignee-trigger').setAttribute('aria-expanded', 'false');
+      });
+    }
+    dropdowns.forEach(function (dropdown) {
+      const select = dropdown.previousElementSibling;
+      const trigger = dropdown.querySelector('.staff-assignee-trigger');
+      const label = dropdown.querySelector('.staff-assignee-trigger-text');
+      const list = dropdown.querySelector('.staff-assignee-options');
+      function sync() {
+        label.textContent = select.selectedOptions[0]?.textContent || '-- Chọn nhân viên --';
+        list.querySelectorAll('[role="option"]').forEach(function (item) {
+          item.setAttribute('aria-selected', String(item.dataset.value === select.value));
+        });
+      }
+      [...select.options].forEach(function (option) {
+        if (option.disabled) return;
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'staff-assignee-option';
+        item.setAttribute('role', 'option');
+        item.dataset.value = option.value;
+        item.textContent = option.textContent;
+        item.addEventListener('click', function () {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          sync();
+          closeAll();
+          trigger.focus();
+        });
+        list.appendChild(item);
+      });
+      sync();
+      trigger.addEventListener('click', function () {
+        const opening = list.hidden;
+        closeAll();
+        list.hidden = !opening;
+        trigger.setAttribute('aria-expanded', String(opening));
+        if (opening) {
+          // Bố trí đủ không gian để danh sách mở phía dưới, thay vì bị khuất cuối trang.
+          const bottom = Math.min(list.scrollHeight, 220) + trigger.getBoundingClientRect().bottom + 12;
+          if (bottom > window.innerHeight) window.scrollBy({top: bottom - window.innerHeight + 16, behavior: 'smooth'});
+        }
+      });
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') { closeAll(); return; }
+        if (event.key === 'ArrowDown' && list.hidden) {
+          event.preventDefault(); trigger.click();
+          list.querySelector('[role="option"]')?.focus();
+        }
+      });
+      list.addEventListener('keydown', function (event) {
+        const items = [...list.querySelectorAll('[role="option"]')];
+        const index = items.indexOf(document.activeElement);
+        if (event.key === 'Escape') { event.preventDefault(); closeAll(); trigger.focus(); }
+        if (event.key === 'ArrowDown') { event.preventDefault(); items[Math.min(index + 1, items.length - 1)]?.focus(); }
+        if (event.key === 'ArrowUp') { event.preventDefault(); (index <= 0 ? trigger : items[index - 1])?.focus(); }
+      });
+    });
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.staff-assignee-dropdown')) closeAll();
+    });
+    form.addEventListener('submit', function (event) {
+      const empty = [...form.querySelectorAll('.staff-assignee-native-select')].find(select => !select.value);
+      if (empty) {
+        event.preventDefault();
+        const trigger = empty.nextElementSibling.querySelector('.staff-assignee-trigger');
+        trigger.focus();
+        trigger.click();
+      }
+    });
+  });
+});
+</script>
 {% endblock %}

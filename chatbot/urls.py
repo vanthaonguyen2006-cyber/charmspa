@@ -5,6 +5,9 @@ from . import views, views_chat, views_script
 app_name = 'chatbot'
 
 urlpatterns = [
+    # --- API LẤY DANH SÁCH DỊCH VỤ & GIÁ TỪ CSDL CHO FLOW BUILDER ---
+    path('api/services-catalog/', views.services_catalog_api, name='services_catalog_api'),
+
     # --- APIs CHATBOT & LỊCH SỬ DÀNH CHO KHÁCH HÀNG ---
     path('api/chat/', views.chatbot_reply, name='chat_api'),
     path('api/chat/history/', views.chat_history, name='chat_history_api'),

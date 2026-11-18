@@ -118,11 +118,13 @@
             {% endif %}
         </a>
 
+        {% if role == 'Quản lý' %}
         <a href="{% url 'bookings:quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
            class="sidebar-item {% if active_menu == 'working_days' %}active{% endif %}">
             <i data-lucide="calendar-check-2" class="sidebar-icon"></i>
             <span class="sidebar-label">Ngày hoạt động</span>
         </a>
+        {% endif %}
 
         <!-- PHẢN HỒI & KHIẾU NẠI -->
         <a
@@ -141,7 +143,7 @@
         <a href="{% url 'notifications:admin_promotion_list' %}" title="Quản lý ưu đãi"
            class="sidebar-item {% if active_menu == 'promotions' or request.resolver_match.namespace == 'notifications' %}active{% endif %}">
             <i data-lucide="tickets" class="sidebar-icon"></i>
-            <span class="sidebar-label">Quản lý ưu đãi</span>
+            <span class="sidebar-label">{% if role == 'Nhân viên' %}Xem ưu đãi{% else %}Quản lý ưu đãi{% endif %}</span>
         </a>
 
         <!-- CHĂM SÓC KHÁCH HÀNG -->

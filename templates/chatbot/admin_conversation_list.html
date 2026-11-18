@@ -4,7 +4,110 @@
 {% block title %}Quản lý hội thoại - Charm Spa{% endblock %}
 
 {% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'chatbot/css/conversation_admin.css' %}">
+<style>
+    /* 1. Đổi toàn bộ font chữ sang Montserrat & Tiêu đề in đậm 700 */
+    body, .cv-page, .cv-page input, .cv-page select, .cv-page button, .cv-page table, .cv-page a {
+        font-family: 'Montserrat', sans-serif !important;
+    }
+    .cv-title, h1, h2, h3, h4, h5, h6 {
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 700 !important;
+    }
+
+    /* 2. Các nút bấm phía trên và Tab đang chọn chuyển sang màu đen */
+    .cv-btn-black {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #1a1a1a !important;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .cv-btn-black:hover {
+        background-color: #333333 !important;
+        border-color: #333333 !important;
+        color: #ffffff !important;
+    }
+    .cv-tabs .cv-tab.active {
+        background-color: #1a1a1a !important;
+        border-color: #1a1a1a !important;
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+    .cv-tabs .cv-tab.active span {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: #ffffff !important;
+    }
+
+    /* 3. Nút Lọc màu vàng đậm (giống trang Quản lý lịch hẹn) */
+    .btn-filter-gold {
+        background-color: #9A7B3E !important;
+        color: #ffffff !important;
+        border: 1px solid #9A7B3E !important;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .btn-filter-gold:hover {
+        background-color: #826631 !important;
+        border-color: #826631 !important;
+        color: #ffffff !important;
+    }
+    .btn-reset-filter {
+        background-color: #ffffff !important;
+        color: #495057 !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .btn-reset-filter:hover {
+        background-color: #f8f9fa !important;
+        color: #1a1a1a !important;
+    }
+
+    /* 4. Nút Icon con mắt ở cột Thao tác (giống Lịch hẹn & Quản trị người dùng) */
+    .action-icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        background-color: #ffffff;
+        color: #6c757d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .action-icon-btn:hover {
+        background-color: #1a1a1a;
+        color: #ffffff;
+        border-color: #1a1a1a;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -15,19 +118,22 @@
             <h3 class="cv-title">QUẢN LÝ HỘI THOẠI</h3>
             <div class="cv-sub">Tiếp nhận, phân công và theo dõi hội thoại tư vấn từ Chatbot Charm Grand.</div>
         </div>
-        <a class="cv-btn" href="{{ export_url }}"><i data-lucide="download"></i> Xuất báo cáo</a>
+        <!-- Nút phía trên màu đen -->
+        <a class="cv-btn-black" href="{{ export_url }}">
+            <i data-lucide="download" style="width: 16px; height: 16px;"></i> Xuất báo cáo
+        </a>
     </div>
 
     {% if messages %}{% for m in messages %}<div class="cv-alert {% if m.tags == 'error' %}error{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
 
-    <!-- Thẻ phân loại có số lượng -->
+    <!-- Thẻ phân loại có số lượng (Tab đang chọn màu đen) -->
     <div class="cv-tabs">
         {% for t in tabs %}
         <a class="cv-tab {% if t.active %}active{% endif %}" href="{{ t.url }}">{{ t.label }} <span>{{ t.count }}</span></a>
         {% endfor %}
     </div>
 
-    <!-- Tìm kiếm và lọc -->
+    <!-- Tìm kiếm và lọc (Nút Lọc màu vàng đậm giống Lịch hẹn) -->
     <form class="cv-filter" method="get">
         <input type="search" name="q" value="{{ q }}" placeholder="Tìm theo tên khách hàng, số điện thoại hoặc nội dung hội thoại...">
         <input type="hidden" name="status" value="{{ status }}">
@@ -37,7 +143,12 @@
             <option value="7" {% if period == '7' %}selected{% endif %}>7 ngày qua</option>
             <option value="30" {% if period == '30' %}selected{% endif %}>30 ngày qua</option>
         </select>
-        <button type="submit" class="cv-btn primary">Tìm kiếm</button>
+        <button type="submit" class="btn-filter-gold">
+            <i data-lucide="filter" style="width: 15px; height: 15px;"></i> Lọc
+        </button>
+        <a href="?" class="btn-reset-filter">
+            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Xóa lọc
+        </a>
     </form>
 
     <div class="cv-card">
@@ -50,7 +161,7 @@
                     <th>Thời gian</th>
                     <th>Nhân viên phụ trách</th>
                     <th>Trạng thái</th>
-                    <th>Thao tác</th>
+                    <th style="text-align: center;">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +177,12 @@
                     <td>
                         <span class="cv-badge {% if r.status == 'Chờ xử lý' %}wait{% elif r.status == 'Đang xử lý' %}active{% elif r.status == 'Đã hoàn tất' %}done{% else %}bot{% endif %}">{{ r.status }}</span>
                     </td>
-                    <td><a class="cv-link" href="{% url 'chatbot:admin_conversation_detail' r.id %}">Xem &rarr;</a></td>
+                    <td style="text-align: center;">
+                        <!-- Nút Xem chuyển thành icon con mắt -->
+                        <a class="action-icon-btn" href="{% url 'chatbot:admin_conversation_detail' r.id %}" title="Xem chi tiết">
+                            <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                        </a>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="6" class="cv-empty">Không có hội thoại nào phù hợp.</td></tr>

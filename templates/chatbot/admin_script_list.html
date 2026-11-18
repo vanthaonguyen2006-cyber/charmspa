@@ -3,35 +3,139 @@
 
 {% block title %}Quản lý kịch bản Chatbot - Charm Spa Management{% endblock %}
 
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* 1. Đổi toàn bộ font chữ sang Montserrat & Tiêu đề in đậm 700 */
+    body, .script-page, .script-page input, .script-page select, .script-page button, .script-page table, .script-page a, .modal {
+        font-family: 'Montserrat', sans-serif !important;
+    }
+    .page-title, .modal-title, h1, h2, h3, h4, h5, h6 {
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 700 !important;
+    }
+
+    /* 2. Nút bấm phía trên màu đen */
+    .btn-black-top {
+        background-color: #1a1a1a !important;
+        border-color: #1a1a1a !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: all 0.2s ease;
+    }
+    .btn-black-top:hover {
+        background-color: #333333 !important;
+        border-color: #333333 !important;
+        color: #ffffff !important;
+    }
+
+    /* 3. Nút Lọc màu vàng đậm (giống trang Quản lý lịch hẹn) */
+    .btn-filter-gold {
+        background-color: #9A7B3E !important;
+        border-color: #9A7B3E !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-radius: 8px;
+        padding: 8px 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+    .btn-filter-gold:hover {
+        background-color: #826631 !important;
+        border-color: #826631 !important;
+        color: #ffffff !important;
+    }
+    .btn-reset-filter {
+        background-color: #ffffff !important;
+        color: #495057 !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .btn-reset-filter:hover {
+        background-color: #f8f9fa !important;
+        color: #1a1a1a !important;
+    }
+
+    /* 4. Nút Icon Con mắt / Cây bút / Thùng rác ở cột Thao tác */
+    .action-icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        background-color: #ffffff;
+        color: #6c757d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+    .action-icon-btn:hover {
+        background-color: #1a1a1a;
+        color: #ffffff;
+        border-color: #1a1a1a;
+    }
+    .action-icon-btn.delete-btn:hover {
+        background-color: #dc3545;
+        color: #ffffff;
+        border-color: #dc3545;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- TIÊU ĐỀ & NÚT THÊM KỊCH BẢN -->
+<div class="container-fluid py-4 script-page">
+    <!-- TIÊU ĐỀ & NÚT THÊM KỊCH BẢN (Nút màu đen, Tiêu đề in đậm 700) -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold mb-1">QUẢN LÝ KỊCH BẢN CHATBOT</h3>
-            <p class="text-muted mb-0">Khách chọn nút → bước tiếp theo: "Yêu cầu tư vấn" → nhân viên. Thêm/Sửa bằng Flow Builder.</p>
+            <h3 class="page-title text-dark mb-1">QUẢN LÝ KỊCH BẢN CHATBOT</h3>
+            <p class="text-muted small mb-0">Khách chọn nút → bước tiếp theo: "Yêu cầu tư vấn" → nhân viên. Thêm/Sửa bằng Flow Builder.</p>
         </div>
-        <button type="button" class="btn btn-dark d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createScriptModal">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Thêm kịch bản
+        <button type="button" class="btn btn-black-top d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createScriptModal">
+            <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i> Thêm kịch bản
         </button>
     </div>
 
-    <!-- TÌM KIẾM VÀ LỌC -->
+    <!-- TÌM KIẾM VÀ LỌC (Có nút Lọc màu vàng đậm như trang Lịch hẹn) -->
     <div class="card border-0 shadow-sm rounded-3 mb-4">
         <div class="card-body p-3">
             <form method="GET" action="{% url 'chatbot:admin_script_list' %}" class="row g-2 align-items-center">
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i data-lucide="search" style="width: 16px;"></i></span>
+                        <span class="input-group-text bg-transparent border-end-0 text-muted">
+                            <i data-lucide="search" style="width: 16px;"></i>
+                        </span>
                         <input type="text" name="q" value="{{ search_query }}" class="form-border border-start-0 form-control shadow-none" placeholder="Tìm kiếm kịch bản...">
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <select name="status" class="form-select shadow-none" onchange="this.form.submit()">
-                        <option value="">Trạng thái: Tất cả</option>
+                    <select name="status" class="form-select shadow-none">
+                        <option value="">Tất cả trạng thái</option>
                         <option value="Đang hoạt động" {% if status_filter == 'Đang hoạt động' %}selected{% endif %}>Đang hoạt động</option>
                         <option value="Tạm ngừng" {% if status_filter == 'Tạm ngừng' %}selected{% endif %}>Tạm ngừng</option>
                     </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn-filter-gold">
+                        <i data-lucide="filter" style="width: 15px; height: 15px;"></i> Lọc
+                    </button>
+                    <a href="{% url 'chatbot:admin_script_list' %}" class="btn-reset-filter">
+                        <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Xóa lọc
+                    </a>
                 </div>
             </form>
         </div>
@@ -55,7 +159,7 @@
                         {% for script in scripts %}
                         <tr>
                             <td class="ps-4">
-                                <a href="{% url 'chatbot:admin_script_detail' script.pk %}" class="fw-bold text-primary text-decoration-none">
+                                <a href="{% url 'chatbot:admin_script_detail' script.pk %}" class="fw-bold text-dark text-decoration-none">
                                     {{ script.ten_kich_ban }}
                                 </a>
                                 {% if script.mo_ta %}
@@ -67,19 +171,25 @@
                             </td>
                             <td>
                                 {% if script.trang_thai == 'Đang hoạt động' %}
-                                    <span class="badge bg-success px-2 py-1">● Đang hoạt động</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">● Đang hoạt động</span>
                                 {% else %}
-                                    <span class="badge bg-secondary px-2 py-1">● Tạm ngừng</span>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1">● Tạm ngừng</span>
                                 {% endif %}
                             </td>
                             <td class="text-muted small">
                                 {{ script.thoi_gian_cap_nhat|date:"H:i d/m/Y"|default:"Hôm nay" }}
                             </td>
                             <td class="text-end pe-4">
-                                <div class="btn-group gap-2">
-                                    <a href="{% url 'chatbot:admin_script_edit' script.pk %}" class="btn btn-sm btn-outline-secondary">Sửa</a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteScriptModal_{{ script.pk }}">
-                                        Xóa
+                                <!-- CỘT THAO TÁC: Icon Con mắt (Xem), Cây bút (Sửa), Thùng rác (Xóa) -->
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    <a href="{% url 'chatbot:admin_script_detail' script.pk %}" class="action-icon-btn" title="Xem chi tiết">
+                                        <i data-lucide="eye" style="width: 15px; height: 15px;"></i>
+                                    </a>
+                                    <a href="{% url 'chatbot:admin_script_edit' script.pk %}" class="action-icon-btn" title="Chỉnh sửa">
+                                        <i data-lucide="pen" style="width: 15px; height: 15px;"></i>
+                                    </a>
+                                    <button type="button" class="action-icon-btn delete-btn" data-bs-toggle="modal" data-bs-target="#deleteScriptModal_{{ script.pk }}" title="Xóa kịch bản">
+                                        <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
                                     </button>
                                 </div>
 
@@ -145,10 +255,20 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-dark">Tạo kịch bản</button>
+                    <button type="submit" class="btn btn-black-top">Tạo kịch bản</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    });
+</script>
 {% endblock %}

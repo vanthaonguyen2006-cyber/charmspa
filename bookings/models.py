@@ -31,8 +31,8 @@ class LichHen(models.Model):
     trang_thai = models.CharField(
         max_length=20,
         default='Đã đặt',
-        choices=[('Đã đặt', 'Đã đặt'), ('Đang thực hiện', 'Đang thực hiện'), ('Hoàn thành', 'Hoàn thành'),
-                 ('Đã hủy', 'Đã hủy')],
+        choices=[('Đã đặt', 'Đã đặt'), ('Hoàn thành', 'Hoàn thành'),
+                 ('Đã hủy', 'Đã hủy'), ('Đã xóa', 'Đã xóa')],
         verbose_name="Trạng thái"
     )
     ghi_chu = models.TextField(null=True, blank=True, verbose_name="Ghi chú")

@@ -3,71 +3,25 @@
 {% block title %}Quản lý ngày hoạt động - Charm Spa Grand{% endblock %}
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bookings/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_incremental2">
+    <link rel="stylesheet" href="{% static 'css/bookings/admin.css' %}?v=charmspa_popup_expand_20261118">
 {% endblock %}
 {% block content %}
 <script src="https://cdn.tailwindcss.com"></script>
-<style>
-/* ========================================================
-   NGAY HOAT DONG - CHINH FONT VA KHOANG CACH RIENG TRANG
-   Khong anh huong Header, Sidebar, Create, List, Detail.
-   ======================================================== */
-:root {
-    --activity-top-gap: 20px;        /* Header -> vung noi dung */
-    --activity-title-size: 28px;     /* QUAN LY NGAY HOAT DONG */
-    --activity-section-size: 18px;   /* Thang + Danh sach ngay khoa */
-    --activity-body-size: 14px;      /* Chu noi dung */
-}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-/* Giam khoang trong do .staff-content (30px) + pt-4 (16px) cong lai */
-.staff-content:has(> .booking-admin-activity) {
-    padding-top: var(--activity-top-gap) !important;
-}
-.staff-content > .booking-admin-activity {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-}
-
-/* Dong bo Arial, loai font-serif cua Tailwind chi trong trang nay */
-.booking-admin-activity,
-.booking-admin-activity :is(h1,h2,h3,h4,h5,h6,p,span,div,button,a,table,th,td,label,input,select,textarea) {
-    font-family: 'Montserrat', Arial, sans-serif !important;
-}
-.booking-admin-activity > div:first-child h1 {
-    font-size: var(--activity-title-size) !important;
-    font-weight: 700 !important;
-    line-height: 1.3 !important;
-    letter-spacing: 0 !important;
-    margin: 0 !important;
-}
-.booking-admin-activity > div:first-child p {
-    font-size: var(--activity-body-size) !important;
-}
-.booking-admin-activity > .bg-white h3 {
-    font-size: var(--activity-section-size) !important;
-    font-weight: 700 !important;
-    letter-spacing: 0 !important;
-}
-.booking-admin-activity > div:first-child {
-    margin-bottom: 22px !important;
-}
-.booking-admin-activity .booking-activity-calendar {
-    margin-bottom: 20px !important;
-}
-@media (max-width: 650px) {
-    .booking-admin-activity > div:first-child h1 {
-        font-size: 23px !important;
-    }
-}
-</style>
 <div class="booking-admin-activity pt-4 px-8 pb-8 max-w-7xl w-full mx-auto">
+    {% if messages %}
+      {% for message in messages %}
+      <div class="rounded-lg border p-3 mb-3 text-sm {% if 'error' in message.tags %}bg-red-50 border-red-200 text-red-700{% else %}bg-green-50 border-green-200 text-green-800{% endif %}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
             <h1 class="text-3xl font-sans text-stone-900 tracking-wide">QUẢN LÝ NGÀY HOẠT ĐỘNG</h1>
             <p class="text-sm text-stone-600 mt-1">Thiết lập ngày đóng cửa và quản lý khả năng đặt lịch của spa.</p>
         </div>
-        {% if request.user.is_superuser %}
+        {% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
         <button type="button" onclick="toggleModal(true)" class="bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md transition flex items-center gap-2">+ Khóa ngày</button>
         {% endif %}
     </div>
@@ -95,12 +49,12 @@
                     {% if day.is_locked %}
                         <div class="booking-day-cell h-24 border border-amber-300 rounded-lg p-2 bg-amber-50/80 flex flex-col justify-between shadow-xs">
                             <span class="font-bold text-amber-900 text-sm">{{ day.day_number }}</span>
-                            <div class="text-[10px] bg-amber-200/80 text-amber-900 rounded px-1.5 py-0.5 font-medium truncate" title="{{ day.ly_do }}">🔒 {{ day.ly_do|default:"Đã khóa" }}</div>
+                            <div class="activity-day-locked-label bg-amber-200/80 text-amber-900 rounded px-1.5 py-0.5 font-medium truncate" title="{{ day.ly_do }}">🔒 {{ day.ly_do|default:"Đã khóa" }}</div>
                         </div>
                     {% elif day.is_current_month %}
                         <div class="booking-day-cell h-24 border border-stone-200 rounded-lg p-2 bg-white flex flex-col justify-between hover:border-stone-400 transition">
                             <span class="font-medium text-stone-800 text-sm">{{ day.day_number }}</span>
-                            <span class="text-[10px] text-emerald-600 font-medium">Hoạt động</span>
+                            <span class="activity-day-status">Hoạt động</span>
                         </div>
                     {% else %}
                         <div class="booking-day-cell h-24 border border-stone-100 rounded-lg p-2 bg-stone-50/50 text-stone-300 flex flex-col justify-between">
@@ -134,13 +88,13 @@
                         <td class="py-4 px-6">{{ item.ly_do_khoa }}</td>
                         <td class="py-4 px-6"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Đã khóa</span></td>
                         <td class="py-4 px-6 text-right">
-                            {% if request.user.is_superuser %}
-                            <form method="POST" action="{% url 'bookings:mo_khoa_ngay' item.ma_nhd %}" class="inline-block m-0" onsubmit="return confirm('Mở khóa ngày {{ item.ngay|date:'d/m/Y' }}?');">
+                            {% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
+                            <form method="POST" action="{% url 'bookings:mo_khoa_ngay' item.ma_nhd %}" class="inline-block m-0 activity-unlock-form">
                                 {% csrf_token %}
-                                <button type="submit" class="text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</button>
+                                <button type="button" data-unlock-date="{{ item.ngay|date:'d/m/Y' }}" class="activity-unlock-trigger text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</button>
                             </form>
                             {% else %}
-                            <span class="text-xs text-stone-400">Chỉ quản trị viên</span>
+                            <span class="text-xs text-stone-400">Chỉ quản lý</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -153,21 +107,29 @@
     </div>
 </div>
 
-{% if request.user.is_superuser %}
+{% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
 <div id="khoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-stone-100">
+    <div class="activity-lock-dialog bg-white rounded-2xl w-full p-6 shadow-2xl border border-stone-100">
         <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
             <h3 class="text-xl font-sans font-semibold text-stone-900">Khóa ngày</h3>
-            <button type="button" onclick="toggleModal(false)" class="text-stone-400 hover:text-stone-600 text-xl font-bold">&times;</button>
+            <button type="button" onclick="toggleModal(false)" class="activity-modal-close" aria-label="Đóng">&times;</button>
         </div>
-        <form method="POST" class="space-y-4">
+        <form method="POST" class="space-y-4" id="khoaNgayForm">
             {% csrf_token %}
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Ngày bắt đầu</label>{{ form.ngay_bat_dau }}</div>
                 <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Ngày kết thúc</label>{{ form.ngay_ket_thuc }}</div>
             </div>
             <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Lý do</label>{{ form.ly_do }}</div>
-            <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Nhập lý do chi tiết</label>{{ form.nhap_ly_do }}</div>
+            <div id="lyDoChiTietBox" class="hidden"><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1" for="id_nhap_ly_do">Nhập lý do chi tiết *</label>{{ form.nhap_ly_do }}</div>
+            {% if pending_lock %}
+            <div class="activity-lock-confirm" role="alert">
+                <strong>Cảnh báo: {{ pending_lock.count }} lịch hẹn sẽ bị ảnh hưởng.</strong>
+                <p>Ngày dự kiến khóa có lịch hẹn chưa hoàn thành. Khóa ngày sẽ ngăn lịch mới nhưng không tự hủy lịch cũ. Cần liên hệ khách để đổi/hủy.</p>
+                <label class="activity-lock-confirm-label"><input type="checkbox" id="confirmAffected" name="confirm_affected" value="1" required> Tôi xác nhận đã xem và sẽ xử lý các lịch hẹn bị ảnh hưởng.</label>
+            </div>
+            {% endif %}
+            <p id="khoaNgayError" class="hidden text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3" role="alert"></p>
             <div class="flex justify-end gap-3 pt-4 border-t border-stone-100">
                 <button type="button" onclick="toggleModal(false)" class="px-4 py-2 rounded-lg text-sm font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 transition">Hủy</button>
                 <button type="submit" name="btn_khoa_ngay" class="px-5 py-2 rounded-lg text-sm font-medium bg-stone-900 hover:bg-stone-800 text-white transition shadow-sm">Khóa ngày</button>
@@ -176,11 +138,246 @@
     </div>
 </div>
 {% endif %}
+{% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
+<!-- Xác nhận mở khóa: dùng lại chính form POST và URL có sẵn của từng ngày. -->
+<div id="moKhoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="moKhoaNgayTitle">
+    <div class="activity-unlock-dialog bg-white rounded-2xl w-full p-6 shadow-2xl border border-stone-100">
+        <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
+            <h3 id="moKhoaNgayTitle" class="text-xl font-sans font-semibold text-stone-900">Xác nhận mở khóa ngày</h3>
+            <button type="button" class="activity-modal-close" data-close-unlock aria-label="Đóng">&times;</button>
+        </div>
+        <p class="activity-unlock-description">Bạn có chắc chắn muốn mở khóa ngày <strong id="activityUnlockDate"></strong>?</p>
+        <p class="activity-unlock-note">Sau khi mở khóa, khách hàng có thể đặt lịch vào ngày này. Các lịch hẹn đã hủy sẽ không tự động được khôi phục.</p>
+        <div class="flex justify-end gap-3 pt-4 border-t border-stone-100 mt-5">
+            <button type="button" data-close-unlock class="px-4 py-2 rounded-lg text-sm font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 transition">Đóng</button>
+            <button type="button" id="activityUnlockConfirm" class="px-5 py-2 rounded-lg text-sm font-medium bg-stone-900 hover:bg-stone-800 text-white transition shadow-sm">Xác nhận mở khóa</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
 <script>
+// Chỉ dùng dữ liệu ngày đã khóa do Django truyền sang, không sửa dữ liệu gốc.
+const activityLockedDates = new Set([
+    {% for item in ngay_da_khoa %}"{{ item.ngay|date:'Y-m-d' }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]);
+
 function toggleModal(show) {
     const modal = document.getElementById('khoaNgayModal');
     if (!modal) return;
     modal.classList.toggle('hidden', !show);
+    if (!show) modal.classList.remove('activity-calendar-open');
+    if (show) syncActivityReason();
 }
+
+function syncActivityReason() {
+    const choice = document.getElementById('id_ly_do');
+    const details = document.getElementById('id_nhap_ly_do');
+    const box = document.getElementById('lyDoChiTietBox');
+    if (!choice || !details || !box) return;
+    const isOther = choice.value.trim().toLocaleLowerCase('vi') === 'khác';
+    box.classList.toggle('hidden', !isOther);
+    details.required = isOther;
+    details.disabled = !isOther;
+    if (!isOther) details.value = '';
+}
+
+function showActivityError(message) {
+    const node = document.getElementById('khoaNgayError');
+    node.textContent = message;
+    node.classList.remove('hidden');
+}
+
+// Chặn cả khoảng ngày chứa ngày đã khóa ở giao diện (không chỉ ngày đầu/cuối).
+function checkActivityDateRange(start, end) {
+    if (!start || !end) return 'Vui lòng chọn ngày bắt đầu và ngày kết thúc.';
+    if (start > end) return 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.';
+    const today = new Date();
+    const todayISO = [today.getFullYear(), String(today.getMonth()+1).padStart(2,'0'), String(today.getDate()).padStart(2,'0')].join('-');
+    if (start < todayISO || end < todayISO) return 'Không thể khóa ngày đã qua. Vui lòng chọn từ hôm nay trở đi.';
+    const d = new Date(start + 'T12:00:00');
+    const last = new Date(end + 'T12:00:00');
+    for (; d <= last; d.setDate(d.getDate() + 1)) {
+        const day = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+        if (activityLockedDates.has(day)) return 'Ngày ' + day.split('-').reverse().join('/') + ' đã khóa. Vui lòng chọn khoảng khác hoặc mở khóa trước.';
+    }
+    return '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('khoaNgayForm');
+    const start = document.getElementById('id_ngay_bat_dau');
+    const end = document.getElementById('id_ngay_ket_thuc');
+    const choice = document.getElementById('id_ly_do');
+    if (!form || !start || !end || !choice) return;
+    choice.addEventListener('change', syncActivityReason);
+    syncActivityReason();
+    if (window.flatpickr) {
+        const opts = {
+            dateFormat: 'Y-m-d', // gửi đúng giá trị Django DateField
+            minDate: 'today', // không cho chọn ngày đã qua
+            altInput: true, altFormat: 'd/m/Y',
+            allowInput: false,
+            disable: [d => activityLockedDates.has([d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-'))],
+            locale: 'vn',
+            static: false,
+            appendTo: document.body,
+            position: "below",
+            onOpen: () => document.getElementById('khoaNgayModal')?.classList.add('activity-calendar-open'),
+            onClose: () => document.getElementById('khoaNgayModal')?.classList.remove('activity-calendar-open')
+        };
+        flatpickr(start, {...opts});
+        flatpickr(end, {...opts});
+    }
+    form.addEventListener('submit', event => {
+        document.getElementById('khoaNgayError').classList.add('hidden');
+        const error = checkActivityDateRange(start.value, end.value);
+        if (error) {
+            event.preventDefault();
+            showActivityError(error);
+            return;
+        }
+        if (choice.value.trim().toLocaleLowerCase('vi') === 'khác' && !document.getElementById('id_nhap_ly_do').value.trim()) {
+            event.preventDefault();
+            showActivityError('Vui lòng nhập lý do chi tiết khi chọn Khác.');
+        }
+    });
+    // Khi view trả về form có lỗi, mở lại popup để xem và sửa.
+    {% if form.errors or pending_lock %}toggleModal(true);{% endif %}
+});
+
+// Popup xác nhận mở khóa: chỉ gửi form gốc khi bấm nút xác nhận.
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('moKhoaNgayModal');
+    if (!modal) return;
+    const label = document.getElementById('activityUnlockDate');
+    const confirmButton = document.getElementById('activityUnlockConfirm');
+    let pendingForm = null;
+    let opener = null;
+    function closeUnlock() {
+        modal.classList.add('hidden');
+        pendingForm = null;
+        opener?.focus();
+    }
+    document.querySelectorAll('.activity-unlock-trigger').forEach(button => {
+        button.addEventListener('click', () => {
+            pendingForm = button.closest('form');
+            opener = button;
+            label.textContent = button.dataset.unlockDate || '';
+            modal.classList.remove('hidden');
+            confirmButton.focus();
+        });
+    });
+    modal.querySelectorAll('[data-close-unlock]').forEach(button => button.addEventListener('click', closeUnlock));
+    modal.addEventListener('click', event => {
+        if (event.target === modal) closeUnlock();
+    });
+    modal.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); closeUnlock(); }
+    });
+    confirmButton.addEventListener('click', () => {
+        if (!pendingForm) return;
+        confirmButton.disabled = true;
+        pendingForm.requestSubmit();
+    });
+});
+
+
+// Chỉ thay cách HIỂN THỊ danh sách lý do bên trong popup;
+// select gốc vẫn giữ name, value, onchange và dữ liệu gửi về Django.
+function initializePopupExpandingReason(select) {
+    if (!select || select.dataset.popupExpandingReady === '1') return;
+
+    const picker = document.createElement('div');
+    picker.className = 'popup-expanding-picker';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'popup-expanding-trigger';
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    const label = document.createElement('span');
+    label.className = 'popup-expanding-current';
+    const chevron = document.createElement('span');
+    chevron.className = 'popup-expanding-chevron';
+    chevron.textContent = '⌄';
+    chevron.setAttribute('aria-hidden', 'true');
+    trigger.append(label, chevron);
+
+    const list = document.createElement('div');
+    list.className = 'popup-expanding-choices';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+    const id = select.id || 'reason-' + Math.random().toString(36).slice(2);
+    list.id = id + '-choices';
+    trigger.setAttribute('aria-controls', list.id);
+
+    const setClosed = () => {
+        list.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+    };
+    const sync = () => {
+        const current = select.options[select.selectedIndex];
+        label.textContent = current ? current.textContent.trim() : 'Chọn lý do';
+        list.querySelectorAll('.popup-expanding-option').forEach(button => {
+            button.setAttribute('aria-selected', String(button.dataset.value === select.value));
+        });
+    };
+
+    Array.from(select.options).forEach(option => {
+        if (option.hidden) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'popup-expanding-option';
+        button.setAttribute('role', 'option');
+        button.dataset.value = option.value;
+        button.textContent = option.textContent.trim();
+        button.disabled = option.disabled;
+        button.addEventListener('click', () => {
+            select.value = option.value;
+            // Phát change để giữ nguyên logic hiển thị ô nhập 'Khác'.
+            select.dispatchEvent(new Event('change', {bubbles: true}));
+            sync();
+            setClosed();
+            trigger.focus({preventScroll: true});
+        });
+        list.appendChild(button);
+    });
+
+    trigger.addEventListener('click', () => {
+        const shouldOpen = list.hidden;
+        // Chỉ một danh sách lý do được mở tại một thời điểm.
+        document.querySelectorAll('.popup-expanding-choices:not([hidden])').forEach(other => {
+            other.hidden = true;
+            other.parentElement?.querySelector('.popup-expanding-trigger')?.setAttribute('aria-expanded', 'false');
+        });
+        list.hidden = !shouldOpen;
+        trigger.setAttribute('aria-expanded', String(shouldOpen));
+    });
+    select.addEventListener('change', sync);
+    document.addEventListener('pointerdown', event => {
+        if (!picker.contains(event.target)) setClosed();
+    });
+    picker.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            setClosed();
+            trigger.focus({preventScroll: true});
+        }
+    });
+
+    select.parentNode.insertBefore(picker, select);
+    picker.append(select, trigger, list);
+    select.classList.add('popup-expanding-native');
+    select.tabIndex = -1;
+    select.dataset.popupExpandingReady = '1';
+    sync();
+}
+
+
+// Popup Khóa ngày: xổ lý do thì khung tự cao lên, chọn xong thì thu lại.
+document.addEventListener('DOMContentLoaded', () => {
+    initializePopupExpandingReason(document.querySelector('#khoaNgayModal select[name="ly_do"]'));
+});
 </script>
 {% endblock %}

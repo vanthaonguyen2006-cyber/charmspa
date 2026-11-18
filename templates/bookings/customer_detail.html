@@ -1,18 +1,89 @@
 {% extends 'layouts/customer_base_pro.html' %}
-{% load static %}
+{% load static charm_format %}
 {% block extra_css %}
    {{ block.super }}
-   <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-   <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=font_sync_30px_v2">
-   <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
+   <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
+   <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_popup_expand_20261118">
+   <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_fix1">
 {% endblock %}
 {% block profile_content %}
 
 
-<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=font_sync_30px_v2">
-<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
+<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
+<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_popup_expand_20261118">
+<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_fix1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+
+/* Danh sách dịch vụ: phủ cùng 1 khung với modal Đổi lịch, không tạo modal thứ hai. */
+.booking-reschedule-modal .modal-content { position: relative; }
+.booking-reschedule-modal .customer-services-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    background: #fff;
+    color: #302c29;
+}
+.booking-reschedule-modal .customer-services-cover[hidden] { display: none !important; }
+.booking-reschedule-modal .customer-services-cover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 16px;
+    padding: 18px 28px;
+    border-bottom: 1px solid #ece6df;
+    background: #fff;
+}
+.booking-reschedule-modal .customer-services-cover-header h5 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+.booking-reschedule-modal .customer-services-cover-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 28px;
+}
+.booking-reschedule-modal .customer-services-cover .booking-service-options > [class*="col-"] {
+    display: flex;
+}
+.booking-reschedule-modal .customer-services-cover .service-card-modal {
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border: 1px solid #eaded3;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: left;
+}
+.booking-reschedule-modal .customer-services-cover .service-card-modal.selected {
+    border-color: #ad8f5b;
+    background: #faf5f0;
+}
+.booking-reschedule-modal .customer-services-cover .service-card-modal img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+@media (max-width: 767px) {
+    .booking-reschedule-modal .customer-services-cover-header {padding: 14px 16px;}
+    .booking-reschedule-modal .customer-services-cover-body {padding: 14px 16px;}
+    .booking-reschedule-modal .customer-services-cover .service-card-modal img {height: 130px;}
+}
+</style>
 <div class="booking-customer-detail">
    {% if messages %}
    <div class="mb-3">
@@ -76,6 +147,46 @@
            </section>
 
 
+           <!-- BẮT ĐẦU BỔ SUNG: HIỂN THỊ ƯU ĐÃI ĐÃ LƯU -->
+           {% with uu_dai=lich_hen.uu_dai_ap_dung %}
+           {% if uu_dai %}
+           <section class="customer-detail-card" aria-label="Ưu đãi áp dụng cho lịch hẹn">
+               <h2 style="color: #765323;">
+                   <i class="bi bi-tag-fill me-2" aria-hidden="true"></i>{% if uu_dai.gia_sau_giam < uu_dai.gia_goc %}Ưu đãi đã áp dụng{% else %}Ưu đãi không còn áp dụng{% endif %}
+               </h2>
+               <p class="customer-detail-subtitle">{% if uu_dai.gia_sau_giam < uu_dai.gia_goc %}Giá ưu đãi đang áp dụng cho lịch hẹn.{% else %}Lịch đã được chuyển về giá thông thường sau khi thay đổi.{% endif %}</p>
+               <div style="background: #FAF6EF; border: 1px solid #E5D6BD; border-radius: 12px; padding: 18px;">
+                   <div style="margin-bottom: 14px;">
+                       <span style="display: block; color: #756B61; font-size: 12px; margin-bottom: 4px;">Chương trình ưu đãi</span>
+                       <strong style="color: #46392E;">{{ uu_dai.ma_ctud.ten_chuong_trinh }}</strong>
+                   </div>
+                   <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                       <span>Mã ưu đãi</span>
+                       <strong>{{ uu_dai.ma_ctud_id }}</strong>
+                   </div>
+                   <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                       <span>Số lượng khách</span>
+                       <strong>{{ lich_hen.so_luong_khach }} khách</strong>
+                   </div>
+                   <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                       <span>Tổng giá gốc</span>
+                       <span style="color: #978B80; font-variant-numeric: tabular-nums;">{{ uu_dai.gia_goc|vnd }}</span>
+                   </div>
+                   <div style="border-top: 1px solid #E5D6BD; padding-top: 13px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                       <strong style="color: #46392E;">{% if uu_dai.gia_sau_giam < uu_dai.gia_goc %}Tổng giá sau giảm{% else %}Tổng giá thông thường{% endif %}</strong>
+                       <strong style="color: #765323; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ uu_dai.gia_sau_giam|vnd }}</strong>
+                   </div>
+                   {% if lich_hen.trang_thai == 'Đã hủy' %}
+                   <p style="color: #9B4B40; font-size: 12px; margin: 12px 0 0;">Lịch hẹn đã hủy. Đây là thông tin giá ưu đãi từng được ghi nhận, không phải khoản đã thanh toán.</p>
+                   {% else %}
+                   <p style="color: #756B61; font-size: 12px; margin: 12px 0 0;">Tổng giá dự kiến cho lịch hẹn, chưa xác nhận thanh toán.</p>
+                   {% endif %}
+               </div>
+           </section>
+           {% endif %}
+           {% endwith %}
+           <!-- KẾT THÚC BỔ SUNG: HIỂN THỊ ƯU ĐÃI -->
+
            <section class="customer-detail-card">
                <h2>Thông tin khách hàng</h2>
                <div class="customer-detail-contact">
@@ -99,7 +210,7 @@
            {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
            <button type="button" class="customer-detail-change" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ lich_hen.ma_lh }}"><i class="bi bi-pencil-square"></i> Đổi lịch</button>
            <button type="button" class="customer-detail-cancel" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lich_hen.ma_lh }}"><i class="bi bi-x-circle"></i> Hủy lịch</button>
-           <p class="customer-detail-policy">Chỉ được đổi hoặc hủy lịch trước giờ hẹn ít nhất 12 tiếng, theo quy định của spa.</p>
+           <p class="customer-detail-policy">Chỉ được đổi lịch trước giờ hẹn ít nhất 3 tiếng và hủy lịch trước giờ hẹn ít nhất 6 tiếng, theo quy định của spa.</p>
            {% else %}
            <a class="customer-detail-change" href="{% url 'bookings:booking_customer_create' %}"><i class="bi bi-calendar-plus"></i> Đặt lịch mới</a>
            {% endif %}
@@ -111,8 +222,8 @@
 {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
                <!-- MODAL HỦY LỊCH HẸN (Đã mở rộng chiều dài ngang max-width 950px) -->
                <div class="modal fade booking-ui-modal" id="cancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
-                   <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 950px;">
-                       <div class="modal-content" style="border-radius: 16px; border: none; padding: 10px;">
+                   <div class="modal-dialog modal-dialog-centered customer-cancel-dialog bk-c-div-04">
+                       <div class="modal-content bk-c-div-05">
                            <form method="POST" action="{% url 'bookings:booking_customer_cancel' lich_hen.ma_lh %}">
                                {% csrf_token %}
                                <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
@@ -120,8 +231,8 @@
                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                </div>
                                <div class="modal-body px-4 text-start">
-                                   <div class="alert alert-warning py-2 px-3 small mb-3" style="border-radius: 8px;">
-                                       <i class="bi bi-info-circle-fill me-1"></i> Theo quy định, lịch chỉ được hủy trước giờ hẹn ít nhất <strong>12 tiếng</strong>. Nếu không đủ điều kiện, hệ thống sẽ giữ nguyên trạng thái và hiển thị thông báo. Nếu chỉ muốn thay đổi thời gian hoặc dịch vụ, hãy chọn <strong>"Đổi lịch"</strong>.
+                                   <div class="alert alert-warning py-2 px-3 small mb-3 bk-c-alert">
+                                       <i class="bi bi-info-circle-fill me-1"></i> Theo quy định, lịch chỉ được hủy trước giờ hẹn ít nhất <strong>6 tiếng</strong>. Nếu không đủ điều kiện, hệ thống sẽ giữ nguyên trạng thái và hiển thị thông báo. Nếu chỉ muốn thay đổi thời gian hoặc dịch vụ, hãy chọn <strong>"Đổi lịch"</strong>.
                                    </div>
                                    <div class="mb-3">
                                        <label class="form-label fw-bold text-secondary">Lý do hủy *</label>
@@ -150,7 +261,7 @@
                <!-- MODAL THAY ĐỔI LỊCH HẸN -->
                <div class="modal fade booking-ui-modal booking-reschedule-modal" id="rescheduleModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                       <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12); background-color: #f9f6f0;">
+                       <div class="modal-content bk-c-div-07">
                            <form method="POST" class="customer-reschedule-form"
                                  data-booking-id="{{ lich_hen.ma_lh }}"
                                  data-original-date="{{ lich_hen.ngay_hen|date:'d/m/Y' }}"
@@ -160,7 +271,7 @@
                                  action="{% url 'bookings:booking_customer_reschedule' lich_hen.ma_lh %}">
                                {% csrf_token %}
                                <div class="modal-header bg-white border-bottom-0 pb-0 pt-4 px-4">
-                                   <h5 class="modal-title fw-bold" style="color: var(--primary-gold); font-size: 18px;">
+                                   <h5 class="modal-title fw-bold bk-c-h5">
                                        <i class="bi bi-calendar2-range me-2"></i> Thay đổi lịch hẹn & dịch vụ #{{ lich_hen.ma_lh }}
                                    </h5>
                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -213,18 +324,18 @@
                                            <!-- 2. Chọn ngày & 3. Khung giờ -->
                                            <div class="row g-3">
                                                <div class="col-md-5">
-                                                   <div class="bg-white border rounded p-3 booking-reschedule-panel" style="border-color: var(--border-color) !important;">
-                                                       <h6 class="fw-bold mb-2 text-secondary" >2. Chọn ngày hẹn mới</h6>
-                                                       <div class="position-relative">
+                                                   <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
+                                                       <h6 class="fw-bold mb-2 text-secondary" >2. CHỌN NGÀY HẸN MỚI</h6>
+                                                       <div class="position-relative customer-reschedule-date">
                                                            <input type="text" name="ngay_hen_moi" id="input_ngay_hen_{{ lich_hen.ma_lh }}" class="form-control fw-bold edit-date-picker" value="{{ lich_hen.ngay_hen|date:'d/m/Y' }}" required>
-                                                           <i class="bi bi-calendar3 position-absolute text-warning"></i>
+                                                           <button type="button" class="booking-date-trigger" aria-label="Mở lịch chọn ngày"><i class="bi bi-calendar3 text-warning"></i></button>
                                                        </div>
                                                    </div>
                                                </div>
                                                <div class="col-md-7">
-                                                   <div class="bg-white border rounded p-3 booking-reschedule-panel" style="border-color: var(--border-color) !important;">
+                                                   <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
                                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                                           <h6 class="fw-bold m-0 text-secondary" >3. Khung giờ trống (Đến 21:00)</h6>
+                                                           <h6 class="fw-bold m-0 text-secondary" >3. KHUNG GIỜ TRỐNG</h6>
                                                            <span class="badge bg-light text-success border" id="bed_capacity_info_{{ lich_hen.ma_lh }}" >Quỹ giường: 6 giường</span>
                                                        </div>
                                                        <div class="row g-2 time-slots-container_modal" data-booking-id="{{ lich_hen.ma_lh }}"></div>
@@ -236,9 +347,9 @@
 
                                        <!-- CỘT PHẢI: SỐ LƯỢNG KHÁCH, GHI CHÚ & TÓM TẮT -->
                                        <div class="col-lg-4">
-                                           <div class="bg-white border rounded p-3 booking-reschedule-panel" style="border-color: var(--border-color) !important;">
+                                           <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
                                                <div>
-                                                   <h6 class="fw-bold mb-3 text-secondary" >4. Thông tin bổ sung</h6>
+                                                   <h6 class="fw-bold mb-3 text-secondary" >4. THÔNG TIN BỔ SUNG</h6>
                                                    <div class="mb-3">
                                                        <label class="form-label fw-bold text-secondary" >Số lượng khách *</label>
                                                        <input type="number" name="so_luong_khach_moi" id="input_so_luong_{{ lich_hen.ma_lh }}" class="form-control form-control-sm" value="{{ lich_hen.so_luong_khach }}" min="1" max="10" required onchange="updateModalSlots('{{ lich_hen.ma_lh }}')">
@@ -250,7 +361,7 @@
                                                </div>
 
 
-                                               <div class="p-3 rounded mt-3 booking-reschedule-summary" style="background-color: #faf6f0;">
+                                               <div class="p-3 rounded mt-3 booking-reschedule-summary bk-c-booking-reschedule-summary">
                                                    <small class="text-muted d-block text-uppercase" >TÓM TẮT THAY ĐỔI</small>
                                                    <strong class="d-block text-dark mt-1" id="summary_service_name_{{ lich_hen.ma_lh }}" >
                                                        {{ lich_hen.ma_dv.ten_dich_vu }}
@@ -267,7 +378,7 @@
                                </div>
                                <div class="modal-footer border-top-0 pb-4 px-4 bg-white">
                                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
-                                   <button type="submit" class="btn px-4 text-white save-reschedule-btn" style="background-color: var(--primary-gold);">Lưu thay đổi</button>
+                                   <button type="submit" class="btn px-4 text-white save-reschedule-btn bk-c-btn">Lưu thay đổi</button>
                                </div>
                            </form>
                        </div>
@@ -326,17 +437,64 @@
    }
 
 
-   function toggleAllServices(id) {
-       const container = document.getElementById('service_container_' + id);
-       const button = document.getElementById('btn_toggle_services_' + id);
-       const expanded = container.dataset.isExpanded === 'true';
-       container.querySelectorAll('.service-item-col').forEach((item, i) => {
-           item.classList.toggle('d-none', expanded && i >= 3);
-           if (!expanded) item.classList.remove('d-none');
-       });
-       container.dataset.isExpanded = String(!expanded);
-       button.textContent = expanded ? 'Xem tất cả dịch vụ →' : 'Thu gọn ←';
-   }
+   // Xem tất cả dịch vụ dưới dạng popup như trang Đặt lịch; dùng thẻ gốc để giữ toàn bộ logic chọn dịch vụ.
+    // Lớp chọn dịch vụ phủ TRỌN khung Đổi lịch, không mở Bootstrap modal thứ hai.
+    function toggleAllServices(id) {
+        const container = document.getElementById('service_container_' + id);
+        const parentModal = document.getElementById('rescheduleModal' + id);
+        const modalContent = parentModal?.querySelector('.modal-content');
+        if (!container || !modalContent) return;
+
+        const layerId = 'customerAllServices_' + id;
+        let layer = document.getElementById(layerId);
+        if (!layer) {
+            layer = document.createElement('div');
+            layer.id = layerId;
+            layer.className = 'customer-services-cover';
+            layer.setAttribute('role', 'dialog');
+            layer.setAttribute('aria-modal', 'true');
+            layer.setAttribute('aria-label', 'Danh sách dịch vụ Charm Spa');
+            layer.hidden = true;
+            layer.innerHTML = `<div class="customer-services-cover-header"><h5>DANH SÁCH DỊCH VỤ CHARM SPA</h5><button type="button" class="btn-close customer-services-cover-close" aria-label="Đóng"></button></div><div class="customer-services-cover-body"><div class="row g-3 booking-service-options"></div></div>`;
+            modalContent.appendChild(layer);
+            layer.querySelector('.customer-services-cover-close').addEventListener('click', () => closeCustomerServicesCover(layer, id));
+            layer.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    closeCustomerServicesCover(layer, id);
+                }
+            });
+            parentModal.addEventListener('hidden.bs.modal', () => closeCustomerServicesCover(layer, id, false));
+        }
+
+        const grid = layer.querySelector('.booking-service-options');
+        grid.replaceChildren();
+        container.querySelectorAll('.service-item-col').forEach(item => {
+            const sourceCard = item.querySelector('.service-card-modal');
+            if (!sourceCard) return;
+            const column = document.createElement('div');
+            column.className = 'col-md-4';
+            const copy = sourceCard.cloneNode(true);
+            copy.removeAttribute('onclick');
+            copy.addEventListener('click', () => {
+                sourceCard.click();
+                closeCustomerServicesCover(layer, id);
+            });
+            column.appendChild(copy);
+            grid.appendChild(column);
+        });
+        layer.hidden = false;
+        layer.querySelector('.customer-services-cover-close').focus({preventScroll: true});
+    }
+
+    function closeCustomerServicesCover(layer, id, restoreFocus = true) {
+        if (!layer) return;
+        layer.hidden = true;
+        if (restoreFocus) {
+            document.getElementById('btn_toggle_services_' + id)?.focus({preventScroll: true});
+        }
+    }
 
 
    function selectModalService(element, id, serviceId, serviceName, duration, price) {
@@ -477,12 +635,14 @@
            const selectedCard = document.querySelector('#service_container_' + id + ' .service-card-modal.selected');
            const name = selectedCard?.textContent?.toLowerCase() || '';
            form.dataset.originalType = name.includes('shampoo') || name.includes('gội') ? 'shampoo' : 'massage';
+           dateInput.closest('.customer-reschedule-date')?.querySelector('.booking-date-trigger')?.addEventListener('click', () => dateInput._flatpickr?.open());
            const fp = flatpickr(dateInput, {
                dateFormat: 'd/m/Y',
                minDate: 'today',
                defaultDate: form.dataset.originalDate,
                disable: [d => disabledDates.includes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)],
-               static: true,
+               static: false,
+               appendTo: document.body,
                onChange: () => {
                    document.getElementById('input_time_slot_' + id).value = '';
                    updateModalSlots(id);
@@ -500,6 +660,101 @@
            updateModalSummary(id);
        });
    });
-   </script>
-{% endblock %}
 
+
+// Chỉ thay cách HIỂN THỊ danh sách lý do bên trong popup;
+// select gốc vẫn giữ name, value, onchange và dữ liệu gửi về Django.
+function initializePopupExpandingReason(select) {
+    if (!select || select.dataset.popupExpandingReady === '1') return;
+
+    const picker = document.createElement('div');
+    picker.className = 'popup-expanding-picker';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'popup-expanding-trigger';
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    const label = document.createElement('span');
+    label.className = 'popup-expanding-current';
+    const chevron = document.createElement('span');
+    chevron.className = 'popup-expanding-chevron';
+    chevron.textContent = '⌄';
+    chevron.setAttribute('aria-hidden', 'true');
+    trigger.append(label, chevron);
+
+    const list = document.createElement('div');
+    list.className = 'popup-expanding-choices';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+    const id = select.id || 'reason-' + Math.random().toString(36).slice(2);
+    list.id = id + '-choices';
+    trigger.setAttribute('aria-controls', list.id);
+
+    const setClosed = () => {
+        list.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+    };
+    const sync = () => {
+        const current = select.options[select.selectedIndex];
+        label.textContent = current ? current.textContent.trim() : 'Chọn lý do';
+        list.querySelectorAll('.popup-expanding-option').forEach(button => {
+            button.setAttribute('aria-selected', String(button.dataset.value === select.value));
+        });
+    };
+
+    Array.from(select.options).forEach(option => {
+        if (option.hidden) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'popup-expanding-option';
+        button.setAttribute('role', 'option');
+        button.dataset.value = option.value;
+        button.textContent = option.textContent.trim();
+        button.disabled = option.disabled;
+        button.addEventListener('click', () => {
+            select.value = option.value;
+            // Phát change để giữ nguyên logic hiển thị ô nhập 'Khác'.
+            select.dispatchEvent(new Event('change', {bubbles: true}));
+            sync();
+            setClosed();
+            trigger.focus({preventScroll: true});
+        });
+        list.appendChild(button);
+    });
+
+    trigger.addEventListener('click', () => {
+        const shouldOpen = list.hidden;
+        // Chỉ một danh sách lý do được mở tại một thời điểm.
+        document.querySelectorAll('.popup-expanding-choices:not([hidden])').forEach(other => {
+            other.hidden = true;
+            other.parentElement?.querySelector('.popup-expanding-trigger')?.setAttribute('aria-expanded', 'false');
+        });
+        list.hidden = !shouldOpen;
+        trigger.setAttribute('aria-expanded', String(shouldOpen));
+    });
+    select.addEventListener('change', sync);
+    document.addEventListener('pointerdown', event => {
+        if (!picker.contains(event.target)) setClosed();
+    });
+    picker.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            setClosed();
+            trigger.focus({preventScroll: true});
+        }
+    });
+
+    select.parentNode.insertBefore(picker, select);
+    picker.append(select, trigger, list);
+    select.classList.add('popup-expanding-native');
+    select.tabIndex = -1;
+    select.dataset.popupExpandingReady = '1';
+    sync();
+}
+
+
+    // Popup Hủy lịch: xổ lý do thì khung tự cao lên, chọn xong thì thu lại.
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.customer-cancel-dialog select[name="ly_do_huy"]').forEach(initializePopupExpandingReason);
+    });
+</script>
+{% endblock %}

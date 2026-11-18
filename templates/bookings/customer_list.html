@@ -2,16 +2,16 @@
 {% load static %}
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=filter_restore_v2">
-    <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
+    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_noflash3">
+    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_20261117_noflash3">
+    <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_noflash3">
 {% endblock %}
 {% block profile_content %}
 
 {# Nạp CSS tại block thực sự được render bởi trang hồ sơ khách hàng. #}
-<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
-<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=filter_restore_v2">
-<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=modals_fixed_1">
+<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_noflash3">
+<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_20261117_noflash3">
+<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_noflash3">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 
@@ -31,22 +31,14 @@
             </div>
         {% endif %}
 
-<div style="display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            gap: 20px;
-            margin-bottom: 16px;">
+<div class="bk-c-div">
 
-    <h2 class="booking-list-title"
-        style="margin: 0; flex-shrink: 0;">
+    <h2 class="booking-list-title bk-c-booking-list-title"
+       >
         DANH SÁCH LỊCH HẸN
     </h2>
 
-    <span style="margin-left: auto;
-                 text-align: right;
-                 color: #6b7280;
-                 font-size: 14px;">
+    <span class="bk-c-span">
         Quản lý các lịch hẹn trị liệu tại Charm Spa
     </span>
 
@@ -55,7 +47,6 @@
         <!-- BỘ LỌC DẠNG BẢNG - KHÔNG ĐỔI URL DJANGO -->
         <section class="customer-booking-toolbar" aria-label="Bộ lọc danh sách lịch hẹn">
             <form id="customerBookingFilter" method="GET" action="{% url 'bookings:booking_customer_list' %}" class="customer-booking-filter-form">
-                <div class="customer-filter-field customer-filter-lead"><i class="bi bi-funnel"></i><span>BỘ LỌC</span></div>
                 <label class="customer-filter-field">Trạng thái
                     <select name="trang_thai" id="customerFilterStatus">
                         <option value="" {% if not current_filter %}selected{% endif %}>Tất cả trạng thái</option>
@@ -64,12 +55,11 @@
                         <option value="cancelled" {% if current_filter == 'cancelled' %}selected{% endif %}>Đã hủy</option>
                     </select>
                 </label>
-                <label class="customer-filter-field">Từ ngày <input id="customerFromDate" type="date" name="tu_ngay"></label>
-                <label class="customer-filter-field">Đến ngày <input id="customerToDate" type="date" name="den_ngay"></label>
+                <label class="customer-filter-field">Từ ngày <input id="customerFromDate" type="text" name="tu_ngay"></label>
+                <label class="customer-filter-field">Đến ngày <input id="customerToDate" type="text" name="den_ngay"></label>
                 <button type="submit" class="customer-filter-apply"><i class="bi bi-search"></i> Lọc</button>
                 <a href="{% url 'bookings:booking_customer_list' %}" class="customer-filter-reset">Xóa bộ lọc</a>
             </form>
-            <div class="customer-filter-summary" id="customerFilterSummary">{{ lich_hen_list|length }} lịch hẹn · Sắp xếp mới nhất</div>
         </section>
 
         <!-- DANH SÁCH DẠNG BẢNG, GIỮ NGUYÊN MODAL ĐỔI/HỦY BÊN DƯỚI -->
@@ -82,7 +72,7 @@
                 {% for lh in lich_hen_list %}
                 <div class="customer-booking-table-row" data-date="{{ lh.ngay_hen|date:'Y-m-d' }}">
                     <div class="customer-booking-id">#{{ lh.ma_lh }}</div>
-                    <div class="customer-booking-service"><strong>{{ lh.ma_dv.ten_dv|default:lh.ma_dv.ten_dich_vu|default:'Dịch vụ Charm Spa' }}</strong><small>Charm Spa Grand</small></div>
+                    <div class="customer-booking-service"><strong>{{ lh.ma_dv.ten_dv|default:lh.ma_dv.ten_dich_vu|default:'Dịch vụ Charm Spa' }}</strong></div>
                     <div>{{ lh.ngay_hen|date:'d/m/Y' }}</div>
                     <div>{{ lh.gio_hen|time:'H:i' }}</div>
                     <div>{{ lh.so_luong_khach }} khách</div>
@@ -92,17 +82,13 @@
                         {% else %}<span class="customer-status-pill active">{{ lh.trang_thai }}</span>{% endif %}
                     </div>
                     <div class="customer-booking-actions">
-                        <a href="{% url 'bookings:booking_customer_detail' lh.ma_lh %}" class="customer-action-detail">Xem chi tiết</a>
-                        {% if lh.trang_thai != 'Đã hủy' and lh.trang_thai != 'Hoàn thành' %}
-                        <button type="button" class="customer-action-button" data-bs-toggle="modal" data-bs-target="#rescheduleModal{{ lh.ma_lh }}">Thay đổi</button>
-                        <button type="button" class="customer-action-button danger" data-bs-toggle="modal" data-bs-target="#cancelModal{{ lh.ma_lh }}">Hủy</button>
-                        {% endif %}
+                     <a href="{% url 'bookings:booking_customer_detail' lh.ma_lh %}" class="customer-action-detail">Xem chi tiết</a>
                     </div>
                 </div>
                 <!-- MODAL HỦY LỊCH HẸN (Đã mở rộng chiều dài ngang max-width 950px) -->
                 <div class="modal fade booking-ui-modal" id="cancelModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 950px;">
-                        <div class="modal-content" style="border-radius: 16px; border: none; padding: 10px;">
+                    <div class="modal-dialog modal-dialog-centered modal-xl bk-c-div-04">
+                        <div class="modal-content bk-c-div-05">
                             <form method="POST" action="{% url 'bookings:booking_customer_cancel' lh.ma_lh %}">
                                 {% csrf_token %}
                                 <div class="modal-header bg-light border-bottom-0 pb-0 pt-4 px-4">
@@ -110,7 +96,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body px-4 text-start">
-                                    <div class="alert alert-warning py-2 px-3 small mb-3" style="border-radius: 8px;">
+                                    <div class="alert alert-warning py-2 px-3 small mb-3 bk-c-alert">
                                         <i class="bi bi-info-circle-fill me-1"></i> Theo quy định, lịch chỉ được hủy trước giờ hẹn ít nhất <strong>12 tiếng</strong>. Nếu không đủ điều kiện, hệ thống sẽ giữ nguyên trạng thái và hiển thị thông báo. Nếu chỉ muốn thay đổi thời gian hoặc dịch vụ, hãy chọn <strong>"Đổi lịch"</strong>.
                                     </div>
                                     <div class="mb-3">
@@ -137,9 +123,9 @@
                 </div>
 
                 <!-- MODAL THAY ĐỔI LỊCH HẸN -->
-                <div class="modal fade booking-ui-modal booking-reschedule-modal" id="rescheduleModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
+                <div class="modal booking-ui-modal booking-reschedule-modal" id="rescheduleModal{{ lh.ma_lh }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl">
-                        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.12); background-color: #f9f6f0;">
+                        <div class="modal-content bk-c-div-07">
                             <form method="POST" class="customer-reschedule-form"
                                   data-booking-id="{{ lh.ma_lh }}"
                                   data-original-date="{{ lh.ngay_hen|date:'d/m/Y' }}"
@@ -149,7 +135,7 @@
                                   action="{% url 'bookings:booking_customer_reschedule' lh.ma_lh %}">
                                 {% csrf_token %}
                                 <div class="modal-header bg-white border-bottom-0 pb-0 pt-4 px-4">
-                                    <h5 class="modal-title fw-bold" style="color: var(--primary-gold); font-size: 18px;">
+                                    <h5 class="modal-title fw-bold bk-c-h5">
                                         <i class="bi bi-calendar2-range me-2"></i> Thay đổi lịch hẹn & dịch vụ #{{ lh.ma_lh }}
                                     </h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -165,7 +151,7 @@
                                             <!-- 1. Chọn dịch vụ trị liệu -->
                                             <div class="mb-4">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <label class="form-label fw-bold text-uppercase text-secondary m-0" style="font-size: 13px; letter-spacing: 0.5px;">
+                                                    <label class="form-label fw-bold text-uppercase text-secondary m-0 bk-c-m-0">
                                                         1. Chọn dịch vụ trị liệu mới
                                                     </label>
                                                     <!-- Nút bấm bật/tắt hiển thị toàn bộ dịch vụ ngay trong modal -->
@@ -182,9 +168,9 @@
                                                             <div class="service-card-modal {% if lh.ma_dv.pk == dv.pk %}selected{% endif %}"
                                                                  onclick="selectModalService(this, '{{ lh.ma_lh }}', '{{ dv.pk }}', '{{ dv.ten_dich_vu|escapejs }}', '{{ dv.thoi_luong|default:150 }} phút', '{{ dv.gia_dich_vu|default:890000 }}đ')">
                                                                 <img src="{% static 'images/services/service' %}{% if img_file_no <= 16 %}{{ img_file_no }}{% else %}1{% endif %}.jpg" alt="Dịch vụ">
-                                                                <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.3;">{{ dv.ten_dich_vu }}</div>
-                                                                <small class="text-muted d-block mt-1" style="font-size: 11px;">{{ dv.thoi_luong|default:150 }} phút · {{ dv.gia_dich_vu|default:890000 }}đ</small>
-                                                                <small class="status-badge {% if lh.ma_dv.pk == dv.pk %}text-warning fw-bold{% else %}text-muted{% endif %}" style="font-size: 11px;">
+                                                                <div class="fw-bold text-dark bk-c-div-10">{{ dv.ten_dich_vu }}</div>
+                                                                <small class="text-muted d-block mt-1 bk-c-small">{{ dv.thoi_luong|default:150 }} phút · {{ dv.gia_dich_vu|default:890000 }}đ</small>
+                                                                <small class="status-badge {% if lh.ma_dv.pk == dv.pk %}text-warning fw-bold{% else %}text-muted{% endif %} bk-c-status-badge">
                                                                     {% if lh.ma_dv.pk == dv.pk %}<i class="bi bi-check-circle-fill"></i> Đã chọn{% else %}<i class="bi bi-circle"></i> Chọn dịch vụ{% endif %}
                                                                 </small>
                                                             </div>
@@ -198,8 +184,8 @@
                                             <!-- 2. Chọn ngày & 3. Khung giờ -->
                                             <div class="row g-3">
                                                 <div class="col-md-5">
-                                                    <div class="bg-white border rounded p-3 booking-reschedule-panel" style="border-color: var(--border-color) !important;">
-                                                        <h6 class="fw-bold mb-2 text-secondary" style="font-size: 13px;">2. Chọn ngày hẹn mới</h6>
+                                                    <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
+                                                        <h6 class="fw-bold mb-2 text-secondary bk-c-h6">2. Chọn ngày hẹn mới</h6>
                                                         <div class="position-relative">
                                                             <input type="text" name="ngay_hen_moi" id="input_ngay_hen_{{ lh.ma_lh }}" class="form-control fw-bold edit-date-picker" value="{{ lh.ngay_hen|date:'d/m/Y' }}" required>
                                                             <i class="bi bi-calendar3 position-absolute text-warning"></i>
@@ -207,10 +193,10 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-md-7">
-                                                    <div class="bg-white border rounded p-3 booking-reschedule-panel" style="border-color: var(--border-color) !important;">
+                                                    <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
                                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                                            <h6 class="fw-bold m-0 text-secondary" style="font-size: 13px;">3. Khung giờ trống (Đến 21:00)</h6>
-                                                            <span class="badge bg-light text-success border" id="bed_capacity_info_{{ lh.ma_lh }}" style="font-size: 10px;">Quỹ giường: 6 giường</span>
+                                                            <h6 class="fw-bold m-0 text-secondary bk-c-h6">3. Khung giờ trống (Đến 21:00)</h6>
+                                                            <span class="badge bg-light text-success border bk-c-span-15" id="bed_capacity_info_{{ lh.ma_lh }}">Quỹ giường: 6 giường</span>
                                                         </div>
                                                         <div class="row g-2 time-slots-container_modal" data-booking-id="{{ lh.ma_lh }}"></div>
                                                     </div>
@@ -220,25 +206,25 @@
 
                                         <!-- CỘT PHẢI: SỐ LƯỢNG KHÁCH, GHI CHÚ & TÓM TẮT -->
                                         <div class="col-lg-4">
-                                            <div class="bg-white border rounded p-3 booking-reschedule-panel" style="border-color: var(--border-color) !important;">
+                                            <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
                                                 <div>
-                                                    <h6 class="fw-bold mb-3 text-secondary" style="font-size: 13px;">4. Thông tin bổ sung</h6>
+                                                    <h6 class="fw-bold mb-3 text-secondary bk-c-h6">4. Thông tin bổ sung</h6>
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-bold text-secondary" style="font-size: 12px;">Số lượng khách *</label>
+                                                        <label class="form-label fw-bold text-secondary bk-c-label">Số lượng khách *</label>
                                                         <input type="number" name="so_luong_khach_moi" id="input_so_luong_{{ lh.ma_lh }}" class="form-control form-control-sm" value="{{ lh.so_luong_khach }}" min="1" max="10" required onchange="updateModalSlots('{{ lh.ma_lh }}')">
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-bold text-secondary" style="font-size: 12px;">Ghi chú thay đổi</label>
+                                                        <label class="form-label fw-bold text-secondary bk-c-label">Ghi chú thay đổi</label>
                                                         <textarea name="ghi_chu_moi" id="input_ghi_chu_{{ lh.ma_lh }}" class="form-control form-control-sm" rows="2" placeholder="Yêu cầu đặc biệt...">{{ lh.ghi_chu }}</textarea>
                                                     </div>
                                                 </div>
 
-                                                <div class="p-3 rounded mt-3 booking-reschedule-summary" style="background-color: #faf6f0;">
-                                                    <small class="text-muted d-block text-uppercase" style="font-size: 10px;">TÓM TẮT THAY ĐỔI</small>
-                                                    <strong class="d-block text-dark mt-1" id="summary_service_name_{{ lh.ma_lh }}" style="font-size: 11px;">
+                                                <div class="p-3 rounded mt-3 booking-reschedule-summary bk-c-booking-reschedule-summary">
+                                                    <small class="text-muted d-block text-uppercase bk-c-small-18">TÓM TẮT THAY ĐỔI</small>
+                                                    <strong class="d-block text-dark mt-1 bk-c-strong" id="summary_service_name_{{ lh.ma_lh }}">
                                                         {{ lh.ma_dv.ten_dich_vu }}
                                                     </strong>
-                                                    <small class="text-muted d-block mt-1" id="summary_details_{{ lh.ma_lh }}" style="font-size: 11px;">
+                                                    <small class="text-muted d-block mt-1 bk-c-small" id="summary_details_{{ lh.ma_lh }}">
                                                         {{ lh.ngay_hen|date:"d/m/Y" }} · {{ lh.gio_hen|time:"H:i" }} · {{ lh.ma_dv.thoi_luong|default:150 }} phút · {{ lh.so_luong_khach }} khách
                                                     </small>
                                                 </div>
@@ -249,7 +235,7 @@
                                 </div>
                                 <div class="modal-footer border-top-0 pb-4 px-4 bg-white">
                                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="submit" class="btn px-4 text-white save-reschedule-btn" style="background-color: var(--primary-gold);">Lưu thay đổi</button>
+                                    <button type="submit" class="btn px-4 text-white save-reschedule-btn bk-c-btn">Lưu thay đổi</button>
                                 </div>
                             </form>
                         </div>
@@ -317,7 +303,7 @@
         toInput.setCustomValidity('');
         matching = rows.filter(row => (!start || row.dataset.date >= start) && (!end || row.dataset.date <= end));
         const totalPages = Math.max(1, Math.ceil(matching.length / pageSize));
-        page = Math.min(page, totalPages);
+        page = Math.max(1, Math.min(page, totalPages));
         const from = (page - 1) * pageSize;
         rows.forEach(row => row.hidden = true);
         matching.slice(from, from + pageSize).forEach(row => row.hidden = false);
@@ -337,8 +323,8 @@
             toInput.reportValidity();
         }
     });
-    prev.addEventListener('click', () => { page--; render(); });
-    next.addEventListener('click', () => { page++; render(); });
+    prev.addEventListener('click', () => { if (page > 1) { page--; render(); } });
+    next.addEventListener('click', () => { if (page < Math.max(1, Math.ceil(matching.length / pageSize))) { page++; render(); } });
     render();
 })();
 </script>
@@ -378,19 +364,67 @@
         document.getElementById('summary_details_' + id).textContent = `${date} · ${time} · ${duration} · ${guests} khách`;
     }
 
+
+    // Xem tất cả dịch vụ dưới dạng popup như trang Đặt lịch; dùng thẻ gốc để giữ toàn bộ logic chọn dịch vụ.
     function toggleAllServices(id) {
         const container = document.getElementById('service_container_' + id);
-        const button = document.getElementById('btn_toggle_services_' + id);
-        const expanded = container.dataset.isExpanded === 'true';
-        container.querySelectorAll('.service-item-col').forEach((item, i) => {
-            item.classList.toggle('d-none', expanded && i >= 3);
-            if (!expanded) item.classList.remove('d-none');
+        const parent = container?.closest('.booking-reschedule-modal');
+        if (!container || !parent) return;
+        const chooserId = 'customerAllServices_' + id;
+        let chooser = document.getElementById(chooserId);
+        if (!chooser) {
+            chooser = document.createElement('div');
+            chooser.id = chooserId;
+            chooser.className = 'modal booking-ui-modal booking-service-chooser customer-service-layer';
+            chooser.setAttribute('aria-hidden', 'true');
+            chooser.innerHTML = `<div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">DANH SÁCH DỊCH VỤ CHARM SPA</h5><button type="button" class="btn-close" aria-label="Đóng"></button></div><div class="modal-body"><div class="row g-3 booking-service-options"></div></div></div></div>`;
+            // Chooser nằm BÊN TRONG modal Đổi lịch, nên Bootstrap không phải tạo backdrop thứ hai.
+            parent.appendChild(chooser);
+            chooser.querySelector('.btn-close').addEventListener('click', () => closeCustomerServiceChooser(chooser));
+            chooser.addEventListener('click', event => {
+                if (event.target === chooser) closeCustomerServiceChooser(chooser);
+            });
+            chooser.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    event.preventDefault(); event.stopPropagation();
+                    closeCustomerServiceChooser(chooser);
+                }
+            });
+            parent.addEventListener('hidden.bs.modal', () => closeCustomerServiceChooser(chooser));
+        }
+        const grid = chooser.querySelector('.booking-service-options');
+        grid.replaceChildren();
+        container.querySelectorAll('.service-item-col').forEach(item => {
+            const sourceCard = item.querySelector('.service-card-modal');
+            if (!sourceCard) return;
+            const column = document.createElement('div');
+            column.className = 'col-md-4';
+            const copy = sourceCard.cloneNode(true);
+            copy.removeAttribute('onclick');
+            copy.addEventListener('click', () => {
+                sourceCard.click(); // Giữ nguyên logic cập nhật dịch vụ và kiểm tra giường.
+                closeCustomerServiceChooser(chooser);
+            });
+            column.appendChild(copy);
+            grid.appendChild(column);
         });
-        container.dataset.isExpanded = String(!expanded);
-        button.textContent = expanded ? 'Xem tất cả dịch vụ →' : 'Thu gọn ←';
+        chooser.classList.add('show');
+        chooser.setAttribute('aria-hidden', 'false');
+        chooser.querySelector('.btn-close').focus({preventScroll:true});
     }
 
-    function selectModalService(element, id, serviceId, serviceName, duration, price) {
+    function closeCustomerServiceChooser(chooser) {
+        if (!chooser || !chooser.classList.contains('show')) return;
+        chooser.classList.remove('show');
+        chooser.setAttribute('aria-hidden', 'true');
+        const parent = chooser.closest('.booking-reschedule-modal');
+        const trigger = parent?.querySelector('[id^="btn_toggle_services_"]');
+        if (parent?.classList.contains('show')) trigger?.focus({preventScroll:true});
+    }
+
+
+
+function selectModalService(element, id, serviceId, serviceName, duration, price) {
         const container = document.getElementById('service_container_' + id);
         container.querySelectorAll('.service-card-modal').forEach(card => {
             card.classList.remove('selected');
@@ -527,7 +561,9 @@
                 minDate: 'today',
                 defaultDate: form.dataset.originalDate,
                 disable: [d => disabledDates.includes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)],
-                static: true,
+                static: false,
+               appendTo: document.body,
+                position: 'below left',
                 onChange: () => {
                     document.getElementById('input_time_slot_' + id).value = '';
                     updateModalSlots(id);
@@ -546,4 +582,21 @@
         });
     });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Giá trị gửi về GET vẫn là YYYY-MM-DD để bộ lọc hiện tại không đổi logic.
+  ['#customerFromDate', '#customerToDate'].forEach(selector => {
+    const input = document.querySelector(selector);
+    if (!input || !window.flatpickr) return;
+    const picker = flatpickr(input, {
+      dateFormat: 'Y-m-d', altInput: true, altFormat: 'd/m/Y',
+      allowInput: false, position: 'below left',
+      defaultDate: input.value || null,
+      onChange: () => input.dispatchEvent(new Event('change', {bubbles:true}))
+    });
+    picker.altInput?.setAttribute('placeholder', 'Chọn ngày');
+  });
+});
+</script>
+
 {% endblock %}

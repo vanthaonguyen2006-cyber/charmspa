@@ -5,11 +5,40 @@
 
 {% block extra_css %}
 <style>
+    /* Đồng bộ khoảng cách với các app khác (Header -> Nội dung = 20px) */
+    .staff-content:has(> .dashboard-wrapper) {
+        padding-top: 20px !important;
+    }
+    .dashboard-wrapper {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 32px 32px 32px;
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    /* Chuẩn hóa tiêu đề chính khớp với Quản lý lịch hẹn / Ngày hoạt động */
+    .dashboard-main-title {
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-size: 28px !important;
+        font-weight: 700 !important;
+        line-height: 1.3 !important;
+        color: #1c1917;
+        margin: 0 0 6px 0 !important;
+        letter-spacing: 0 !important;
+    }
+    .dashboard-main-subtitle {
+        font-size: 14px !important;
+        color: #57534e;
+        margin: 0 !important;
+    }
+
+    /* Thẻ KPI & Biểu đồ */
     .kpi-card {
         background: #ffffff;
         border: 1px solid #e9ecef;
         border-radius: 12px;
         padding: 18px 20px;
+        height: 100%;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .kpi-card:hover {
@@ -23,6 +52,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
     .chart-container-card {
         background: #ffffff;
@@ -34,21 +64,58 @@
     .badge-soft-danger { background-color: #ffeef0; color: #f1416c; }
     .badge-soft-success { background-color: #e8fff3; color: #50cd89; }
     .badge-soft-info { background-color: #f1faff; color: #009ef7; }
+
+    /* Giữ nguyên style nút Tab màu đen của khối Phản hồi / Khiếu nại */
+    #supportTab .nav-link {
+        color: #1c1917 !important;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    #supportTab .nav-link.active {
+        background-color: #1c1917 !important;
+        color: #ffffff !important;
+    }
+
+    /* Chuẩn hóa nút Chi tiết ở bảng Lịch hẹn hôm nay */
+    .btn-booking-detail {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1c1917;
+        background-color: #ffffff;
+        border: 1px solid #d6d3d1;
+        border-radius: 8px;
+        padding: 5px 12px;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+    .btn-booking-detail:hover {
+        background-color: #1c1917;
+        border-color: #1c1917;
+        color: #ffffff;
+    }
+
+    @media (max-width: 650px) {
+        .dashboard-wrapper {
+            padding: 0 16px 24px 16px;
+        }
+        .dashboard-main-title {
+            font-size: 23px !important;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid p-4">
+<div class="dashboard-wrapper">
     <!-- TIÊU ĐỀ HỆ THỐNG -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 24px;">
         <div>
-            <h4 class="fw-bold text-dark mb-1" style="font-family: 'Playfair Display', serif;">TỔNG QUAN HOẠT ĐỘNG MANAGEMENT</h4>
-            <p class="text-muted small mb-0">Theo dõi tất cả chỉ số kinh doanh, hỗ trợ khách hàng và vận hành spa theo thời gian thực.</p>
-        </div>
-        <div>
-            <button class="btn btn-outline-secondary btn-sm px-3 rounded-3 d-flex align-items-center gap-1" disabled>
-                <i data-lucide="calendar" style="width: 16px;"></i> Hôm nay: {% now "d/m/Y" %}
-            </button>
+            <h1 class="dashboard-main-title">TỔNG QUAN HOẠT ĐỘNG MANAGEMENT</h1>
+            <p class="dashboard-main-subtitle">Theo dõi tất cả chỉ số kinh doanh, hỗ trợ khách hàng và vận hành spa theo thời gian thực.</p>
         </div>
     </div>
 
@@ -63,7 +130,7 @@
                         <i data-lucide="calendar-check" style="width: 20px;"></i>
                     </div>
                 </div>
-                <h4 class="fw-bold text-dark mb-0">{{ so_lich_hen_hom_nay }} <span class="fs-6 text-muted fw-normal">lượt</span></h4>
+                <h4 class="fw-bold text-dark mb-0">{{ so_lich_hen_hom_nay|default:0 }} <span class="fs-6 text-muted fw-normal">lượt</span></h4>
             </div>
         </div>
 
@@ -76,7 +143,7 @@
                         <i data-lucide="clock" style="width: 20px;"></i>
                     </div>
                 </div>
-                <h4 class="fw-bold text-dark mb-0">{{ lich_hen_cho_duyet }} <span class="fs-6 text-muted fw-normal">lịch</span></h4>
+                <h4 class="fw-bold text-dark mb-0">{{ lich_hen_cho_duyet|default:0 }} <span class="fs-6 text-muted fw-normal">lịch</span></h4>
             </div>
         </div>
 
@@ -89,7 +156,7 @@
                         <i data-lucide="dollar-sign" style="width: 20px;"></i>
                     </div>
                 </div>
-                <h4 class="fw-bold text-dark mb-0">{{ doanh_thu_hom_nay }} <span class="fs-6 text-muted fw-normal">đ</span></h4>
+                <h4 class="fw-bold text-dark mb-0">{{ doanh_thu_hom_nay|default:"0" }} <span class="fs-6 text-muted fw-normal">đ</span></h4>
             </div>
         </div>
 
@@ -102,7 +169,7 @@
                         <i data-lucide="users" style="width: 20px;"></i>
                     </div>
                 </div>
-                <h4 class="fw-bold text-dark mb-0">{{ tong_khach_hang }} <span class="fs-6 text-muted fw-normal">người</span></h4>
+                <h4 class="fw-bold text-dark mb-0">{{ tong_khach_hang|default:0 }} <span class="fs-6 text-muted fw-normal">người</span></h4>
             </div>
         </div>
 
@@ -115,7 +182,7 @@
                         <i data-lucide="alert-circle" style="width: 20px;"></i>
                     </div>
                 </div>
-                <h4 class="fw-bold text-dark mb-0">{{ phan_hoi_cho_xu_ly }} <span class="fs-6 text-muted fw-normal">phiếu</span></h4>
+                <h4 class="fw-bold text-dark mb-0">{{ phan_hoi_cho_xu_ly|default:0 }} <span class="fs-6 text-muted fw-normal">phiếu</span></h4>
             </div>
         </div>
 
@@ -128,7 +195,7 @@
                         <i data-lucide="message-square" style="width: 20px;"></i>
                     </div>
                 </div>
-                <h4 class="fw-bold text-dark mb-0">{{ yeu_cau_tu_van_cho }} <span class="fs-6 text-muted fw-normal">yêu cầu</span></h4>
+                <h4 class="fw-bold text-dark mb-0">{{ yeu_cau_tu_van_cho|default:0 }} <span class="fs-6 text-muted fw-normal">yêu cầu</span></h4>
             </div>
         </div>
     </div>
@@ -157,7 +224,7 @@
                     <h6 class="fw-bold text-dark mb-0">Top Dịch vụ sử dụng</h6>
                     <small class="text-muted">Phân bổ theo dữ liệu thực tế dịch vụ đã dùng</small>
                 </div>
-                <div style="position: relative; height: 240px;" class="d-flex justify-content-center align-items-center">
+                <div style="position: relative; height: 260px;" class="d-flex justify-content-center align-items-center">
                     <canvas id="servicesPieChart"></canvas>
                 </div>
             </div>
@@ -174,7 +241,9 @@
                         <h6 class="fw-bold text-dark mb-0">Lịch hẹn cần tiếp nhận hôm nay</h6>
                         <small class="text-muted">Danh sách khách hàng đặt lịch trong ngày</small>
                     </div>
-                    <a href="{% url 'bookings:staff_booking_list' %}" class="text-decoration-none small fw-semibold text-danger">Xem tất cả <i data-lucide="chevron-right" style="width: 14px;"></i></a>
+                    <a href="{% url 'bookings:staff_booking_list' %}" class="text-decoration-none small fw-semibold text-danger">
+                        Xem tất cả <i data-lucide="chevron-right" style="width: 14px;"></i>
+                    </a>
                 </div>
 
                 <div class="table-responsive">
@@ -192,21 +261,19 @@
                         <tbody>
                             {% for item in recent_bookings %}
                             <tr>
-                                <!-- Dòng 195: Đã sửa thành item.ma_lh -->
-                                <td class="fw-bold text-dark">{{ item.ma_lh }}</td>
+                                <td class="fw-bold text-dark text-nowrap">{{ item.ma_lh }}</td>
                                 <td>{{ item.ma_kh.ho_ten|default:"Khách vãng lai" }}</td>
                                 <td>{{ item.ma_dv.ten_dich_vu|default:"Dịch vụ Spa" }}</td>
-                                <td>
+                                <td class="text-nowrap">
                                     <span class="badge bg-light text-dark border">
                                         <i data-lucide="clock" style="width: 12px;" class="me-1"></i>{{ item.gio_hen|time:"H:i"|default:item.gio_hen }}
                                     </span>
                                 </td>
-                                <td>
+                                <td class="text-nowrap">
                                     <span class="badge badge-soft-info px-2 py-1">{{ item.get_trang_thai_display|default:item.trang_thai }}</span>
                                 </td>
-                                <td class="text-end">
-                                    <!-- Dòng 201: Đã sửa tham số URL thành item.ma_lh -->
-                                    <a href="{% url 'bookings:staff_booking_detail' item.ma_lh %}" class="btn btn-sm btn-outline-dark rounded-2 py-1 px-2">Chi tiết</a>
+                                <td class="text-end text-nowrap">
+                                    <a href="{% url 'bookings:staff_booking_detail' item.ma_lh %}" class="btn-booking-detail">Chi tiết</a>
                                 </td>
                             </tr>
                             {% empty %}
@@ -223,18 +290,17 @@
         <!-- Cột phải: Phản hồi/Khiếu nại & Yêu cầu Chatbot -->
         <div class="col-lg-5">
             <div class="chart-container-card h-100">
-                <!-- Tab Tiêu đề -->
-                <ul class="nav nav-pills mb-3 border-bottom pb-2" id="supportTab" role="tablist">
+                <ul class="nav nav-pills mb-3 border-bottom pb-2 gap-2" id="supportTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active py-1 px-3 fs-6 fw-bold text-dark" id="feedback-tab" data-bs-toggle="pill" data-bs-target="#feedback-panel" type="button" role="tab">Phản hồi / Khiếu nại</button>
+                        <button class="nav-link active py-1 px-3 fs-6 fw-bold" id="feedback-tab" data-bs-toggle="pill" data-bs-target="#feedback-panel" type="button" role="tab">Phản hồi / Khiếu nại</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link py-1 px-3 fs-6 fw-bold text-dark" id="chatbot-tab" data-bs-toggle="pill" data-bs-target="#chatbot-panel" type="button" role="tab">Tư vấn Chatbot</button>
+                        <button class="nav-link py-1 px-3 fs-6 fw-bold" id="chatbot-tab" data-bs-toggle="pill" data-bs-target="#chatbot-panel" type="button" role="tab">Tư vấn Chatbot</button>
                     </li>
                 </ul>
 
                 <div class="tab-content" id="supportTabContent">
-                    <!-- Panel 1: Phản hồi khiếu nại (feedback) -->
+                    <!-- Panel 1: Phản hồi khiếu nại -->
                     <div class="tab-pane fade show active" id="feedback-panel" role="tabpanel">
                         <div class="list-group list-group-flush">
                             {% for fb in recent_feedbacks %}
@@ -280,7 +346,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Đặt các thẻ json_script BÊN TRONG block extra_js để Django xuất ra HTML -->
 {{ chart_labels|json_script:"chart-labels-data" }}
 {{ chart_data_bookings|json_script:"chart-bookings-data" }}
 {{ chart_data_revenue|json_script:"chart-revenue-data" }}
@@ -294,7 +359,6 @@ document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     }
 
-    // Hàm đọc JSON an toàn (chống lỗi crash JS nếu thiếu thẻ HTML)
     function getJsonData(id) {
         const el = document.getElementById(id);
         try {
