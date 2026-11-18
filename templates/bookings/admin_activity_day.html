@@ -21,7 +21,7 @@
             <h1 class="text-3xl font-sans text-stone-900 tracking-wide">QUẢN LÝ NGÀY HOẠT ĐỘNG</h1>
             <p class="text-sm text-stone-600 mt-1">Thiết lập ngày đóng cửa và quản lý khả năng đặt lịch của spa.</p>
         </div>
-        {% if request.user.is_superuser %}
+        {% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
         <button type="button" onclick="toggleModal(true)" class="bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-md transition flex items-center gap-2">+ Khóa ngày</button>
         {% endif %}
     </div>
@@ -88,13 +88,13 @@
                         <td class="py-4 px-6">{{ item.ly_do_khoa }}</td>
                         <td class="py-4 px-6"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Đã khóa</span></td>
                         <td class="py-4 px-6 text-right">
-                            {% if request.user.is_superuser %}
-                            <form method="POST" action="{% url 'bookings:mo_khoa_ngay' item.ma_nhd %}" class="inline-block m-0" onsubmit="return confirm('Mở khóa ngày {{ item.ngay|date:'d/m/Y' }}?');">
+                            {% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
+                            <form method="POST" action="{% url 'bookings:mo_khoa_ngay' item.ma_nhd %}" class="inline-block m-0 activity-unlock-form">
                                 {% csrf_token %}
-                                <button type="submit" class="text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</button>
+                                <button type="button" data-unlock-date="{{ item.ngay|date:'d/m/Y' }}" class="activity-unlock-trigger text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</button>
                             </form>
                             {% else %}
-                            <span class="text-xs text-stone-400">Chỉ quản trị viên</span>
+                            <span class="text-xs text-stone-400">Chỉ quản lý</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -107,7 +107,7 @@
     </div>
 </div>
 
-{% if request.user.is_superuser %}
+{% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
 <div id="khoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="activity-lock-dialog bg-white rounded-2xl w-full p-6 shadow-2xl border border-stone-100">
         <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
@@ -135,6 +135,23 @@
                 <button type="submit" name="btn_khoa_ngay" class="px-5 py-2 rounded-lg text-sm font-medium bg-stone-900 hover:bg-stone-800 text-white transition shadow-sm">Khóa ngày</button>
             </div>
         </form>
+    </div>
+</div>
+{% endif %}
+{% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
+<!-- Xác nhận mở khóa: dùng lại chính form POST và URL có sẵn của từng ngày. -->
+<div id="moKhoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="moKhoaNgayTitle">
+    <div class="activity-unlock-dialog bg-white rounded-2xl w-full p-6 shadow-2xl border border-stone-100">
+        <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
+            <h3 id="moKhoaNgayTitle" class="text-xl font-sans font-semibold text-stone-900">Xác nhận mở khóa ngày</h3>
+            <button type="button" class="activity-modal-close" data-close-unlock aria-label="Đóng">&times;</button>
+        </div>
+        <p class="activity-unlock-description">Bạn có chắc chắn muốn mở khóa ngày <strong id="activityUnlockDate"></strong>?</p>
+        <p class="activity-unlock-note">Sau khi mở khóa, khách hàng có thể đặt lịch vào ngày này. Các lịch hẹn đã hủy sẽ không tự động được khôi phục.</p>
+        <div class="flex justify-end gap-3 pt-4 border-t border-stone-100 mt-5">
+            <button type="button" data-close-unlock class="px-4 py-2 rounded-lg text-sm font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 transition">Đóng</button>
+            <button type="button" id="activityUnlockConfirm" class="px-5 py-2 rounded-lg text-sm font-medium bg-stone-900 hover:bg-stone-800 text-white transition shadow-sm">Xác nhận mở khóa</button>
+        </div>
     </div>
 </div>
 {% endif %}
@@ -229,6 +246,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // Khi view trả về form có lỗi, mở lại popup để xem và sửa.
     {% if form.errors or pending_lock %}toggleModal(true);{% endif %}
+});
+
+// Popup xác nhận mở khóa: chỉ gửi form gốc khi bấm nút xác nhận.
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('moKhoaNgayModal');
+    if (!modal) return;
+    const label = document.getElementById('activityUnlockDate');
+    const confirmButton = document.getElementById('activityUnlockConfirm');
+    let pendingForm = null;
+    let opener = null;
+    function closeUnlock() {
+        modal.classList.add('hidden');
+        pendingForm = null;
+        opener?.focus();
+    }
+    document.querySelectorAll('.activity-unlock-trigger').forEach(button => {
+        button.addEventListener('click', () => {
+            pendingForm = button.closest('form');
+            opener = button;
+            label.textContent = button.dataset.unlockDate || '';
+            modal.classList.remove('hidden');
+            confirmButton.focus();
+        });
+    });
+    modal.querySelectorAll('[data-close-unlock]').forEach(button => button.addEventListener('click', closeUnlock));
+    modal.addEventListener('click', event => {
+        if (event.target === modal) closeUnlock();
+    });
+    modal.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); closeUnlock(); }
+    });
+    confirmButton.addEventListener('click', () => {
+        if (!pendingForm) return;
+        confirmButton.disabled = true;
+        pendingForm.requestSubmit();
+    });
 });
 </script>
 {% endblock %}

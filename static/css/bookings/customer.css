@@ -172,6 +172,58 @@ body:has(.booking-customer-create) .btn-all-services {
 
 /* ===== customer_list.html ===== */
 
+/* Thông báo kết quả hủy lịch tại đầu trang danh sách: nổi bật, dễ đọc. */
+.booking-customer-list .booking-content-area > .mb-3 .alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+    border: 1px solid #efc1bc;
+    border-left: 5px solid #c44d43;
+    border-radius: 10px;
+    background: #fff0ed;
+    color: #a4352e;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.55;
+    box-shadow: 0 3px 12px rgba(164, 53, 46, .07);
+}
+.booking-customer-list .booking-content-area > .mb-3 .alert > .bi {
+    flex-shrink: 0;
+    font-size: 21px;
+    color: #bd443a;
+}
+.booking-customer-list .booking-content-area > .mb-3 .alert .btn-close {
+    flex-shrink: 0;
+    margin-left: auto;
+    position: static;
+    padding: 6px;
+    opacity: .7;
+}
+.booking-customer-list .booking-content-area > .mb-3 .alert.alert-success {
+    background: #edf8f0;
+    color: #287044;
+    border-color: #b9ddc4;
+    border-left-color: #398e56;
+}
+.booking-customer-list .booking-content-area > .mb-3 .alert.alert-success > .bi { color: #398e56; }
+.booking-customer-list .booking-content-area > .mb-3 .alert.alert-info {
+    background: #edf5fc;
+    color: #32688c;
+    border-color: #bed8ec;
+    border-left-color: #4689b4;
+}
+.booking-customer-list .booking-content-area > .mb-3 .alert.alert-info > .bi { color: #4689b4; }
+@media (max-width: 600px) {
+    .booking-customer-list .booking-content-area > .mb-3 .alert {
+        font-size: 14px;
+        padding: 13px 14px;
+    }
+}
+
+
+
 
 body:has(.booking-customer-list) .booking-card {
         background: #ffffff;
@@ -660,6 +712,138 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 }
 
 
+/* Popup đổi lịch khách hàng: giữ cùng kích thước từ lúc mở đến khi chọn ngày. */
+.booking-reschedule-modal .modal-dialog.modal-xl {
+    width: min(1140px, calc(100vw - 32px));
+    max-width: 1140px;
+    margin: 24px auto;
+}
+.booking-reschedule-modal .modal-content {
+    position: relative;
+    height: auto;
+    min-height: min(760px, calc(100dvh - 48px));
+    max-height: calc(100dvh - 48px);
+    overflow: visible;
+}
+.booking-reschedule-modal .customer-reschedule-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.booking-reschedule-modal .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(100dvh - 190px);
+    overflow-y: auto;
+    overflow-x: visible;
+}
+.booking-reschedule-modal .modal-footer {
+    flex: 0 0 auto;
+    margin-top: auto;
+}
+/* Flatpickr neo ngay dưới ô ngày, không tự nhảy lên trên trong popup. */
+.booking-reschedule-modal .customer-reschedule-date .flatpickr-wrapper {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+.booking-reschedule-modal .customer-reschedule-date .flatpickr-calendar {
+    position: absolute !important;
+    top: calc(100% + 7px) !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: auto !important;
+    transform: none !important;
+    z-index: 1090 !important;
+}
+.booking-reschedule-modal .customer-reschedule-date .flatpickr-calendar::before,
+.booking-reschedule-modal .customer-reschedule-date .flatpickr-calendar::after {
+    display: none;
+}
+.booking-reschedule-modal .customer-reschedule-date .edit-date-picker {
+    width: 100%;
+    padding-right: 13px !important;
+}
+.booking-reschedule-modal .customer-reschedule-date .edit-date-picker::placeholder {
+    color: #a39a90;
+    opacity: 1;
+}
+@media (max-width: 767px) {
+    .booking-reschedule-modal .modal-dialog.modal-xl { margin: 12px auto; }
+    .booking-reschedule-modal .modal-content { min-height: 0; max-height: calc(100dvh - 24px); }
+    .booking-reschedule-modal .modal-body { max-height: calc(100dvh - 142px); overflow-y: auto; }
+}
+
+/* Danh sách dịch vụ: phủ cùng 1 khung với modal Đổi lịch, không tạo modal thứ hai. */
+.booking-reschedule-modal .modal-content { position: relative; }
+.booking-reschedule-modal .customer-services-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    background: #fff;
+    color: #302c29;
+}
+.booking-reschedule-modal .customer-services-cover[hidden] { display: none !important; }
+.booking-reschedule-modal .customer-services-cover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 16px;
+    padding: 18px 28px;
+    border-bottom: 1px solid #ece6df;
+    background: #fff;
+}
+.booking-reschedule-modal .customer-services-cover-header h5 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+.booking-reschedule-modal .customer-services-cover-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 28px;
+}
+.booking-reschedule-modal .customer-services-cover .booking-service-options > [class*="col-"] {
+    display: flex;
+}
+.booking-reschedule-modal .customer-services-cover .service-card-modal {
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border: 1px solid #eaded3;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: left;
+}
+.booking-reschedule-modal .customer-services-cover .service-card-modal.selected {
+    border-color: #ad8f5b;
+    background: #faf5f0;
+}
+.booking-reschedule-modal .customer-services-cover .service-card-modal img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+@media (max-width: 767px) {
+    .booking-reschedule-modal .customer-services-cover-header {padding: 14px 16px;}
+    .booking-reschedule-modal .customer-services-cover-body {padding: 14px 16px;}
+    .booking-reschedule-modal .customer-services-cover .service-card-modal img {height: 130px;}
+}
+
 /* Popup đổi/hủy lịch trực tiếp trên trang chi tiết */
 .booking-reschedule-modal .service-card-modal {
         background: #ffffff;
@@ -716,11 +900,10 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 .booking-reschedule-modal :is(.reschedule-section-label,.booking-reschedule-panel h6) {font-family:var(--booking-font-family);font-size:14px !important;font-weight:700 !important;color:#302c29 !important;text-transform:none;line-height:1.4;}
 .booking-reschedule-modal .booking-service-chooser .modal-title {color:#302c29;}
 .booking-reschedule-modal .customer-reschedule-date {position:relative;}
-.booking-reschedule-modal .customer-reschedule-date input {padding-right:42px;cursor:pointer;}
-.booking-reschedule-modal .customer-reschedule-date .booking-date-trigger {position:absolute;right:12px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;z-index:2;padding:0;}
+.booking-reschedule-modal .customer-reschedule-date input {cursor:pointer;}
 .booking-customer-detail .customer-cancel-dialog {max-width:min(620px,calc(100vw - 32px)) !important;}
-.booking-reschedule-modal .modal-body { max-height: calc(100vh - 180px); overflow-y:auto; }
-.booking-reschedule-modal .edit-date-picker { padding-right:38px; cursor:pointer; }
+
+.booking-reschedule-modal .edit-date-picker { cursor:pointer; }
 .booking-reschedule-modal .position-relative .bi-calendar3 {position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;}
 .booking-reschedule-modal .flatpickr-calendar {z-index:1080!important;}
 
@@ -1260,4 +1443,3 @@ body:has(.booking-customer-detail)
 .booking-customer-create .custom-date-container .booking-date-trigger {position:absolute;right:12px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:30px;height:30px;padding:0;z-index:3;}
 .booking-customer-list .customer-filter-field .flatpickr-wrapper {width:100%;display:block;}
 .booking-customer-list .customer-filter-field .flatpickr-input {width:100% !important;}
-

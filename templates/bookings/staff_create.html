@@ -137,6 +137,7 @@
                                         </div>
                                     {% endfor %}
                                 </div>
+                                <div id="customerNoResults" class="d-none small text-danger px-3 py-2" role="status">Không tìm thấy khách hàng. Vui lòng tạo tài khoản khách hàng trước khi đặt lịch.</div>
                             </div>
                         </div>
                     </div>
@@ -281,14 +282,17 @@
     function filterCustomerOptions(input) {
         const keyword = input.value.toLowerCase();
         const items = document.querySelectorAll('#customerOptionsList .customer-option-item');
+        let hasMatches = false;
         items.forEach(item => {
             const text = item.innerText.toLowerCase();
             if (text.includes(keyword)) {
                 item.style.display = 'block';
+                hasMatches = true;
             } else {
                 item.style.display = 'none';
             }
         });
+        document.getElementById('customerNoResults').classList.toggle('d-none', hasMatches || !keyword.trim());
     }
 
     // Khi chọn một khách hàng từ danh sách dropdown -> Tự điền thông tin vào các input bên dưới
@@ -512,3 +516,4 @@
     }
 </script>
 {% endblock %}
+

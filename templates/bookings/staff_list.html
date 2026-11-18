@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
   {% endfor %}{% endif %}
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
-    <div><h1 class="staff-title booking-page-title">QUẢN LÝ LỊCH HẸN</h1><p class="staff-sub">Theo dõi, kiểm tra và cập nhật trạng thái các lịch trị liệu của khách hàng.</p></div>
+    <div><h1 class="staff-title booking-page-title">QUẢN LÝ LỊCH HẸN</h1><p class="staff-sub fw-normal">Theo dõi, kiểm tra và cập nhật trạng thái các lịch trị liệu của khách hàng.</p></div>
     <a href="{% url 'bookings:staff_booking_create' %}" class="staff-btn-dark"><i class="bi bi-plus-circle"></i> Tạo lịch thủ công</a>
   </div>
   <div class="stats-grid">
@@ -1143,3 +1143,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 {% endblock %}
+

@@ -1,6 +1,89 @@
 {% extends 'layouts/staff_base.html' %}
 {% load static %}
-{% block title %}Chi tiết lịch hẹn - Charm Spa{% endblock %}
+{% block title %}Chi tiết lịch hẹn - Charm Spa
+<script>
+// Dropdown riêng cho phân công: luôn mở xuống, giữ select gốc để gửi nhan_vien_ids.
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.staff-detail-page .assign-controls:not(.staff-clear-assign)').forEach(function (form) {
+    const dropdowns = [...form.querySelectorAll('.staff-assignee-dropdown')];
+    function closeAll(except) {
+      dropdowns.forEach(function (dropdown) {
+        if (dropdown === except) return;
+        dropdown.querySelector('.staff-assignee-options').hidden = true;
+        dropdown.querySelector('.staff-assignee-trigger').setAttribute('aria-expanded', 'false');
+      });
+    }
+    dropdowns.forEach(function (dropdown) {
+      const select = dropdown.previousElementSibling;
+      const trigger = dropdown.querySelector('.staff-assignee-trigger');
+      const label = dropdown.querySelector('.staff-assignee-trigger-text');
+      const list = dropdown.querySelector('.staff-assignee-options');
+      function sync() {
+        label.textContent = select.selectedOptions[0]?.textContent || '-- Chọn nhân viên --';
+        list.querySelectorAll('[role="option"]').forEach(function (item) {
+          item.setAttribute('aria-selected', String(item.dataset.value === select.value));
+        });
+      }
+      [...select.options].forEach(function (option) {
+        if (option.disabled) return;
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'staff-assignee-option';
+        item.setAttribute('role', 'option');
+        item.dataset.value = option.value;
+        item.textContent = option.textContent;
+        item.addEventListener('click', function () {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          sync();
+          closeAll();
+          trigger.focus();
+        });
+        list.appendChild(item);
+      });
+      sync();
+      trigger.addEventListener('click', function () {
+        const opening = list.hidden;
+        closeAll();
+        list.hidden = !opening;
+        trigger.setAttribute('aria-expanded', String(opening));
+        if (opening) {
+          // Bố trí đủ không gian để danh sách mở phía dưới, thay vì bị khuất cuối trang.
+          const bottom = Math.min(list.scrollHeight, 220) + trigger.getBoundingClientRect().bottom + 12;
+          if (bottom > window.innerHeight) window.scrollBy({top: bottom - window.innerHeight + 16, behavior: 'smooth'});
+        }
+      });
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') { closeAll(); return; }
+        if (event.key === 'ArrowDown' && list.hidden) {
+          event.preventDefault(); trigger.click();
+          list.querySelector('[role="option"]')?.focus();
+        }
+      });
+      list.addEventListener('keydown', function (event) {
+        const items = [...list.querySelectorAll('[role="option"]')];
+        const index = items.indexOf(document.activeElement);
+        if (event.key === 'Escape') { event.preventDefault(); closeAll(); trigger.focus(); }
+        if (event.key === 'ArrowDown') { event.preventDefault(); items[Math.min(index + 1, items.length - 1)]?.focus(); }
+        if (event.key === 'ArrowUp') { event.preventDefault(); (index <= 0 ? trigger : items[index - 1])?.focus(); }
+      });
+    });
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.staff-assignee-dropdown')) closeAll();
+    });
+    form.addEventListener('submit', function (event) {
+      const empty = [...form.querySelectorAll('.staff-assignee-native-select')].find(select => !select.value);
+      if (empty) {
+        event.preventDefault();
+        const trigger = empty.nextElementSibling.querySelector('.staff-assignee-trigger');
+        trigger.focus();
+        trigger.click();
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -21,16 +104,16 @@
       <a class="detail-btn" href="{% url 'bookings:staff_booking_list' %}"><i class="bi bi-arrow-left"></i> Quay lại</a>
       {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
       <form method="POST" action="{% url 'bookings:staff_booking_complete' lich_hen.ma_lh %}" class="m-0" onsubmit="return confirm('Xác nhận hoàn thành lịch hẹn này?');">
-        {% csrf_token %}<button type="submit" class="detail-btn dark"><i class="bi bi-check-circle"></i> Hoàn thành</button>
+        {% csrf_token %}<button type="submit" class="detail-btn complete"><i class="bi bi-check-circle"></i> Hoàn thành</button>
       </form>
       {% endif %}
       {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
-      <button type="button" class="detail-btn" data-bs-toggle="modal" data-bs-target="#staffEditModal"><i class="bi bi-calendar2-range"></i> Đổi lịch</button>
-      <button type="button" class="detail-btn danger" data-bs-toggle="modal" data-bs-target="#staffCancelModal{{ lich_hen.ma_lh }}"><i class="bi bi-x-circle"></i> Hủy lịch</button>
+      <button type="button" class="detail-btn dark" data-bs-toggle="modal" data-bs-target="#staffEditModal"><i class="bi bi-calendar2-range"></i> Đổi lịch</button>
+      <button type="button" class="detail-btn cancel-action" data-bs-toggle="modal" data-bs-target="#staffCancelModal{{ lich_hen.ma_lh }}"><i class="bi bi-x-circle"></i> Hủy lịch</button>
       {% endif %}
-      {% if request.user.is_superuser %}
+      {% if is_manager %}
         {% if lich_hen.trang_thai != 'Đã xóa' %}
-          <button type="button" class="detail-btn danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ lich_hen.ma_lh }}"><i class="bi bi-trash"></i> Xóa lịch</button>
+          <button type="button" class="detail-btn delete-action" data-bs-toggle="modal" data-bs-target="#deleteModal{{ lich_hen.ma_lh }}"><i class="bi bi-trash"></i> Xóa lịch</button>
         {% endif %}
       {% endif %}
     </div>
@@ -58,7 +141,7 @@
         </div>
         <div class="note-area"><div class="fact-label">Ghi chú</div><div class="fact-value">{{ lich_hen.ghi_chu|default:'Không có ghi chú' }}</div></div>
         {% if lich_hen.ly_do_huy %}
-        <div class="note-area staff-detail-inline-2"><div class="fact-label staff-detail-inline-3">Lý do hủy</div><div class="fact-value">{{ lich_hen.ly_do_huy }}</div></div>
+        <div class="note-area staff-detail-inline-2"><div class="fact-label staff-detail-inline-3">{% if lich_hen.trang_thai == 'Đã xóa' %}Lý do xóa{% else %}Lý do hủy{% endif %}</div><div class="fact-value">{{ lich_hen.ly_do_huy }}</div></div>
         {% endif %}
       </section>
     </div>
@@ -85,7 +168,7 @@
         {% empty %}
           <div class="unassigned-message"><i class="bi bi-person-exclamation me-1"></i> Lịch hẹn chưa được phân công nhân viên.</div>
         {% endfor %}
-        {% if request.user.is_superuser %}
+        {% if is_manager %}
           {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Đã xóa' and lich_hen.trang_thai != 'Hoàn thành' %}
           <form method="POST" action="{% url 'bookings:assign_staff' lich_hen.ma_lh %}" class="assign-controls">
             {% csrf_token %}
@@ -93,7 +176,7 @@
             {% for o in o_phan_cong %}
               <div class="staff-assignee-slot">
                 <label for="assignedEmployee{{ o.stt }}">Nhân viên phục vụ khách {{ o.stt }}</label>
-                <select id="assignedEmployee{{ o.stt }}" name="nhan_vien_ids" required>
+                <select id="assignedEmployee{{ o.stt }}" name="nhan_vien_ids" class="staff-assignee-native-select" tabindex="-1" aria-hidden="true">
                   <option value="">-- Chọn nhân viên --</option>
                   {% for nv in danh_sach_nhan_vien %}
                     <option value="{{ nv.pk }}" {% if o.nhan_vien_id == nv.pk|stringformat:'s' %}selected{% endif %}>{{ nv.ho_ten }}{% if nv.vi_tri %} – {{ nv.vi_tri }}{% endif %}</option>
@@ -101,6 +184,13 @@
                     <option value="" disabled>Chưa có nhân viên trong hệ thống</option>
                   {% endfor %}
                 </select>
+                <div class="staff-assignee-dropdown">
+                  <button type="button" class="staff-assignee-trigger" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="staff-assignee-trigger-text">-- Chọn nhân viên --</span>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                  </button>
+                  <div class="staff-assignee-options" role="listbox" hidden></div>
+                </div>
               </div>
             {% endfor %}
             {% if not danh_sach_nhan_vien %}
@@ -122,16 +212,16 @@
             <p class="section-note mb-0">Lịch đã kết thúc hoặc hủy, không thể phân công thêm.</p>
           {% endif %}
         {% else %}
-          <p class="section-note mb-0">Chỉ quản trị viên và nhân viên mới được phân công nhân viên.</p>
+          <p class="section-note mb-0">Chỉ quản lý được phân công nhân viên.</p>
         {% endif %}
       </section>
     </aside>
   </div>
 </div>
 
-{% if request.user.is_superuser %}
+{% if is_manager %}
 <!-- ================= MODAL XÓA LỊCH HẸN ================= -->
-<div class="modal fade" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
+<div class="modal fade staff-delete-modal" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content staff-detail-inline-4">
             <form method="POST" action="{% url 'bookings:booking_admin_delete' lich_hen.ma_lh %}">
@@ -141,7 +231,19 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4 text-start">
-                    <p class="text-muted mb-0">Hành động này sẽ chuyển lịch hẹn sang trạng thái <strong>Đã xóa</strong> và giải phóng chỗ trống giường. Bạn có chắc chắn muốn thực hiện không?</p>
+                    <p class="text-muted mb-3">Hành động này sẽ chuyển lịch hẹn sang trạng thái <strong>Đã xóa</strong> và giải phóng chỗ trống giường. Bạn có chắc chắn muốn thực hiện không?</p>
+                    <label for="deleteReason{{ lich_hen.ma_lh }}" class="form-label fw-semibold">Lý do xóa *</label>
+                    <select id="deleteReason{{ lich_hen.ma_lh }}" name="ly_do_xoa" class="form-select" required>
+                        <option value="" selected disabled>-- Chọn lý do xóa --</option>
+                        <option value="Lịch tạo nhầm">Lịch tạo nhầm</option>
+                        <option value="Lịch bị trùng">Lịch bị trùng</option>
+                        <option value="Spa không thể phục vụ">Spa không thể phục vụ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <div id="deleteOtherReason{{ lich_hen.ma_lh }}" class="mt-3" hidden>
+                        <label for="deleteOtherText{{ lich_hen.ma_lh }}" class="form-label fw-semibold">Ghi rõ lý do khác *</label>
+                        <textarea id="deleteOtherText{{ lich_hen.ma_lh }}" name="ly_do_xoa_khac" class="form-control" rows="2" maxlength="500" placeholder="Nhập lý do xóa lịch..."></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer border-top-0 pb-3 px-4">
                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
@@ -151,6 +253,7 @@
         </div>
     </div>
 </div>
+
 {% endif %}
 
 {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
@@ -322,14 +425,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
         </div>
         <div class="modal-body">
-          <p class="staff-cancel-note">Hủy thông thường phải trước giờ hẹn ít nhất <strong>12 tiếng</strong>.</p>
+          <p class="staff-cancel-note">Hủy thông thường phải trước giờ hẹn ít nhất <strong>6 tiếng</strong>.</p>
           <label for="staffCancelReason" class="form-label">Lý do hủy *</label>
           <select id="staffCancelReason" name="ly_do_huy" class="form-select" required>
             <option value="">-- Chọn lý do --</option>
             <option value="Bận việc đột xuất/Không thể đến">Bận việc đột xuất / Không thể đến</option>
             <option value="Thay đổi kế hoạch cá nhân">Thay đổi kế hoạch cá nhân</option>
             <option value="Không còn nhu cầu sử dụng dịch vụ">Không còn nhu cầu sử dụng dịch vụ</option>
-            {% if spa_closed %}<option value="Spa đóng cửa">Spa đóng cửa (ngoại lệ 12 tiếng)</option>{% endif %}
+            {% if spa_closed %}<option value="Spa đóng cửa">Spa đóng cửa (ngoại lệ 6 tiếng)</option>{% endif %}
             <option value="Khác">Khác</option>
           </select>
           <div class="staff-cancel-other" hidden>
@@ -345,18 +448,181 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('staffCancelModal{{ lich_hen.ma_lh|escapejs }}');
-  if (!modal) return;
-  const select = modal.querySelector('[name="ly_do_huy"]');
-  const box = modal.querySelector('.staff-cancel-other');
-  const text = modal.querySelector('[name="ly_do_khac"]');
-  const sync = () => { const other = select.value === 'Khác'; box.hidden = !other; text.required = other; if (!other) text.value = ''; };
-  select.addEventListener('change', sync); sync();
-});
-</script>
+
 {% endif %}
 
+<script>
+// Menu lý do nằm trong modal (không dùng popup select do trình duyệt vẽ ngoài khung).
+// Giữ nguyên select name để backend nhận POST y như trước.
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.staff-delete-modal, .staff-cancel-modal').forEach(modal => {
+    const select = modal.querySelector('select[name="ly_do_xoa"], select[name="ly_do_huy"]');
+    if (!select) return;
+    select.classList.add('staff-reason-native');
+    select.removeAttribute('required'); // Bắt buộc chọn được kiểm tra ở form bên dưới.
+    select.tabIndex = -1;
+    const picker = document.createElement('div');
+    picker.className = 'staff-reason-picker';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'staff-reason-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    const caption = document.createElement('span');
+    caption.textContent = select.options[select.selectedIndex]?.textContent || '-- Chọn lý do --';
+    const arrow = document.createElement('i');
+    arrow.className = 'bi bi-chevron-down';
+    arrow.setAttribute('aria-hidden', 'true');
+    trigger.append(caption, arrow);
+    const list = document.createElement('div');
+    list.className = 'staff-reason-list';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+    [...select.options].filter(opt => opt.value && !opt.disabled).forEach(opt => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'staff-reason-option';
+      item.setAttribute('role', 'option');
+      item.dataset.value = opt.value;
+      item.textContent = opt.textContent;
+      item.setAttribute('aria-selected', String(opt.value === select.value));
+      item.addEventListener('click', () => {
+        select.value = opt.value;
+        select.dispatchEvent(new Event('change', {bubbles: true}));
+        caption.textContent = opt.textContent;
+        list.querySelectorAll('[role="option"]').forEach(el => el.setAttribute('aria-selected', String(el === item)));
+        list.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      });
+      list.appendChild(item);
+    });
+    select.insertAdjacentElement('afterend', picker);
+    picker.append(trigger, list);
+    trigger.addEventListener('click', () => {
+      list.hidden = !list.hidden;
+      trigger.setAttribute('aria-expanded', String(!list.hidden));
+    });
+    trigger.addEventListener('keydown', event => {
+      if (event.key === 'ArrowDown') { event.preventDefault(); if (list.hidden) trigger.click(); list.querySelector('button')?.focus(); }
+      if (event.key === 'Escape' && !list.hidden) { event.preventDefault(); list.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+    });
+    list.addEventListener('keydown', event => {
+      const items = [...list.querySelectorAll('button')];
+      const index = items.indexOf(document.activeElement);
+      if (event.key === 'Escape') {event.preventDefault();list.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus();}
+      if (event.key === 'ArrowDown') {event.preventDefault();items[Math.min(index+1,items.length-1)]?.focus();}
+      if (event.key === 'ArrowUp') {event.preventDefault();(index<=0?trigger:items[index-1])?.focus();}
+    });
+    document.addEventListener('click', event => {
+      if (!picker.contains(event.target)) {list.hidden=true;trigger.setAttribute('aria-expanded','false');}
+    });
+    modal.addEventListener('hidden.bs.modal', () => {list.hidden=true;trigger.setAttribute('aria-expanded','false');});
+    const otherBox = modal.querySelector(select.name === 'ly_do_xoa' ? '[id^="deleteOtherReason"]' : '.staff-cancel-other');
+    const otherText = otherBox?.querySelector('textarea');
+    const syncOther = () => {
+      if (!otherBox || !otherText) return;
+      const isOther = select.value === 'Khác';
+      otherBox.hidden = !isOther;
+      otherText.required = isOther;
+      if (!isOther) otherText.value = '';
+    };
+    select.addEventListener('change', syncOther);
+    syncOther();
+    const form = select.closest('form');
+    form.addEventListener('submit', event => {
+      if (!select.value) {
+        event.preventDefault();
+        trigger.focus();
+        if (list.hidden) trigger.click();
+      }
+    });
+  });
+});
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Dropdown riêng cho phân công: luôn mở xuống, giữ select gốc để gửi nhan_vien_ids.
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.staff-detail-page .assign-controls:not(.staff-clear-assign)').forEach(function (form) {
+    const dropdowns = [...form.querySelectorAll('.staff-assignee-dropdown')];
+    function closeAll(except) {
+      dropdowns.forEach(function (dropdown) {
+        if (dropdown === except) return;
+        dropdown.querySelector('.staff-assignee-options').hidden = true;
+        dropdown.querySelector('.staff-assignee-trigger').setAttribute('aria-expanded', 'false');
+      });
+    }
+    dropdowns.forEach(function (dropdown) {
+      const select = dropdown.previousElementSibling;
+      const trigger = dropdown.querySelector('.staff-assignee-trigger');
+      const label = dropdown.querySelector('.staff-assignee-trigger-text');
+      const list = dropdown.querySelector('.staff-assignee-options');
+      function sync() {
+        label.textContent = select.selectedOptions[0]?.textContent || '-- Chọn nhân viên --';
+        list.querySelectorAll('[role="option"]').forEach(function (item) {
+          item.setAttribute('aria-selected', String(item.dataset.value === select.value));
+        });
+      }
+      [...select.options].forEach(function (option) {
+        if (option.disabled) return;
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'staff-assignee-option';
+        item.setAttribute('role', 'option');
+        item.dataset.value = option.value;
+        item.textContent = option.textContent;
+        item.addEventListener('click', function () {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          sync();
+          closeAll();
+          trigger.focus();
+        });
+        list.appendChild(item);
+      });
+      sync();
+      trigger.addEventListener('click', function () {
+        const opening = list.hidden;
+        closeAll();
+        list.hidden = !opening;
+        trigger.setAttribute('aria-expanded', String(opening));
+        if (opening) {
+          // Bố trí đủ không gian để danh sách mở phía dưới, thay vì bị khuất cuối trang.
+          const bottom = Math.min(list.scrollHeight, 220) + trigger.getBoundingClientRect().bottom + 12;
+          if (bottom > window.innerHeight) window.scrollBy({top: bottom - window.innerHeight + 16, behavior: 'smooth'});
+        }
+      });
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') { closeAll(); return; }
+        if (event.key === 'ArrowDown' && list.hidden) {
+          event.preventDefault(); trigger.click();
+          list.querySelector('[role="option"]')?.focus();
+        }
+      });
+      list.addEventListener('keydown', function (event) {
+        const items = [...list.querySelectorAll('[role="option"]')];
+        const index = items.indexOf(document.activeElement);
+        if (event.key === 'Escape') { event.preventDefault(); closeAll(); trigger.focus(); }
+        if (event.key === 'ArrowDown') { event.preventDefault(); items[Math.min(index + 1, items.length - 1)]?.focus(); }
+        if (event.key === 'ArrowUp') { event.preventDefault(); (index <= 0 ? trigger : items[index - 1])?.focus(); }
+      });
+    });
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.staff-assignee-dropdown')) closeAll();
+    });
+    form.addEventListener('submit', function (event) {
+      const empty = [...form.querySelectorAll('.staff-assignee-native-select')].find(select => !select.value);
+      if (empty) {
+        event.preventDefault();
+        const trigger = empty.nextElementSibling.querySelector('.staff-assignee-trigger');
+        trigger.focus();
+        trigger.click();
+      }
+    });
+  });
+});
+</script>
 {% endblock %}
