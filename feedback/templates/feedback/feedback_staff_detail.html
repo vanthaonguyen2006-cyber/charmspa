@@ -205,42 +205,15 @@
                              lựa chọn nằm ngang như ảnh mẫu.
                         ----------------------------------- -->
 
+                        <!-- Trạng thái được tự động chuyển sang Đang xử lý khi Quản lý phân công -->
                         <div class="staff-status-group">
 
-                            <label>Trạng thái</label>
+                            <label>Trạng thái hiện tại</label>
 
                             <div class="staff-status-options">
-
-                                <!-- Trạng thái đã tiếp nhận -->
-                                <label class="staff-status-option">
-
-                                    <input type="radio"
-                                           name="trang_thai_xu_ly"
-                                           value="Đã tiếp nhận"
-                                           {% if ph.trang_thai_xu_ly == "Đã tiếp nhận" %}checked{% endif %}
-                                           required>
-
-                                    <span>
-                                        Đã tiếp nhận
-                                    </span>
-
-                                </label>
-
-                                <!-- Trạng thái đang xử lý -->
-                                <label class="staff-status-option">
-
-                                    <input type="radio"
-                                           name="trang_thai_xu_ly"
-                                           value="Đang xử lý"
-                                           {% if ph.trang_thai_xu_ly == "Đang xử lý" %}checked{% endif %}
-                                           required>
-
-                                    <span>
-                                        Đang xử lý
-                                    </span>
-
-                                </label>
-
+                                <span class="staff-status-option">
+                                    Đang xử lý
+                                </span>
                             </div>
 
                         </div>
