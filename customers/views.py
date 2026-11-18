@@ -984,19 +984,11 @@ def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
             | Q(ho_so_nhan_vien__ho_ten__icontains=query)
             | Q(ho_so_khach_hang__ho_ten__icontains=query)
         )
-
+    #LỌC VAI TRÒ
     if vai_tro:
         vai_tro_chuan = normalize_role(vai_tro)
-        if vai_tro_chuan == ROLE_MANAGER:
-            tai_khoan_list = tai_khoan_list.filter(
-                vai_tro__in=[ROLE_MANAGER, 'Admin']
-            )
-        elif vai_tro_chuan == ROLE_STAFF:
-            tai_khoan_list = tai_khoan_list.filter(
-                vai_tro__in=[ROLE_STAFF, 'Nhân viên CSKH', 'Chuyên viên']
-            )
-        elif vai_tro_chuan == ROLE_CUSTOMER:
-            tai_khoan_list = tai_khoan_list.filter(vai_tro=ROLE_CUSTOMER)
+        if vai_tro_chuan:
+            tai_khoan_list = tai_khoan_list.filter(vai_tro=vai_tro_chuan)
         else:
             tai_khoan_list = tai_khoan_list.none()
 
@@ -1067,9 +1059,7 @@ def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
     # 4. Thống kê 4 ô (chỉ tính tài khoản nghiệp vụ website, không tính Admin kỹ thuật)
     tong_tai_khoan = base_qs.count()
     tong_khach_hang = base_qs.filter(vai_tro=ROLE_CUSTOMER).count()
-    tong_nhan_su = base_qs.filter(
-        vai_tro__in=[ROLE_STAFF, ROLE_MANAGER, 'Nhân viên CSKH', 'Chuyên viên', 'Admin']
-    ).count()
+    tong_nhan_su = base_qs.filter(vai_tro__in=ASSIGNABLE_ROLES).count()
     tai_khoan_hoat_dong = base_qs.filter(user__is_active=True).count()
 
     # 5. Phân trang
@@ -1457,7 +1447,7 @@ def staff_customer_record_service_view(request, ma_kh):
         .exclude(ma_tk__user__is_superuser=True)
         .filter(
             ma_tk__user__is_active=True,
-            ma_tk__vai_tro__in=[ROLE_STAFF, 'Chuyên viên', 'Nhân viên CSKH'],
+            ma_tk__vai_tro=ROLE_STAFF,
         )
         .order_by('ho_ten')
     )
