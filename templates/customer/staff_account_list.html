@@ -5,8 +5,8 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261115_v5">
-    <link rel="stylesheet" href="{% static 'css/customers/staff_account_list.css' %}?v=20261115_v5">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261118_v9">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_account_list.css' %}?v=20261118_v9">
 {% endblock %}
 
 {% block content %}
@@ -15,9 +15,12 @@
     {% if messages %}
         <div class="account-flash-wrap">
             {% for message in messages %}
-                <div class="account-flash-msg {% if message.tags == 'success' %}success{% else %}error{% endif %}">
-                    <span>{% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}</span>
-                    <span>{{ message }}</span>
+                <div class="account-flash-msg {% if message.tags == 'success' %}success{% else %}error{% endif %}" role="alert">
+                    <div class="account-flash-content">
+                        <span>{% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="account-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
                 </div>
             {% endfor %}
         </div>
@@ -186,13 +189,13 @@
                                     {% if tk.can_toggle_lock|default:False %}
                                         {% if tk.user.is_active %}
                                             <button type="button" class="customer-icon-button text-amber-700 bg-amber-50"
-                                                    onclick="openLockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}')"
+                                                    onclick="openLockModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|default:tk.user.username|escapejs }}', '{{ tk.user.username|escapejs }}')"
                                                     title="Khóa tài khoản" aria-label="Khóa tài khoản">
                                                 <i data-lucide="lock"></i>
                                             </button>
                                         {% else %}
                                             <button type="button" class="customer-icon-button text-emerald-700 bg-emerald-50"
-                                                    onclick="openUnlockModal('{{ tk.ma_tk }}', '{{ tk.user.username }}', '{{ tk.so_dien_thoai }}', '{{ tk.user.email }}')"
+                                                    onclick="openUnlockModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|default:tk.user.username|escapejs }}', '{{ tk.user.username|escapejs }}', '{{ tk.so_dien_thoai|default:''|escapejs }}', '{{ tk.user.email|default:''|escapejs }}', '{{ tk.avatar_initials|default:''|escapejs }}')"
                                                     title="Mở khóa tài khoản" aria-label="Mở khóa tài khoản">
                                                 <i data-lucide="unlock"></i>
                                             </button>
@@ -345,7 +348,7 @@
             </div>
             <button type="button" class="modal-close-btn" onclick="closeLockModal()">&times;</button>
         </div>
-        <form id="lockAccountForm" method="POST">
+        <form id="lockAccountForm" method="POST" novalidate>
             {% csrf_token %}
             <div class="modal-body">
                 <div class="form-group">
@@ -359,7 +362,8 @@
                 </div>
                 <div id="divLyDoKhac" class="form-group form-group-dynamic">
                     <label class="form-label">Nhập lý do cụ thể <span class="req">*</span></label>
-                    <textarea name="ly_do_khac" id="textareaLyDoKhac" rows="3" placeholder="Nhập lý do..." class="form-input"></textarea>
+                    <textarea name="ly_do_khac" id="textareaLyDoKhac" rows="3" placeholder="Nhập lý do cụ thể..." class="form-input"></textarea>
+                    <span class="field-error-text" id="lockLyDoKhacError"></span>
                 </div>
             </div>
             <div class="modal-footer">
@@ -370,25 +374,21 @@
     </div>
 </div>
 
-<!-- MODAL MỞ KHÓA NHANH -->
+<!-- MODAL MỞ KHÓA NHANH (ĐỒNG BỘ GIAO DIỆN VỚI MODAL KHÓA TÀI KHOẢN) -->
 <div id="unlockModal" class="modal-overlay">
     <div class="modal-card modal-card-sm">
         <div class="modal-header">
-            <h3 class="modal-title modal-title-sm">Xác nhận mở khóa tài khoản</h3>
+            <div>
+                <h3 class="modal-title modal-title-sm">Xác nhận mở khóa tài khoản</h3>
+                <p id="unlockModalSubtitle" class="modal-subtitle">Bạn có chắc chắn muốn mở khóa tài khoản này?</p>
+            </div>
             <button type="button" class="modal-close-btn" onclick="closeUnlockModal()">&times;</button>
         </div>
-        <form id="unlockAccountForm" method="POST">
+        <form id="unlockAccountForm" method="POST" novalidate>
             {% csrf_token %}
             <div class="modal-body">
-                <div class="user-unlock-preview">
-                    <div id="unlockUserAvatar" class="user-unlock-avatar">TK</div>
-                    <div>
-                        <div id="unlockUserName" class="user-unlock-name">Tên tài khoản</div>
-                        <div id="unlockUserEmail" class="user-unlock-email">Email</div>
-                    </div>
-                </div>
                 <div class="form-group">
-                    <label class="form-label">Lý do mở khóa <span class="req">*</span></label>
+                    <label class="form-label">Lý do mở khóa tài khoản <span class="req">*</span></label>
                     <select name="ly_do" id="lyDoUnlockSelect" onchange="checkLyDoUnlock(this)" class="form-select">
                         <option value="Khách hàng yêu cầu mở khóa" selected>Khách hàng yêu cầu mở khóa</option>
                         <option value="Xử lý vấn đề tài khoản">Xử lý vấn đề tài khoản</option>
@@ -398,12 +398,13 @@
                 </div>
                 <div id="divLyDoUnlockKhac" class="form-group form-group-dynamic">
                     <label class="form-label">Nhập lý do cụ thể <span class="req">*</span></label>
-                    <textarea name="ly_do_khac" id="textareaLyDoUnlockKhac" rows="3" placeholder="Nhập lý do..." class="form-input"></textarea>
+                    <textarea name="ly_do_khac" id="textareaLyDoUnlockKhac" rows="3" placeholder="Nhập lý do cụ thể..." class="form-input"></textarea>
+                    <span class="field-error-text" id="unlockLyDoKhacError"></span>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="modal-btn-cancel" onclick="closeUnlockModal()">Hủy</button>
-                <button type="submit" class="modal-btn-submit">Xác nhận mở khóa</button>
+                <button type="submit" class="modal-btn-submit">Xác nhận mở khóa tài khoản</button>
             </div>
         </form>
     </div>
@@ -425,6 +426,76 @@
             if (vaiTroSelect && vaiTroHidden) {
                 vaiTroSelect.addEventListener('change', function () {
                     vaiTroHidden.value = vaiTroSelect.value;
+                });
+            }
+
+            // Kiểm tra bắt buộc nhập lý do cụ thể khi chọn "Lý do khác" ở popup Khóa tài khoản
+            const lockForm = document.getElementById('lockAccountForm');
+            const textareaLyDoKhac = document.getElementById('textareaLyDoKhac');
+            const lockLyDoKhacError = document.getElementById('lockLyDoKhacError');
+
+            if (textareaLyDoKhac) {
+                textareaLyDoKhac.addEventListener('input', function () {
+                    textareaLyDoKhac.classList.remove('is-invalid');
+                    if (lockLyDoKhacError) {
+                        lockLyDoKhacError.textContent = '';
+                        lockLyDoKhacError.style.display = 'none';
+                    }
+                });
+            }
+
+            if (lockForm) {
+                lockForm.addEventListener('submit', function (e) {
+                    const lyDoSelect = document.getElementById('lyDoSelect');
+                    if (lyDoSelect && lyDoSelect.value === 'Lý do khác') {
+                        const val = textareaLyDoKhac ? textareaLyDoKhac.value.trim() : '';
+                        if (!val) {
+                            e.preventDefault();
+                            if (textareaLyDoKhac) {
+                                textareaLyDoKhac.classList.add('is-invalid');
+                                textareaLyDoKhac.focus();
+                            }
+                            if (lockLyDoKhacError) {
+                                lockLyDoKhacError.textContent = 'Vui lòng nhập lý do khóa tài khoản cụ thể.';
+                                lockLyDoKhacError.style.display = 'block';
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Kiểm tra bắt buộc nhập lý do cụ thể khi chọn "Lý do khác" ở popup Mở khóa tài khoản
+            const unlockForm = document.getElementById('unlockAccountForm');
+            const textareaLyDoUnlockKhac = document.getElementById('textareaLyDoUnlockKhac');
+            const unlockLyDoKhacError = document.getElementById('unlockLyDoKhacError');
+
+            if (textareaLyDoUnlockKhac) {
+                textareaLyDoUnlockKhac.addEventListener('input', function () {
+                    textareaLyDoUnlockKhac.classList.remove('is-invalid');
+                    if (unlockLyDoKhacError) {
+                        unlockLyDoKhacError.textContent = '';
+                        unlockLyDoKhacError.style.display = 'none';
+                    }
+                });
+            }
+
+            if (unlockForm) {
+                unlockForm.addEventListener('submit', function (e) {
+                    const lyDoUnlockSelect = document.getElementById('lyDoUnlockSelect');
+                    if (lyDoUnlockSelect && lyDoUnlockSelect.value === 'Lý do khác') {
+                        const val = textareaLyDoUnlockKhac ? textareaLyDoUnlockKhac.value.trim() : '';
+                        if (!val) {
+                            e.preventDefault();
+                            if (textareaLyDoUnlockKhac) {
+                                textareaLyDoUnlockKhac.classList.add('is-invalid');
+                                textareaLyDoUnlockKhac.focus();
+                            }
+                            if (unlockLyDoKhacError) {
+                                unlockLyDoKhacError.textContent = 'Vui lòng nhập lý do mở khóa tài khoản cụ thể.';
+                                unlockLyDoKhacError.style.display = 'block';
+                            }
+                        }
+                    }
                 });
             }
         });
@@ -579,36 +650,84 @@
                     submitBtn.textContent = 'Lưu thay đổi';
                     const generalErr = document.getElementById('editGeneralError');
                     if (generalErr) {
-                        generalErr.textContent = 'Có lỗi xảy ra trong quá trình gửi dữ liệu. Vui lòng thử lại!';
+                        generalErr.textContent = 'Có lỗi xảy ra trong quá trình gửi dữ liệu. Vui lòng thử lại.';
                         generalErr.style.display = 'block';
                     }
                 });
             });
         }
 
-        function openLockModal(maTk, username) {
+        function clearLockReasonError() {
+            const textareaLyDoKhac = document.getElementById('textareaLyDoKhac');
+            const lockLyDoKhacError = document.getElementById('lockLyDoKhacError');
+            if (textareaLyDoKhac) textareaLyDoKhac.classList.remove('is-invalid');
+            if (lockLyDoKhacError) {
+                lockLyDoKhacError.textContent = '';
+                lockLyDoKhacError.style.display = 'none';
+            }
+        }
+
+        function clearUnlockReasonError() {
+            const textareaLyDoUnlockKhac = document.getElementById('textareaLyDoUnlockKhac');
+            const unlockLyDoKhacError = document.getElementById('unlockLyDoKhacError');
+            if (textareaLyDoUnlockKhac) textareaLyDoUnlockKhac.classList.remove('is-invalid');
+            if (unlockLyDoKhacError) {
+                unlockLyDoKhacError.textContent = '';
+                unlockLyDoKhacError.style.display = 'none';
+            }
+        }
+
+        function openLockModal(maTk, displayName, username) {
             const modal = document.getElementById('lockModal');
             const form = document.getElementById('lockAccountForm');
             const subtitle = document.getElementById('lockModalSubtitle');
             form.action = `{% url 'staff_toggle_account' 'DUMMY_ID' %}`.replace('DUMMY_ID', maTk);
-            subtitle.innerText = `Bạn có chắc chắn muốn khóa tài khoản của "${username}"?`;
+            const nameLabel = (displayName && displayName !== username)
+                ? `${displayName} (@${username})`
+                : (displayName || username);
+            subtitle.innerText = `Bạn có chắc chắn muốn khóa tài khoản của "${nameLabel}"?`;
+
+            const lyDoSelect = document.getElementById('lyDoSelect');
+            const divLyDoKhac = document.getElementById('divLyDoKhac');
+            const textareaLyDoKhac = document.getElementById('textareaLyDoKhac');
+            if (lyDoSelect) lyDoSelect.value = 'Tạm ngưng tài khoản';
+            if (divLyDoKhac) divLyDoKhac.style.display = 'none';
+            if (textareaLyDoKhac) textareaLyDoKhac.value = '';
+            clearLockReasonError();
+
             modal.style.display = 'flex';
         }
         function closeLockModal() {
             document.getElementById('lockModal').style.display = 'none';
+            clearLockReasonError();
         }
 
-        function openUnlockModal(maTk, username, phone, email) {
+        function openUnlockModal(maTk, displayName, username) {
             const modal = document.getElementById('unlockModal');
             const form = document.getElementById('unlockAccountForm');
+            const subtitle = document.getElementById('unlockModalSubtitle');
             form.action = `{% url 'staff_toggle_account' 'DUMMY_ID' %}`.replace('DUMMY_ID', maTk);
-            document.getElementById('unlockUserName').innerText = username;
-            document.getElementById('unlockUserEmail').innerText = (email && email !== 'None' && email !== '') ? email : (phone || 'Không có thông tin liên hệ');
-            document.getElementById('unlockUserAvatar').innerText = username.slice(0, 2).toUpperCase();
+
+            const nameLabel = (displayName && username && displayName !== username)
+                ? `${displayName} (@${username})`
+                : (displayName || username || 'Người dùng');
+            if (subtitle) {
+                subtitle.innerText = `Bạn có chắc chắn muốn mở khóa tài khoản của "${nameLabel}"?`;
+            }
+
+            const lyDoUnlockSelect = document.getElementById('lyDoUnlockSelect');
+            const divLyDoUnlockKhac = document.getElementById('divLyDoUnlockKhac');
+            const textareaLyDoUnlockKhac = document.getElementById('textareaLyDoUnlockKhac');
+            if (lyDoUnlockSelect) lyDoUnlockSelect.value = 'Khách hàng yêu cầu mở khóa';
+            if (divLyDoUnlockKhac) divLyDoUnlockKhac.style.display = 'none';
+            if (textareaLyDoUnlockKhac) textareaLyDoUnlockKhac.value = '';
+            clearUnlockReasonError();
+
             modal.style.display = 'flex';
         }
         function closeUnlockModal() {
             document.getElementById('unlockModal').style.display = 'none';
+            clearUnlockReasonError();
         }
 
         window.addEventListener('click', function (e) {
@@ -618,10 +737,22 @@
         });
 
         function checkLyDo(obj) {
-            document.getElementById('divLyDoKhac').style.display = (obj.value === 'Lý do khác') ? 'block' : 'none';
+            const isOther = (obj.value === 'Lý do khác');
+            document.getElementById('divLyDoKhac').style.display = isOther ? 'flex' : 'none';
+            clearLockReasonError();
+            if (isOther) {
+                const textarea = document.getElementById('textareaLyDoKhac');
+                if (textarea) textarea.focus();
+            }
         }
         function checkLyDoUnlock(obj) {
-            document.getElementById('divLyDoUnlockKhac').style.display = (obj.value === 'Lý do khác') ? 'block' : 'none';
+            const isOther = (obj.value === 'Lý do khác');
+            document.getElementById('divLyDoUnlockKhac').style.display = isOther ? 'flex' : 'none';
+            clearUnlockReasonError();
+            if (isOther) {
+                const textarea = document.getElementById('textareaLyDoUnlockKhac');
+                if (textarea) textarea.focus();
+            }
         }
     </script>
 {% endblock %}

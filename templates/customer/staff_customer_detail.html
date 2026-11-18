@@ -5,7 +5,7 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_customer_detail.css' %}?v=20261115_v3">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer_detail.css' %}?v=20261118_v4">
     <style>
         .profile-edit-form .info-field input.is-invalid,
         .profile-edit-form .info-field select.is-invalid {
@@ -141,12 +141,16 @@
             {% endif %}
         </div>
 
-        <!-- THÔNG BÁO THÀNH CÔNG -->
+        <!-- THÔNG BÁO THÀNH CÔNG / HỆ THỐNG -->
         {% if messages %}
             <div class="profile-messages">
                 {% for message in messages %}
-                    <div class="profile-message {{ message.tags }}">
-                        {{ message }}
+                    <div class="profile-message {% if 'error' in message.tags %}error{% else %}success{% endif %}">
+                        <div class="profile-message-content">
+                            <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="profile-message-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
                     </div>
                 {% endfor %}
             </div>
@@ -157,7 +161,11 @@
             <div class="profile-messages">
                 {% for error in form.non_field_errors %}
                     <div class="profile-message error">
-                        {{ error }}
+                        <div class="profile-message-content">
+                            <span>⚠️</span>
+                            <span>{{ error }}</span>
+                        </div>
+                        <button type="button" class="profile-message-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
                     </div>
                 {% endfor %}
             </div>

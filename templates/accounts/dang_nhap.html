@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <!-- Nhúng file CSS riêng cho trang đăng nhập -->
-<link rel="stylesheet" href="{% static 'css/accounts/dang_nhap.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounts/dang_nhap.css' %}?v=20261118_v2">
 {% endblock %}
 
 {% block content %}
@@ -19,14 +19,14 @@
         </div>
 
         <div class="left-content">
-            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8;">Welcome Back</span>
-            <h1>Reclaim your peace<br>of mind.</h1>
-            <p>Log in to manage your appointments, view accumulated loyalty points and access exclusive member offers.</p>
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8;">Chào mừng trở lại</span>
+            <h1>Tìm lại sự bình yên<br>trong tâm hồn bạn.</h1>
+            <p>Đăng nhập để quản lý lịch hẹn, kiểm tra điểm thưởng tích lũy và tận hưởng các ưu đãi đặc quyền dành cho thành viên.</p>
 
             <div class="features-list">
-                <span>✓ Private & secure</span>
-                <span>✓ Member rewards</span>
-                <span>✓ Easy booking</span>
+                <span>✓ Riêng tư & bảo mật</span>
+                <span>✓ Ưu đãi thành viên</span>
+                <span>✓ Đặt lịch dễ dàng</span>
             </div>
         </div>
         <div></div>
@@ -47,16 +47,37 @@
                 <h2>Chào mừng trở lại</h2>
                 <p>Đăng nhập để tiếp tục với không gian của bạn</p>
             </div>
+
+            {% if messages %}
+                <div class="auth-flash-wrap">
+                    {% for message in messages %}
+                        <div class="auth-flash-msg {% if 'error' in message.tags %}error{% else %}success{% endif %}" role="alert">
+                            <div class="auth-flash-content">
+                                <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" class="auth-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             {% if error %}
-            <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl text-center font-medium">
-                {{ error }}
-            </div>
+                <div class="auth-flash-wrap">
+                    <div class="auth-flash-msg error" role="alert">
+                        <div class="auth-flash-content">
+                            <span>⚠️</span>
+                            <span>{{ error }}</span>
+                        </div>
+                        <button type="button" class="auth-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                    </div>
+                </div>
             {% endif %}
 
             <form method="POST">
                 {% csrf_token %}
 
-                                <!-- Trường Email/SĐT/Username kèm icon (giữ lại dữ liệu đã nhập khi đăng nhập lỗi) -->
+                <!-- Trường Email/SĐT/Username kèm icon (giữ lại dữ liệu đã nhập khi đăng nhập lỗi) -->
                 <div class="form-group">
                     <label>Tên đăng nhập</label>
                     <div class="input-with-icon">
@@ -64,7 +85,7 @@
                         <input type="text"
                                name="username"
                                value="{{ login_input|default:'' }}"
-                               class="form-control"
+                               class="form-control {% if error %}is-invalid{% endif %}"
                                placeholder="Bạn có thể sử dụng Username, SĐT hoặc Email"
                                autocomplete="username"
                                required>
@@ -78,22 +99,11 @@
                         <span class="input-icon">🔒</span>
                         <input type="password"
                                name="password"
-                               class="form-control"
+                               class="form-control {% if error %}is-invalid{% endif %}"
                                placeholder="Nhập mật khẩu"
                                autocomplete="current-password"
                                required>
                     </div>
-                </div>
-
-                <!-- Ghi nhớ đăng nhập (sửa lỗi thẻ label và giữ trạng thái tích chọn nếu lỗi) -->
-                <div class="form-extra">
-                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                        <input type="checkbox"
-                               name="remember_me"
-                               {% if remember_me %}checked{% endif %}
-                               style="accent-color: #1a1a1a;">
-                        <span>Ghi nhớ đăng nhập</span>
-                    </label>
                 </div>
 
                 <!-- Nút Đăng nhập màu đen bo góc -->

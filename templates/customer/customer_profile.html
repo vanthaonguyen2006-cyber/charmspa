@@ -31,6 +31,23 @@
         border-radius: 9px !important;
     }
 
+    /* Viền đỏ và nền hồng nhạt khi trường có lỗi (đồng bộ toàn hệ thống) */
+    #tabContentProfile input.is-invalid,
+    #tabContentProfile select.is-invalid,
+    #lockModal textarea.is-invalid {
+        border: 1.5px solid #dc3545 !important;
+        background-color: #fff8f8 !important;
+        box-shadow: none !important;
+    }
+
+    #tabContentProfile input.is-invalid:focus,
+    #tabContentProfile select.is-invalid:focus,
+    #lockModal textarea.is-invalid:focus {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+        outline: none !important;
+    }
+
     /* 3. Tiêu đề khối (THÔNG TIN CÁ NHÂN) */
     #tabContentProfile h3 {
         font-size: 25px !important;
@@ -60,22 +77,120 @@
         padding: 10px 20px !important;
     }
 
-    /* 7. Thông báo lỗi màu đỏ */
+    /* Nút Chỉnh sửa đồng bộ với Trang chi tiết khách hàng */
+    #tabContentProfile .cp-btn-edit {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        min-height: 40px !important;
+        padding: 9px 18px !important;
+        border: 1px solid #EEE8DD !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        color: #4a4036 !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+
+    #tabContentProfile .cp-btn-edit:hover {
+        background: #faf7f0 !important;
+        border-color: #c4a767 !important;
+        color: #302D27 !important;
+    }
+
+    #tabContentProfile .cp-btn-edit svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    /* 7. Thông báo lỗi màu đỏ dưới từng trường đồng bộ toàn hệ thống */
+    #tabContentProfile .field-error-text,
     #tabContentProfile .text-red-600 {
-        font-size: 13px !important;
+        color: #dc3545 !important;
+        font-size: 12.5px !important;
         font-weight: 500 !important;
-        margin-top: 6px !important;
+        margin-top: 5px !important;
+        display: block !important;
+        line-height: 1.4 !important;
+    }
+
+    /* 8. Thông báo Flash Message đồng bộ hoàn toàn với trang Nhân viên */
+    .cp-flash-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .cp-flash-msg {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-family: 'Montserrat', Arial, sans-serif;
+        font-size: 13.5px;
+        font-weight: 500;
+        line-height: 1.45;
+        box-shadow: 0 1px 3px rgba(48, 45, 39, 0.04);
+    }
+
+    .cp-flash-msg.success {
+        background-color: #e6f4ea;
+        color: #137333;
+        border: 1px solid #ceead6;
+    }
+
+    .cp-flash-msg.error {
+        background-color: #fce8e6;
+        color: #c5221f;
+        border: 1px solid #fad2cf;
+    }
+
+    .cp-flash-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .cp-flash-close {
+        background: none !important;
+        border: none !important;
+        color: inherit !important;
+        font-size: 19px !important;
+        line-height: 1 !important;
+        cursor: pointer;
+        padding: 0 4px !important;
+        opacity: 0.75;
+        flex-shrink: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    .cp-flash-close:hover {
+        opacity: 1;
     }
 </style>
 
 <div class="space-y-6">
 
-    <!-- THÔNG BÁO FLASH MESSAGE -->
+    <!-- THÔNG BÁO FLASH MESSAGE (ĐỒNG BỘ VỚI TRANG NHÂN VIÊN) -->
     {% if messages %}
-        <div class="space-y-2">
+        <div class="cp-flash-wrap" role="status" aria-live="polite">
             {% for message in messages %}
-                <div class="p-4 rounded-xl text-sm {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
-                    {{ message }}
+                <div class="cp-flash-msg {% if 'error' in message.tags %}error{% else %}success{% endif %}" role="alert">
+                    <div class="cp-flash-content">
+                        <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="cp-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
                 </div>
             {% endfor %}
         </div>
@@ -83,9 +198,15 @@
 
     <!-- THÔNG BÁO LỖI CHUNG -->
     {% if form.non_field_errors %}
-        <div class="p-4 rounded-xl text-sm bg-red-50 text-red-800 border border-red-200 space-y-1">
+        <div class="cp-flash-wrap" role="alert">
             {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
+                <div class="cp-flash-msg error">
+                    <div class="cp-flash-content">
+                        <span>⚠️</span>
+                        <span>{{ error }}</span>
+                    </div>
+                    <button type="button" class="cp-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                </div>
             {% endfor %}
         </div>
     {% endif %}
@@ -111,8 +232,12 @@
                     </span>
 
                     {% if not is_editing %}
-                        <a href="?edit=true" class="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition flex items-center gap-2">
-                            ✏️ Chỉnh sửa
+                        <a href="?edit=true" class="cp-btn-edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path>
+                                <path d="m15 5 4 4"></path>
+                            </svg>
+                            <span>Chỉnh sửa</span>
                         </a>
                     {% endif %}
                 </div>
@@ -124,12 +249,12 @@
                 <!-- Họ và tên -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Họ và tên <span class="text-red-500">*</span></label>
-                    <input type="text" name="ho_ten" value="{% if form.ho_ten.value %}{{ form.ho_ten.value }}{% else %}{{ khach_hang.ho_ten|default:'' }}{% endif %}"
+                    <input type="text" name="ho_ten" value="{% if is_editing %}{{ form.ho_ten.value|default:'' }}{% else %}{{ khach_hang.ho_ten|default:'' }}{% endif %}"
                            {% if not is_editing %}disabled{% endif %}
-                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.ho_ten.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.ho_ten.errors %}is-invalid{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                     {% if is_editing and form.ho_ten.errors %}
                         {% for error in form.ho_ten.errors %}
-                            <p class="text-xs text-red-600 mt-1.5 font-medium">{{ error }}</p>
+                            <span class="field-error-text">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -137,12 +262,12 @@
                 <!-- Tên đăng nhập (Username) -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Tên đăng nhập (Username) <span class="text-red-500">*</span></label>
-                    <input type="text" name="username" value="{{ form.username.value|default:request.user.username }}"
+                    <input type="text" name="username" value="{% if is_editing %}{{ form.username.value|default:'' }}{% else %}{{ request.user.username }}{% endif %}"
                            {% if not is_editing %}disabled{% endif %}
-                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.username.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.username.errors %}is-invalid{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                     {% if is_editing and form.username.errors %}
                         {% for error in form.username.errors %}
-                            <p class="text-xs text-red-600 mt-1.5 font-medium">{{ error }}</p>
+                            <span class="field-error-text">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -150,13 +275,13 @@
                 <!-- Số điện thoại -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Số điện thoại <span class="text-red-500">*</span></label>
-                    <input type="text" name="so_dien_thoai" value="{% if form.so_dien_thoai.value %}{{ form.so_dien_thoai.value }}{% elif tai_khoan %}{{ tai_khoan.so_dien_thoai|default:'' }}{% else %}{% endif %}"
+                    <input type="text" name="so_dien_thoai" value="{% if is_editing %}{{ form.so_dien_thoai.value|default:'' }}{% elif tai_khoan %}{{ tai_khoan.so_dien_thoai|default:'' }}{% endif %}"
                            placeholder="Chưa cập nhật"
                            {% if not is_editing %}disabled{% endif %}
-                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.so_dien_thoai.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.so_dien_thoai.errors %}is-invalid{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                     {% if is_editing and form.so_dien_thoai.errors %}
                         {% for error in form.so_dien_thoai.errors %}
-                            <p class="text-xs text-red-600 mt-1.5 font-medium">{{ error }}</p>
+                            <span class="field-error-text">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -164,12 +289,12 @@
                 <!-- Email -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Email</label>
-                    <input type="email" name="email" value="{{ form.email.value|default:request.user.email|default:'' }}"
+                    <input type="email" name="email" value="{% if is_editing %}{{ form.email.value|default:'' }}{% else %}{{ request.user.email|default:'' }}{% endif %}"
                            {% if not is_editing %}disabled{% endif %}
-                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.email.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.email.errors %}is-invalid{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                     {% if is_editing and form.email.errors %}
                         {% for error in form.email.errors %}
-                            <p class="text-xs text-red-600 mt-1.5 font-medium">{{ error }}</p>
+                            <span class="field-error-text">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -177,12 +302,12 @@
                 <!-- Ngày sinh -->
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Ngày sinh</label>
-                    <input type="date" name="ngay_sinh" value="{% if form.ngay_sinh.value %}{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value }}{% elif khach_hang and khach_hang.ngay_sinh %}{{ khach_hang.ngay_sinh|date:'Y-m-d' }}{% endif %}"
+                    <input type="date" name="ngay_sinh" value="{% if is_editing %}{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:'' }}{% elif khach_hang and khach_hang.ngay_sinh %}{{ khach_hang.ngay_sinh|date:'Y-m-d' }}{% endif %}"
                            {% if not is_editing %}disabled{% endif %}
-                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.ngay_sinh.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+                           class="w-full {% if not is_editing %}bg-gray-50 border-gray-200{% elif form.ngay_sinh.errors %}is-invalid{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                     {% if is_editing and form.ngay_sinh.errors %}
                         {% for error in form.ngay_sinh.errors %}
-                            <p class="text-xs text-red-600 mt-1.5 font-medium">{{ error }}</p>
+                            <span class="field-error-text">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -191,14 +316,14 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase mb-2">Giới tính</label>
                     {% if is_editing %}
-                        <select name="gioi_tinh" class="w-full {% if form.gioi_tinh.errors %}bg-red-50/30 border-red-500 ring-1 ring-red-500{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
+                        <select name="gioi_tinh" class="w-full {% if form.gioi_tinh.errors %}is-invalid{% else %}bg-white border-amber-600 ring-1 ring-amber-600{% endif %} border rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none transition">
                             <option value="" {% if not form.gioi_tinh.value %}selected{% endif %}>Chưa cập nhật</option>
                             <option value="Nam" {% if form.gioi_tinh.value == 'Nam' or not form.gioi_tinh.value and khach_hang.gioi_tinh == 'Nam' %}selected{% endif %}>Nam</option>
                             <option value="Nữ" {% if form.gioi_tinh.value == 'Nữ' or not form.gioi_tinh.value and khach_hang.gioi_tinh == 'Nữ' %}selected{% endif %}>Nữ</option>
                             <option value="Khác" {% if form.gioi_tinh.value == 'Khác' or not form.gioi_tinh.value and khach_hang.gioi_tinh == 'Khác' %}selected{% endif %}>Khác</option>
                         </select>
                         {% for error in form.gioi_tinh.errors %}
-                            <p class="text-xs text-red-600 mt-1.5 font-medium">{{ error }}</p>
+                            <span class="field-error-text">{{ error }}</span>
                         {% endfor %}
                     {% else %}
                         <input type="text" value="{{ khach_hang.gioi_tinh|default:'Chưa cập nhật' }}" disabled
@@ -230,81 +355,4 @@
     </div>
 
 </div>
-
-<!-- ===================================================================== -->
-<!-- MODAL VÀ SCRIPT KHÓA TÀI KHOẢN                                         -->
-<!-- ===================================================================== -->
-<div id="lockModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative mx-4 animate-in fade-in zoom-in duration-200">
-        <button type="button" onclick="closeLockModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">✕</button>
-        <h3 class="text-xl font-bold text-gray-900 mb-1">Xác nhận khóa tài khoản</h3>
-        <p class="text-sm text-gray-500 mb-6">Bạn có chắc chắn muốn khóa tài khoản?</p>
-
-        <form id="lockAccountForm" action="{% url 'customer_lock_account' %}" method="POST" class="space-y-4">
-            {% csrf_token %}
-            <div>
-                <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Lý do khóa tài khoản <span class="text-red-500">*</span></label>
-                <select name="ly_do" id="lyDoSelect" onchange="checkLyDo(this)" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:border-[#8C6D4F]">
-                    <option value="Không còn nhu cầu sử dụng">Không còn nhu cầu sử dụng</option>
-                    <option value="Tạm ngưng tài khoản" selected>Tạm ngưng tài khoản</option>
-                    <option value="Vấn đề bảo mật">Vấn đề bảo mật</option>
-                    <option value="Lý do khác">Lý do khác</option>
-                </select>
-            </div>
-
-            <div id="divLyDoKhac" style="display: none;">
-                <label class="block text-xs font-medium text-gray-700 uppercase mb-1">Nhập lý do <span class="text-red-500">*</span></label>
-                <textarea name="ly_do_khac" id="textareaLyDoKhac" rows="3" placeholder="Nhập lý do..." class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:border-[#8C6D4F]"></textarea>
-            </div>
-
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                <button type="button" onclick="closeLockModal()" class="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
-                    Hủy
-                </button>
-                <button type="submit" class="px-5 py-2.5 bg-[#993D3D] text-white rounded-xl text-sm font-medium hover:bg-[#803232] transition shadow-sm">
-                    Xác nhận khóa tài khoản
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-    // MODAL KHÓA TÀI KHOẢN
-    function openLockModal() {
-        document.getElementById('lockModal').classList.remove('hidden');
-    }
-
-    function closeLockModal() {
-        document.getElementById('lockModal').classList.add('hidden');
-    }
-
-    function checkLyDo(selectObj) {
-        const divKhac = document.getElementById('divLyDoKhac');
-        const textarea = document.getElementById('textareaLyDoKhac');
-
-        if (selectObj.value === 'Lý do khác') {
-            divKhac.style.display = 'block';
-            textarea.setAttribute('required', 'required');
-        } else {
-            divKhac.style.display = 'none';
-            textarea.removeAttribute('required');
-            textarea.value = '';
-        }
-    }
-
-    const lockAccountForm = document.getElementById('lockAccountForm');
-    if (lockAccountForm) {
-        lockAccountForm.addEventListener('submit', function(e) {
-            const selectObj = document.getElementById('lyDoSelect');
-            const textarea = document.getElementById('textareaLyDoKhac');
-
-            if (selectObj.value === 'Lý do khác' && textarea.value.trim() === '') {
-                e.preventDefault();
-                alert('Vui lòng nhập cụ thể lý do khi chọn lý do khác!');
-                textarea.focus();
-            }
-        });
-    }
-</script>
 {% endblock %}

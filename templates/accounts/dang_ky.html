@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <!-- Nhúng file CSS riêng chuẩn theo mẫu thiết kế -->
-<link rel="stylesheet" href="{% static 'css/accounts/dang_ky.css' %}?v=1.1">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/accounts/dang_ky.css' %}?v=20261118_v2">{% endblock %}
 
 {% block content %}
 <div class="split-screen">
@@ -18,14 +18,14 @@
         </div>
 
         <div class="left-content">
-            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8;">A quieter kind of luxury</span>
-            <h1>Your wellness journey<br>begins here.</h1>
-            <p>Create your private Charm Spa account to reserve rituals, collect loyalty points and receive thoughtful recommendations.</p>
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8;">Vẻ sang trọng thuần khiết & tĩnh tại</span>
+            <h1>Hành trình chăm sóc sức khỏe<br>bắt đầu từ đây.</h1>
+            <p>Tạo tài khoản Charm Spa riêng tư của bạn để đặt lịch liệu trình, tích lũy điểm thưởng và nhận những gợi ý chăm sóc tinh tế.</p>
 
             <div class="features-list">
-                <span>✓ Private & secure</span>
-                <span>✓ Member rewards</span>
-                <span>✓ Easy booking</span>
+                <span>✓ Riêng tư & bảo mật</span>
+                <span>✓ Ưu đãi thành viên</span>
+                <span>✓ Đặt lịch dễ dàng</span>
             </div>
         </div>
         <div></div> <!-- Khoảng trống cân đối layout flex -->
@@ -39,91 +39,114 @@
                 <p>Trở thành thành viên của Charm Spa</p>
             </div>
 
-            <!-- Hiển thị lỗi nếu form có vấn đề -->
-            {% if form.non_field_errors %}
-                <div class="error-message">
-                    {{ form.non_field_errors }}
+            <!-- Hiển thị thông báo Flash Message nếu có -->
+            {% if messages %}
+                <div class="auth-flash-wrap">
+                    {% for message in messages %}
+                        <div class="auth-flash-msg {% if 'error' in message.tags %}error{% else %}success{% endif %}" role="alert">
+                            <div class="auth-flash-content">
+                                <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" class="auth-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                        </div>
+                    {% endfor %}
                 </div>
             {% endif %}
 
-            <form method="POST">
+            <!-- Hiển thị lỗi chung nếu form có vấn đề -->
+            {% if form.non_field_errors %}
+                <div class="auth-flash-wrap">
+                    {% for error in form.non_field_errors %}
+                        <div class="auth-flash-msg error" role="alert">
+                            <div class="auth-flash-content">
+                                <span>⚠️</span>
+                                <span>{{ error }}</span>
+                            </div>
+                            <button type="button" class="auth-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" novalidate>
                 {% csrf_token %}
 
                 <!-- Họ và tên -->
                 <div class="form-group">
-                    <label>Họ và tên</label>
+                    <label>Họ và tên <span class="req">*</span></label>
                     <input type="text"
                        name="ho_ten"
-                       class="form-control {% if form.ho_ten.errors %}input-error{% endif %}"
+                       class="form-control {% if form.ho_ten.errors %}input-error is-invalid{% endif %}"
                        placeholder="Nguyễn Minh Anh"
                        value="{{ form.ho_ten.value|default_if_none:'' }}"
                        required>
                     {% for error in form.ho_ten.errors %}
-                        <small class="error-message">{{ error }}</small>
+                        <span class="error-message field-error-text">{{ error }}</span>
                     {% endfor %}
                 </div>
 
                 <!-- Số điện thoại và Email -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Số điện thoại</label>
+                        <label>Số điện thoại <span class="req">*</span></label>
                         <input type="text" name="so_dien_thoai"
-                               class="form-control {% if form.so_dien_thoai.errors %}input-error{% endif %}"
-                               placeholder="090 123 4567"
+                               class="form-control {% if form.so_dien_thoai.errors %}input-error is-invalid{% endif %}"
+                               placeholder="0901234567"
                                value="{{ form.so_dien_thoai.value|default_if_none:'' }}"
                                required>
                         {% for error in form.so_dien_thoai.errors %}
-                            <small class="error-message">{{ error }}</small>
+                            <span class="error-message field-error-text">{{ error }}</span>
                         {% endfor %}
                     </div>
 
                     <div class="form-group">
-                        <label>Email</label>
+                        <label>Email <span class="req">*</span></label>
                         <input type="email" name="email"
-                               class="form-control {% if form.email.errors %}input-error{% endif %}"
+                               class="form-control {% if form.email.errors %}input-error is-invalid{% endif %}"
                                placeholder="minhanh@email.com"
                                value="{{ form.email.value|default_if_none:'' }}"
                                required>
                         {% for error in form.email.errors %}
-                            <small class="error-message">{{ error }}</small>
+                            <span class="error-message field-error-text">{{ error }}</span>
                         {% endfor %}
                     </div>
                 </div>
 
                 <!-- Username -->
                 <div class="form-group">
-                    <label>Tên đăng nhập (Username)</label>
+                    <label>Tên đăng nhập (Username) <span class="req">*</span></label>
                     <input type="text" name="username"
-                           class="form-control {% if form.username.errors %}input-error{% endif %}"
+                           class="form-control {% if form.username.errors %}input-error is-invalid{% endif %}"
                            placeholder="Nhập tên đăng nhập của bạn"
                            value="{{ form.username.value|default_if_none:'' }}"
                            required>
                     {% for error in form.username.errors %}
-                        <small class="error-message">{{ error }}</small>
+                        <span class="error-message field-error-text">{{ error }}</span>
                     {% endfor %}
                 </div>
 
                 <!-- Mật khẩu -->
                 <div class="form-group">
-                    <label>Mật khẩu</label>
+                    <label>Mật khẩu <span class="req">*</span></label>
                     <input type="password" name="password1"
-                           class="form-control {% if form.password1.errors %}input-error{% endif %}"
+                           class="form-control {% if form.password1.errors %}input-error is-invalid{% endif %}"
                            placeholder="Nhập mật khẩu"
                            autocomplete="new-password" required>
                     {% for error in form.password1.errors %}
-                        <small class="error-message">{{ error }}</small>
+                        <span class="error-message field-error-text">{{ error }}</span>
                     {% endfor %}
                 </div>
 
                 <!-- Xác nhận mật khẩu -->
                 <div class="form-group">
-                    <label>Xác nhận mật khẩu</label>
+                    <label>Xác nhận mật khẩu <span class="req">*</span></label>
                     <input type="password" name="password2"
-                           class="form-control {% if form.password2.errors %}input-error{% endif %}"
+                           class="form-control {% if form.password2.errors %}input-error is-invalid{% endif %}"
                            placeholder="Nhập lại mật khẩu"
                            autocomplete="new-password" required>
                     {% for error in form.password2.errors %}
-                        <small class="error-message">{{ error }}</small>
+                        <span class="error-message field-error-text">{{ error }}</span>
                     {% endfor %}
                 </div>
 
@@ -139,7 +162,7 @@
                 </div>
 
                 {% for error in form.dong_y_dieu_khoan.errors %}
-                    <small class="error-message">{{ error }}</small>
+                    <span class="error-message field-error-text" style="margin-top: -16px; margin-bottom: 16px;">{{ error }}</span>
                 {% endfor %}
 
                 <button type="submit" class="btn-submit">Đăng ký</button>

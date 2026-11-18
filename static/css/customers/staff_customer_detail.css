@@ -304,6 +304,58 @@
     padding: 24px;
 }
 
+/* THÔNG BÁO HỆ THỐNG ĐỒNG BỘ (FLASH MESSAGES) */
+.profile-messages {
+    margin-bottom: 18px;
+}
+
+.profile-message {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(48, 45, 39, 0.04);
+}
+
+.profile-message.success {
+    background: #e6f4ea;
+    color: #137333;
+    border: 1px solid #ceead6;
+}
+
+.profile-message.error {
+    background: #fce8e6;
+    color: #c5221f;
+    border: 1px solid #fad2cf;
+}
+
+.profile-message-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-message-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 0 4px;
+    transition: opacity 0.15s ease;
+}
+
+.profile-message-close:hover {
+    opacity: 1;
+}
+
 .section-heading {
     display: flex;
     align-items: center;
