@@ -118,11 +118,13 @@
             {% endif %}
         </a>
 
+        {% if role == 'Quản lý' %}
         <a href="{% url 'bookings:quan_ly_ngay_hoat_dong' %}" title="Ngày hoạt động"
            class="sidebar-item {% if active_menu == 'working_days' %}active{% endif %}">
             <i data-lucide="calendar-check-2" class="sidebar-icon"></i>
             <span class="sidebar-label">Ngày hoạt động</span>
         </a>
+        {% endif %}
 
         <!-- PHẢN HỒI & KHIẾU NẠI -->
         <a
@@ -361,3 +363,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+

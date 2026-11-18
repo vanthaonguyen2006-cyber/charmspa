@@ -1,3 +1,19 @@
+/* QUY CHUẨN CHỮ MODAL — tách khỏi giao diện và header chung */
+.booking-ui-modal,
+.booking-ui-modal :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a),
+.booking-reschedule-modal,
+.booking-reschedule-modal :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a){font-family:var(--booking-font-family) !important;}
+.booking-ui-modal,.booking-reschedule-modal{font-size:var(--booking-font-body) !important;}
+.booking-ui-modal .modal-title,.booking-reschedule-modal .modal-title{font-size:var(--booking-font-section) !important;}
+.booking-ui-modal :is(.form-control,.form-select,.btn,.form-label),
+.booking-reschedule-modal :is(.form-control,.form-control-sm,.btn,.form-label,.reschedule-section-label,.booking-reschedule-panel h6){font-size:var(--booking-font-label) !important;}
+.booking-ui-modal .service-card-modal :is(.fw-bold,.reschedule-service-name),
+.booking-reschedule-modal .service-card-modal :is(.fw-bold,.reschedule-service-name){font-size:var(--booking-font-label) !important;}
+.booking-ui-modal :is(.service-card-modal small,.status-badge,.booking-reschedule-summary small),
+.booking-reschedule-modal :is(.service-card-modal small,.status-badge,.booking-reschedule-summary small){font-size:var(--booking-font-small) !important;}
+.booking-ui-modal :is(.time-slot-modal strong,.booking-reschedule-summary strong),
+.booking-reschedule-modal :is(.time-slot-modal strong,.booking-reschedule-summary strong){font-size:var(--booking-font-body) !important;}
+
 /* CHARM SPA: Bootstrap-like modal presentation, scoped ONLY to booking popups.
    Does not load Bootstrap's global CSS or change customer_base_pro banner/nav. */
 .booking-ui-modal,
@@ -18,7 +34,7 @@
   overflow-y: auto;
   outline: 0;
   color: #34302b;
-  font: 14px/1.5 'Montserrat', Arial, sans-serif;
+  line-height: 1.5;
 }
 .booking-ui-modal.show { display: block !important; }
 .booking-ui-modal.fade { opacity: 0; transition: opacity .15s linear; }
@@ -36,6 +52,15 @@
 .booking-ui-modal.show .modal-dialog { transform: none; }
 .booking-ui-modal .modal-dialog-centered { min-height: calc(100% - 3.5rem); display: flex; align-items: center; }
 .booking-ui-modal .modal-dialog.modal-xl { max-width: 1140px; }
+.booking-ui-modal .modal-dialog.customer-cancel-dialog {max-width:620px;}
+/* Popup xem dịch vụ giống tạo lịch: 3 cột, thẻ gọn và dễ chọn. */
+.booking-service-chooser .modal-dialog.modal-xl {max-width:min(1220px,calc(100vw - 24px));}
+.booking-service-chooser .booking-service-options .service-card-modal {cursor:pointer;display:block;height:100%;background:#fff;border:1px solid #e8ddd0;border-radius:12px;padding:12px;}
+.booking-service-chooser .booking-service-options .service-card-modal img {width:100%;height:145px;object-fit:cover;border-radius:8px;}
+.booking-service-chooser .booking-service-options .service-card-modal.selected {border-color:#ab8e56;background:#faf5ee;}
+.booking-service-chooser .booking-service-options .reschedule-service-name {font-size:13px;font-weight:700;line-height:1.4;margin-top:8px;}
+.booking-service-chooser .booking-service-options small {font-size:12px;line-height:1.45;}
+
 .booking-ui-modal .modal-content {
   position: relative;
   display: flex;
@@ -53,15 +78,15 @@
 .booking-ui-modal .modal-footer { display: flex; align-items: center; padding: 16px 24px; gap: 12px; }
 .booking-ui-modal .modal-header { justify-content: space-between; border-bottom: 1px solid #eee; }
 .booking-ui-modal .modal-footer { justify-content: flex-end; flex-wrap: wrap; border-top: 1px solid #eee; }
-.booking-ui-modal .modal-title { margin: 0; line-height: 1.4; font-weight: 700; font-size: 18px; }
+.booking-ui-modal .modal-title { margin: 0; line-height: 1.4; font-weight: 700;  }
 .booking-ui-modal .modal-body { position: relative; flex: 1 1 auto; padding: 16px 24px; min-width: 0; }
 .booking-ui-modal .btn-close {
   display: inline-block; flex: 0 0 auto; width: 28px; height: 28px;
   border: 0; border-radius: 4px; cursor: pointer; opacity: .65;
   background: transparent;
-  font-size: 0;
+
 }
-.booking-ui-modal .btn-close::before { content: '×'; font: 27px/28px Arial,sans-serif; color: #333; }
+.booking-ui-modal .btn-close::before { content: "×"; font: 27px/28px "Montserrat", Arial, sans-serif; color: #333; }
 .booking-ui-modal .btn-close:hover { opacity: 1; }
 
 /* Scoped Bootstrap grid for rescheduling, never affecting site header. */
@@ -88,7 +113,6 @@
 
 /* Typography, form fields, buttons and Bootstrap utilities used inside booking modals. */
 .booking-ui-modal h5, .booking-ui-modal h6 { margin-top: 0; }
-.booking-ui-modal h6 { font-size: 14px; }
 .booking-ui-modal .d-flex { display: flex !important; }
 .booking-ui-modal .d-block { display: block !important; }
 .booking-ui-modal .d-none { display: none !important; }
@@ -105,8 +129,6 @@
 .booking-ui-modal .text-success { color: #258350 !important; }
 .booking-ui-modal .text-white { color: #fff !important; }
 .booking-ui-modal .fw-bold { font-weight: 700 !important; }
-.booking-ui-modal .small { font-size: 12px !important; }
-.booking-ui-modal .fs-6 { font-size: 16px !important; }
 .booking-ui-modal .bg-white { background-color: #fff !important; }
 .booking-ui-modal .bg-light { background-color: #f8f9fa !important; }
 .booking-ui-modal .bg-transparent { background-color: transparent !important; }
@@ -139,19 +161,19 @@
 .booking-ui-modal .form-control, .booking-ui-modal .form-select {
   display: block; width: 100%; min-width: 0; background: white;
   border: 1px solid #ded4c8; border-radius: 7px;
-  color: #34302b; font: 14px/1.5 Arial,Helvetica,sans-serif;
+  color: #34302b; line-height: 1.5;
   padding: 9px 12px; outline: none;
 }
 .booking-ui-modal .form-control:focus, .booking-ui-modal .form-select:focus { border-color: #b5976d; box-shadow: 0 0 0 2px rgba(181,151,109,.13); }
 .booking-ui-modal .form-control-sm { padding: 6px 9px; }
 .booking-ui-modal .form-select-lg { padding: 11px 12px; }
-.booking-ui-modal .btn { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border-radius: 7px; border: 1px solid transparent; padding: 9px 15px; font-size: 14px; line-height: 1.5; cursor: pointer; text-decoration: none; }
+.booking-ui-modal .btn { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border-radius: 7px; border: 1px solid transparent; padding: 9px 15px;  line-height: 1.5; cursor: pointer; text-decoration: none; }
 .booking-ui-modal .btn-light { background: #f2f2f2; color: #34302b; }
 .booking-ui-modal .btn-danger { background: #b84f4f; color: white; }
 .booking-ui-modal .btn:hover { filter: brightness(.95); }
 .booking-ui-modal .alert { padding: 12px 16px; border: 1px solid transparent; border-radius: 8px; }
 .booking-ui-modal .alert-warning { color: #765323; background: #fff5df; border-color: #f4e1b6; }
-.booking-ui-modal .badge { display: inline-block; padding: 4px 7px; font-size: 10px; font-weight: 600; border-radius: 6px; }
+.booking-ui-modal .badge { display: inline-block; padding: 4px 7px;  font-weight: 600; border-radius: 6px; }
 .booking-ui-modal .service-card-modal img { display: block; width: 100%; height: 90px; object-fit: cover; border-radius: 6px; }
 .booking-ui-modal .service-item-col { min-width: 0; }
 .booking-ui-modal .service-card-modal { cursor: pointer; }
@@ -163,22 +185,3 @@
 .modal-backdrop.fade { opacity: 0; }
 .modal-backdrop.show { opacity: .5; }
 body.modal-open { overflow: hidden; }
-
-/* Sửa kích thước mũi tên lịch Flatpickr */
-.booking-reschedule-modal .flatpickr-calendar {
-    width: 307px;
-    max-width: 100%;
-}
-
-.booking-reschedule-modal .flatpickr-months .flatpickr-prev-month,
-.booking-reschedule-modal .flatpickr-months .flatpickr-next-month {
-    width: 34px;
-    height: 34px;
-    padding: 10px;
-}
-
-.booking-reschedule-modal .flatpickr-months .flatpickr-prev-month svg,
-.booking-reschedule-modal .flatpickr-months .flatpickr-next-month svg {
-    width: 14px !important;
-    height: 14px !important;
-}

@@ -1,5 +1,4 @@
 import calendar
-from functools import wraps
 import json
 import random
 import traceback
@@ -8,7 +7,6 @@ from datetime import date, datetime, timedelta
 from customers.models import KhachHang
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,61 +17,41 @@ from django.utils import timezone
 from services.models import DichVu
 from .forms import KhoaNgayForm
 from .models import LichHen, NgayHoatDong, PhanCongLichHen
-from accounts.models import NhanVien, TaiKhoan
+from accounts.models import (
+    NhanVien, TaiKhoan, ROLE_MANAGER, ROLE_STAFF,
+    get_user_role, is_manager_role, is_staff_portal_user, is_customer_role,
+)
 
 
-def is_admin(user):
-    """Chỉ tài khoản quản trị viên Django (superuser) được quản trị lịch/ngày."""
-    return user.is_authenticated and user.is_superuser
-
-
-def admin_only(view_func):
-    """Chặn Staff ở backend (403); người chưa đăng nhập về trang đăng nhập."""
-    @login_required(login_url='/accounts/dang_nhap/')
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if not is_admin(request.user):
-            return HttpResponseForbidden('Chỉ quản trị viên mới có quyền thực hiện thao tác này.')
-        return view_func(request, *args, **kwargs)
-    return wrapper
+# Phân quyền nghiệp vụ dùng chung từ accounts.models.
+# is_staff / is_superuser của Django KHÔNG đại diện cho Quản lý / Nhân viên.
+manager_only = user_passes_test(is_manager_role, login_url='/accounts/dang_nhap/')
+staff_portal_only = user_passes_test(is_staff_portal_user, login_url='/accounts/dang_nhap/')
 
 
 def get_staff_context(request):
-    """Hàm phụ trợ lấy thông tin hiển thị tên tài khoản (Phân biệt rõ Admin/Staff và Khách hàng)"""
-    name = request.user.username if request.user.is_authenticated else "Tài khoản"
-
-    # Kiểm tra xem user có phải là Admin hoặc Nhân viên nội bộ hay không
-    is_admin_or_staff = request.user.is_authenticated and (request.user.is_superuser or request.user.is_staff)
-
-    if is_admin_or_staff:
-        position = "Quản trị viên" if request.user.is_superuser else "Nhân viên"
-    else:
-        position = "Khách hàng"
-        # Chỉ check bảng KhachHang nếu đây là tài khoản khách hàng thực sự (không phải admin/staff)
-        if request.user.is_authenticated:
-            try:
-                kh = KhachHang.objects.filter(ma_tk__user=request.user).first()
-                if kh and kh.ho_ten:
-                    name = kh.ho_ten
-            except Exception:
-                pass
-
+    """Thông tin hiển thị theo vai trò nghiệp vụ, không dựa vào cờ Django Admin."""
+    name = request.user.username if request.user.is_authenticated else 'Tài khoản'
+    role = get_user_role(request.user)
+    position = role or 'Tài khoản kỹ thuật'
+    if role == 'Khách hàng':
+        kh = KhachHang.objects.filter(ma_tk__user=request.user).first()
+        if kh and kh.ho_ten:
+            name = kh.ho_ten
     initials = name[:2].upper() if name else '?'
     return {
         'staff_name': name,
         'staff_initials': initials,
         'staff_position': position,
+        'is_manager': is_manager_role(request.user),
     }
 
 
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_create(request):
     """Chỉ tài khoản khách hàng đã đăng nhập mới được đặt lịch từ trang khách."""
-    if request.user.is_staff or request.user.is_superuser:
-        return HttpResponseForbidden("Vui lòng dùng chức năng tạo lịch hẹn của nhân viên.")
-
-    if not TaiKhoan.objects.filter(user=request.user, vai_tro='Khách hàng').exists():
-        return HttpResponseForbidden("Chỉ tài khoản có vai trò Khách hàng mới được đặt lịch.")
+    if not is_customer_role(request.user):
+        return HttpResponseForbidden("Chỉ tài khoản Khách hàng mới được đặt lịch tại trang này.")
 
     dich_vu_list = DichVu.objects.all()
 
@@ -183,7 +161,7 @@ def booking_customer_create(request):
     return render(request, 'bookings/customer_create.html', context)
 
 
-@login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(lambda u: get_user_role(u) is not None, login_url='/accounts/dang_nhap/')
 def booking_customer_list(request):
     trang_thai_filter = request.GET.get('trang_thai', '')
     khach_hang = None
@@ -195,7 +173,7 @@ def booking_customer_list(request):
     )
     locked_dates_str = [d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d) for d in locked_dates]
 
-    if request.user.is_superuser or request.user.is_staff:
+    if is_staff_portal_user(request.user):
         lich_hen_list = LichHen.objects.select_related('ma_dv', 'ma_kh').exclude(trang_thai='Đã xóa').order_by('-ngay_hen')
     else:
         try:
@@ -225,7 +203,7 @@ def booking_customer_list(request):
     })
 
 
-@login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(lambda u: get_user_role(u) is not None, login_url='/accounts/dang_nhap/')
 def booking_customer_detail(request, ma_lh):
     # Banner hồ sơ trong customer_base_pro cần biến khach_hang.
     khach_hang = KhachHang.objects.select_related('ma_tk__user').filter(
@@ -234,7 +212,7 @@ def booking_customer_detail(request, ma_lh):
 
     lich_hen_qs = LichHen.objects.select_related('ma_dv', 'ma_kh__ma_tk__user', 'ma_nv')
     # Khách chỉ được xem lịch hẹn của tài khoản chính mình.
-    if not (request.user.is_staff or request.user.is_superuser):
+    if not is_staff_portal_user(request.user):
         lich_hen_qs = lich_hen_qs.filter(ma_kh__ma_tk__user=request.user)
     lich_hen = get_object_or_404(lich_hen_qs, ma_lh=ma_lh)
 
@@ -301,9 +279,9 @@ def booking_customer_cancel(request, ma_lh):
             ngay_gio_hen, timezone.get_current_timezone()
         )
 
-    if ngay_gio_hen - timezone.now() < timedelta(hours=12):
+    if ngay_gio_hen - timezone.now() < timedelta(hours=6):
         messages.error(
-            request, 'Không thể hủy! Chỉ được hủy trước giờ hẹn ít nhất 12 tiếng.'
+            request, 'Không thể hủy! Chỉ được hủy trước giờ hẹn ít nhất 6 tiếng.'
         )
         return redirect('bookings:booking_customer_list')
 
@@ -322,17 +300,17 @@ def booking_customer_cancel(request, ma_lh):
     return redirect(reverse('bookings:booking_customer_list') + '?trang_thai=cancelled')
 
 
-@login_required(login_url='/accounts/dang_nhap/')
+@user_passes_test(lambda u: get_user_role(u) is not None, login_url='/accounts/dang_nhap/')
 def booking_customer_reschedule(request, ma_lh):
     # Quay về đúng giao diện của người đang thực hiện đổi lịch.
     redirect_url = (
         'bookings:staff_booking_list'
-        if request.user.is_staff or request.user.is_superuser
+        if is_staff_portal_user(request.user)
         else 'bookings:booking_customer_list'
     )
     if request.method == "POST":
         lich_hen_qs = LichHen.objects.all()
-        if not (request.user.is_staff or request.user.is_superuser):
+        if not is_staff_portal_user(request.user):
             lich_hen_qs = lich_hen_qs.filter(ma_kh__ma_tk__user=request.user)
         lich_hen = get_object_or_404(lich_hen_qs, ma_lh=ma_lh)
 
@@ -349,9 +327,9 @@ def booking_customer_reschedule(request, ma_lh):
                                               datetime.min.time().replace(hour=h, minute=m))
             time_difference = appointment_dt - datetime.now()
 
-            if time_difference.total_seconds() < 12 * 3600:
+            if time_difference.total_seconds() < 3 * 3600:
                 messages.error(request,
-                               "Không thể đổi lịch! Chỉ được phép thay đổi lịch hẹn trước ít nhất 12 tiếng so với giờ hẹn.")
+                               "Không thể đổi lịch! Chỉ được phép thay đổi lịch hẹn trước ít nhất 3 tiếng so với giờ hẹn.")
                 return redirect(redirect_url)
         except Exception as e:
             print("Lỗi check thời gian đổi lịch:", e)
@@ -447,102 +425,113 @@ def booking_customer_reschedule(request, ma_lh):
     return redirect(redirect_url)
 
 
-@admin_only
+@manager_only
 def manage_activity_days(request):
-    today = date.today()
+    today = timezone.localdate()
     try:
         month = int(request.GET.get('month', today.month))
         year = int(request.GET.get('year', today.year))
-        if month < 1 or month > 12:
+        if month < 1 or month > 12 or year < 1 or year > 9999:
             raise ValueError
-    except ValueError:
-        month = today.month
-        year = today.year
+    except (ValueError, TypeError):
+        month, year = today.month, today.year
 
     prev_month, prev_year = (12, year - 1) if month == 1 else (month - 1, year)
     next_month, next_year = (1, year + 1) if month == 12 else (month + 1, year)
 
-    ngay_khoa_set = set(
-        NgayHoatDong.objects.filter(
-            trang_thai='Đã khóa',
-            ngay__year=year,
-            ngay__month=month
-        ).values_list('ngay', flat=True)
-    )
-
+    ngay_khoa_set = set(NgayHoatDong.objects.filter(
+        trang_thai='Đã khóa', ngay__year=year, ngay__month=month
+    ).values_list('ngay', flat=True))
     cal = calendar.Calendar(firstweekday=0)
-    month_days = cal.monthdatescalendar(year, month)
-
     calendar_matrix = []
-    for week in month_days:
+    for week in cal.monthdatescalendar(year, month):
         week_row = []
         for day in week:
-            is_current_month = (day.month == month)
             is_locked = day in ngay_khoa_set
-
-            ly_do = ""
-            if is_locked:
-                obj = NgayHoatDong.objects.filter(ngay=day, trang_thai='Đã khóa').first()
-                if obj:
-                    ly_do = obj.ly_do_khoa
-
+            obj = NgayHoatDong.objects.filter(ngay=day, trang_thai='Đã khóa').first() if is_locked else None
             week_row.append({
                 'date': day,
                 'day_number': day.day,
-                'is_current_month': is_current_month,
+                'is_current_month': day.month == month,
                 'is_locked': is_locked,
-                'ly_do': ly_do
+                'ly_do': (obj.ly_do_khoa or '') if obj else '',
             })
         calendar_matrix.append(week_row)
 
-    ngay_da_khoa = NgayHoatDong.objects.filter(trang_thai='Đã khóa').order_by('ngay')
     form = KhoaNgayForm()
+    pending_lock = None
+    if request.method == 'POST' and 'btn_khoa_ngay' in request.POST:
+        form = KhoaNgayForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['ngay_bat_dau']
+            end_date = form.cleaned_data['ngay_ket_thuc']
+            ly_do = form.cleaned_data['ly_do']
+            if ly_do == 'Khác':
+                ly_do = (form.cleaned_data.get('nhap_ly_do') or '').strip()
 
-    if request.method == 'POST':
-        if 'btn_khoa_ngay' in request.POST:
-            form = KhoaNgayForm(request.POST)
-            if form.is_valid():
-                start_date = form.cleaned_data['ngay_bat_dau']
-                end_date = form.cleaned_data['ngay_ket_thuc']
-                ly_do = form.cleaned_data['ly_do']
-                if ly_do == 'Khác':
-                    ly_do = form.cleaned_data['nhap_ly_do']
+            # Bảo vệ backend: không cho khóa quá khứ hoặc khoảng ngày ngược.
+            if start_date < today:
+                form.add_error('ngay_bat_dau', 'Không thể khóa ngày đã qua.')
+            elif end_date < start_date:
+                form.add_error('ngay_ket_thuc', 'Ngày kết thúc phải từ ngày bắt đầu trở đi.')
+            elif not ly_do:
+                form.add_error('nhap_ly_do', 'Vui lòng nhập lý do chi tiết.')
+            else:
+                with transaction.atomic():
+                    # Chặn khóa trùng trong BẤT KỲ ngày nào của khoảng chọn.
+                    locked = NgayHoatDong.objects.select_for_update().filter(
+                        ngay__range=(start_date, end_date), trang_thai='Đã khóa'
+                    ).order_by('ngay').first()
+                    if locked:
+                        form.add_error(None, f'Ngày {locked.ngay:%d/%m/%Y} đã khóa. Vui lòng chọn khoảng khác.')
+                    else:
+                        # Chỉ tính lịch còn hiệu lực, không tính hủy/hoàn thành/xóa.
+                        affected_count = LichHen.objects.filter(
+                            ngay_hen__range=(start_date, end_date)
+                        ).exclude(trang_thai__in=['Đã hủy', 'Hoàn thành', 'Đã xóa']).count()
+                        if affected_count and request.POST.get('confirm_affected') != '1':
+                            pending_lock = {'count': affected_count}
+                            messages.warning(request, f'Có {affected_count} lịch hẹn bị ảnh hưởng. Vui lòng xác nhận trước khi khóa.')
+                        else:
+                            days = (end_date - start_date).days + 1
+                            for i in range(days):
+                                current_date = start_date + timedelta(days=i)
+                                obj, created = NgayHoatDong.objects.get_or_create(
+                                    ngay=current_date,
+                                    defaults={
+                                        'ma_nhd': f'NHD_{current_date:%Y%m%d}_{uuid.uuid4().hex[:6]}',
+                                        'trang_thai': 'Đã khóa',
+                                        'ly_do_khoa': ly_do,
+                                    },
+                                )
+                                if not created:
+                                    obj.trang_thai = 'Đã khóa'
+                                    obj.ly_do_khoa = ly_do
+                                    obj.save(update_fields=['trang_thai', 'ly_do_khoa'])
+                            messages.success(request, f'Đã khóa {days} ngày. {affected_count} lịch hẹn cũ cần được xử lý riêng.' if affected_count else f'Đã khóa {days} ngày thành công.')
+                            return redirect('bookings:quan_ly_ngay_hoat_dong')
+        else:
+            messages.error(request, 'Thông tin khóa ngày chưa hợp lệ. Vui lòng kiểm tra lại.')
 
-                delta = end_date - start_date
-                for i in range(delta.days + 1):
-                    current_date = start_date + timedelta(days=i)
-                    ngay_hd, created = NgayHoatDong.objects.get_or_create(
-                        ngay=current_date,
-                        defaults={
-                            'ma_nhd': f"NHD_{current_date.strftime('%Y%m%d')}_{uuid.uuid4().hex[:6]}",
-                            'trang_thai': 'Đã khóa',
-                            'ly_do_khoa': ly_do,
-                        }
-                    )
-                    if not created:
-                        ngay_hd.trang_thai = 'Đã khóa'
-                        ngay_hd.ly_do_khoa = ly_do
-                        ngay_hd.save()
-
-                return redirect('bookings:quan_ly_ngay_hoat_dong')
-
+    ngay_da_khoa = NgayHoatDong.objects.filter(trang_thai='Đã khóa').order_by('ngay')
     context = {
         'ngay_da_khoa': ngay_da_khoa,
         'form': form,
+        'pending_lock': pending_lock,
         'calendar_matrix': calendar_matrix,
-        'current_month_year': f"Tháng {month}, {year}",
+        'current_month_year': f'Tháng {month}, {year}',
         'current_month': month,
         'current_year': year,
         'prev_month': prev_month,
         'prev_year': prev_year,
         'next_month': next_month,
         'next_year': next_year,
-        **get_staff_context(request)
+        **get_staff_context(request),
     }
     return render(request, 'bookings/admin_activity_day.html', context)
 
 
-@admin_only
+@manager_only
 def unlock_activity_day(request, pk):
     # Thay đổi trạng thái ngày chỉ nhận POST, không cho phép GET.
     if request.method != 'POST':
@@ -601,7 +590,7 @@ def api_check_bed_availability(request):
         return JsonResponse({'con_lai': tong_suc_chua, 'tong': tong_suc_chua})
 
 
-@staff_member_required(login_url='/accounts/dang_nhap/')
+@staff_portal_only
 def staff_quan_ly_giuong(request):
     ngay_chon = request.GET.get('ngay', datetime.today().strftime('%Y-%m-%d'))
     khung_gio_list = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00']
@@ -641,7 +630,7 @@ def staff_quan_ly_giuong(request):
     })
 
 
-@staff_member_required(login_url='/accounts/dang_nhap/')
+@staff_portal_only
 def booking_staff_create(request):
     dich_vu_list = DichVu.objects.all()
     khach_hang_list = KhachHang.objects.select_related('ma_tk__user').all().order_by('-pk')
@@ -732,7 +721,7 @@ def booking_staff_create(request):
     return render(request, 'bookings/staff_create.html', context)
 
 
-@staff_member_required(login_url='/accounts/dang_nhap/')
+@staff_portal_only
 def booking_staff_list(request):
     trang_thai_filter = request.GET.get('trang_thai', '')
     lich_hen_list = (
@@ -795,15 +784,15 @@ def booking_staff_list(request):
     })
 
 
-@staff_member_required(login_url='/accounts/dang_nhap/')
+@staff_portal_only
 def booking_staff_detail(request, ma_lh):
     lich_hen = get_object_or_404(
         LichHen.objects.select_related('ma_dv', 'ma_kh', 'ma_nv'), ma_lh=ma_lh
     )
     dich_vu_list = DichVu.objects.all()
-    # Chỉ chuyên viên được chọn phục vụ khách.
+    # Chỉ nhân viên nghiệp vụ được phân công phục vụ khách.
     danh_sach_nhan_vien = (
-        NhanVien.objects.filter(ma_tk__vai_tro='Chuyên viên')
+        NhanVien.objects.filter(ma_tk__vai_tro=ROLE_STAFF, ma_tk__user__is_active=True)
         .order_by('ho_ten', 'pk')
     )
 
@@ -832,27 +821,73 @@ def booking_staff_detail(request, ma_lh):
         'nhan_vien_da_phan_cong': ds_da_chon,
         'o_phan_cong': o_phan_cong,
         'so_nhan_vien_da_phan_cong': len(ds_da_chon),
+        'locked_dates_json': json.dumps([d.strftime('%Y-%m-%d') for d in NgayHoatDong.objects.filter(trang_thai='Đã khóa').values_list('ngay', flat=True)]),
+        'spa_closed': NgayHoatDong.objects.filter(ngay=lich_hen.ngay_hen, trang_thai='Đã khóa').exists(),
         **get_staff_context(request)
     })
 
 
-@staff_member_required(login_url='/accounts/dang_nhap/')
+@staff_portal_only
 def booking_staff_complete(request, ma_lh):
-    if request.method == "POST":
-        lich_hen = get_object_or_404(LichHen, ma_lh=ma_lh)
-        lich_hen.trang_thai = 'Hoàn thành'
-        lich_hen.save()
-        messages.success(request, f"Đã cập nhật lịch hẹn #{lich_hen.ma_lh} thành Hoàn thành thành công!")
+    # Tận dụng URL staff_booking_complete HIỆN CÓ; không thay urls.py.
+    if request.method != 'POST':
+        return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
+    with transaction.atomic():
+        lich_hen = get_object_or_404(LichHen.objects.select_for_update(), ma_lh=ma_lh)
+        if lich_hen.trang_thai in ('Đã hủy', 'Hoàn thành', 'Đã xóa'):
+            messages.error(request, 'Lịch đã kết thúc hoặc hủy, không thể thao tác.')
+            return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
+        if request.POST.get('booking_action') == 'cancel':
+            ly_do = (request.POST.get('ly_do_huy') or '').strip()
+            if ly_do == 'Khác':
+                ly_do = (request.POST.get('ly_do_khac') or '').strip()
+            if not ly_do:
+                messages.error(request, 'Vui lòng chọn hoặc nhập lý do hủy lịch.')
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
+            spa_closed = NgayHoatDong.objects.filter(
+                ngay=lich_hen.ngay_hen, trang_thai='Đã khóa'
+            ).exists()
+            if ly_do == 'Spa đóng cửa' and not spa_closed:
+                messages.error(request, 'Chỉ có thể chọn lý do Spa đóng cửa khi ngày hẹn đã bị khóa.')
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
+            appointment_dt = datetime.combine(lich_hen.ngay_hen, lich_hen.gio_hen)
+            if timezone.is_naive(appointment_dt):
+                appointment_dt = timezone.make_aware(appointment_dt, timezone.get_current_timezone())
+            if not (spa_closed and ly_do == 'Spa đóng cửa') and appointment_dt - timezone.now() < timedelta(hours=6):
+                messages.error(request, 'Không thể hủy: lịch thông thường phải hủy trước giờ hẹn ít nhất 6 tiếng.')
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
+            lich_hen.trang_thai = 'Đã hủy'
+            lich_hen.ly_do_huy = ly_do
+            lich_hen.save(update_fields=['trang_thai', 'ly_do_huy'])
+            messages.success(request, f'Đã hủy lịch #{lich_hen.ma_lh} thành công.')
+        else:
+            lich_hen.trang_thai = 'Hoàn thành'
+            lich_hen.save(update_fields=['trang_thai'])
+            messages.success(request, f'Đã cập nhật lịch hẹn #{lich_hen.ma_lh} thành Hoàn thành thành công!')
     return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
 
-@admin_only
+@manager_only
 def booking_admin_delete(request, ma_lh):
     if request.method == "POST":
         lich_hen = get_object_or_404(LichHen, ma_lh=ma_lh)
         ma_hien_tai = lich_hen.ma_lh
+        ly_do_xoa = (request.POST.get('ly_do_xoa') or '').strip()
+        if ly_do_xoa not in ('Lịch tạo nhầm', 'Lịch bị trùng', 'Spa không thể phục vụ', 'Khác'):
+            messages.error(request, 'Vui lòng chọn lý do xóa lịch hợp lệ.')
+            return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+        if ly_do_xoa == 'Khác':
+            ly_do_xoa = (request.POST.get('ly_do_xoa_khac') or '').strip()
+            if not ly_do_xoa:
+                messages.error(request, 'Vui lòng nhập lý do xóa lịch.')
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
         lich_hen.trang_thai = 'Đã xóa'
-        lich_hen.ly_do_huy = "Quản trị viên xóa lịch khỏi hệ thống"
+        lich_hen.ly_do_huy = ly_do_xoa
         lich_hen.save()
         messages.success(request, f"Đã chuyển lịch hẹn #{ma_hien_tai} sang trạng thái Đã xóa thành công.")
 
@@ -899,7 +934,7 @@ def _trung_ca_lam(lich_hen, nhan_vien_ids):
     return None
 
 
-@admin_only
+@manager_only
 def assign_staff_to_booking(request, ma_lh):
     if request.method != 'POST':
         return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
@@ -929,14 +964,15 @@ def assign_staff_to_booking(request, ma_lh):
             messages.error(request, 'Không thể chọn cùng một nhân viên cho nhiều khách trong một lịch.')
             return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-        # Backend cũng chặn vai trò khác nếu gửi POST thủ công.
+        # Backend chặn cả nhân viên sai vai trò và tài khoản đã bị khóa.
         nhan_vien = list(NhanVien.objects.filter(
             pk__in=selected_ids,
-            ma_tk__vai_tro='Chuyên viên',
+            ma_tk__vai_tro=ROLE_STAFF,
+            ma_tk__user__is_active=True,
         ))
         by_id = {str(nv.pk): nv for nv in nhan_vien}
         if len(by_id) != len(selected_ids):
-            messages.error(request, 'Chỉ được phân công nhân viên có vai trò Chuyên viên. Vui lòng chọn lại.')
+            messages.error(request, 'Chỉ được phân công nhân viên có tài khoản đang hoạt động. Vui lòng chọn lại.')
             return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
         trung = _trung_ca_lam(lich_hen, selected_ids)
         if trung:
@@ -968,6 +1004,6 @@ def assign_staff_to_booking(request, ma_lh):
     messages.success(request, f'Đã phân công đủ {so_khach} nhân viên cho lịch #{ma_lh}.')
     return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-@staff_member_required(login_url='/accounts/dang_nhap/')
+@staff_portal_only
 def staff_home(request):
     return render(request, 'core/staff_home.html', get_staff_context(request))
