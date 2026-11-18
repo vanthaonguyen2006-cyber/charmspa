@@ -22,13 +22,6 @@ ROLE_CHOICES = [
     (ROLE_MANAGER, ROLE_MANAGER),
 ]
 
-# Bảng chuyển đổi dữ liệu vai trò cũ của tài khoản nghiệp vụ -> 3 vai trò mới
-LEGACY_ROLE_ALIASES = {
-    "Admin": ROLE_MANAGER,
-    "Nhân viên CSKH": ROLE_STAFF,
-    "Chuyên viên": ROLE_STAFF,
-}
-
 # Hai vai trò duy nhất được phép phân quyền qua lại tại trang quản lý tài khoản
 ASSIGNABLE_ROLES = (ROLE_STAFF, ROLE_MANAGER)
 
@@ -102,9 +95,8 @@ class LichSuTaiKhoan(models.Model):
 #   không thuộc 3 vai trò nghiệp vụ và được loại khỏi danh sách/quản lý website.
 # =========================================================================
 def normalize_role(value):
-    """Chuẩn hóa tên vai trò nghiệp vụ (kể cả tên cũ). Trả về None nếu không nhận diện được."""
+    """Kiểm tra và trả về tên vai trò hợp lệ trong 3 vai trò nghiệp vụ (Quản lý, Nhân viên, Khách hàng)."""
     value = (value or "").strip()
-    value = LEGACY_ROLE_ALIASES.get(value, value)
     return value if value in dict(ROLE_CHOICES) else None
 
 
@@ -183,50 +175,6 @@ def sync_user_flags_with_role(user, role=None):
     return True
 
 
-def dong_bo_vai_tro_tai_khoan_hien_co(ap_dung=False):
-    """
-    Kiểm tra và chuẩn hóa dữ liệu vai trò + cờ is_staff/is_superuser cho các tài khoản nghiệp vụ hiện có:
-    - Bỏ qua và giữ nguyên hoàn toàn tài khoản Admin kỹ thuật (user.is_superuser=True).
-    - Chuyển các tài khoản nghiệp vụ có vai trò cũ sang 3 vai trò mới.
-    - Không tự ý thay đổi những vai trò không xác định được.
-    - Không thay đổi is_active.
-    - Mặc định ap_dung=False (chỉ báo cáo, không ghi vào database).
-    """
-    ket_qua = {
-        "admin_ky_thuat_giu_nguyen": [],
-        "doi_vai_tro": [],
-        "doi_co": [],
-        "khong_xac_dinh": [],
-    }
-
-    for tk in TaiKhoan.objects.select_related("user"):
-        user = tk.user
-        if user.is_superuser:
-            ket_qua["admin_ky_thuat_giu_nguyen"].append((tk.ma_tk, user.username, tk.vai_tro))
-            continue
-
-        vai_tro_chuan = normalize_role(tk.vai_tro)
-        if vai_tro_chuan is None:
-            ket_qua["khong_xac_dinh"].append((tk.ma_tk, user.username, tk.vai_tro))
-            continue
-
-        if vai_tro_chuan != tk.vai_tro:
-            ket_qua["doi_vai_tro"].append((tk.ma_tk, user.username, tk.vai_tro, vai_tro_chuan))
-            if ap_dung:
-                TaiKhoan.objects.filter(pk=tk.pk).update(vai_tro=vai_tro_chuan)
-
-        if user.is_staff or user.is_superuser:
-            ket_qua["doi_co"].append((
-                tk.ma_tk,
-                user.username,
-                vai_tro_chuan,
-                (user.is_staff, user.is_superuser),
-                (False, False),
-            ))
-            if ap_dung:
-                type(user).objects.filter(pk=user.pk).update(is_staff=False, is_superuser=False)
-
-    return ket_qua
 
 
 @receiver(post_save, sender=User)

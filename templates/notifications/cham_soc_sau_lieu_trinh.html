@@ -3,108 +3,34 @@
 
 {% block title %}Hướng dẫn sau liệu trình - Charm Grand Spa{% endblock %}
 
+{% block extra_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/notifications/cham_soc_sau_lieu_trinh.css' %}?v=20261118_03">
+{% endblock %}
+
 {% block content %}
-<style>
-  .hdcs-page{font-family:Arial,'Segoe UI',sans-serif;background:#f8f5ef;min-height:calc(100vh - 80px);padding:30px 25px 55px;color:#312820}
-  .hdcs-wrap{max-width:1350px;margin:auto}
-  .hdcs-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9c805b;font-weight:700}
-  .hdcs-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:24px}
-  .hdcs-heading h1{font-family:Georgia,serif;font-size:33px;font-weight:500;margin:8px 0;color:#2f2923}
-  .hdcs-heading p{font-size:13px;color:#897d71;margin:0;line-height:1.6}
-  .hdcs-note{font-size:12px;border:1px solid #e5d8c4;border-radius:10px;background:#fffdf8;color:#846d4f;padding:11px 14px}
-  .hdcs-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:23px}
-  .hdcs-metric{background:white;border:1px solid #eee8df;border-radius:14px;padding:20px 21px;min-height:112px;box-shadow:0 3px 14px rgba(30,23,15,.025)}
-  .hdcs-metric:first-child{background:#272321;color:white;border-color:#272321}
-  .hdcs-metric-name{font-size:13px;color:#8d8074}
-  .hdcs-metric:first-child .hdcs-metric-name{color:#d9c6aa}
-  .hdcs-metric-value{font-family:Georgia,serif;font-size:35px;line-height:1.3;margin-top:9px;font-variant-numeric:tabular-nums}
-  .hdcs-panel{background:#fff;border:1px solid #eee8df;border-radius:17px;overflow:hidden;box-shadow:0 4px 20px rgba(30,23,15,.035)}
-  .hdcs-panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:20px;border-bottom:1px solid #efeae4}
-  .hdcs-panel-head h2{font-family:Georgia,serif;font-weight:600;font-size:19px;margin:0;color:#342b23}
-  .hdcs-controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-  .hdcs-search,.hdcs-filter{border:1px solid #e6ddd2;border-radius:9px;background:#fff;padding:11px 12px;color:#4c4037;font-size:12px;outline:none}
-  .hdcs-search{width:260px;max-width:100%}
-  .hdcs-search:focus,.hdcs-filter:focus{border-color:#ad8655}
-  .hdcs-table-wrap{overflow-x:auto}
-  .hdcs-table{width:100%;border-collapse:collapse;font-size:13px;min-width:810px}
-  .hdcs-table thead{background:#f7f4ef}
-  .hdcs-table th{font-size:11px;font-weight:700;letter-spacing:.2px;color:#8a7e72;padding:15px 17px;text-align:left;white-space:nowrap}
-  .hdcs-table td{padding:16px 17px;border-top:1px solid #f1ede8;vertical-align:middle;color:#4f473f}
-  .hdcs-table tbody tr:hover{background:#fdfaf6}
-  .hdcs-name{font-weight:700;color:#342c26;font-size:13px}
-  .hdcs-sub{font-size:11px;color:#9d9084;margin-top:5px}
-  .hdcs-pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:6px 10px;border-radius:999px;white-space:nowrap}
-  .hdcs-pill.pending{background:#fff0eb;color:#ae5a46}
-  .hdcs-pill.sent{background:#eaf5ed;color:#477b59}
-  .hdcs-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
-  .hdcs-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;padding:10px 14px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap;transition:.18s;border:1px solid #e3d8c8;background:white;color:#805e3e}
-  .hdcs-btn:hover{background:#fbf4e9;border-color:#bda27c}
-  .hdcs-btn.primary{background:#8d6949;border-color:#8d6949;color:#fff}
-  .hdcs-btn.primary:hover{background:#725238}
-  .hdcs-btn:disabled{cursor:not-allowed;opacity:.55}
-  .hdcs-empty{padding:45px 24px;text-align:center;color:#8b8074;font-size:13px;line-height:1.8}
-  .hdcs-footer{padding:14px 20px;font-size:11px;color:#948779;border-top:1px solid #eee8df;display:flex;justify-content:space-between;gap:10px}
-  .hdcs-modal{position:fixed;inset:0;z-index:100000;display:none;justify-content:center;align-items:center;padding:20px}
-  .hdcs-modal.is-open{display:flex}
-  .hdcs-modal-backdrop{position:absolute;inset:0;background:rgba(26,21,17,.64);backdrop-filter:blur(3px)}
-  .hdcs-modal-card{position:relative;background:#fff;width:100%;max-width:610px;max-height:90vh;overflow:auto;border-radius:18px;padding:26px 28px;box-shadow:0 25px 80px rgba(0,0,0,.22)}
-  .hdcs-modal-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;border-bottom:1px solid #eee5d9;padding-bottom:17px}
-  .hdcs-modal-top h2{font-family:Georgia,serif;font-size:24px;font-weight:500;margin:4px 0 0}
-  .hdcs-close{background:none;border:0;cursor:pointer;font-size:25px;color:#887665;line-height:1}
-  .hdcs-modal-info{margin:18px 0;background:#faf6f0;border:1px solid #eee4d6;border-radius:11px;padding:15px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .hdcs-info-key{font-size:11px;color:#8e7e6e;margin-bottom:4px}
-  .hdcs-info-val{font-weight:700;font-size:13px;color:#483a2c;overflow-wrap:anywhere}
-  .hdcs-label{font-size:12px;font-weight:700;color:#594534;margin-bottom:8px;display:block}
-  .hdcs-textarea{width:100%;min-height:190px;resize:vertical;border:1px solid #e3d6c4;border-radius:11px;padding:14px;font-size:13px;line-height:1.7;color:#45372e;box-sizing:border-box;font-family:inherit}
-  .hdcs-textarea:focus{outline:2px solid #ead4b4;border-color:#a68156}
-  .hdcs-help{font-size:12px;color:#91806e;line-height:1.6;margin-top:9px}
-  .hdcs-modal-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:21px}
-  /* Popup gui HDCS theo layout 2 phan: mau + ghi chu. */
-  .hdcs-modal-card{max-width:665px;padding:28px 30px;border-radius:17px}
-  .hdcs-modal-top{align-items:center}
-  .hdcs-modal-top .hdcs-eyebrow{font-size:10px;letter-spacing:1.4px}
-  .hdcs-modal-top h2{font-size:27px}
-  .hdcs-modal-info{background:#f8f5f0;grid-template-columns:1fr 1fr;padding:18px;gap:14px}
-  .hdcs-modal-info .hdcs-info-val{font-size:12.5px}
-  .hdcs-choice{width:100%;padding:13px;border:1px solid #e5d9c8;border-radius:11px;background:#fff;font-size:13px;color:#4b4037}
-  .hdcs-choice:focus{outline:2px solid #e7cda8}
-  .hdcs-template-box{margin:17px 0 18px;padding:16px;border:1px solid #e9dfd2;border-radius:12px;background:#f8f5f0}
-  .hdcs-template-top{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:11px;font-weight:800;letter-spacing:.3px;color:#9a503c}
-  .hdcs-template-status{color:#5e886c;font-size:11px}
-  .hdcs-template-body{color:#62564b;font-size:12.5px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 0;max-height:185px;overflow-y:auto}
-  .hdcs-editor{border:1px solid #e2d5c4;border-radius:11px;overflow:hidden;background:#fff}
-  .hdcs-toolbar{padding:9px 11px;display:flex;gap:6px;align-items:center;background:#f7f3ed;border-bottom:1px solid #ece2d7}
-  .hdcs-tool{font-size:13px;font-weight:700;min-width:30px;height:30px;border:0;background:transparent;border-radius:6px;color:#8c6244;cursor:pointer}
-  .hdcs-tool:hover{background:#eae1d5}
-  .hdcs-textarea{border:0;border-radius:0;min-height:110px;padding:14px;font-size:12.5px;line-height:1.8}
-  .hdcs-textarea:focus{outline:0}
-  .hdcs-template-hint{color:#948473;font-size:11px;margin:6px 0 0}
-  .hdcs-modal-actions{border-top:1px solid #eee7dd;padding-top:16px}
-  .hdcs-btn.primary{background:#972d30;border-color:#972d30}
-  .hdcs-btn.primary:hover{background:#7d2225}
-  @media(max-width:760px){.hdcs-page{padding:22px 12px 45px}.hdcs-heading h1{font-size:27px}.hdcs-metrics{grid-template-columns:1fr;gap:10px}.hdcs-metric{min-height:auto;padding:15px 18px}.hdcs-metric-value{font-size:29px}.hdcs-search{width:100%}.hdcs-controls{width:100%}.hdcs-panel-head{padding:16px}.hdcs-modal-card{padding:20px}.hdcs-modal-info{grid-template-columns:1fr}}
-</style>
+
 
 <div class="hdcs-page">
  <div class="hdcs-wrap">
   <div class="hdcs-heading">
    <div>
-    <div class="hdcs-eyebrow">CHĂM SÓC SAU LIỆU TRÌNH</div>
+    <div class="hdcs-eyebrow"><i data-lucide="sparkles" aria-hidden="true"></i> CHĂM SÓC SAU LIỆU TRÌNH</div>
     <h1>Hướng dẫn sau liệu trình</h1>
     <p>Quản lý lời dặn chăm sóc dành riêng cho khách hàng sau khi hoàn thành dịch vụ.</p>
    </div>
-   <div class="hdcs-note">Hướng dẫn chăm sóc cá nhân hóa • Gửi trực tiếp đến khách hàng</div>
+   <div class="hdcs-note"><i data-lucide="shield-check" aria-hidden="true"></i> Hướng dẫn cá nhân hóa · Gửi trực tiếp đến khách hàng</div>
   </div>
 
   <div class="hdcs-metrics">
-   <div class="hdcs-metric"><div class="hdcs-metric-name">Hoàn thành hôm nay</div><div class="hdcs-metric-value" id="hdcsToday">0</div></div>
-   <div class="hdcs-metric"><div class="hdcs-metric-name">Chờ gửi hướng dẫn</div><div class="hdcs-metric-value" id="hdcsPending">0</div></div>
-   <div class="hdcs-metric"><div class="hdcs-metric-name">Đã gửi hướng dẫn</div><div class="hdcs-metric-value" id="hdcsSent">0</div></div>
+   <div class="hdcs-metric"><div class="hdcs-metric-top"><div class="hdcs-metric-name">Hoàn thành hôm nay</div><span class="hdcs-metric-icon"><i data-lucide="calendar-check-2"></i></span></div><div class="hdcs-metric-value" id="hdcsToday">0</div></div>
+   <div class="hdcs-metric"><div class="hdcs-metric-top"><div class="hdcs-metric-name">Chờ gửi hướng dẫn</div><span class="hdcs-metric-icon"><i data-lucide="clock-3"></i></span></div><div class="hdcs-metric-value" id="hdcsPending">0</div></div>
+   <div class="hdcs-metric"><div class="hdcs-metric-top"><div class="hdcs-metric-name">Đã gửi hướng dẫn</div><span class="hdcs-metric-icon"><i data-lucide="send"></i></span></div><div class="hdcs-metric-value" id="hdcsSent">0</div></div>
   </div>
 
   <section class="hdcs-panel">
    <div class="hdcs-panel-head">
-    <h2>Khách hoàn thành liệu trình</h2>
+    <div class="hdcs-panel-title"><span class="hdcs-heading-icon"><i data-lucide="clipboard-list"></i></span><div><h2>Khách hoàn thành liệu trình</h2><p>Danh sách lịch hẹn và hướng dẫn chăm sóc cần gửi</p></div></div>
     <div class="hdcs-controls">
      <input id="hdcsSearch" class="hdcs-search" type="search" placeholder="Tìm khách hàng hoặc dịch vụ..." aria-label="Tìm khách hàng hoặc dịch vụ">
      <select id="hdcsStatus" class="hdcs-filter" aria-label="Lọc trạng thái">
@@ -116,7 +42,7 @@
    </div>
    <div class="hdcs-table-wrap">
     <table class="hdcs-table">
-     <thead><tr><th>Khách hàng</th><th>Dịch vụ</th><th>Kỹ thuật viên</th><th>Thời điểm ghi nhận</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+     <thead><tr><th>KHÁCH HÀNG</th><th>DỊCH VỤ</th><th>KỸ THUẬT VIÊN</th><th>THỜI ĐIỂM GHI NHẬN</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead>
      <tbody id="hdcsRows">
       {% for record in records %}
       <tr class="hdcs-record" data-status="{% if record.trang_thai %}sent{% else %}pending{% endif %}" data-date="{{ record.gio_checkout|date:'Y-m-d' }}">
@@ -136,7 +62,7 @@
          data-send-url="{% url 'notifications:gui_hdcs_action' record.id %}"
          data-status="{% if record.trang_thai %}sent{% else %}pending{% endif %}"
          data-content="{{ record.noi_dung_gui|default:''|escape }}">
-         {% if record.trang_thai %}Xem nội dung{% else %}Soạn hướng dẫn{% endif %}
+         <i data-lucide="{% if record.trang_thai %}eye{% else %}send{% endif %}" aria-hidden="true"></i><span>{% if record.trang_thai %}Xem nội dung{% else %}Soạn hướng dẫn{% endif %}</span>
         </button>
        </td>
       </tr>
@@ -157,7 +83,7 @@
  <div class="hdcs-modal-card">
   <div class="hdcs-modal-top">
    <div><div class="hdcs-eyebrow">CHARM GRAND SPA & WELLNESS</div><h2 id="hdcsModalTitle">Hướng dẫn sau liệu trình</h2></div>
-   <button type="button" class="hdcs-close" data-hdcs-close="1" aria-label="Đóng">&times;</button>
+   <button type="button" class="hdcs-close" data-hdcs-close="1" aria-label="Đóng"><i data-lucide="x"></i></button>
   </div>
   <div class="hdcs-modal-info">
    <div><div class="hdcs-info-key">Khách hàng</div><div id="hdcsModalName" class="hdcs-info-val"></div></div>
@@ -175,7 +101,7 @@
     </select>
     <p id="hdcsTemplateHint" class="hdcs-template-hint">Chỉ hiển thị mẫu phù hợp với dịch vụ của khách.</p>
     <div id="hdcsTemplateBox" class="hdcs-template-box" hidden>
-      <div class="hdcs-template-top"><span id="hdcsTemplateName">NỘI DUNG MẪU</span><span class="hdcs-template-status">✓ Đã chọn mẫu</span></div>
+      <div class="hdcs-template-top"><span id="hdcsTemplateName">NỘI DUNG MẪU</span><span class="hdcs-template-status"><i data-lucide="check-circle-2" aria-hidden="true"></i> Đã chọn mẫu</span></div>
       <div id="hdcsTemplatePreview" class="hdcs-template-body"></div>
     </div>
     <label class="hdcs-label" for="hdcsContent">Ghi chú riêng cho khách hàng</label>
@@ -183,11 +109,18 @@
       <div class="hdcs-toolbar" aria-label="Công cụ định dạng ghi chú">
         <button type="button" class="hdcs-tool" data-format="bold" title="In đậm"><b>B</b></button>
         <button type="button" class="hdcs-tool" data-format="italic" title="In nghiêng"><i>I</i></button>
-        <button type="button" class="hdcs-tool" data-format="bullet" title="Gạch đầu dòng">☷</button>
+        <button type="button" class="hdcs-tool" data-format="bullet" title="Gạch đầu dòng"><i data-lucide="list"></i></button>
       </div>
-      <textarea id="hdcsContent" class="hdcs-textarea" maxlength="5000" placeholder="Ví dụ: Chị Ngọc thân mến, sau buổi chăm sóc tóc hôm nay, chị nên hạn chế nhiệt độ sấy cao và dùng dầu gội dịu nhẹ..."></textarea>
+      <textarea id="hdcsContent" class="hdcs-textarea" maxlength="5000" placeholder="Ví dụ: Cảm ơn anh/chị đã sử dụng dịch vụ. Nếu có yêu cầu riêng từ chuyên viên, vui lòng ghi tại đây..."></textarea>
     </div>
     <div id="hdcsModalHelp" class="hdcs-help" role="status">Khách sẽ nhận hướng dẫn mẫu (nếu chọn) cùng ghi chú riêng trong cùng một thông báo.</div>
+  </div>
+  <div id="hdcsReviewArea" hidden aria-live="polite">
+    <div class="hdcs-review">
+      <div class="hdcs-review-head"><i data-lucide="eye" aria-hidden="true"></i> XEM TRƯỚC THÔNG BÁO GỬI KHÁCH</div>
+      <div id="hdcsReviewContent" class="hdcs-review-content"></div>
+    </div>
+    <p class="hdcs-review-note">Đây là bản xem trước. Hệ thống sẽ tạo nội dung chính thức từ mẫu và ghi chú khi gửi.</p>
   </div>
   <div id="hdcsSentArea" hidden>
     <label class="hdcs-label">Nội dung đã gửi cho khách hàng</label>
@@ -201,13 +134,16 @@
   <form id="hdcsCsrfForm" style="display:none">{% csrf_token %}</form>
   <div class="hdcs-modal-actions">
    <button type="button" class="hdcs-btn" data-hdcs-close="1">Đóng</button>
-   <button type="button" id="hdcsSubmit" class="hdcs-btn primary">Gửi HDCS</button>
+   <button type="button" id="hdcsBackToEdit" class="hdcs-btn" hidden><i data-lucide="pencil" aria-hidden="true"></i> Quay lại sửa</button>
+   <button type="button" id="hdcsPreview" class="hdcs-btn review-button"><i data-lucide="eye" aria-hidden="true"></i> Xem trước</button>
+   <button type="button" id="hdcsSubmit" class="hdcs-btn primary" hidden><i data-lucide="send" aria-hidden="true"></i> Xác nhận gửi</button>
   </div>
  </div>
 </div>
 
 <script>
 (function () {
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
   const rows = Array.from(document.querySelectorAll('.hdcs-record'));
   const search = document.getElementById('hdcsSearch');
   const status = document.getElementById('hdcsStatus');
@@ -235,6 +171,59 @@
     textarea.focus();
   }));
   const submitButton = document.getElementById('hdcsSubmit');
+  const previewButton = document.getElementById('hdcsPreview');
+  const backButton = document.getElementById('hdcsBackToEdit');
+  const reviewArea = document.getElementById('hdcsReviewArea');
+  const composeArea = document.getElementById('hdcsComposeArea');
+  const reviewContent = document.getElementById('hdcsReviewContent');
+  let previewSignature = null;
+  function showCompose() {
+    reviewArea.hidden = true;
+    composeArea.hidden = alreadySent;
+    previewButton.hidden = alreadySent;
+    backButton.hidden = true;
+    submitButton.hidden = true;
+    previewSignature = null;
+  }
+  function signatureOfDraft() {
+    return JSON.stringify([templateSelect.value, textarea.value.trim(),
+      document.getElementById('hdcsModalName').textContent,
+      document.getElementById('hdcsModalService').textContent]);
+  }
+  function previewMessage() {
+    const sample = templates.find(x => x.id === templateSelect.value);
+    const note = textarea.value.trim();
+    if (!sample && !note) {
+      errorBox.textContent = 'Vui lòng chọn mẫu hoặc nhập ghi chú trước khi xem trước.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    errorBox.style.display = 'none';
+    const customer = document.getElementById('hdcsModalName').textContent;
+    const service = document.getElementById('hdcsModalService').textContent;
+    const chunks = [
+      'CHARM GRAND SPA & WELLNESS',
+      'HƯỚNG DẪN CHĂM SÓC SAU LIỆU TRÌNH',
+      '',
+      `Kính gửi Quý khách ${customer},`,
+      `Cảm ơn Quý khách đã trải nghiệm dịch vụ ${service} tại Charm Grand Spa.`
+    ];
+    if (sample) chunks.push('', 'HƯỚNG DẪN TỪ CHUYÊN VIÊN', sample.title, sample.content.trim());
+    if (note) chunks.push('', 'GHI CHÚ RIÊNG DÀNH CHO QUÝ KHÁCH', note);
+    chunks.push('', 'LỜI NHẮN TỪ CHARM',
+      'Charm Grand Spa cảm ơn Quý khách và mong sớm được đón tiếp Quý khách trở lại.');
+    reviewContent.textContent = chunks.join('\n');
+    previewSignature = signatureOfDraft();
+    composeArea.hidden = true;
+    reviewArea.hidden = false;
+    previewButton.hidden = true;
+    backButton.hidden = false;
+    submitButton.hidden = false;
+    submitButton.disabled = false;
+    submitButton.textContent = 'Xác nhận gửi';
+  }
+  previewButton.addEventListener('click', previewMessage);
+  backButton.addEventListener('click', showCompose);
   const help = document.getElementById('hdcsModalHelp');
   const errorBox = document.getElementById('hdcsModalError');
   const csrf = document.querySelector('#hdcsCsrfForm [name=csrfmiddlewaretoken]').value;
@@ -276,8 +265,8 @@
     alreadySent = d.status === 'sent';
     sendUrl = d.sendUrl || '';
     serviceId = d.serviceId || '';
-    document.getElementById('hdcsComposeArea').hidden = alreadySent;
     document.getElementById('hdcsSentArea').hidden = !alreadySent;
+    showCompose();
     document.getElementById('hdcsSentPreview').textContent = d.content || '';
     textarea.value = '';
     for (const opt of Array.from(templateSelect.options)) {
@@ -293,9 +282,9 @@
     document.getElementById('hdcsTemplateHint').textContent = compatible.length
       ? 'Đã tìm thấy ' + compatible.length + ' mẫu phù hợp với dịch vụ.'
       : 'Chưa có mẫu cho dịch vụ này. Bạn có thể viết ghi chú riêng để gửi.';
-    submitButton.style.display = alreadySent ? 'none' : '';
+    submitButton.hidden = true;
     submitButton.disabled = false;
-    submitButton.textContent = 'Gửi HDCS';
+    submitButton.textContent = 'Xác nhận gửi';
     errorBox.style.display = 'none';
     help.textContent = alreadySent
       ? 'Đây là nội dung đã gửi và được lưu trong nhật ký chăm sóc.'
@@ -312,7 +301,13 @@
     if (focusBeforeOpen) focusBeforeOpen.focus();
   }
   submitButton.addEventListener('click', async function () {
-    if (alreadySent || !sendUrl) return;
+    if (alreadySent || !sendUrl || reviewArea.hidden || !previewSignature) return;
+    if (previewSignature !== signatureOfDraft()) {
+      showCompose();
+      errorBox.textContent = 'Nội dung đã thay đổi, vui lòng xem trước lại.';
+      errorBox.style.display = 'block';
+      return;
+    }
     const content = textarea.value.trim();
     const templateId = templateSelect.value;
     errorBox.style.display = 'none';
@@ -322,7 +317,7 @@
       textarea.focus();
       return;
     }
-    if (!window.confirm('Bạn xác nhận gửi hướng dẫn này đến khách hàng?')) return;
+    if (!window.confirm('Xác nhận gửi nội dung vừa xem trước đến khách hàng?')) return;
 
     submitButton.disabled = true;
     submitButton.textContent = 'Đang gửi...';
@@ -348,7 +343,7 @@
       errorBox.textContent = error.message || 'Không thể kết nối đến máy chủ.';
       errorBox.style.display = 'block';
       submitButton.disabled = false;
-      submitButton.textContent = 'Gửi HDCS';
+      submitButton.textContent = 'Xác nhận gửi';
     }
   });
 
@@ -358,3 +353,5 @@
 })();
 </script>
 {% endblock %}
+
+```

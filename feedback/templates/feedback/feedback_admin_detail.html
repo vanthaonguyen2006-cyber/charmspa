@@ -41,10 +41,12 @@
                 </button>
             {% endif %}
 
-            <button type="button" class="feedback-btn"
-                    data-open-modal="assignModal">
-                {% if phan_cong %}Thay đổi phân công{% else %}Phân công nhân viên{% endif %}
-            </button>
+            {% if ph.tinh_hop_le == "Hợp lệ" and ph.trang_thai_xu_ly != "Đã giải quyết" %}
+                <button type="button" class="feedback-btn"
+                        data-open-modal="assignModal">
+                    {% if phan_cong %}Thay đổi phân công{% else %}Phân công nhân viên{% endif %}
+                </button>
+            {% endif %}
 
             {% if ph.tinh_hop_le == "Hợp lệ" and ph.trang_thai_xu_ly != "Đã giải quyết" %}
                 <button type="button" class="feedback-btn"
@@ -247,11 +249,13 @@
                     </p>
                 {% endif %}
 
-                <button type="button" class="feedback-btn"
-                        data-open-modal="assignModal"
-                        style="width:100%;margin-top:12px">
-                    {% if phan_cong %}Thay đổi phân công{% else %}Phân công nhân viên{% endif %}
-                </button>
+                {% if ph.tinh_hop_le == "Hợp lệ" and ph.trang_thai_xu_ly != "Đã giải quyết" %}
+                    <button type="button" class="feedback-btn"
+                            data-open-modal="assignModal"
+                            style="width:100%;margin-top:12px">
+                        {% if phan_cong %}Thay đổi phân công{% else %}Phân công nhân viên{% endif %}
+                    </button>
+                {% endif %}
             </section>
 
             <!-- Tình trạng hợp lệ -->
@@ -316,7 +320,7 @@
 
         <div class="feedback-modal-head">
             <div>
-                <h2 id="assignModalTitle">Phân công nhân viên CSKH</h2>
+                <h2 id="assignModalTitle">Phân công nhân viên</h2>
                 <p class="feedback-muted">
                     Chọn nhân viên tiếp nhận phiếu #{{ ph.ma_ph }}.
                     Danh sách được lấy từ cơ sở dữ liệu.
@@ -343,7 +347,7 @@
 
                         <span>
                             <strong>{{ nv.ho_ten }}</strong><br>
-                            <small>{{ nv.vi_tri }} · {{ nv.ma_nv }}</small>
+                            <small>Mã nhân viên: {{ nv.ma_nv }}</small>
                         </span>
                     </label>
                 {% empty %}
@@ -374,72 +378,154 @@
 </div>
 
 
-<!-- ========================================= -->
-<!-- MODAL 2: ĐÁNH DẤU KHÔNG HỢP LỆ -->
-<!-- ========================================= -->
-<div class="feedback-modal" id="invalidModal" role="dialog"
-     aria-modal="true" aria-labelledby="invalidModalTitle">
+
+<!-- ==========================================
+     MODAL 2: ADMIN ĐÁNH DẤU PHIẾU KHÔNG HỢP LỆ
+     Chức năng: Chọn lý do, nhập chi tiết và đóng phiếu.
+========================================== -->
+
+<div class="feedback-modal feedback-action-modal"
+     id="invalidModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="invalidModalTitle">
 
     <div class="feedback-modal-box">
 
-        <div class="feedback-modal-head">
-            <div>
+        <!-- Phần tiêu đề popup -->
+        <div class="feedback-action-header">
+
+            <div class="feedback-action-icon">!</div>
+
+            <div class="feedback-action-heading">
                 <h2 id="invalidModalTitle">
-                    Đánh dấu phiếu không hợp lệ?
+                    Đánh dấu phiếu không hợp lệ
                 </h2>
 
-                <p class="feedback-muted">
-                    Sau khi xác nhận, phiếu sẽ chuyển sang trạng thái
-                    Đã giải quyết và kết thúc phân công hiện tại.
+                <p>
+                    Vui lòng xác định lý do và cung cấp thông tin
+                    để ghi nhận kết quả kiểm tra phiếu.
                 </p>
             </div>
 
-            <button type="button" class="feedback-modal-close"
-                    data-close-modal aria-label="Đóng">×</button>
+            <!-- Nút đóng popup -->
+            <button type="button"
+                    class="feedback-action-close"
+                    data-close-modal
+                    aria-label="Đóng">
+                ×
+            </button>
+
         </div>
 
+        <!-- Tóm tắt thông tin phiếu -->
+        <div class="feedback-action-summary">
+
+            <div class="feedback-action-summary-top">
+
+                <span class="feedback-action-code">
+                    #{{ ph.ma_ph }}
+                </span>
+
+                <span class="feedback-action-customer">
+                    Khách hàng {{ ph.ma_kh_id }}
+                </span>
+
+            </div>
+
+            <p class="feedback-action-summary-title">
+                {{ ph.tieu_de }}
+            </p>
+
+            <p class="feedback-action-hint">
+                Sau khi xác nhận, phiếu sẽ chuyển sang trạng thái
+                Đã giải quyết và các phân công đang hoạt động sẽ kết thúc.
+            </p>
+
+        </div>
+
+        <!-- Form gửi yêu cầu đánh dấu không hợp lệ -->
         <form method="post"
+              class="feedback-action-form"
               action="{% url 'feedback:admin_feedback_detail' feedback_id=ph.ma_ph %}">
+
             {% csrf_token %}
+
+            <!-- Xác định thao tác cần thực hiện trong View -->
             <input type="hidden" name="action" value="mark_invalid">
 
+            <!-- Chọn lý do không hợp lệ -->
             <label>
-                Lý do <span style="color:#ad3931">*</span>
+                Lý do không hợp lệ
+                <span class="feedback-action-required">*</span>
             </label>
 
             <div class="feedback-radio-list">
+
                 {% for value, label in ly_do_khong_hop_le_choices %}
+
                     <label class="feedback-radio-option">
+
                         <input type="radio"
                                name="ly_do_khong_hop_le"
                                value="{{ value }}"
                                required>
-                        <span>{{ label }}</span>
+
+                        <span>
+                            {{ label }}
+                        </span>
+
                     </label>
+
                 {% empty %}
-                    <p>Chưa cấu hình danh sách lý do không hợp lệ.</p>
+
+                    <p class="feedback-muted">
+                        Chưa có danh sách lý do không hợp lệ.
+                    </p>
+
                 {% endfor %}
+
             </div>
 
-            <label for="invalidDetail">Chi tiết lý do</label>
+            <!-- Nhập thông tin giải thích chi tiết -->
+            <label for="invalidDetail">
+                Chi tiết lý do
+                <span style="color:#888;font-weight:400">
+                    (Không bắt buộc)
+                </span>
+            </label>
+
             <textarea id="invalidDetail"
                       name="chi_tiet_ly_do"
-                      placeholder="Bổ sung thông tin..."></textarea>
+                      rows="5"
+                      placeholder="Nhập thông tin giải thích thêm về lý do phiếu không hợp lệ..."></textarea>
 
-            <div class="feedback-modal-actions">
-                <button type="button" class="feedback-btn light"
+            <p class="feedback-action-hint">
+                Thông tin chi tiết được lưu trong lịch sử xử lý nội bộ.
+                Khách hàng sẽ nhận được thông báo về kết quả kiểm tra phiếu.
+            </p>
+
+            <!-- Các nút thao tác -->
+            <div class="feedback-action-footer">
+
+                <button type="button"
+                        class="feedback-btn feedback-action-btn-back"
                         data-close-modal>
                     Quay lại
                 </button>
 
-                <button type="submit" class="feedback-btn red">
+                <button type="submit"
+                        class="feedback-btn red">
                     Xác nhận không hợp lệ
                 </button>
+
             </div>
+
         </form>
 
     </div>
 </div>
+
 
 
 

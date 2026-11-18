@@ -1,0 +1,41 @@
+{% extends 'layouts/customer_base_pro.html' %}
+{% load static charm_format %}
+
+{% block profile_content %}
+<div style="max-width:660px;margin:48px auto;padding:0 16px;">
+  <section style="background:#fff;border:1px solid #E5D6BD;border-radius:18px;padding:28px;box-shadow:0 12px 35px rgba(70,57,46,.08);">
+    <h2 style="color:#765323;font-size:24px;font-weight:800;margin:0 0 14px;">
+      Xác nhận thay đổi giá lịch hẹn
+    </h2>
+    <p style="color:#5E5143;line-height:1.7;">
+      Ngày hoặc dịch vụ mới không còn đáp ứng điều kiện ưu đãi. Bạn vẫn có thể đổi lịch,
+      nhưng chương trình giảm giá cũ sẽ không còn áp dụng.
+    </p>
+    <div style="background:#FAF6EF;border-radius:12px;padding:18px;margin:18px 0;">
+      <p><strong>Lịch hẹn:</strong> #{{ lich_hen.ma_lh }}</p>
+      <p><strong>Dịch vụ mới:</strong> {{ ten_dich_vu_moi }}</p>
+      <p><strong>Ngày mới:</strong> {{ ngay_moi|date:'d/m/Y' }}</p>
+      <p><strong>Số khách:</strong> {{ so_khach_moi }}</p>
+      <p style="color:#756B61;">Tổng giá đã ghi nhận: <strong>{{ gia_cu|vnd }}</strong></p>
+      <p style="color:#765323;font-size:20px;font-weight:800;">Tổng giá thông thường mới: {{ gia_moi|vnd }}</p>
+    </div>
+    <p style="color:#756B61;font-size:13px;line-height:1.7;">
+      Hệ thống sẽ kiểm tra quy định đổi lịch, ngày hoạt động và số giường trống sau khi bạn xác nhận.
+      Nếu không đủ điều kiện, lịch và giá cũ được giữ nguyên.
+    </p>
+    <form method="post" action="{% url 'bookings:booking_customer_reschedule' lich_hen.ma_lh %}">
+      {% csrf_token %}
+      <input type="hidden" name="promo_confirm_token" value="{{ confirm_token }}">
+      {% for name, value in post_fields.items %}
+      <input type="hidden" name="{{ name }}" value="{{ value }}">
+      {% endfor %}
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
+        <a href="{{ cancel_url }}" style="padding:12px 18px;border:1px solid #D6C7B2;border-radius:9px;color:#765323;text-decoration:none;">Không đổi lịch</a>
+        <button type="submit" style="background:#765323;color:white;border:0;border-radius:9px;padding:12px 18px;font-weight:700;cursor:pointer;">
+          Đồng ý đổi lịch với giá mới
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
