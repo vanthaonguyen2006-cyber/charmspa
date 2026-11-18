@@ -485,48 +485,6 @@ class LichHenUuDai(models.Model):
     gia_goc = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        verbose_name='Giá gốc tại thời điểm đặt'
-    )
-
-    gia_sau_giam = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        verbose_name='Giá sau giảm tại thời điểm đặt'
-    )
-
-    thoi_gian_ap_dung = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Thời gian áp dụng'
-    )
-
-    class Meta:
-        verbose_name = 'Ưu đãi lịch hẹn'
-        verbose_name_plural = 'Ưu đãi lịch hẹn'
-
-    def __str__(self):
-        return (
-            f'{self.ma_lh_id} - '
-            f'{self.ma_ctud.ten_chuong_trinh}'
-        )
-
-class LichHenUuDai(models.Model):
-    ma_lh = models.OneToOneField(
-        'bookings.LichHen',
-        on_delete=models.CASCADE,
-        related_name='uu_dai_ap_dung',
-        verbose_name='Lịch hẹn'
-    )
-
-    ma_ctud = models.ForeignKey(
-        'notifications.ChuongTrinhUuDai',
-        on_delete=models.PROTECT,
-        related_name='lich_hen_su_dung',
-        verbose_name='Chương trình ưu đãi'
-    )
-
-    gia_goc = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
         verbose_name='Tổng giá gốc tại thời điểm đặt'
     )
 
