@@ -210,7 +210,7 @@ def booking_customer_detail(request, ma_lh):
         ma_tk__user=request.user
     ).first()
 
-    lich_hen_qs = LichHen.objects.select_related('ma_dv', 'ma_kh__ma_tk__user', 'ma_nv')
+    lich_hen_qs = LichHen.objects.select_related('ma_dv', 'ma_kh__ma_tk__user', 'ma_nv').exclude(trang_thai='Đã xóa')
     # Khách chỉ được xem lịch hẹn của tài khoản chính mình.
     if not is_staff_portal_user(request.user):
         lich_hen_qs = lich_hen_qs.filter(ma_kh__ma_tk__user=request.user)
@@ -372,7 +372,7 @@ def booking_customer_reschedule(request, ma_lh):
         is_shampoo = 'shampoo' in ten_dv_lower
         tong_suc_chua = 6 if is_shampoo else 30
 
-        query = LichHen.objects.filter(ngay_hen=ngay_str).exclude(trang_thai='Đã hủy').exclude(ma_lh=lich_hen.ma_lh)
+        query = LichHen.objects.filter(ngay_hen=ngay_str).exclude(trang_thai__in=['Đã hủy', 'Đã xóa']).exclude(ma_lh=lich_hen.ma_lh)
 
         gio_clean = gio_str.strip().lower()
         target_hour_str = gio_clean.split(':')[0] if ':' in gio_clean else '12'
@@ -562,7 +562,7 @@ def api_check_bed_availability(request):
     tong_suc_chua = 6 if loai_dv == 'shampoo' else 30
 
     try:
-        all_bookings = LichHen.objects.filter(ngay_hen=ngay_str).exclude(trang_thai='Đã hủy')
+        all_bookings = LichHen.objects.filter(ngay_hen=ngay_str).exclude(trang_thai__in=['Đã hủy', 'Đã xóa'])
 
         matched_bookings = []
         target_hour_str = gio_clean.split(':')[0]
@@ -597,7 +597,7 @@ def staff_quan_ly_giuong(request):
     thong_ke_gio = []
 
     for gio in khung_gio_list:
-        query = LichHen.objects.filter(ngay_hen=ngay_chon).exclude(trang_thai='Đã hủy')
+        query = LichHen.objects.filter(ngay_hen=ngay_chon).exclude(trang_thai__in=['Đã hủy', 'Đã xóa'])
         target_hour_str = gio.split(':')[0]
         matched_bookings = []
         for b in query:
@@ -787,7 +787,7 @@ def booking_staff_list(request):
 @staff_portal_only
 def booking_staff_detail(request, ma_lh):
     lich_hen = get_object_or_404(
-        LichHen.objects.select_related('ma_dv', 'ma_kh', 'ma_nv'), ma_lh=ma_lh
+        LichHen.objects.select_related('ma_dv', 'ma_kh', 'ma_nv').exclude(trang_thai='Đã xóa'), ma_lh=ma_lh
     )
     dich_vu_list = DichVu.objects.all()
     # Chỉ nhân viên nghiệp vụ được phân công phục vụ khách.
@@ -889,7 +889,7 @@ def booking_admin_delete(request, ma_lh):
         lich_hen.trang_thai = 'Đã xóa'
         lich_hen.ly_do_huy = ly_do_xoa
         lich_hen.save()
-        messages.success(request, f"Đã chuyển lịch hẹn #{ma_hien_tai} sang trạng thái Đã xóa thành công.")
+        messages.success(request, f"Đã xóa lịch hẹn #{ma_hien_tai} khỏi danh sách quản lý thành công.")
 
     return redirect('bookings:staff_booking_list')
 
