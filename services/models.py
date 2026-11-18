@@ -1,4 +1,3 @@
-# services/models.py
 from django.db import models
 from customers.models import KhachHang
 from accounts.models import NhanVien
@@ -25,10 +24,40 @@ class DichVuDaSuDung(models.Model):
     ma_dv = models.ForeignKey(DichVu, on_delete=models.CASCADE, verbose_name="Dịch vụ")
     ngay_su_dung = models.DateTimeField(auto_now_add=True, verbose_name="Ngày sử dụng")
 
+    # Bổ sung: liên kết tùy chọn để phân biệt lượt ghi nhận thủ công
+    # và lượt ghi nhận từ một Booking cụ thể. Không ảnh hưởng dữ liệu cũ.
+    ma_lh = models.OneToOneField(
+        'bookings.LichHen',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='dich_vu_da_su_dung',
+        verbose_name='Lịch hẹn liên kết',
+    )
+
+    # Cu: 1 khach mot lan su dung. Moi: so khach cua cung luot ghi nhan.
+    so_luong_khach = models.PositiveSmallIntegerField(default=1, verbose_name='So luong khach su dung')
+    # Snapshot diem thuc te; du lieu cu chua co snapshot duoc giu null.
+    diem_da_cong = models.PositiveIntegerField(null=True, blank=True, verbose_name='Diem da cong thuc te')
+
+    # Luu snapshot gia tai thoi diem ghi nhan, khong tinh lai theo hang moi.
+    ma_ctud = models.ForeignKey(
+        'notifications.ChuongTrinhUuDai', on_delete=models.PROTECT,
+        null=True, blank=True, related_name='dich_vu_da_ap_dung',
+        verbose_name='Chuong trinh uu dai da ap dung',
+    )
+    gia_goc = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        verbose_name='Gia goc luc ghi nhan',
+    )
+    gia_sau_giam = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        verbose_name='Thanh tien sau tat ca uu dai',
+    )
+    ty_le_giam_ap_dung = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True,
+        verbose_name='Phan tram giam theo hang luc ghi nhan',
+    )
+
     def __str__(self):
         return f"{self.ma_kh} - {self.ma_dv}"
-
-
-from django.db import models
-
-# Create your models here.

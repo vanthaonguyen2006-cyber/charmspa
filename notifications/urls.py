@@ -2,91 +2,148 @@
 from django.urls import path
 from . import views
 
-app_name = 'notifications'
+app_name = "notifications"
 
 urlpatterns = [
     # ==========================================================
     # 1. TRUNG TÂM THÔNG BÁO KHÁCH HÀNG
     # ==========================================================
-    path('', views.danh_sach_thong_bao, name='danh_sach_thong_bao'),
 
-    path('customer/', views.danh_sach_thong_bao,
-         name='customer_notification_center'),
+    path(
+        "",
+        views.danh_sach_thong_bao,
+        name="danh_sach_thong_bao"
+    ),
 
-    path('read/<str:ma_tbkh>/', views.danh_dau_da_doc,
-         name='danh_dau_da_doc'),
+    path(
+        "customer/",
+        views.danh_sach_thong_bao,
+        name="customer_notification_center"
+    ),
 
-    # ==========================================================
-    # 2. QUẢN LÝ CHƯƠNG TRÌNH ƯU ĐÃI
-    # ==========================================================
-    path('promotions/', views.danh_sach_uu_dai,
-         name='danh_sach_uu_dai'),
-
-    path('promotions/detail/<str:promo_code>/',
-         views.chi_tiet_uu_dai, name='chi_tiet_uu_dai'),
-
-    path('promotions/detail/<str:promo_code>/',
-         views.chi_tiet_uu_dai, name='promotion_detail'),
-
-    path('promotions/admin/', views.admin_promotion_list,
-         name='admin_promotion_list'),
-
-    path('promotions/add/', views.them_uu_dai,
-         name='them_uu_dai'),
-
-    path('promotions/save/', views.api_them_hoac_sua_uu_dai,
-         name='api_them_hoac_sua_uu_dai'),
-
-    path('promotions/edit/<str:ma_ctud>/',
-         views.chinh_sua_uu_dai, name='chinh_sua_uu_dai'),
-
-    path('promotions/get-detail/<str:ma_ctud>/',
-         views.get_promotion_detail, name='get_promotion_detail'),
-
-    path('promotions/delete/<str:ma_ctud>/',
-         views.xoa_uu_dai, name='xoa_uu_dai'),
-
-    path('promotions/api-send/',
-         views.api_gui_thong_bao_uu_dai,
-         name='api_gui_thong_bao_uu_dai'),
+    path(
+        "read/<str:ma_tbkh>/",
+        views.danh_dau_da_doc,
+        name="danh_dau_da_doc"
+    ),
 
     # ==========================================================
-    # 3. CHĂM SÓC SAU LIỆU TRÌNH
+    # 2. CHƯƠNG TRÌNH ƯU ĐÃI - KHÁCH HÀNG
     # ==========================================================
 
-    # URL chính của trang quản lý HDCS
-    path('aftercare/admin/',
-         views.cham_soc_sau_lieu_trinh,
-         name='cham_soc_sau_lieu_trinh'),
+    path(
+        "promotions/",
+        views.danh_sach_uu_dai,
+        name="danh_sach_uu_dai"
+    ),
 
-    # Giữ URL cũ để tương thích
-    path('post-treatment/',
-         views.cham_soc_sau_lieu_trinh,
-         name='aftercare_old'),
+    path(
+        "promotions/detail/<str:promo_code>/",
+        views.chi_tiet_uu_dai,
+        name="chi_tiet_uu_dai"
+    ),
 
-    # URL tương thích cũ với menu Admin
-    path('admin/care/huongdansaulieutrinh/',
-         views.cham_soc_sau_lieu_trinh,
-         name='admin_aftercare'),
-
-    # Gửi hướng dẫn chăm sóc
-    path('post-treatment/send/<int:id>/',
-         views.gui_hdcs_action,
-         name='gui_hdcs_action'),
-
-    # Lấy nội dung chi tiết HDCS
-    path('post-treatment/detail-json/<int:id>/',
-         views.get_hdcs_detail,
-         name='get_hdcs_detail'),
+    # URL alias: dùng tên khác nhưng dẫn tới cùng trang chi tiết
+    path(
+        "promotions/detail/<str:promo_code>/",
+        views.chi_tiet_uu_dai,
+        name="promotion_detail"
+    ),
 
     # ==========================================================
-    # 4. NHẮC LỊCH VÀ TÁI HẸN
+    # 3. QUẢN LÝ CHƯƠNG TRÌNH ƯU ĐÃI
     # ==========================================================
-    path('schedules/',
-         views.lich_hen_chu_ky_cham_soc,
-         name='lich_hen_chu_ky_cham_soc'),
 
-    path('rebook/',
-         views.dat_lich_tai_hen_nhanh,
-         name='dat_lich_tai_hen_nhanh'),
+    path(
+        "promotions/admin/",
+        views.admin_promotion_list,
+        name="admin_promotion_list"
+    ),
+
+    path(
+        "promotions/add/",
+        views.them_uu_dai,
+        name="them_uu_dai"
+    ),
+
+    path(
+        "promotions/save/",
+        views.api_them_hoac_sua_uu_dai,
+        name="api_them_hoac_sua_uu_dai"
+    ),
+
+    path(
+        "promotions/edit/<str:ma_ctud>/",
+        views.chinh_sua_uu_dai,
+        name="chinh_sua_uu_dai"
+    ),
+
+    path(
+        "promotions/get-detail/<str:ma_ctud>/",
+        views.get_promotion_detail,
+        name="get_promotion_detail"
+    ),
+
+    path(
+        "promotions/delete/<str:ma_ctud>/",
+        views.xoa_uu_dai,
+        name="xoa_uu_dai"
+    ),
+
+    path(
+        "promotions/api-send/",
+        views.api_gui_thong_bao_uu_dai,
+        name="api_gui_thong_bao_uu_dai"
+    ),
+
+    # ==========================================================
+    # 4. CHĂM SÓC SAU LIỆU TRÌNH
+    # ==========================================================
+
+    path(
+        "aftercare/admin/",
+        views.cham_soc_sau_lieu_trinh,
+        name="cham_soc_sau_lieu_trinh"
+    ),
+
+    # Tương thích URL cũ
+    path(
+        "post-treatment/",
+        views.cham_soc_sau_lieu_trinh,
+        name="aftercare_old"
+    ),
+
+    path(
+        "admin/care/huongdansaulieutrinh/",
+        views.cham_soc_sau_lieu_trinh,
+        name="admin_aftercare"
+    ),
+
+    path(
+        "post-treatment/send/<int:id>/",
+        views.gui_hdcs_action,
+        name="gui_hdcs_action"
+    ),
+
+    path(
+        "post-treatment/detail-json/<int:id>/",
+        views.get_hdcs_detail,
+        name="get_hdcs_detail"
+    ),
+
+    # ==========================================================
+    # 5. CHU KỲ CHĂM SÓC VÀ TÁI HẸN
+    # ==========================================================
+
+    path(
+        "schedules/",
+        views.lich_hen_chu_ky_cham_soc,
+        name="lich_hen_chu_ky_cham_soc"
+    ),
+
+    path(
+        "rebook/",
+        views.dat_lich_tai_hen_nhanh,
+        name="dat_lich_tai_hen_nhanh"
+    ),
 ]

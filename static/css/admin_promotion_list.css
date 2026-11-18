@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+/* Charm Spa manager page, aligned to the existing Customer Management visual system. */
+.charm-admin-promo{--promo-bg:#f6f0e6;--promo-ink:#22201d;--promo-gold:#b18a4e;--promo-muted:#948b80;--promo-line:#e8ddd0;box-sizing:border-box;min-height:calc(100vh - 82px);padding:36px clamp(18px,2.45vw,44px) 70px;background:var(--promo-bg);color:var(--promo-ink);font-family:'Montserrat',sans-serif}
+.charm-admin-promo *,.promo-overlay *{box-sizing:border-box;font-family:'Montserrat',sans-serif}
+.charm-admin-promo button,.promo-overlay button{cursor:pointer}
+.charm-admin-promo svg,.promo-overlay svg{display:block;width:19px;height:19px;flex-shrink:0}
+.promo-head{display:flex;justify-content:space-between;align-items:center;gap:22px;margin-bottom:22px}
+.promo-head h1{font-size:clamp(24px,2.1vw,34px);letter-spacing:-.7px;font-weight:800;color:#1f1f1d;margin:0 0 9px;line-height:1.25}
+.promo-head p{margin:0;color:#a19486;font-size:13px;line-height:1.8}
+.promo-btn{display:inline-flex;justify-content:center;align-items:center;gap:10px;white-space:nowrap;border:1px solid transparent;border-radius:10px;padding:13px 20px;font-size:13px;font-weight:700;transition:background .18s,box-shadow .18s,transform .18s}
+.promo-btn:hover{transform:translateY(-1px)}.promo-btn:disabled{cursor:wait;opacity:.6}
+.promo-btn-main{background:#232321;color:#fff;box-shadow:0 3px 8px #00000017}.promo-btn-main:hover{background:#45413b}
+.promo-btn-ghost{color:#514535;background:#fff;border-color:#e5d9ca}.promo-btn-ghost:hover{background:#fbf7f1}
+.promo-btn-danger{color:#fff;background:#b84941}.promo-btn-danger:hover{background:#a0342b}
+.promo-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;margin-bottom:20px}
+.promo-stat{display:flex;align-items:center;gap:19px;min-height:121px;padding:20px 22px;background:#fff;border:1px solid #eae3d9;border-radius:15px;box-shadow:0 2px 5px #40301a08}
+.promo-stat-icon{width:54px;height:54px;border-radius:12px;display:grid;place-items:center;flex-shrink:0}.promo-stat-icon svg{width:25px;height:25px}
+.promo-stat-icon-gold{background:#f9f3e8;color:#bc923c}.promo-stat-icon-green{background:#e7f3ec;color:#349969}.promo-stat-icon-purple{background:#f2ebf8;color:#8b66b6}
+.promo-stat-info{display:flex;flex-direction:column;gap:2px;min-width:0}.promo-stat-info>span{color:#92877a;font-size:13px;font-weight:600}.promo-stat-info strong{color:#20201e;font-size:29px;font-weight:800;line-height:1.3}.promo-stat-info small{color:#a79c92;font-size:11px;line-height:1.5}
+.promo-filters{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #eae3d9;border-radius:15px;padding:15px 17px;margin-bottom:19px;box-shadow:0 2px 5px #40301a06}
+.promo-search{flex:1;position:relative;min-width:170px}.promo-search-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#b0a396;pointer-events:none}.promo-search input{width:100%;padding:13px 15px 13px 47px;background:#fbf9f6;border:1px solid #e8dcd0;border-radius:10px;outline:none;color:#493f34;font-size:13px}.promo-search input::placeholder{color:#b0a397}.promo-search input:focus,.promo-filters select:focus{border-color:#b18a4e;box-shadow:0 0 0 3px #b18a4e18}
+.promo-filters select{border:1px solid #e8dcd0;padding:12px 14px;background:#fff;border-radius:10px;color:#76695e;font-size:12px;outline:none;min-width:190px}.promo-btn-filter{background:#b48b50;color:#fff;padding:12px 18px}.promo-btn-filter:hover{background:#9a723d}
+.promo-panel{background:#fff;border:1px solid #e9e2d8;border-radius:15px;overflow:hidden;box-shadow:0 3px 7px #40301a06}
+.promo-panel-head{min-height:75px;padding:18px 21px;display:flex;align-items:center;justify-content:space-between;gap:12px}.promo-panel-head>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.promo-panel-head h2{margin:0;color:#292824;font-size:18px;font-weight:800}.promo-count{background:#f7f4ef;border-radius:30px;padding:5px 11px;font-size:11px;color:#9b8976;white-space:nowrap}.promo-view-link{color:#9b8a75!important;font-size:12px;text-decoration:none!important}.promo-view-link:hover{color:#765323!important}
+.promo-table-wrap{overflow-x:auto}.promo-table{width:100%;min-width:980px;border-collapse:collapse;text-align:left;font-size:12px}.promo-table thead{background:#faf8f5}.promo-table th{border-top:1px solid #eee8e0;border-bottom:1px solid #e9e2d8;padding:17px 17px;color:#8f8173;font-size:10px;font-weight:800;letter-spacing:.6px;white-space:nowrap}.promo-table th:first-child,.promo-table td:first-child{padding-left:21px}.promo-table th:last-child,.promo-table td:last-child{padding-right:21px}.promo-th-action{text-align:right}
+.promo-table td{padding:19px 17px;vertical-align:middle;border-bottom:1px solid #efeae4;line-height:1.6;color:#766c60}.promo-table tbody tr:last-child td{border-bottom:0}.promo-table tbody tr:hover{background:#fffdf9}.promo-table tbody tr[hidden]{display:none!important}
+.promo-thumb,.promo-thumb-placeholder{display:grid;place-items:center;width:74px;height:58px;object-fit:cover;border-radius:9px}.promo-thumb-placeholder{background:#f1e5d1;color:#ac7c32}.promo-thumb-placeholder svg{width:24px;height:24px}
+.promo-name-cell{max-width:355px}.promo-table-title{display:block;color:#292721;font-size:12px;font-weight:800;line-height:1.6;max-width:340px;overflow-wrap:anywhere}.promo-table td small{display:block;font-size:10.5px;color:#a29385;margin-top:5px;max-width:330px;overflow-wrap:anywhere}.promo-table td small b{font-weight:700;color:#a28252}.promo-date{display:flex;align-items:center;gap:7px;white-space:nowrap;color:#7a6c5e}.promo-date svg{width:15px;height:15px;color:#ba915b}.promo-muted{color:#a69a8c}.promo-original{display:block;font-size:11px;text-decoration:line-through}.promo-price{display:block;color:#9d6b2f;font-size:14px;font-weight:800}
+.promo-status{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border-radius:30px;padding:7px 10px;font-size:10.5px;font-weight:700;background:#f4eee8;color:#79645e}.promo-status i{display:block;width:6px;height:6px;border-radius:50%;background:currentColor}.promo-status.is-live{background:#e6f5ed;color:#299263}.promo-status.is-future{background:#fff1d6;color:#c1831c}.promo-status.is-ended{background:#f5ecea;color:#a75b50}.promo-status.is-paused{background:#eeeef2;color:#757280}
+.promo-actions{display:flex;justify-content:flex-end;align-items:center;gap:6px}.promo-action{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #e7d8c7;color:#8b6031;font-size:11px;font-weight:700;padding:9px 10px;border-radius:9px;transition:background .15s;white-space:nowrap}.promo-action svg{width:14px;height:14px}.promo-action:hover{background:#faf3e8}.promo-action-danger{color:#b94943;background:#fff9f8;border-color:#f0d4d1}.promo-action-danger:hover{background:#fff0ee}.promo-empty,.promo-no-matches{text-align:center;color:#948575;padding:35px;font-size:13px}
+/* Dialogs share the same warm palette, compact buttons and rounded inputs. */
+.promo-overlay[hidden],.promo-error[hidden],.promo-no-matches[hidden]{display:none!important}.promo-overlay{position:fixed;inset:0;z-index:1100;background:rgba(29,26,22,.57);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}.promo-modal-open{overflow:hidden}.promo-dialog{width:min(100%,510px);max-height:92vh;overflow-y:auto;border-radius:18px;background:#fff;padding:26px 29px;box-shadow:0 22px 65px #0003;font-family:'Montserrat',sans-serif;color:#2b2722}.promo-dialog-large{width:min(100%,750px)}.promo-dialog-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:19px}.promo-dialog h2{font-size:21px;font-weight:800;line-height:1.35;margin:4px 0 0}.promo-dialog p{font-size:12px;line-height:1.8}.promo-kicker{font-size:10px;color:#a6814d;letter-spacing:1.2px;font-weight:800}.promo-close{border:0;background:#f5f0e8;width:34px;height:34px;border-radius:50%;font-size:22px;color:#876a43;flex-shrink:0}.promo-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.promo-form-grid label,.promo-full-label{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:700;color:#746253}.promo-form-grid label em{color:#b54845;font-style:normal}.promo-form-grid .span-2{grid-column:1/-1}.promo-form-grid input,.promo-form-grid textarea,.promo-form-grid select,.promo-full-label select{display:block;width:100%;border:1px solid #e5d9cc;border-radius:9px;padding:11px 12px;background:#fff;color:#493e31;font-size:12px;outline:none}.promo-form-grid input:focus,.promo-form-grid textarea:focus,.promo-form-grid select:focus,.promo-full-label select:focus{border-color:#b18a4e;box-shadow:0 0 0 3px #b18a4e18}.promo-dialog-foot{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #eee5da;margin-top:18px;padding-top:17px}.promo-note{color:#8b7b69;background:#faf6ef;border-radius:9px;padding:11px 12px;margin-top:16px}.promo-error{background:#fff0ef;border:1px solid #edc4c0;border-radius:8px;color:#9e3630;padding:11px;margin:10px 0;font-size:12px}
+@media(max-width:1100px){.promo-stats{gap:12px}.promo-stat{padding:16px}.promo-filters{flex-wrap:wrap}.promo-search{flex-basis:100%}.promo-filters select{flex:1}}
+@media(max-width:720px){.charm-admin-promo{padding:25px 15px 60px}.promo-head{align-items:flex-start;flex-direction:column}.promo-head h1{font-size:25px}.promo-stats{grid-template-columns:1fr}.promo-stat{min-height:98px}.promo-search{min-width:100%}.promo-filters select{min-width:0}.promo-panel-head{flex-wrap:wrap}.promo-dialog{padding:21px 17px}.promo-form-grid{grid-template-columns:1fr}.promo-form-grid .span-2{grid-column:auto}.promo-dialog-foot{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.promo-btn,.promo-action{transition:none!important}.promo-btn:hover{transform:none}}
+
+/* ========================================================
+   FORM MODAL FINAL - controlled grid, no nested labels
+   Keep labels inline, aligned controls, consistent hierarchy
+   ======================================================== */
+.promo-overlay { padding: 22px; align-items: center; }
+.promo-dialog { width: min(100%, 550px); padding: 30px 34px; max-height: min(92vh, 980px); }
+.promo-dialog.promo-dialog-large { width: min(100%, 860px); padding: 34px 40px 30px; }
+.promo-dialog-head { align-items: center; gap: 20px; margin-bottom: 26px; padding-bottom: 19px; border-bottom: 1px solid #eee6dc; }
+.promo-dialog h2 { font-size: 27px; font-weight: 800; line-height: 1.3; letter-spacing: -.55px; margin: 5px 0 0; color: #25231f; }
+.promo-kicker { display:block; font-size: 11px; letter-spacing: 1.5px; }
+.promo-close { width: 42px; height: 42px; font-size: 24px; }
+.promo-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); column-gap: 24px; row-gap: 20px; align-items: start; }
+.promo-form-grid .promo-field { min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 9px; }
+.promo-form-grid .promo-field.span-2 { grid-column: 1 / -1; }
+/* Higher specificity to override staff_base or old local label styles */
+.promo-overlay #promoForm .promo-field > label {
+  display: block !important;
+  width: 100%; min-height: 21px; margin: 0 !important; padding: 0 !important;
+  font-size: 13px !important; font-weight: 700 !important; line-height: 21px !important;
+  text-align: left !important; color: #443a31 !important;
+  white-space: normal;
+}
+.promo-overlay #promoForm .promo-field > label .promo-required {
+  display: inline !important; position: static !important;
+  font-size: inherit !important; line-height: inherit !important;
+  color: #bd4949; margin-left: 3px !important; vertical-align: baseline;
+}
+.promo-overlay #promoForm .promo-field > input,
+.promo-overlay #promoForm .promo-field > select,
+.promo-overlay #promoForm .promo-field > textarea {
+  display: block; width: 100%; min-width: 0; box-sizing: border-box;
+  height: 48px; min-height: 48px; margin: 0 !important;
+  padding: 11px 14px; border: 1px solid #e0d2c0; border-radius: 10px;
+  background: #fff; color: #3b332c; font-size: 14px; font-weight: 500;
+  line-height: 24px; text-align: left; outline: none;
+}
+.promo-overlay #promoForm .promo-field > textarea { height: auto; min-height: 92px; line-height: 1.6; resize: vertical; }
+.promo-overlay #promoForm .promo-field > input:focus,
+.promo-overlay #promoForm .promo-field > select:focus,
+.promo-overlay #promoForm .promo-field > textarea:focus { border-color:#b18a4e; box-shadow:0 0 0 3px #b18a4e1c; }
+.promo-overlay #promoForm .promo-field > input::placeholder,
+.promo-overlay #promoForm .promo-field > textarea::placeholder { color: #aa9e91; }
+.promo-dialog .promo-note { font-size: 12px; line-height: 1.75; padding: 13px 16px; margin-top: 22px; }
+.promo-dialog-foot { padding-top: 20px; margin-top: 24px; gap: 12px; }
+.promo-dialog-foot .promo-btn { min-height: 45px; padding: 12px 22px; font-size: 13px; }
+.promo-full-label { font-size: 13px; }
+.promo-full-label select { font-size: 14px; margin-top: 9px; }
+@media (max-width: 720px) {
+  .promo-dialog.promo-dialog-large { width:100%; padding:24px 21px; }
+  .promo-form-grid { grid-template-columns: 1fr; row-gap: 17px; }
+  .promo-form-grid .promo-field.span-2 { grid-column: auto; }
+  .promo-dialog h2 { font-size: 22px; }
+  .promo-overlay { padding: 12px; }
+}
+
+/* Bước 2: preview và các trường tính tự động */
+.promo-overlay #promoForm .promo-field > input[readonly] {background:#f8f5ee;color:#765323;font-weight:700;cursor:default;}
+.promo-price-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;padding:16px 18px;background:#f7f0e5;border:1px solid #e5d7c3;border-radius:12px;color:#765323;font-size:13px;font-weight:600;}
+.promo-price-summary strong{font-size:20px;font-weight:800;color:#47392a;}
+@media(max-width:480px){.promo-price-summary{align-items:flex-start;flex-direction:column;}}
+
+
+/* Khối xem trước giá - Charm Spa Management */
+.promo-overlay #promoForm .promo-price-preview {
+  margin-top: 24px; padding: 21px 24px 18px; border: 1px solid #e5d6bd;
+  border-radius: 16px; background: #faf6ef; color: #46392e;
+}
+.promo-price-preview-heading {display:flex; align-items:center; gap:13px; padding-bottom:16px; border-bottom:1px solid #e9decf;}
+.promo-price-preview-icon {display:grid; place-items:center; flex:0 0 43px; width:43px; height:43px; background:#efe2cb; border-radius:12px; color:#765323;}
+.promo-price-preview-icon svg {width:23px; height:23px;}
+.promo-price-preview-heading h3 {margin:0 0 4px; font-family:'Montserrat',sans-serif; font-size:17px; line-height:1.35; font-weight:800; color:#342b24;}
+.promo-price-preview-heading p {margin:0; padding:0; color:#887767; font-size:12px; line-height:1.5;}
+.promo-price-preview-rows {display:grid; row-gap:12px; margin-top:16px;}
+.promo-price-preview-row {display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:13px;}
+.promo-price-preview-row > span {color:#79695b;}
+.promo-price-preview-row > strong {color:#46392e; font-size:15px; font-weight:700; text-align:right; font-variant-numeric:tabular-nums;}
+.promo-price-preview-row > strong.promo-savings {color:#367b60;}
+.promo-price-preview-total {margin-top:2px; padding-top:15px; border-top:1px solid #e9decf;}
+.promo-price-preview-total > span {font-weight:800; color:#46392e;}
+.promo-price-preview-total > strong {font-size:24px; line-height:1.25; color:#765323; font-weight:800;}
+@media (max-width:520px) {
+  .promo-overlay #promoForm .promo-price-preview {padding:17px 15px;}
+  .promo-price-preview-heading h3 {font-size:15px;}
+  .promo-price-preview-total > strong {font-size:19px;}
+}

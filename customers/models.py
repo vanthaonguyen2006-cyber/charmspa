@@ -36,3 +36,33 @@ class KhachHang(models.Model):
         db_table = "KHACH_HANG"
         verbose_name = "Khách hàng"
         verbose_name_plural = "Quản lý khách hàng"
+
+
+class LichSuTichDiemBooking(models.Model):
+    ma_lh = models.OneToOneField(
+        'bookings.LichHen',
+        on_delete=models.PROTECT,
+        related_name='lich_su_tich_diem',
+        verbose_name='Lịch hẹn'
+    )
+
+    ma_kh = models.ForeignKey(
+        'customers.KhachHang',
+        on_delete=models.PROTECT,
+        related_name='lich_su_diem_booking',
+        verbose_name='Khách hàng'
+    )
+
+    diem_cong = models.IntegerField(default=0)
+    diem_truoc = models.IntegerField(default=0)
+    diem_sau = models.IntegerField(default=0)
+
+    ngay_cong = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'LICH_SU_TICH_DIEM_BOOKING'
+        verbose_name = 'Lịch sử tích điểm Booking'
+        verbose_name_plural = 'Lịch sử tích điểm Booking'
+
+    def __str__(self):
+        return f'{self.ma_lh_id}: +{self.diem_cong} điểm'

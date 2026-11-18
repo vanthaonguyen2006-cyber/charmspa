@@ -1,5 +1,5 @@
 {% extends 'layouts/customer_base_pro.html' %}
-{% load static %}
+{% load static charm_format %}
 {% block extra_css %}
    {{ block.super }}
    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}">
@@ -75,6 +75,46 @@
                {% endif %}
            </section>
 
+
+           <!-- BẮT ĐẦU BỔ SUNG: HIỂN THỊ ƯU ĐÃI ĐÃ LƯU -->
+           {% with uu_dai=lich_hen.uu_dai_ap_dung %}
+           {% if uu_dai %}
+           <section class="customer-detail-card" aria-label="Ưu đãi áp dụng cho lịch hẹn">
+               <h2 style="color: #765323;">
+                   <i class="bi bi-tag-fill me-2" aria-hidden="true"></i>{% if uu_dai.gia_sau_giam < uu_dai.gia_goc %}Ưu đãi đã áp dụng{% else %}Ưu đãi không còn áp dụng{% endif %}
+               </h2>
+               <p class="customer-detail-subtitle">{% if uu_dai.gia_sau_giam < uu_dai.gia_goc %}Giá ưu đãi đang áp dụng cho lịch hẹn.{% else %}Lịch đã được chuyển về giá thông thường sau khi thay đổi.{% endif %}</p>
+               <div style="background: #FAF6EF; border: 1px solid #E5D6BD; border-radius: 12px; padding: 18px;">
+                   <div style="margin-bottom: 14px;">
+                       <span style="display: block; color: #756B61; font-size: 12px; margin-bottom: 4px;">Chương trình ưu đãi</span>
+                       <strong style="color: #46392E;">{{ uu_dai.ma_ctud.ten_chuong_trinh }}</strong>
+                   </div>
+                   <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                       <span>Mã ưu đãi</span>
+                       <strong>{{ uu_dai.ma_ctud_id }}</strong>
+                   </div>
+                   <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                       <span>Số lượng khách</span>
+                       <strong>{{ lich_hen.so_luong_khach }} khách</strong>
+                   </div>
+                   <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                       <span>Tổng giá gốc</span>
+                       <span style="color: #978B80; font-variant-numeric: tabular-nums;">{{ uu_dai.gia_goc|vnd }}</span>
+                   </div>
+                   <div style="border-top: 1px solid #E5D6BD; padding-top: 13px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                       <strong style="color: #46392E;">{% if uu_dai.gia_sau_giam < uu_dai.gia_goc %}Tổng giá sau giảm{% else %}Tổng giá thông thường{% endif %}</strong>
+                       <strong style="color: #765323; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums;">{{ uu_dai.gia_sau_giam|vnd }}</strong>
+                   </div>
+                   {% if lich_hen.trang_thai == 'Đã hủy' %}
+                   <p style="color: #9B4B40; font-size: 12px; margin: 12px 0 0;">Lịch hẹn đã hủy. Đây là thông tin giá ưu đãi từng được ghi nhận, không phải khoản đã thanh toán.</p>
+                   {% else %}
+                   <p style="color: #756B61; font-size: 12px; margin: 12px 0 0;">Tổng giá dự kiến cho lịch hẹn, chưa xác nhận thanh toán.</p>
+                   {% endif %}
+               </div>
+           </section>
+           {% endif %}
+           {% endwith %}
+           <!-- KẾT THÚC BỔ SUNG: HIỂN THỊ ƯU ĐÃI -->
 
            <section class="customer-detail-card">
                <h2>Thông tin khách hàng</h2>
@@ -502,4 +542,3 @@
    });
    </script>
 {% endblock %}
-

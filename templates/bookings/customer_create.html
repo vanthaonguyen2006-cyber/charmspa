@@ -25,6 +25,11 @@
         <input type="hidden" name="ma_dv" id="input_ma_dv" value="{{ dich_vu_list.first.pk }}">
         <input type="hidden" name="time_slot" id="input_time_slot" value="">
 
+        {# Mã ưu đãi chỉ là yêu cầu; server phải xác thực lại khi nhận POST. #}
+        {% if promo_ap_dung and promo_ap_dung.ma_dv_id %}
+        <input type="hidden" name="promo_id" id="input_promo_id" value="{{ promo_ap_dung.pk }}">
+        {% endif %}
+
         <div class="row g-4">
             <!-- CỘT TRÁI -->
             <div class="col-lg-8">
@@ -116,6 +121,29 @@
                         </strong>
                         <small class="text-muted" id="summary_details" style="font-size: 11px;">Chưa chọn ngày hẹn · Chưa chọn giờ · 150 phút · 1 khách</small>
                     </div>
+                    {# Khối mới: chỉ hiện nếu views đã xác thực promo_ap_dung. #}
+                    {% if promo_ap_dung and promo_ap_dung.ma_dv_id %}
+                    <div id="booking_promo_panel" class="p-3 mb-3 rounded"
+                         style="background:#faf5eb; border:1px solid #eadac1; color:#46392e;">
+                        <div class="fw-bold mb-2" style="font-size:12px; color:#765323;">
+                            <i class="bi bi-tag me-1"></i> Ưu đãi: {{ promo_ap_dung.ten_chuong_trinh }}
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Giá gốc</span><strong id="booking_original_total">—</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Tiết kiệm</span><strong id="booking_saving_total" style="color:#397a59;">—</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2"
+                             style="border-top:1px solid #eadac1;">
+                            <span class="fw-bold" style="font-size:12px;">Tạm tính sau giảm</span>
+                            <strong id="booking_discount_total" style="color:#765323; font-size:18px;">—</strong>
+                        </div>
+                        <small class="d-block mt-2" style="font-size:10px; color:#7b6b5d;">
+                            Giá dự kiến cho toàn bộ số khách; hệ thống xác thực lại khi đặt lịch.
+                        </small>
+                    </div>
+                    {% endif %}
                     <!-- Giữ nút xác nhận ở vị trí ban đầu: sau Ghi chú và Tóm tắt -->
                     <input type="submit" value="Xác nhận đặt lịch"
                            class="btn btn-confirm text-center"
@@ -158,6 +186,22 @@
         </div>
     </div>
 </div>
+
+{% if promo_ap_dung and promo_ap_dung.ma_dv_id %}
+<div id="booking_promo_data" hidden
+     data-service-id="{{ promo_ap_dung.ma_dv_id }}"
+     data-original-price="{{ promo_ap_dung.gia_goc|default:'0'|stringformat:'s' }}"
+     data-discount-price="{{ promo_ap_dung.gia_tri_uu_dai|default:'0'|stringformat:'s' }}">
+</div>
+<div id="booking_promo_service_catalog" hidden>
+    {% for dv in dich_vu_list %}
+    <span data-id="{{ dv.pk }}" data-name="{{ dv.ten_dich_vu }}"
+          data-duration="{{ dv.thoi_luong }} phút"
+          data-price="{{ dv.gia_dich_vu }}đ"
+          data-image="{% static 'images/services/service' %}{% if forloop.counter <= 16 %}{{ forloop.counter }}{% else %}1{% endif %}.jpg"></span>
+    {% endfor %}
+</div>
+{% endif %}
 
 <!-- MODAL THÔNG BÁO TÙY CHỈNH ĐẸP MẮT (GIỮA MÀN HÌNH) -->
 <div class="modal fade" id="customAlertModal" tabindex="-1" aria-hidden="true">
@@ -437,5 +481,69 @@
         const guestVal = document.getElementById('input_so_luong').value || '1';
         document.getElementById('summary_details').innerText = `${dateVal} · ${timeVal} · ${currentDuration} · ${guestVal} khách`;
     }
+
+    // ======================= BỔ SUNG ƯU ĐÃI =======================
+    // Không thay đổi các hàm chọn dịch vụ/ngày/giờ và kiểm tra giường cũ.
+    (function () {
+        const promoData = document.getElementById('booking_promo_data');
+        if (!promoData) return;
+
+        const promoInput = document.getElementById('input_promo_id');
+        const promoPanel = document.getElementById('booking_promo_panel');
+        const promoServiceId = String(promoData.dataset.serviceId || '');
+        // Số được truyền qua template ở dạng chuẩn với dấu chấm thập phân.
+        const originalUnitPrice = Number(promoData.dataset.originalPrice);
+        const discountUnitPrice = Number(promoData.dataset.discountPrice);
+        let promoIsActive = !!promoServiceId;
+
+        const currency = value => Math.round(value).toLocaleString('vi-VN') + 'đ';
+
+        function refreshPromoTotal() {
+            if (!promoIsActive || !promoPanel) return;
+            const quantity = Number(document.getElementById('input_so_luong').value);
+            if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10 ||
+                !Number.isFinite(originalUnitPrice) || !Number.isFinite(discountUnitPrice)) {
+                ['booking_original_total','booking_saving_total','booking_discount_total']
+                    .forEach(id => { document.getElementById(id).textContent = '—'; });
+                return;
+            }
+            const oldTotal = originalUnitPrice * quantity;
+            const newTotal = discountUnitPrice * quantity;
+            document.getElementById('booking_original_total').textContent = currency(oldTotal);
+            document.getElementById('booking_saving_total').textContent = '−' + currency(Math.max(0, oldTotal - newTotal));
+            document.getElementById('booking_discount_total').textContent = currency(newTotal);
+        }
+
+        // Bọc hàm gốc, không can thiệp logic cũ. Đổi sang dịch vụ khác sẽ hủy ưu đãi.
+        const selectServiceOriginal = selectService;
+        selectService = function (element, serviceId, serviceName, duration, price) {
+            selectServiceOriginal(element, serviceId, serviceName, duration, price);
+            if (promoIsActive && String(serviceId) !== promoServiceId) {
+                promoIsActive = false;
+                if (promoInput) promoInput.value = '';
+                if (promoPanel) promoPanel.hidden = true;
+                const summary = document.getElementById('summary_service_name');
+                if (summary) summary.title = 'Đã bỏ ưu đãi vì bạn đổi sang dịch vụ khác.';
+            }
+        };
+
+        // Dùng lại hàm gốc để giữ đúng kiểu giường, thẻ dịch vụ và modal.
+        document.addEventListener('DOMContentLoaded', function () {
+            const catalog = document.getElementById('booking_promo_service_catalog');
+            const service = Array.from(catalog.querySelectorAll('[data-id]'))
+                .find(item => item.dataset.id === promoServiceId);
+            if (!service) {
+                promoIsActive = false;
+                if (promoInput) promoInput.value = '';
+                if (promoPanel) promoPanel.hidden = true;
+                return;
+            }
+            chooseFromModal(service.dataset.id, service.dataset.name,
+                service.dataset.duration, service.dataset.price, service.dataset.image);
+            refreshPromoTotal();
+            document.getElementById('input_so_luong').addEventListener('input', refreshPromoTotal);
+        });
+    })();
+    // ===================== KẾT THÚC BỔ SUNG =====================
 </script>
 {% endblock %}
