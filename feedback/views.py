@@ -1,5 +1,4 @@
 import os
-import re
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -10,7 +9,8 @@ from django.db import transaction
 from customers.models import KhachHang
 from .forms import PhanHoiKhieuNaiForm
 from .models import PhanHoiKhieuNai, TepDinhKem
-from .models import PhanCongXuLy, LichSuXuLy
+from .models import  LichSuXuLy
+from accounts.models import get_user_role, ROLE_CUSTOMER
 
 
 # ============================================================
@@ -18,13 +18,25 @@ from .models import PhanCongXuLy, LichSuXuLy
 # ============================================================
 
 def _get_current_customer(request):
-    # Chưa đăng nhập thì không lấy hồ sơ của khách hàng khác
-    if not request.user.is_authenticated:
+
+    # Bước 1: Chỉ chấp nhận người dùng đã đăng nhập
+    # và tài khoản Django đang hoạt động, chưa bị khóa.
+    if (
+        not request.user.is_authenticated
+        or not request.user.is_active
+    ):
         return None
 
-    # Tìm đúng hồ sơ khách hàng liên kết với tài khoản Django hiện tại
+    # Bước 2: Chỉ cho phép tài khoản có vai trò Khách hàng.
+    if get_user_role(request.user) != ROLE_CUSTOMER:
+        return None
+
+    # Bước 3: Tìm đúng hồ sơ khách hàng thuộc tài khoản hiện tại.
+    # Kiểm tra thêm vai trò và trạng thái tài khoản trong database.
     return KhachHang.objects.filter(
-        ma_tk__user=request.user
+        ma_tk__user=request.user,
+        ma_tk__vai_tro=ROLE_CUSTOMER,
+        ma_tk__user__is_active=True
     ).first()
 
 
