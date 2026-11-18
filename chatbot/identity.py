@@ -4,11 +4,18 @@ Tra cứu hồ sơ gắn với người đăng nhập theo cấu trúc hiện t�
     User  ->  TaiKhoan   (related_name = 'thong_tin_tai_khoan')
               TaiKhoan   ->  KhachHang  (related_name = 'ho_so_khach_hang')
               TaiKhoan   ->  NhanVien   (related_name = 'ho_so_nhan_vien')
-
-Dùng getattr (không import model của app khác) nên module chatbot không phụ thuộc chặt vào
-accounts / customers; nếu hồ sơ không tồn tại thì trả về None thay vì báo lỗi.
 """
+from accounts.models import (
+    ROLE_MANAGER,
+    ROLE_STAFF,
+    ROLE_CUSTOMER,
+    is_manager_role,
+    is_staff_role,
+    is_staff_portal_user,
+    is_customer_role,
+)
 from . import chat_logic
+
 
 def first_attr(obj, *names):
     """Giá trị chuỗi không rỗng đầu tiên trong các thuộc tính của obj."""
@@ -37,11 +44,6 @@ def get_nhan_vien(user):
     return getattr(tk, 'ho_so_nhan_vien', None) if tk is not None else None
 
 
-def is_staff_user(user):
-    """Nhân viên / quản trị viên (cờ chuẩn của Django, cũng là cờ trang đăng nhập dùng để điều hướng)."""
-    return bool(getattr(user, 'is_authenticated', False) and (user.is_staff or user.is_superuser))
-
-
 def customer_contact(user):
     """
     Thông tin khách đã đăng nhập: {fullname, phone, email}.
@@ -51,7 +53,6 @@ def customer_contact(user):
     if kh is None:
         return None
     tk = get_taikhoan(user)
-    # Tài khoản tạo từ trang quản trị có thể mang số điện thoại tạm (ví dụ KH_000012): bỏ qua nếu không phải số điện thoại
     phone = first_attr(tk, 'so_dien_thoai')
     if not chat_logic.PHONE_RE.match(phone):
         phone = ''
@@ -68,16 +69,23 @@ def staff_display_name(user, nhan_vien=None):
     full_name = getattr(user, 'get_full_name', lambda: '')() or ''
     return first_attr(nv, 'ho_ten') or full_name.strip() or user.get_username()
 
-ADMIN_ROLES = ('Quản trị viên', 'Admin', 'admin')
-ADMIN_ROLE = 'Quản trị viên'
+
+ADMIN_ROLES = (ROLE_MANAGER, 'Quản trị viên', 'Admin', 'admin')
+ADMIN_ROLE = ROLE_MANAGER
+
 
 def is_admin(user):
-    """Chỉ quản trị viên được sửa kịch bản chatbot."""
+    """Chỉ Quản lý (TaiKhoan.vai_tro == 'Quản lý') hoặc Superuser được sửa kịch bản chatbot."""
     if not getattr(user, 'is_authenticated', False):
         return False
-    if user.is_superuser:
-        return True
-    return first_attr(get_taikhoan(user), 'vai_tro') == ADMIN_ROLE   # đổi 'vai_tro' nếu field thật tên khác
+    return bool(user.is_superuser or is_manager_role(user))
+
+
+def is_staff_user(user):
+    """Nhân viên, Quản lý (is_staff_portal_user) hoặc Superuser được vào Quản lý hội thoại."""
+    if not getattr(user, 'is_authenticated', False):
+        return False
+    return bool(user.is_superuser or is_staff_portal_user(user))
 
 
 def is_staff_or_admin(user):

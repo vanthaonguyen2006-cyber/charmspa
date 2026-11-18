@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Trang "Chỉnh sửa kịch bản": Tự động tải Dịch vụ & Giá từ CSDL qua JSON hoặc API
+   Trang "Chỉnh sửa kịch bản": Tự động tải Dịch vụ & Chương trình Ưu đãi từ CSDL
    ========================================================================== */
 (function () {
     'use strict';
@@ -17,21 +17,23 @@
         var btnUndo = $('#fbUndo'), btnRedo = $('#fbRedo');
         var graph = JSON.parse($('#flow-graph-data').textContent);
 
-        // 1. Đọc danh sách Dịch vụ từ thẻ json_script (nếu có)
-        var catalog = { services: [], categories: [] };
+        // 1. Đọc danh sách Dịch vụ & Chương trình Ưu đãi từ thẻ json_script (nếu có)
+        var catalog = { services: [], categories: [], promotions: [] };
         var catalogEl = $('#services-catalog-data');
         if (catalogEl && catalogEl.textContent) {
             try {
                 var parsed = JSON.parse(catalogEl.textContent);
-                if (parsed && Array.isArray(parsed.services) && parsed.services.length > 0) {
-                    catalog = parsed;
+                if (parsed) {
+                    catalog.services = Array.isArray(parsed.services) ? parsed.services : [];
+                    catalog.categories = Array.isArray(parsed.categories) ? parsed.categories : [];
+                    catalog.promotions = Array.isArray(parsed.promotions) ? parsed.promotions : [];
                 }
             } catch (e) {}
         }
 
         var dirty = false, saving = false, cascade = 0;
         var LINKABLE = ['tin_nhan', 'hinh_anh', 'dich_vu'];
-        var PALETTE_TYPES = ['tin_nhan', 'hinh_anh', 'nut_lua_chon', 'chuyen_nhan_vien', 'dich_vu'];
+        var PALETTE_TYPES = ['tin_nhan', 'hinh_anh', 'nut_lua_chon', 'chuyen_nhan_vien', 'dich_vu', 'khuyen_mai'];
 
         var engine = new FlowEngine(vp, graph, {
             onSelect: renderPanel,
@@ -43,34 +45,48 @@
             }
         });
 
-        // 2. Nếu catalog chưa có dữ liệu (do view khác render), tự động gọi API lấy từ CSDL
-        if (!catalog.services.length) {
+        // 2. Nếu catalog chưa đủ dữ liệu, tự động gọi API lấy cả Dịch vụ & Khuyến mãi từ CSDL
+        if (!catalog.services.length || !catalog.promotions.length) {
             fetch('/chatbot/api/services-catalog/', { credentials: 'same-origin' })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    if (data && Array.isArray(data.services)) {
-                        catalog = data;
-                        syncExistingServiceNodes();
+                    if (data) {
+                        catalog.services = Array.isArray(data.services) ? data.services : catalog.services;
+                        catalog.categories = Array.isArray(data.categories) ? data.categories : catalog.categories;
+                        catalog.promotions = Array.isArray(data.promotions) ? data.promotions : catalog.promotions;
+                        syncExistingNodes();
                         if (engine.selectedId) renderPanel(engine.selectedId);
                     }
                 })
                 .catch(function () {});
         } else {
-            syncExistingServiceNodes();
+            syncExistingNodes();
         }
 
-        function syncExistingServiceNodes() {
-            if (!catalog.services.length || !engine.graph || !Array.isArray(engine.graph.nodes)) return;
+        function syncExistingNodes() {
+            if (!engine.graph || !Array.isArray(engine.graph.nodes)) return;
             var changed = false;
             engine.graph.nodes.forEach(function (nd) {
                 if (nd.type === 'dich_vu') {
-                    var matched = catalog.services.find(function (dv) {
+                    // Kiểm tra xem node có khớp với Chương trình ưu đãi trong CSDL không
+                    var matchedPromo = catalog.promotions.find(function (ct) {
+                        return (nd.ma_ctud && ct.ma_ctud === nd.ma_ctud) || ct.ten_chuong_trinh === nd.title;
+                    });
+                    if (matchedPromo) {
+                        nd.ma_ctud = matchedPromo.ma_ctud;
+                        nd.price = matchedPromo.gia_tri_uu_dai;
+                        nd.duration = matchedPromo.thoi_luong;
+                        changed = true;
+                        return;
+                    }
+                    // Kiểm tra xem node có khớp với Dịch vụ trong CSDL không
+                    var matchedDv = catalog.services.find(function (dv) {
                         return (nd.ma_dv && dv.ma_dv === nd.ma_dv) || dv.ten_dich_vu === nd.title;
                     });
-                    if (matched) {
-                        nd.ma_dv = matched.ma_dv;
-                        nd.price = matched.gia_dich_vu;
-                        nd.duration = matched.thoi_luong;
+                    if (matchedDv) {
+                        nd.ma_dv = matchedDv.ma_dv;
+                        nd.price = matchedDv.gia_dich_vu;
+                        nd.duration = matchedDv.thoi_luong;
                         changed = true;
                     }
                 }
@@ -139,10 +155,10 @@
 
             var h = '';
 
-            // NẾU LÀ KHỐI DỊCH VỤ: Thay ô tự gõ Tên dịch vụ bằng Dropdown chọn Dịch vụ có sẵn trong CSDL
+            // NẾU LÀ KHỐI DỊCH VỤ / ƯU ĐÃI: Cho phép chọn Dịch vụ HOẶC Chương trình ưu đãi từ CSDL
             if (n.type === 'dich_vu') {
                 h += '<div class="fb-field">' +
-                    '<label>Chọn dịch vụ (từ CSDL Quản lý dịch vụ)</label>' +
+                    '<label>Chọn Dịch vụ (từ CSDL Quản lý dịch vụ)</label>' +
                     '<select class="fb-select" data-db-service style="font-weight:600">' +
                     '<option value="">-- Chọn dịch vụ có sẵn trong CSDL --</option>';
                 catalog.services.forEach(function (dv) {
@@ -152,8 +168,21 @@
                 });
                 h += '</select></div>';
 
+                if (catalog.promotions.length) {
+                    h += '<div class="fb-field">' +
+                        '<label style="color:#8B1515">Hoặc chọn Chương trình Ưu đãi / Khuyến mãi (từ CSDL)</label>' +
+                        '<select class="fb-select" data-db-promo style="font-weight:600;border-color:#E5C3C3">' +
+                        '<option value="">-- Chọn chương trình ưu đãi từ CSDL --</option>';
+                    catalog.promotions.forEach(function (ct) {
+                        var selected = (n.ma_ctud === ct.ma_ctud || n.title === ct.ten_chuong_trinh) ? ' selected' : '';
+                        h += '<option value="' + esc(ct.ma_ctud) + '"' + selected + '>' +
+                            '[' + esc(ct.ma_ctud) + '] ' + esc(ct.ten_chuong_trinh) + ' — ' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ (' + esc(ct.trang_thai) + ')</option>';
+                    });
+                    h += '</select></div>';
+                }
+
                 h += '<div class="fb-field"><label>Tên hiển thị trên thẻ</label>' +
-                    '<input class="fb-input" data-f="title" value="' + esc(n.title) + '" maxlength="150" placeholder="Tự động điền khi chọn dịch vụ..."></div>';
+                    '<input class="fb-input" data-f="title" value="' + esc(n.title) + '" maxlength="150" placeholder="Tự động điền khi chọn từ CSDL..."></div>';
             } else {
                 h += '<div class="fb-field"><label>Tên bước</label>' +
                     '<input class="fb-input" data-f="title" value="' + esc(n.title) + '" maxlength="150"></div>';
@@ -163,7 +192,7 @@
                 h += '<div class="fb-note" style="margin-bottom:14px">Form thu thập: Họ tên, Số điện thoại, Nhu cầu tư vấn. ' +
                     'Khách đã đăng nhập được điền sẵn từ tài khoản.</div>';
             } else {
-                var label = n.type === 'hinh_anh' ? 'Chú thích ảnh' : (n.type === 'dich_vu' ? 'Mô tả dịch vụ (tự lấy từ CSDL)' : 'Nội dung tin nhắn');
+                var label = n.type === 'hinh_anh' ? 'Chú thích ảnh' : (n.type === 'dich_vu' ? 'Mô tả dịch vụ / ưu đãi (tự lấy từ CSDL)' : 'Nội dung tin nhắn');
                 h += '<div class="fb-field"><label>' + label + '</label>' +
                     '<textarea class="fb-textarea" data-f="content" maxlength="1000">' + esc(n.content) + '</textarea></div>';
             }
@@ -202,7 +231,25 @@
                 });
 
                 if (LINKABLE.indexOf(n.type) !== -1) {
-                    // Hộp công cụ chọn nút bấm từ CSDL
+                    // 1. Hộp công cụ chọn nút bấm từ CSDL KHUYẾN MÃI / ƯU ĐÃI
+                    if (catalog.promotions && catalog.promotions.length) {
+                        h += '<div style="background:#FFF8F6;padding:10px;border-radius:10px;border:1px solid #F1D2CE;margin-bottom:8px">' +
+                            '<small style="display:block;font-weight:700;color:#8B1515;margin-bottom:6px">★ Thêm nút bấm từ CSDL Khuyến mãi / Ưu đãi:</small>' +
+                            '<div style="display:flex;gap:6px;margin-bottom:6px">' +
+                            '<select class="fb-select" id="fbQuickPromoOpt" style="flex:1">' +
+                            '<option value="">-- Chọn chương trình ưu đãi --</option>';
+                        catalog.promotions.forEach(function (ct) {
+                            h += '<option value="' + esc(ct.ma_ctud) + '">[' + esc(ct.ma_ctud) + '] ' + esc(ct.ten_chuong_trinh) + ' (' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ)</option>';
+                        });
+                        h += '</select>' +
+                            '<button type="button" class="fb-addopt" data-act="add-db-promo-opt" style="width:auto;padding:6px 10px;white-space:nowrap;font-size:12px;background:#1a1a1a;color:#fff">+ Thêm nút</button>' +
+                            '</div>' +
+                            '<button type="button" class="fb-addopt" data-act="add-all-db-promos" style="font-size:12px">' +
+                            '+ Thêm tất cả chương trình Ưu đãi từ CSDL (' + catalog.promotions.length + ' ưu đãi)</button>' +
+                            '</div>';
+                    }
+
+                    // 2. Hộp công cụ chọn nút bấm từ CSDL DỊCH VỤ
                     if (catalog.services.length) {
                         h += '<div style="background:#FAF7F2;padding:10px;border-radius:10px;border:1px solid #E8DFD2;margin-bottom:8px">' +
                             '<small style="display:block;font-weight:700;color:#9A7B3E;margin-bottom:6px">★ Thêm nút bấm từ CSDL Dịch vụ:</small>' +
@@ -261,6 +308,7 @@
                 if (dv) {
                     engine.update(id, {
                         ma_dv: dv.ma_dv,
+                        ma_ctud: '',
                         title: dv.ten_dich_vu,
                         content: dv.mo_ta || ('Loại dịch vụ: ' + dv.loai_dich_vu + ' · Thời lượng: ' + dv.thoi_luong + ' phút'),
                         duration: dv.thoi_luong,
@@ -268,7 +316,27 @@
                     });
                     engine.commit('structure');
                     renderPanel(id);
-                    toast('Đã cập nhật "' + dv.ten_dich_vu + '" (' + FlowEngine.money(dv.gia_dich_vu) + ' đ) từ CSDL.');
+                    toast('Đã cập nhật dịch vụ "' + dv.ten_dich_vu + '" (' + FlowEngine.money(dv.gia_dich_vu) + ' đ) từ CSDL.');
+                }
+                return;
+            }
+
+            // Khi chọn 1 Chương trình Ưu đãi từ Dropdown CSDL -> Tự động điền Tên ưu đãi, Mô tả, Thời lượng, Giá ưu đãi
+            if (t.dataset.dbPromo !== undefined) {
+                var maCtud = t.value;
+                var ct = catalog.promotions.find(function (x) { return x.ma_ctud === maCtud; });
+                if (ct) {
+                    engine.update(id, {
+                        ma_ctud: ct.ma_ctud,
+                        ma_dv: '',
+                        title: ct.ten_chuong_trinh,
+                        content: ct.mo_ta,
+                        duration: ct.thoi_luong,
+                        price: ct.gia_tri_uu_dai
+                    });
+                    engine.commit('structure');
+                    renderPanel(id);
+                    toast('Đã cập nhật ưu đãi "' + ct.ten_chuong_trinh + '" (' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ) từ CSDL.');
                 }
                 return;
             }
@@ -286,6 +354,24 @@
             }
         });
 
+        // Hàm trợ giúp tạo hoặc tìm Node chi tiết cho 1 Chương trình Ưu đãi
+        function ensurePromoTargetNode(parentNode, ct, offsetIndex) {
+            var targetNode = engine.graph.nodes.find(function (x) {
+                return x.type === 'dich_vu' && (x.ma_ctud === ct.ma_ctud || x.title === ct.ten_chuong_trinh);
+            });
+            if (!targetNode) {
+                var newNodes = FlowEngine.createNodes('dich_vu', parentNode.x + 320, parentNode.y + (offsetIndex * 110));
+                targetNode = newNodes[0];
+                targetNode.ma_ctud = ct.ma_ctud;
+                targetNode.title = ct.ten_chuong_trinh;
+                targetNode.content = ct.mo_ta;
+                targetNode.duration = ct.thoi_luong;
+                targetNode.price = ct.gia_tri_uu_dai;
+                engine.graph.nodes.push(targetNode);
+            }
+            return targetNode;
+        }
+
         panelBody.addEventListener('click', function (e) {
             var b = e.target.closest('[data-act]'), id = engine.selectedId;
             if (!b || !id) return;
@@ -296,6 +382,52 @@
             if (b.dataset.act === 'add-opt') engine.addOption(id);
             if (b.dataset.act === 'del-opt') engine.removeOption(id, parseInt(b.dataset.idx, 10));
 
+            // Thêm 1 nút bấm Khuyến mãi / Ưu đãi từ CSDL kèm tạo hộp báo giá ưu đãi
+            if (b.dataset.act === 'add-db-promo-opt') {
+                var selPromo = $('#fbQuickPromoOpt');
+                var maCtud = selPromo ? selPromo.value : '';
+                var ct = catalog.promotions.find(function (x) { return x.ma_ctud === maCtud; });
+                if (!ct) {
+                    toast('Hãy chọn 1 chương trình ưu đãi trong danh sách trước khi bấm Thêm nút.', 'warn');
+                    return;
+                }
+                var targetPromoNode = ensurePromoTargetNode(n, ct, n.options.length);
+                n.options.push({
+                    id: FlowEngine.uid('o'),
+                    text: ct.ten_chuong_trinh.slice(0, 100),
+                    nextId: targetPromoNode.id
+                });
+                engine.render();
+                engine.commit('structure');
+                toast('Đã thêm nút ưu đãi "' + ct.ten_chuong_trinh + '" & nối tới hộp giá (' + FlowEngine.money(ct.gia_tri_uu_dai) + ' đ).');
+            }
+
+            // Thêm TẤT CẢ chương trình Ưu đãi từ CSDL thành các nút lựa chọn & nối sẵn hộp giá
+            if (b.dataset.act === 'add-all-db-promos') {
+                var addedPromo = 0;
+                catalog.promotions.forEach(function (ct) {
+                    var btnLabel = ct.ten_chuong_trinh.slice(0, 100);
+                    var exists = n.options.some(function (o) { return o.text === btnLabel; });
+                    if (!exists) {
+                        var targetPromoNode = ensurePromoTargetNode(n, ct, n.options.length);
+                        n.options.push({
+                            id: FlowEngine.uid('o'),
+                            text: btnLabel,
+                            nextId: targetPromoNode.id
+                        });
+                        addedPromo++;
+                    }
+                });
+                if (addedPromo > 0) {
+                    engine.render();
+                    engine.commit('structure');
+                    toast('Đã thêm ' + addedPromo + ' chương trình Ưu đãi từ CSDL kèm hộp chi tiết giá.');
+                } else {
+                    toast('Tất cả chương trình Ưu đãi trong CSDL đã có sẵn ở bước này.', 'warn');
+                }
+            }
+
+            // Thêm các nút Loại dịch vụ từ CSDL
             if (b.dataset.act === 'add-db-categories') {
                 var added = 0;
                 catalog.categories.forEach(function (catName) {
@@ -314,6 +446,7 @@
                 }
             }
 
+            // Thêm 1 nút Dịch vụ từ CSDL kèm hộp báo giá
             if (b.dataset.act === 'add-db-service-opt') {
                 var sel = $('#fbQuickServiceOpt');
                 var maDv = sel ? sel.value : '';
@@ -407,6 +540,25 @@
                 x = c.x - 120 + cascade; y = c.y - 60 + cascade;
                 cascade = (cascade + 28) % 140;
             }
+
+            // Khi kéo hoặc bấm thêm mới khối "Ưu đãi & Khuyến mãi (CSDL)"
+            if (type === 'khuyen_mai') {
+                var promoNodes = FlowEngine.createNodes('dich_vu', Math.round(x), Math.round(y));
+                if (catalog.promotions && catalog.promotions.length) {
+                    var firstPromo = catalog.promotions[0];
+                    promoNodes[0].ma_ctud = firstPromo.ma_ctud;
+                    promoNodes[0].title = firstPromo.ten_chuong_trinh;
+                    promoNodes[0].content = firstPromo.mo_ta;
+                    promoNodes[0].duration = firstPromo.thoi_luong;
+                    promoNodes[0].price = firstPromo.gia_tri_uu_dai;
+                } else {
+                    promoNodes[0].title = 'Chương trình ưu đãi';
+                    promoNodes[0].content = 'Ưu đãi đặc quyền tại Charm Spa.';
+                }
+                engine.add(promoNodes, promoNodes[0].id);
+                return;
+            }
+
             var nodes = FlowEngine.createNodes(type, Math.round(x), Math.round(y));
             // Khi kéo hoặc bấm thêm mới khối "Dịch vụ & Giá (CSDL)", tự động gán dịch vụ đầu tiên trong CSDL
             if (type === 'dich_vu' && catalog.services.length) {

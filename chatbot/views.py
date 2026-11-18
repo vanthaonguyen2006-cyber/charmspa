@@ -1,12 +1,14 @@
+import re
 import json
 import uuid
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
+from . import identity
 from .models import PhienHoiThoai, TinNhan, BuocChatbot, KichBanChatbot, YeuCauTuVan
-from .permissions import admin_required
+from .permissions import admin_required, staff_portal_required
 
 # Kết nối Model Dịch vụ từ app services
 try:
@@ -14,33 +16,83 @@ try:
 except ImportError:
     DichVu = None
 
+# Kết nối Model Chương trình ưu đãi từ app notifications
+try:
+    from notifications.models import ChuongTrinhUuDai
+except ImportError:
+    ChuongTrinhUuDai = None
+
+
+def _parse_duration_minutes(val, default=90):
+    """Trích xuất số phút từ chuỗi thời lượng (VD: '90 phút' -> 90)"""
+    if val is None:
+        return default
+    m = re.search(r'\d+', str(val))
+    return int(m.group(0)) if m else default
+
 
 def get_services_catalog_from_db():
-    """Lấy toàn bộ danh sách Dịch vụ và Loại dịch vụ từ CSDL để đổ vào Flow Builder"""
-    if not DichVu:
-        return {'services': [], 'categories': []}
-    try:
-        qs = DichVu.objects.all().order_by('loai_dich_vu', 'ten_dich_vu')
-        services_list = []
-        categories_list = []
-        for dv in qs:
-            loai = (dv.loai_dich_vu or 'Dịch vụ khác').strip()
-            if loai and loai not in categories_list:
-                categories_list.append(loai)
-            services_list.append({
-                'ma_dv': str(dv.ma_dv),
-                'ten_dich_vu': dv.ten_dich_vu,
-                'loai_dich_vu': loai,
-                'mo_ta': dv.mo_ta or '',
-                'thoi_luong': int(dv.thoi_luong or 60),
-                'gia_dich_vu': int(dv.gia_dich_vu or 0),
-            })
-        return {
-            'services': services_list,
-            'categories': categories_list,
-        }
-    except Exception:
-        return {'services': [], 'categories': []}
+    """Lấy toàn bộ danh sách Dịch vụ, Loại dịch vụ VÀ Chương trình ưu đãi từ CSDL cho Flow Builder"""
+    services_list = []
+    categories_list = []
+    promotions_list = []
+
+    # 1. Lấy danh sách Dịch vụ từ bảng DichVu
+    if DichVu:
+        try:
+            qs = DichVu.objects.all().order_by('loai_dich_vu', 'ten_dich_vu')
+            for dv in qs:
+                loai = (dv.loai_dich_vu or 'Dịch vụ khác').strip()
+                if loai and loai not in categories_list:
+                    categories_list.append(loai)
+                services_list.append({
+                    'ma_dv': str(dv.ma_dv),
+                    'ten_dich_vu': dv.ten_dich_vu,
+                    'loai_dich_vu': loai,
+                    'mo_ta': dv.mo_ta or '',
+                    'thoi_luong': int(dv.thoi_luong or 60),
+                    'gia_dich_vu': int(dv.gia_dich_vu or 0),
+                })
+        except Exception:
+            pass
+
+    # 2. Lấy danh sách Khuyến mãi / Ưu đãi từ bảng ChuongTrinhUuDai
+    if ChuongTrinhUuDai:
+        try:
+            promo_qs = ChuongTrinhUuDai.objects.all().order_by('-ngay_bat_dau', 'ma_ctud')
+            for ct in promo_qs:
+                start_str = timezone.localtime(ct.ngay_bat_dau).strftime('%d/%m/%Y') if ct.ngay_bat_dau and timezone.is_aware(ct.ngay_bat_dau) else (ct.ngay_bat_dau.strftime('%d/%m/%Y') if ct.ngay_bat_dau else '')
+                end_str = timezone.localtime(ct.ngay_ket_thuc).strftime('%d/%m/%Y') if ct.ngay_ket_thuc and timezone.is_aware(ct.ngay_ket_thuc) else (ct.ngay_ket_thuc.strftime('%d/%m/%Y') if ct.ngay_ket_thuc else '')
+                time_range = f"{start_str} - {end_str}".strip(' -')
+
+                desc_parts = []
+                if ct.mo_ta:
+                    desc_parts.append(ct.mo_ta.strip())
+                if time_range:
+                    desc_parts.append(f"Thời gian áp dụng: {time_range}")
+                if ct.trang_thai:
+                    desc_parts.append(f"Trạng thái: {ct.trang_thai}")
+
+                promotions_list.append({
+                    'ma_ctud': str(ct.ma_ctud),
+                    'ten_chuong_trinh': ct.ten_chuong_trinh,
+                    'mo_ta': " · ".join(desc_parts) if desc_parts else f"Chương trình ưu đãi {ct.ten_chuong_trinh}",
+                    'loai_uu_dai': (ct.loai_uu_dai or 'Ưu đãi đặc quyền').strip(),
+                    'gia_tri_uu_dai': int(ct.gia_tri_uu_dai or 0),
+                    'gia_goc': int(ct.gia_goc or 0),
+                    'thoi_luong': _parse_duration_minutes(ct.thoi_luong, 90),
+                    'thoi_luong_text': ct.thoi_luong or '90 phút',
+                    'thoi_gian_ap_dung': time_range,
+                    'trang_thai': ct.trang_thai or 'Đang áp dụng',
+                })
+        except Exception:
+            pass
+
+    return {
+        'services': services_list,
+        'categories': categories_list,
+        'promotions': promotions_list,
+    }
 
 
 def get_or_create_session(session_id, user):
@@ -57,9 +109,7 @@ def get_or_create_session(session_id, user):
             }
         )
 
-    khach_hang = None
-    if user.is_authenticated and hasattr(user, 'khachhang'):
-        khach_hang = user.khachhang
+    khach_hang = identity.get_khach_hang(user)
 
     phien, created = PhienHoiThoai.objects.get_or_create(
         ma_pht=session_key,
@@ -152,6 +202,17 @@ def chatbot_reply(request):
                 phien.save()
                 bot_reply = "Dạ, yêu cầu của bạn đã được chuyển tới Nhân viên CSKH. Nhân viên tư vấn của Charm Grand Spa sẽ phản hồi trực tiếp ngay tại đây!"
 
+            elif option_type == 'khuyenmai' or 'khuyến mãi' in msg_lower or 'ưu đãi' in msg_lower:
+                if ChuongTrinhUuDai and ChuongTrinhUuDai.objects.exists():
+                    promos = ChuongTrinhUuDai.objects.all()
+                    items = "".join([
+                        f"• <strong>{ct.ten_chuong_trinh}</strong> ({ct.thoi_luong}) - Ưu đãi: {int(ct.gia_tri_uu_dai):,} đ<br>".replace(",", ".")
+                        for ct in promos
+                    ])
+                    bot_reply = f"Charm Grand Spa xin gửi bạn các chương trình ưu đãi hiện có:<br>{items}"
+                else:
+                    bot_reply = "Hiện tại Charm Grand Spa đang cập nhật các chương trình ưu đãi mới. Nhân viên sẽ tư vấn ưu đãi phù hợp cho bạn nhé!"
+
             elif option_type == 'dichvu' or 'dịch vụ' in msg_lower or 'giá' in msg_lower:
                 if DichVu and DichVu.objects.exists():
                     dich_vus = DichVu.objects.all()
@@ -206,8 +267,8 @@ def chat_history(request):
     return JsonResponse({'messages': data})
 
 
-# --- CÁC HÀM QUẢN LÝ DÀNH CHO NHÂN VIÊN CSKH ---
-
+# --- CÁC HÀM QUẢN LÝ DÀNH CHO NHÂN VIÊN CSKH (Quản lý + Nhân viên + Superuser) ---
+@staff_portal_required
 def staff_chat_dashboard(request):
     """Giao diện bảng điều khiển nhân viên (UC-6.8)"""
     yeu_caus = YeuCauTuVan.objects.select_related('ma_pht').order_by('-thoi_gian_yeu_cau')
@@ -215,6 +276,7 @@ def staff_chat_dashboard(request):
 
 
 @csrf_exempt
+@staff_portal_required
 def staff_get_sessions(request):
     """API lấy danh sách các phiên chờ tư vấn kèm bóc tách thông tin khách hàng (UC-6.8)"""
     yeu_caus = YeuCauTuVan.objects.select_related('ma_pht', 'ma_pht__ma_kh').order_by('-thoi_gian_yeu_cau')
@@ -265,6 +327,7 @@ def staff_get_sessions(request):
 
 
 @csrf_exempt
+@staff_portal_required
 def staff_send_reply(request):
     """API Nhân viên gửi tin nhắn trực tiếp (UC-6.9)"""
     if request.method == 'POST':
@@ -299,9 +362,9 @@ def staff_send_reply(request):
 def customer_chat_history(request):
     """View hiển thị trang Lịch sử hội thoại đầy đủ cho Khách hàng (UC-6.6)"""
     if not request.user.is_authenticated:
-        return redirect('/customer/profile/')
+        return redirect('dang_nhap')
 
-    khach_hang = getattr(request.user, 'khachhang', None)
+    khach_hang = identity.get_khach_hang(request.user)
 
     if khach_hang:
         phien_list = PhienHoiThoai.objects.filter(ma_kh=khach_hang).order_by('-pk')
@@ -330,7 +393,7 @@ def customer_chat_history(request):
 
 
 # --- CÁC HÀM QUẢN LÝ HỘI THOẠI ADMIN / CSKH THEO THIẾT KẾ BÁO CÁO ---
-
+@staff_portal_required
 def admin_conversation_list(request):
     """Trang danh sách quản lý hội thoại Admin/CSKH"""
     conversations = PhienHoiThoai.objects.all().order_by('-pk')
@@ -362,6 +425,7 @@ def admin_conversation_list(request):
     return render(request, 'chatbot/admin_conversation_list.html', context)
 
 
+@staff_portal_required
 def admin_conversation_detail(request, session_id):
     """Trang chi tiết hội thoại Admin/CSKH và gửi phản hồi trực tiếp"""
     conversation = get_object_or_404(PhienHoiThoai, ma_pht=session_id)
@@ -414,6 +478,7 @@ def admin_conversation_detail(request, session_id):
     return render(request, 'chatbot/admin_conversation_detail.html', context)
 
 
+@staff_portal_required
 def admin_conversation_complete(request, session_id):
     """Xử lý xác nhận Hoàn tất hội thoại từ Modal Popup"""
     if request.method == 'POST':
@@ -432,7 +497,7 @@ def admin_conversation_complete(request, session_id):
     return redirect('chatbot:admin_conversation_list')
 
 
-# --- QUẢN LÝ KỊCH BẢN CHATBOT ---
+# --- QUẢN LÝ KỊCH BẢN CHATBOT (Chỉ Quản lý + Superuser) ---
 @admin_required
 def admin_script_list(request):
     """1. Màn hình Danh sách Kịch bản Chatbot"""
@@ -560,6 +625,7 @@ def admin_script_toggle_status(request, pk):
     return redirect('chatbot:admin_script_list')
 
 
+@staff_portal_required
 def get_conversation_messages_api(request, session_id):
     """API lấy danh sách tin nhắn mới nhất của phiên hội thoại"""
     try:
@@ -578,7 +644,8 @@ def get_conversation_messages_api(request, session_id):
     except PhienHoiThoai.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Không tìm thấy hội thoại'}, status=404)
 
+
 @csrf_exempt
 def services_catalog_api(request):
-    """API trả về toàn bộ danh sách Dịch vụ & Loại dịch vụ từ CSDL cho Flow Builder"""
+    """API trả về toàn bộ danh sách Dịch vụ, Loại dịch vụ & Chương trình ưu đãi từ CSDL cho Flow Builder"""
     return JsonResponse(get_services_catalog_from_db())
