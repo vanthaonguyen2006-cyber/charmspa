@@ -18,19 +18,25 @@ from accounts.models import get_user_role, ROLE_CUSTOMER
 # ============================================================
 
 def _get_current_customer(request):
-    # Bước 1: Kiểm tra người dùng đã đăng nhập chưa.
-    if not request.user.is_authenticated:
+
+    # Bước 1: Chỉ chấp nhận người dùng đã đăng nhập
+    # và tài khoản Django đang hoạt động, chưa bị khóa.
+    if (
+        not request.user.is_authenticated
+        or not request.user.is_active
+    ):
         return None
 
-    # Bước 2: Chỉ cho phép tài khoản có role Khách hàng.
+    # Bước 2: Chỉ cho phép tài khoản có vai trò Khách hàng.
     if get_user_role(request.user) != ROLE_CUSTOMER:
         return None
 
-    # Bước 3: Tìm đúng hồ sơ khách hàng thuộc tài khoản đang đăng nhập.
-    # Kiểm tra thêm role trong database để tránh lấy nhầm hồ sơ.
+    # Bước 3: Tìm đúng hồ sơ khách hàng thuộc tài khoản hiện tại.
+    # Kiểm tra thêm vai trò và trạng thái tài khoản trong database.
     return KhachHang.objects.filter(
         ma_tk__user=request.user,
-        ma_tk__vai_tro=ROLE_CUSTOMER
+        ma_tk__vai_tro=ROLE_CUSTOMER,
+        ma_tk__user__is_active=True
     ).first()
 
 

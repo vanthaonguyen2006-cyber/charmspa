@@ -15,53 +15,35 @@ from .models import (
     LichSuXuLy,
     TepDinhKem,
 )
-from accounts.models import (TaiKhoan,NhanVien,ROLE_STAFF,is_manager_role,is_staff_role,is_staff_portal_user,is_customer_role,)
+from accounts.models import (
+    TaiKhoan,
+    NhanVien,
+    ROLE_STAFF,
+    is_manager_role,
+    is_staff_role,
+)
 from django.contrib.auth.decorators import user_passes_test
 
 # Tạo mã duy nhất cho bản ghi phân công và lịch sử xử lý
 def _tao_ma(prefix):
     return f"{prefix}{uuid.uuid4().hex[:12].upper()}"
 
+# Kiểm tra Quản lý có tài khoản đang hoạt động.
+def _quan_ly_dang_hoat_dong(user):
+    return (
+        user.is_authenticated
+        and user.is_active
+        and is_manager_role(user)
+    )
 
-# Kiểm tra đăng nhập và quyền truy cập theo vai trò nghiệp vụ
-def _kiem_tra_quyen(request, vai_tro):
-    # Chưa đăng nhập thì chuyển về trang đăng nhập
-    if not request.user.is_authenticated:
-        return redirect("dang_nhap")
 
-    # Kiểm tra quyền theo từng khu vực
-    if vai_tro == "portal":
-        # Cổng nội bộ: Quản lý và Nhân viên
-        co_quyen = is_staff_portal_user(request.user)
-
-    elif vai_tro == "customer":
-        # Cổng khách hàng
-        co_quyen = is_customer_role(request.user)
-
-    elif vai_tro == "admin":
-        # Trang quản lý phản hồi và khiếu nại
-        co_quyen = (
-            is_staff_portal_user(request.user)
-            and is_manager_role(request.user)
-        )
-
-    elif vai_tro == "staff":
-        # Trang nhân viên xử lý phản hồi và khiếu nại
-        co_quyen = (
-            is_staff_portal_user(request.user)
-            and is_staff_role(request.user)
-        )
-
-    else:
-        co_quyen = False
-
-    # Không đủ quyền thì từ chối truy cập
-    if not co_quyen:
-        return HttpResponseForbidden(
-            "Bạn không có quyền truy cập trang này."
-        )
-
-    return None
+# Kiểm tra Nhân viên có tài khoản đang hoạt động.
+def _nhan_vien_dang_hoat_dong(user):
+    return (
+        user.is_authenticated
+        and user.is_active
+        and is_staff_role(user)
+    )
 
 # Lấy tài khoản nghiệp vụ liên kết với tài khoản Django đang đăng nhập
 def _tai_khoan_hien_tai(request):
@@ -71,13 +53,20 @@ def _tai_khoan_hien_tai(request):
 # Lấy hồ sơ nhân viên đang đăng nhập
 def _nhan_vien_hien_tai(request):
 
-    # Chỉ tài khoản có vai trò Nhân viên mới được lấy hồ sơ này
-    if not is_staff_role(request.user):
+    # Chỉ lấy hồ sơ khi người dùng đã đăng nhập,
+    # tài khoản đang hoạt động và có role Nhân viên.
+    if (
+        not request.user.is_authenticated
+        or not request.user.is_active
+        or not is_staff_role(request.user)
+    ):
         return None
 
-    # Lấy hồ sơ nhân viên liên kết với tài khoản đang đăng nhập
+    # Chỉ lấy hồ sơ của nhân viên có tài khoản đang hoạt động.
     nhan_vien = NhanVien.objects.filter(
-        ma_tk__user=request.user
+        ma_tk__user=request.user,
+        ma_tk__vai_tro=ROLE_STAFF,
+        ma_tk__user__is_active=True
     ).select_related(
         "ma_tk__user"
     ).first()
@@ -353,7 +342,7 @@ def _danh_sach_view(request, is_admin, mode, title, subtitle):
 
 
 # ADMIN: Danh sách tất cả phản hồi và khiếu nại
-@user_passes_test(is_manager_role, login_url="dang_nhap")
+@user_passes_test(_quan_ly_dang_hoat_dong, login_url="dang_nhap")
 def admin_feedback_list(request):
 
     return _danh_sach_view(
@@ -364,7 +353,7 @@ def admin_feedback_list(request):
 
 
 # ADMIN: Danh sách phiếu chưa phân công
-@user_passes_test(is_manager_role, login_url="dang_nhap")
+@user_passes_test(_quan_ly_dang_hoat_dong, login_url="dang_nhap")
 def admin_feedback_unassigned(request):
     return _danh_sach_view(
         request, True, "unassigned",
@@ -374,7 +363,7 @@ def admin_feedback_unassigned(request):
 
 
 # ADMIN: Danh sách phiếu không hợp lệ
-@user_passes_test(is_manager_role, login_url="dang_nhap")
+@user_passes_test(_quan_ly_dang_hoat_dong, login_url="dang_nhap")
 def admin_feedback_invalid(request):
     return _danh_sach_view(
         request, True, "invalid",
@@ -384,12 +373,8 @@ def admin_feedback_invalid(request):
 
 
 # NHÂN VIÊN: Danh sách phiếu được phân công
-@user_passes_test(is_staff_role, login_url="dang_nhap")
+@user_passes_test(_nhan_vien_dang_hoat_dong, login_url="dang_nhap")
 def staff_feedback_list(request):
-    loi = _kiem_tra_quyen(request, "staff")
-    if loi:
-        return loi
-
     return _danh_sach_view(
         request, False, "staff",
         "Phiếu được phân công",
@@ -398,12 +383,8 @@ def staff_feedback_list(request):
 
 
 # NHÂN VIÊN: Danh sách phiếu đã giải quyết
-@user_passes_test(is_staff_role, login_url="dang_nhap")
+@user_passes_test(_nhan_vien_dang_hoat_dong, login_url="dang_nhap")
 def staff_feedback_resolved(request):
-    loi = _kiem_tra_quyen(request, "staff")
-    if loi:
-        return loi
-
     return _danh_sach_view(
         request, False, "resolved",
         "Phiếu đã giải quyết",
@@ -412,7 +393,7 @@ def staff_feedback_resolved(request):
 
 # ADMIN: Xem chi tiết, phân công, đánh dấu không hợp lệ,
 # cập nhật trạng thái và hoàn tất phiếu
-@user_passes_test(is_manager_role, login_url="dang_nhap")
+@user_passes_test(_quan_ly_dang_hoat_dong, login_url="dang_nhap")
 def admin_feedback_detail(request, feedback_id):
     # Lấy phiếu cần xem và tải sẵn thông tin khách hàng liên kết.
     # Chuỗi quan hệ:
@@ -522,10 +503,13 @@ def admin_feedback_detail(request, feedback_id):
         elif action == "assign":
             ma_nv = request.POST.get("ma_nv", "").strip()
 
-            # Chỉ cho phép phân công cho tài khoản có vai trò Nhân viên
+            # Chỉ cho phép phân công cho nhân viên:
+            # - Có vai trò Nhân viên.
+            # - Tài khoản Django đang hoạt động (chưa bị khóa).
             nhan_vien = NhanVien.objects.filter(
                 ma_nv=ma_nv,
-                ma_tk__vai_tro=ROLE_STAFF
+                ma_tk__vai_tro=ROLE_STAFF,
+                ma_tk__user__is_active=True
             ).first()
 
             if not ma_nv or not nhan_vien:
@@ -774,13 +758,12 @@ def admin_feedback_detail(request, feedback_id):
         "-thoi_gian_pc"
     ).first()
 
-    # Lấy nhân viên có vai trò Nhân viên hoặc Nhân viên CSKH
-    # để hiển thị trong danh sách phân công phiếu chăm sóc khách hàng.
+    # Chỉ hiển thị nhân viên:
+    # - Có role Nhân viên.
+    # - Tài khoản đang hoạt động, không bị khóa.
     danh_sach_nhan_vien = NhanVien.objects.filter(
-        ma_tk__vai_tro__in=[
-            ROLE_STAFF,
-            "Nhân viên CSKH",
-        ]
+        ma_tk__vai_tro=ROLE_STAFF,
+        ma_tk__user__is_active=True
     ).select_related(
         "ma_tk__user"
     ).order_by("ho_ten")
@@ -808,11 +791,8 @@ def admin_feedback_detail(request, feedback_id):
     )
 
 # NHÂN VIÊN: Xem chi tiết phiếu, cập nhật và hoàn tất xử lý
-@user_passes_test(is_staff_role, login_url="dang_nhap")
+@user_passes_test(_nhan_vien_dang_hoat_dong, login_url="dang_nhap")
 def staff_feedback_detail(request, feedback_id):
-    loi = _kiem_tra_quyen(request, "staff")
-    if loi:
-        return loi
 
     # Lấy hồ sơ nhân viên đang đăng nhập
     nhan_vien = _nhan_vien_hien_tai(request)
@@ -859,36 +839,51 @@ def staff_feedback_detail(request, feedback_id):
         ):
             messages.error(request, "Phiếu này đã hoàn tất xử lý.")
 
-        # Cập nhật trạng thái và ghi chú xử lý
+        ## Cập nhật ghi chú xử lý của Nhân viên
         elif action == "update":
-            trang_thai = request.POST.get("trang_thai_xu_ly", "")
-            ghi_chu = request.POST.get("noi_dung_xu_ly", "").strip()
-            # Lấy thông báo tiến độ mà nhân viên muốn chia sẻ với khách hàng.
-            thong_bao_khach_hang = request.POST.get( "noi_dung_khach_hang", "").strip()
 
-            if trang_thai not in ["Đã tiếp nhận", "Đang xử lý"]:
-                messages.error(request, "Trạng thái cập nhật không hợp lệ.")
-            elif not ghi_chu:
-                messages.error(request, "Vui lòng nhập ghi chú xử lý.")
+            # Lấy ghi chú xử lý nội bộ của nhân viên.
+            ghi_chu = request.POST.get(
+                "noi_dung_xu_ly", ""
+            ).strip()
+
+            # Lấy thông báo tiến độ nhân viên muốn chia sẻ với khách hàng.
+            thong_bao_khach_hang = request.POST.get(
+                "noi_dung_khach_hang", ""
+            ).strip()
+
+            # Bắt buộc phải có ghi chú xử lý.
+            if not ghi_chu:
+                messages.error(
+                    request,
+                    "Vui lòng nhập ghi chú xử lý."
+                )
+
             else:
                 with transaction.atomic():
-                    ph.trang_thai_xu_ly = trang_thai
-                    ph.save()
 
-                    # Ghi nội dung cập nhật vào lịch sử xử lý
+                    # Phiếu được phân công sẽ ở trạng thái Đang xử lý.
+                    # Không cần để nhân viên tự chọn trạng thái nữa.
+                    if ph.trang_thai_xu_ly != "Đang xử lý":
+                        ph.trang_thai_xu_ly = "Đang xử lý"
+                        ph.save(
+                            update_fields=["trang_thai_xu_ly"]
+                        )
+
+                    # Ghi nội dung cập nhật vào lịch sử xử lý.
                     _ghi_lich_su(
                         ph,
                         tai_khoan,
                         "Cập nhật trạng thái",
-
-                        # Ghi chú xử lý nội bộ của nhân viên.
                         ghi_chu,
-
-                        # Thông báo công khai nếu nhân viên có nhập.
                         noi_dung_khach_hang=thong_bao_khach_hang
                     )
 
-                messages.success(request, "Đã lưu cập nhật xử lý.")
+                messages.success(
+                    request,
+                    "Đã lưu cập nhật xử lý."
+                )
+
                 return redirect(
                     "feedback:staff_feedback_detail",
                     feedback_id=feedback_id
@@ -990,7 +985,7 @@ def staff_feedback_detail(request, feedback_id):
 
 
 # ADMIN: Thống kê theo loại phiếu và trạng thái xử lý
-@user_passes_test(is_manager_role, login_url="dang_nhap")
+@user_passes_test(_quan_ly_dang_hoat_dong, login_url="dang_nhap")
 def admin_feedback_statistics(request):
     tat_ca = PhanHoiKhieuNai.objects.all()
     tong_so = tat_ca.count()
