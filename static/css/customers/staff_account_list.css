@@ -9,13 +9,16 @@
 }
 
 .account-flash-msg {
-    padding: 11px 16px;
-    border-radius: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
     font-size: 13.5px;
-    margin-bottom: 8px;
+    font-weight: 500;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 12px;
+    line-height: 1.45;
 }
 
 .account-flash-msg.success {
@@ -28,6 +31,30 @@
     background-color: #fce8e6;
     color: #c5221f;
     border: 1px solid #fad2cf;
+}
+
+.account-flash-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.account-flash-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0.75;
+    flex-shrink: 0;
+}
+
+.account-flash-close:hover {
+    opacity: 1;
 }
 
 /* Huy hiệu bảo mật */
@@ -189,8 +216,19 @@
 }
 
 /* ==========================================================================
-   POPUP MODAL & OVERLAY (PHÂN QUYỀN & KHÓA TÀI KHOẢN)
+   POPUP MODAL & OVERLAY (PHÂN QUYỀN & KHÓA / MỞ KHÓA TÀI KHOẢN)
    ========================================================================== */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .modal-overlay {
     display: none;
     position: fixed;
@@ -220,12 +258,17 @@
     font-family: 'Montserrat', Arial, sans-serif !important;
 }
 
+.modal-card-sm {
+    max-width: 480px;
+}
+
 .modal-header {
     padding: 18px 24px 14px;
     border-bottom: 1px solid #f0e9df;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 12px;
 }
 
 .modal-title {
@@ -235,6 +278,10 @@
     color: #2b2118;
     margin: 0;
     line-height: 1.35;
+}
+
+.modal-title-sm {
+    font-size: 18px;
 }
 
 .modal-subtitle {
@@ -296,6 +343,11 @@
     gap: 6px;
 }
 
+.form-group-dynamic {
+    display: none;
+    margin-top: 14px;
+}
+
 .form-label {
     font-size: 13.5px;
     font-weight: 650;
@@ -312,6 +364,7 @@
     padding: 9px 13px;
     border: 1px solid #dcd6cc;
     border-radius: 8px;
+    font-family: inherit;
     font-size: 13.5px;
     color: #2b2118;
     background: #ffffff;
@@ -340,12 +393,62 @@
     line-height: 1.4;
 }
 
+/* Khung hiển thị thông tin người dùng trong modal mở khóa */
+.user-unlock-preview {
+    background: #fdfbf7;
+    border: 1px solid #f0e6d2;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.user-unlock-avatar {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 50%;
+    background: #e6dfd3;
+    color: #5c4a32;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.user-unlock-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.user-unlock-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #272520;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.user-unlock-email {
+    font-size: 12.5px;
+    color: #7a6e62;
+    margin-top: 2px;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+/* Chân Modal chứa nút bấm */
 .modal-footer {
     padding: 14px 24px;
     background: #fbf9f6;
     border-top: 1px solid #f0e9df;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     gap: 10px;
 }
 
@@ -354,10 +457,17 @@
     background: #ffffff;
     border: 1px solid #dcd6cc;
     border-radius: 8px;
+    font-family: inherit;
     font-size: 13.5px;
     font-weight: 500;
     color: #4a4036;
     cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.modal-btn-cancel:hover {
+    background: #f3efe9;
+    border-color: #c4baa9;
 }
 
 .modal-btn-submit {
@@ -365,13 +475,31 @@
     background: #8C6D4F;
     border: none;
     border-radius: 8px;
+    font-family: inherit;
     font-size: 13.5px;
     font-weight: 600;
     color: #ffffff;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
 .modal-btn-submit:hover {
     background: #755a40;
 }
 
+.modal-btn-danger {
+    padding: 9px 20px;
+    background: #993D3D;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.modal-btn-danger:hover {
+    background: #802f2f;
+}

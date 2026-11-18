@@ -5,7 +5,7 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_profile.css' %}?v=20261115_v1">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_profile.css' %}?v=20261118_v2">
 {% endblock %}
 
 {% block content %}
@@ -24,13 +24,12 @@
     {% if messages %}
         <div class="sp-messages" role="status" aria-live="polite">
             {% for message in messages %}
-                <div class="sp-alert {% if message.tags == 'success' %}sp-alert-success{% else %}sp-alert-error{% endif %}">
-                    {% if message.tags == 'success' %}
-                        <i data-lucide="circle-check"></i>
-                    {% else %}
-                        <i data-lucide="alert-circle"></i>
-                    {% endif %}
-                    <span>{{ message }}</span>
+                <div class="sp-alert {% if 'error' in message.tags %}sp-alert-error{% else %}sp-alert-success{% endif %}">
+                    <div class="sp-alert-content">
+                        <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="sp-alert-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
                 </div>
             {% endfor %}
         </div>
@@ -41,8 +40,11 @@
         <div class="sp-messages" role="alert">
             {% for error in form.non_field_errors %}
                 <div class="sp-alert sp-alert-error">
-                    <i data-lucide="alert-circle"></i>
-                    <span>{{ error }}</span>
+                    <div class="sp-alert-content">
+                        <span>⚠️</span>
+                        <span>{{ error }}</span>
+                    </div>
+                    <button type="button" class="sp-alert-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
                 </div>
             {% endfor %}
         </div>
