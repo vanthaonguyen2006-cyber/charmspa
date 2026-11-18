@@ -1,5 +1,5 @@
 {% extends "layouts/staff_base.html" %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}Hồ sơ khách hàng | Charm Spa Management{% endblock %}
 
@@ -439,11 +439,28 @@
                     {% for item in lich_su_dich_vu %}
                         <tr>
                             <td>{{ item.ngay|date:'d/m/Y H:i' }}</td>
-                            <td class="service-name">{{ item.dich_vu }}</td>
+                            <td class="service-name">
+                                {{ item.dich_vu }}
+                                {% if item.nguon_booking %}
+                                    <div style="margin-top: 4px; font-size: 11px; color: #8C6D4F; font-weight: 500;">
+                                        Booking {{ item.ma_sd }} · {{ item.so_khach }} khách
+                                        {% if item.co_uu_dai %} · Có ưu đãi{% endif %}
+                                    </div>
+                                {% elif item.so_khach and item.so_khach > 1 %}
+                                    <div style="margin-top:4px;font-size:11px;color:#8C6D4F;">
+                                        Dịch vụ độc lập · {{ item.so_khach }} khách
+                                        {% if item.co_uu_dai %} · {{ item.ten_uu_dai }} + giảm hạng{% endif %}
+                                    </div>
+                                {% elif item.co_uu_dai %}
+                                    <div style="margin-top: 4px; font-size: 11px; color: #8C6D4F; font-weight: 500;">
+                                        Ưu đãi chương trình: {{ item.ten_uu_dai }} + giảm hạng thành viên
+                                    </div>
+                                {% endif %}
+                            </td>
                             <td>{{ item.nhan_vien }}</td>
                             <td style="text-align: right;">
                                 {% if item.gia_tri %}
-                                    {{ item.gia_tri|floatformat:0 }} đ
+                                    {{ item.gia_tri_hien_thi }} đ
                                 {% else %}
                                     —
                                 {% endif %}
@@ -466,9 +483,11 @@
                                             ngay: '{{ item.ngay|date:'d/m/Y H:i' }}',
                                             khach_hang: '{{ item.khach_hang|escapejs }}',
                                             nhan_vien: '{{ item.nhan_vien|escapejs }}',
-                                            gia_goc: '{{ item.gia_goc|floatformat:0 }}',
-                                            ty_le_giam: '{{ item.ty_le_giam_gia }}',
-                                            thanh_tien: '{% if item.gia_tri %}{{ item.gia_tri|floatformat:0 }}{% else %}{{ item.gia_goc|floatformat:0 }}{% endif %}',
+                                            gia_goc: '{{ item.gia_goc|unlocalize }}',
+                                            ty_le_giam: '{{ item.ty_le_giam_gia|unlocalize }}',
+                                            loai_giam: '{% if item.nguon_booking %}{% if item.co_uu_dai %}Ưu đãi chương trình{% else %}Không áp dụng ưu đãi{% endif %}{% elif item.co_uu_dai %}Ưu đãi chương trình + giảm giá hạng thành viên{% else %}Giảm giá hạng thành viên{% endif %}',
+                                            thanh_tien: '{{ item.gia_tri|unlocalize }}',
+                                            so_khach: '{{ item.so_khach|default:1 }}',
                                             diem: '{{ item.diem }}',
                                             trang_thai: '{{ item.trang_thai|escapejs }}'
                                         })"
@@ -550,7 +569,7 @@
                 <span id="staffModalGiaGoc" style="font-weight: 600; color: #302D27;"></span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
-                <span style="color: #898276;">Giảm giá hạng thành viên:</span>
+                <span id="staffModalDiscountLabel" style="color: #898276;">Giảm giá hạng thành viên:</span>
                 <span id="staffModalGiamGia" style="font-weight: 600; color: #B99552;"></span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
@@ -590,13 +609,16 @@
 
         const fmt = new Intl.NumberFormat('vi-VN');
         const giaGocVal = Number(data.gia_goc) || 0;
-        const thanhTienVal = Number(data.thanh_tien) || giaGocVal;
+        const thanhTienVal = data.thanh_tien !== "" && data.thanh_tien != null
+            ? Number(data.thanh_tien)
+            : giaGocVal;
         const tyLeGiam = Number(data.ty_le_giam) || 0;
 
         document.getElementById('staffModalGiaGoc').textContent = fmt.format(giaGocVal) + ' đ';
+        document.getElementById('staffModalDiscountLabel').textContent = (data.loai_giam || 'Giảm giá hạng thành viên') + ':';
         document.getElementById('staffModalGiamGia').textContent = tyLeGiam > 0 ? ('-' + tyLeGiam + '%') : '0%';
         document.getElementById('staffModalThanhTien').textContent = fmt.format(thanhTienVal) + ' đ';
-        document.getElementById('staffModalDiem').textContent = '+' + (data.diem || 0) + ' điểm';
+        document.getElementById('staffModalDiem').textContent = '+' + (data.diem || 0) + ' điểm (' + (data.so_khach || 1) + ' khách)';
         document.getElementById('staffModalTrangThai').textContent = data.trang_thai || 'Đã hoàn thành';
 
         const modal = document.getElementById('staffServiceDetailModal');

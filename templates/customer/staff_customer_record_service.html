@@ -1,3 +1,4 @@
+```
 {% extends "layouts/staff_base.html" %}
 {% load static %}
 
@@ -11,7 +12,7 @@
 {% block content %}
 <div class="record-service-page">
     <nav class="record-breadcrumbs" aria-label="Điều hướng">
-        <a href="{% url 'staff_customer_list' %}>Khách hàng</a>
+        <a href="{% url 'staff_customer_list' %}">Khách hàng</a>
         <span aria-hidden="true">/</span>
         <a href="{% url 'staff_customer_detail' khach_hang.ma_kh %}">{{ khach_hang.ma_kh }}</a>
         <span aria-hidden="true">/</span>
@@ -52,6 +53,25 @@
                 </div>
 
                 <div class="form-grid">
+                    <div class="form-field form-field-wide">
+                        <label for="recordMode">Nguồn ghi nhận <span class="required">*</span></label>
+                        <select id="recordMode" name="loai_ghi_nhan" class="form-control" required>
+                            <option value="thu_cong" {% if request.POST.loai_ghi_nhan != 'booking' %}selected{% endif %}>Dịch vụ độc lập (cộng điểm)</option>
+                            <option value="booking" {% if request.POST.loai_ghi_nhan == 'booking' %}selected{% endif %}>Gắn với Booking đã hoàn thành (không cộng thêm điểm)</option>
+                        </select>
+                    </div>
+                    <div class="form-field form-field-wide" id="bookingField" style="display:none;">
+                        <label for="bookingSelect">Booking đã hoàn thành <span class="required">*</span></label>
+                        <select id="bookingSelect" name="ma_lh" class="form-control">
+                            <option value="">-- Chọn Booking đã cộng điểm --</option>
+                            {% for b in booking_options %}
+                                <option value="{{ b.id }}" {% if request.POST.ma_lh == b.id %}selected{% endif %}>
+                                    {{ b.id }} · {{ b.ten }} · {{ b.ngay }} · {{ b.so_khach }} khách
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small class="field-hint">Chỉ ghi nhận người thực hiện; Booking đã cộng điểm nên không cộng lần hai. Một Booking chỉ liên kết được một bản ghi dịch vụ.</small>
+                    </div>
                     <div class="form-field">
                         <label for="serviceSelect">Dịch vụ <span class="required">*</span></label>
                         <select name="ma_dv" id="serviceSelect" class="form-control" required>
@@ -67,7 +87,14 @@
                     <div class="form-field">
                         <label for="dateInput">Ngày sử dụng <span class="required">*</span></label>
                         <input type="date" name="ngay_su_dung" id="dateInput" class="form-control"
-                               value="{{ request.POST.ngay_su_dung|default:today|date:'Y-m-d' }}" required>
+                               value="{% if request.POST.ngay_su_dung %}{{ request.POST.ngay_su_dung }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}" required>
+                    </div>
+
+                    <div class="form-field" id="quantityField">
+                        <label for="quantityInput">Số lượng khách <span class="required">*</span></label>
+                        <input type="number" id="quantityInput" name="so_luong_khach" class="form-control"
+                               min="1" max="20" step="1" value="{{ request.POST.so_luong_khach|default:'1' }}" required>
+                        <small class="field-hint" id="quantityHint">Dịch vụ độc lập: tính giá và cộng điểm theo số khách (1–20).</small>
                     </div>
 
                     <div class="form-field form-field-wide">
@@ -96,6 +123,14 @@
                         <span><i data-lucide="banknote"></i><b id="detailPriceOriginal">—</b></span>
                     </div>
                     <p class="detail-description" id="detailDescription">Chọn một dịch vụ để xem mô tả.</p>
+                </div>
+
+                <div class="form-field" id="promotionField" style="margin: 14px 0;">
+                    <label for="promotionSelect">Chương trình ưu đãi áp dụng cho dịch vụ (nếu có)</label>
+                    <select id="promotionSelect" name="ma_ctud" class="form-control">
+                        <option value="">-- Không áp dụng chương trình --</option>
+                    </select>
+                    <small class="field-hint" id="promotionHint">Chọn dịch vụ và ngày sử dụng để xem ưu đãi hợp lệ. Ưu đãi được tính trước, sau đó giảm thêm theo hạng thành viên.</small>
                 </div>
 
                 <div class="price-grid">
@@ -168,14 +203,16 @@
                     <div><dt>Dịch vụ</dt><dd id="sumService">Chưa chọn</dd></div>
                     <div><dt>Ngày sử dụng</dt><dd id="sumDate">{{ today|date:"d/m/Y" }}</dd></div>
                     <div><dt>Nhân viên</dt><dd id="sumStaff">Chưa chọn</dd></div>
+                    <div><dt>Số lượng khách</dt><dd id="sumQuantity">1 khách</dd></div>
                     <div><dt>Giá gốc</dt><dd id="sumOriginalPrice">0 đ</dd></div>
+                    <div><dt>Ưu đãi chương trình</dt><dd id="sumPromotion">Không có</dd></div>
                     <div><dt>Giảm giá</dt><dd id="sumDiscount">0%</dd></div>
                     <div class="summary-total"><dt>Thành tiền</dt><dd id="sumFinalPrice">0 đ</dd></div>
                     <div class="summary-points"><dt>Điểm cộng thêm</dt><dd id="sumPoints">+0 điểm</dd></div>
                 </dl>
 
                 <p class="summary-note">
-                    Điểm được cộng khi lưu thành công. Hạng thành viên được xét lại theo logic hiện có.
+                    Dịch vụ độc lập: cộng điểm khi lưu. Booking đã hoàn thành: chỉ liên kết dịch vụ, không cộng điểm lần nữa.
                 </p>
             </section>
         </aside>
@@ -187,6 +224,9 @@
     {{ block.super }}
     <script>
         const SERVICES_DATA = {{ services_json|safe }};
+        const BOOKING_DATA = {{ booking_json|safe }};
+        const PROMOTION_DATA = {{ promotions_json|safe }};
+        const SELECTED_PROMO = '{{ request.POST.ma_ctud|escapejs }}';
         const DISCOUNT_RATE = parseFloat("{{ ty_le_giam_gia }}") || 0;
 
         function formatMoneyVN(amount) {
@@ -200,6 +240,20 @@
             const serviceSelect = document.getElementById('serviceSelect');
             const dateInput = document.getElementById('dateInput');
             const staffSelect = document.getElementById('staffSelect');
+            const recordMode = document.getElementById('recordMode');
+            const bookingSelect = document.getElementById('bookingSelect');
+            const bookingField = document.getElementById('bookingField');
+            const promotionField = document.getElementById('promotionField');
+            const promotionSelect = document.getElementById('promotionSelect');
+            const promotionHint = document.getElementById('promotionHint');
+            const sumPromotion = document.getElementById('sumPromotion');
+            const quantityInput = document.getElementById('quantityInput');
+            const quantityHint = document.getElementById('quantityHint');
+            const sumQuantity = document.getElementById('sumQuantity');
+            function selectedQuantity() {
+                const n = Number(quantityInput.value);
+                return Number.isInteger(n) && n >= 1 && n <= 20 ? n : 1;
+            }
 
             const elements = {
                 name: document.getElementById('detailServiceName'),
@@ -218,6 +272,35 @@
                 sumPoints: document.getElementById('sumPoints')
             };
 
+            function updatePromotions() {
+                const linked = recordMode.value === 'booking';
+                promotionField.style.display = linked ? 'none' : '';
+                if (linked) {
+                    promotionSelect.value = '';
+                    sumPromotion.textContent = 'Theo Booking';
+                    return;
+                }
+                const previous = promotionSelect.value || SELECTED_PROMO;
+                const options = (PROMOTION_DATA[serviceSelect.value] || []).filter(p =>
+                    dateInput.value && p.bat_dau <= dateInput.value && dateInput.value <= p.ket_thuc
+                );
+                promotionSelect.replaceChildren();
+                promotionSelect.add(new Option('-- Không áp dụng chương trình --', ''));
+                options.forEach(p => promotionSelect.add(new Option(p.ten, p.id)));
+                if (options.some(p => p.id === previous)) promotionSelect.value = previous;
+                promotionHint.textContent = options.length
+                    ? `Có ${options.length} chương trình phù hợp. Giá ưu đãi giảm thêm theo hạng thành viên.`
+                    : 'Không có chương trình ưu đãi phù hợp với dịch vụ và ngày đã chọn.';
+            }
+
+            function promotionPrice(base, p) {
+                if (!p) return base;
+                if (p.kieu === 'phan_tram') return base * (1 - p.muc / 100);
+                if (p.kieu === 'so_tien') return Math.max(0, base - p.muc);
+                if (p.kieu === 'gia_co_dinh') return p.muc;
+                return base;
+            }
+
             function updateService() {
                 const service = SERVICES_DATA[serviceSelect.value];
 
@@ -234,24 +317,50 @@
                     elements.sumDiscount.textContent = DISCOUNT_RATE + '%';
                     elements.sumFinal.textContent = '0 đ';
                     elements.sumPoints.textContent = '+0 điểm';
+                    sumQuantity.textContent = selectedQuantity() + ' khách';
+                    sumPromotion.textContent = 'Không có';
                     return;
                 }
 
                 const original = Number(service.gia_dich_vu) || 0;
-                const finalPrice = original * (1 - DISCOUNT_RATE / 100);
+                const promo = (PROMOTION_DATA[serviceSelect.value] || []).find(
+                    p => p.id === promotionSelect.value
+                        && dateInput.value && p.bat_dau <= dateInput.value && dateInput.value <= p.ket_thuc
+                );
+                const afterPromotion = promotionPrice(original, promo);
+                const linked = recordMode.value === 'booking';
+                const booking = BOOKING_DATA[bookingSelect.value];
+                const qty = linked && booking ? Number(booking.so_khach) : selectedQuantity();
+                const finalUnitPrice = afterPromotion * (1 - DISCOUNT_RATE / 100);
+                const finalPrice = Math.round(finalUnitPrice) * qty;
+                const originalTotal = original * qty;
+                sumQuantity.textContent = qty + ' khách';
+                sumPromotion.textContent = promo ? promo.ten : 'Không có';
 
                 elements.name.textContent = service.ten_dich_vu || 'Dịch vụ';
                 elements.category.textContent = service.loai_dich_vu || 'Dịch vụ chăm sóc';
                 elements.duration.textContent = (service.thoi_luong || 0) + ' phút';
                 elements.original.textContent = formatMoneyVN(original);
                 elements.description.textContent = service.mo_ta || 'Không có mô tả chi tiết.';
-                elements.priceInput.value = formatMoneyVN(original);
+                elements.priceInput.value = formatMoneyVN(originalTotal);
                 elements.final.textContent = formatMoneyVN(finalPrice);
                 elements.sumService.textContent = service.ten_dich_vu || 'Dịch vụ';
-                elements.sumOriginal.textContent = formatMoneyVN(original);
+                elements.sumOriginal.textContent = formatMoneyVN(originalTotal);
                 elements.sumDiscount.textContent = DISCOUNT_RATE + '%';
                 elements.sumFinal.textContent = formatMoneyVN(finalPrice);
-                elements.sumPoints.textContent = '+' + (service.diem_tich_luy || 0) + ' điểm';
+                if (linked && booking) {
+                    const discount = booking.gia_goc > 0
+                        ? (100 * (booking.gia_goc - booking.gia_tri) / booking.gia_goc) : 0;
+                    sumQuantity.textContent = booking.so_khach + ' khách';
+                    elements.original.textContent = formatMoneyVN(booking.gia_goc);
+                    elements.priceInput.value = formatMoneyVN(booking.gia_goc);
+                    elements.final.textContent = formatMoneyVN(booking.gia_tri);
+                    elements.sumOriginal.textContent = formatMoneyVN(booking.gia_goc);
+                    elements.sumDiscount.textContent = discount.toFixed(2) + '% (Booking)';
+                    elements.sumFinal.textContent = formatMoneyVN(booking.gia_tri);
+                }
+                elements.sumPoints.textContent = linked ? '+0 điểm (đã cộng từ Booking)' :
+                    '+' + ((service.diem_tich_luy || 0) * qty) + ' điểm';
             }
 
             function updateDate() {
@@ -270,21 +379,49 @@
                     : 'Chưa chọn';
             }
 
-            serviceSelect.addEventListener('change', updateService);
-            dateInput.addEventListener('change', updateDate);
+            function updateMode() {
+                const linked = recordMode.value === 'booking';
+                bookingField.style.display = linked ? '' : 'none';
+                bookingSelect.required = linked;
+                serviceSelect.style.pointerEvents = linked ? 'none' : '';
+                dateInput.readOnly = linked;
+                quantityInput.readOnly = linked;
+                quantityHint.textContent = linked
+                    ? 'Số khách lấy từ Booking, không thể chỉnh sửa hoặc cộng điểm thêm.'
+                    : 'Tính đơn giá và điểm cho mỗi khách, rồi nhân tổng số khách (1–20).';
+                const discountDisplay = document.getElementById('discountDisplay');
+                if (discountDisplay) discountDisplay.value = linked ? 'Theo Booking đã chọn' : '{{ ty_le_giam_gia|floatformat:2 }}% · {{ ten_hang|escapejs }}';
+                if (linked && BOOKING_DATA[bookingSelect.value]) {
+                    serviceSelect.value = BOOKING_DATA[bookingSelect.value].ma_dv;
+                    dateInput.value = BOOKING_DATA[bookingSelect.value].ngay;
+                    quantityInput.value = BOOKING_DATA[bookingSelect.value].so_khach;
+                }
+                if (!linked && (!quantityInput.value || Number(quantityInput.value) > 20)) quantityInput.value = 1;
+                updatePromotions();
+                updateService();
+                updateDate();
+            }
+            recordMode.addEventListener('change', function () {
+                if (recordMode.value !== 'booking') bookingSelect.value = '';
+                updateMode();
+            });
+            bookingSelect.addEventListener('change', updateMode);
+            serviceSelect.addEventListener('change', function () { updatePromotions(); updateService(); });
+            dateInput.addEventListener('change', function () { updateDate(); updatePromotions(); updateService(); });
+            promotionSelect.addEventListener('change', updateService);
+            quantityInput.addEventListener('input', updateService);
             staffSelect.addEventListener('change', updateStaff);
 
             form.addEventListener('reset', function () {
                 window.setTimeout(function () {
-                    updateService();
-                    updateDate();
+                    updateMode();
                     updateStaff();
                 }, 0);
             });
 
-            updateService();
-            updateDate();
+            updateMode();
             updateStaff();
         });
     </script>
 {% endblock %}
+```

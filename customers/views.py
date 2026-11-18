@@ -820,15 +820,20 @@ def staff_customer_detail_view(request, ma_kh):
         )
 
     danh_sach_su_dung = DichVuDaSuDung.objects.filter(
-        ma_kh=khach_hang
-    ).select_related('ma_dv', 'ma_nv').order_by('-ngay_su_dung')[:50]
+        ma_kh=khach_hang, ma_lh__isnull=True
+    ).select_related('ma_dv', 'ma_nv', 'ma_ctud').order_by('-ngay_su_dung')[:50]
 
     lich_su_dich_vu = []
     ty_le_giam_ap_dung = khach_hang.ma_tv.ty_le_giam_gia if khach_hang.ma_tv else Decimal('0.00')
 
     for sd in danh_sach_su_dung:
-        gia_goc = sd.ma_dv.gia_dich_vu if sd.ma_dv else 0
-        thanh_tien = float(gia_goc) * (1 - float(ty_le_giam_ap_dung) / 100) if gia_goc else None
+        so_khach_sd = sd.so_luong_khach or 1
+        gia_goc = sd.gia_goc if sd.gia_goc is not None else (sd.ma_dv.gia_dich_vu if sd.ma_dv else 0)
+        # Du lieu cu chua co snapshot: giu fallback logic cu de tranh vo history.
+        thanh_tien = (sd.gia_sau_giam if sd.gia_sau_giam is not None else
+                       float(gia_goc) * (1 - float(ty_le_giam_ap_dung) / 100) if gia_goc else None)
+        ty_le_ghi_nhan = (sd.ty_le_giam_ap_dung if sd.ty_le_giam_ap_dung is not None
+                          else ty_le_giam_ap_dung)
 
         lich_su_dich_vu.append({
             'ma_sd': sd.ma_sd,
@@ -840,11 +845,104 @@ def staff_customer_detail_view(request, ma_kh):
             'nhan_vien': sd.ma_nv.ho_ten if sd.ma_nv else '—',
             'khach_hang': khach_hang.ho_ten,
             'gia_goc': gia_goc,
-            'ty_le_giam_gia': ty_le_giam_ap_dung,
+            'ty_le_giam_gia': ty_le_ghi_nhan,
             'gia_tri': thanh_tien,
-            'diem': sd.ma_dv.diem_tich_luy_dich_vu if sd.ma_dv else 0,
+            'co_uu_dai': bool(sd.ma_ctud_id),
+            'ten_uu_dai': sd.ma_ctud.ten_chuong_trinh if sd.ma_ctud_id else '',
+            'diem': (sd.diem_da_cong if sd.diem_da_cong is not None else
+                     (sd.ma_dv.diem_tich_luy_dich_vu if sd.ma_dv else 0)),
+            'so_khach': so_khach_sd,
             'trang_thai': 'Đã hoàn thành',
         })
+
+    # [BO SUNG] Lich Booking da hoan thanh, co lich su diem rieng.
+    # Khong tao DichVuDaSuDung, khong cong diem them va khong sua ban ghi cu.
+    # Chi hien thi cac booking da duoc he thong tich diem ghi nhan.
+    from bookings.models import LichHen
+    from customers.models import LichSuTichDiemBooking
+    from notifications.models import LichHenUuDai
+
+    booking_list = list(
+        LichHen.objects.filter(
+            ma_kh=khach_hang,
+            trang_thai='Hoàn thành',
+            lich_su_tich_diem__isnull=False,
+        ).select_related('ma_dv', 'ma_nv')
+         .order_by('-ngay_hen', '-gio_hen')[:50]
+    )
+    ma_lich_list = [booking.pk for booking in booking_list]
+    uu_dai_map = {
+        obj.ma_lh_id: obj
+        for obj in LichHenUuDai.objects.filter(ma_lh_id__in=ma_lich_list)
+    }
+    diem_map = {
+        obj.ma_lh_id: obj
+        for obj in LichSuTichDiemBooking.objects.filter(ma_lh_id__in=ma_lich_list)
+    }
+
+    for booking in booking_list:
+        dv = booking.ma_dv
+        so_khach = max(1, int(booking.so_luong_khach or 1))
+        gia_niem_yet = Decimal(str(dv.gia_dich_vu or 0)) * so_khach
+        uu_dai = uu_dai_map.get(booking.pk)
+        if uu_dai:
+            gia_goc = uu_dai.gia_goc
+            gia_tri = uu_dai.gia_sau_giam
+            co_uu_dai = gia_tri < gia_goc
+        else:
+            gia_goc = gia_niem_yet
+            gia_tri = gia_niem_yet
+            co_uu_dai = False
+
+        ti_le_giam = (
+            ((gia_goc - gia_tri) * Decimal('100') / gia_goc)
+            if co_uu_dai and gia_goc > 0
+            else Decimal('0')
+        )
+        # ngay_hen la ngay lich hen, khong phai thoi diem bam Hoan thanh.
+        ngay_booking = booking.ngay_hen
+        if isinstance(ngay_booking, str):
+            ngay_booking = date.fromisoformat(ngay_booking[:10])
+        gio_booking = booking.gio_hen
+        if isinstance(gio_booking, str):
+            try:
+                gio_booking = datetime.datetime.strptime(gio_booking[:5], '%H:%M').time()
+            except ValueError:
+                gio_booking = datetime.time(0, 0)
+        ngay_hien_thi = datetime.datetime.combine(ngay_booking, gio_booking)
+        if timezone.is_naive(ngay_hien_thi):
+            ngay_hien_thi = timezone.make_aware(ngay_hien_thi, timezone.get_current_timezone())
+
+        lich_su_dich_vu.append({
+            'ma_sd': booking.ma_lh,
+            'ngay': ngay_hien_thi,
+            'dich_vu': dv.ten_dich_vu,
+            'loai_dich_vu': dv.loai_dich_vu or 'Dịch vụ chăm sóc',
+            'mo_ta': dv.mo_ta or 'Không có mô tả chi tiết.',
+            'thoi_luong': dv.thoi_luong or 0,
+            'nhan_vien': booking.ma_nv.ho_ten if booking.ma_nv else 'Chưa phân công',
+            'khach_hang': khach_hang.ho_ten,
+            'gia_goc': gia_goc,
+            'ty_le_giam_gia': ti_le_giam,
+            'gia_tri': gia_tri,
+            'diem': diem_map[booking.pk].diem_cong,
+            'trang_thai': 'Đã hoàn thành',
+            'nguon_booking': True,
+            'co_uu_dai': co_uu_dai,
+            'so_khach': so_khach,
+        })
+
+    # Chi dinh dang tien de HIEN THI (VND); khong thay doi gia goc/uu dai trong DB.
+    for item in lich_su_dich_vu:
+        gia_tri = item.get('gia_tri')
+        item['gia_tri_hien_thi'] = (
+            format(Decimal(str(gia_tri)), ',.0f').replace(',', '.')
+            if gia_tri is not None else None
+        )
+
+    # Goi chung thanh mot bang; cac lich su thu cong cu van duoc giu.
+    lich_su_dich_vu.sort(key=lambda item: item['ngay'], reverse=True)
+    lich_su_dich_vu = lich_su_dich_vu[:50]
 
     so_luot_su_dung = len(lich_su_dich_vu)
     initials = _get_customer_initials(khach_hang.ho_ten)
@@ -1417,6 +1515,31 @@ def staff_toggle_account_status_view(request, ma_tk):
     return redirect('staff_account_list')
 
 
+
+
+def _gia_sau_uu_dai_thu_cong(dich_vu, uu_dai):
+    """Tinh gia chuong trinh theo gia dich vu hien tai (Decimal)."""
+    from decimal import ROUND_HALF_UP
+    gia = Decimal(str(dich_vu.gia_dich_vu))
+    if uu_dai is None:
+        return gia
+    muc = Decimal(str(uu_dai.muc_giam))
+    if uu_dai.kieu_giam_gia == 'phan_tram':
+        if not Decimal('0') < muc <= Decimal('100'):
+            raise ValueError('Muc giam phan tram khong hop le.')
+        ket_qua = gia * (Decimal('100') - muc) / Decimal('100')
+    elif uu_dai.kieu_giam_gia == 'so_tien':
+        if not Decimal('0') < muc <= gia:
+            raise ValueError('So tien giam khong hop le.')
+        ket_qua = gia - muc
+    elif uu_dai.kieu_giam_gia == 'gia_co_dinh':
+        if not Decimal('0') <= muc <= gia:
+            raise ValueError('Gia co dinh khong hop le.')
+        ket_qua = muc
+    else:
+        raise ValueError('Kieu uu dai khong duoc ho tro.')
+    return max(Decimal('0'), ket_qua).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
 # =========================================================================
 # CẬP NHẬT DỊCH VỤ ĐÃ SỬ DỤNG CHO KHÁCH HÀNG
 # =========================================================================
@@ -1471,6 +1594,58 @@ def staff_customer_record_service_view(request, ma_kh):
         }
     services_json = json.dumps(services_dict, ensure_ascii=False)
 
+    # Booking linked records never award points twice. Historical booking rows are
+    # already shown in customer history from LichHen/LichSuTichDiemBooking.
+    from bookings.models import LichHen
+    from customers.models import LichSuTichDiemBooking
+    from notifications.models import LichHenUuDai
+
+    booking_co_diem = list(
+        LichHen.objects.filter(
+            ma_kh=khach_hang,
+            trang_thai='Hoàn thành',
+            lich_su_tich_diem__isnull=False,
+            dich_vu_da_su_dung__isnull=True,
+        ).select_related('ma_dv').order_by('-ngay_hen', '-gio_hen')[:100]
+    )
+    booking_ids = [lh.pk for lh in booking_co_diem]
+    uu_dai_booking = {
+        obj.ma_lh_id: obj for obj in LichHenUuDai.objects.filter(ma_lh_id__in=booking_ids)
+    }
+    booking_options = []
+    booking_data = {}
+    for lh in booking_co_diem:
+        original = Decimal(str(lh.ma_dv.gia_dich_vu)) * (lh.so_luong_khach or 1)
+        promo = uu_dai_booking.get(lh.pk)
+        paid = promo.gia_sau_giam if promo else original
+        row = {
+            'id': str(lh.pk),
+            'ten': lh.ma_dv.ten_dich_vu,
+            'ma_dv': str(lh.ma_dv_id),
+            'ngay': lh.ngay_hen.isoformat() if hasattr(lh.ngay_hen, 'isoformat') else str(lh.ngay_hen)[:10],
+            'so_khach': lh.so_luong_khach or 1,
+            'gia_goc': float(promo.gia_goc if promo else original),
+            'gia_tri': float(paid),
+        }
+        booking_options.append(row)
+        booking_data[row['id']] = row
+    # Chi hien chuong trinh dung dich vu va con hieu luc theo ngay su dung.
+    # Browser chi dung de goi y; POST se xac minh lai trong transaction.
+    from notifications.models import ChuongTrinhUuDai
+    promotions_data = {}
+    for ct in ChuongTrinhUuDai.objects.filter(trang_thai='Đang áp dụng', ma_dv__isnull=False):
+        promotions_data.setdefault(str(ct.ma_dv_id), []).append({
+            'id': str(ct.pk),
+            'ten': ct.ten_chuong_trinh,
+            'kieu': ct.kieu_giam_gia,
+            'muc': float(ct.muc_giam),
+            'bat_dau': timezone.localtime(ct.ngay_bat_dau).date().isoformat(),
+            'ket_thuc': timezone.localtime(ct.ngay_ket_thuc).date().isoformat(),
+        })
+    promotions_json = json.dumps(promotions_data, ensure_ascii=False)
+
+    booking_json = json.dumps(booking_data, ensure_ascii=False)
+
     errors = []
 
     # 5. Xử lý khi nhấn nút Lưu thông tin sử dụng (POST)
@@ -1478,7 +1653,23 @@ def staff_customer_record_service_view(request, ma_kh):
         ma_dv = request.POST.get('ma_dv', '').strip()
         ma_nv = request.POST.get('ma_nv', '').strip()
         ngay_su_dung_str = request.POST.get('ngay_su_dung', '').strip()
+        ma_lh = request.POST.get('ma_lh', '').strip()
+        loai_ghi_nhan = request.POST.get('loai_ghi_nhan', 'thu_cong').strip()
+        ma_ctud = request.POST.get('ma_ctud', '').strip()
+        # Booking da co so khach rieng, KHONG dung truong form de sua Booking.
+        so_luong_khach = 1
+        errors_so_khach = None
+        if loai_ghi_nhan == 'thu_cong':
+            raw_so_khach = request.POST.get('so_luong_khach', '1').strip()
+            try:
+                so_luong_khach = int(raw_so_khach)
+                if not 1 <= so_luong_khach <= 20:
+                    raise ValueError()
+            except (ValueError, TypeError):
+                errors_so_khach = 'Số lượng khách phải là số nguyên từ 1 đến 20.'
 
+        if errors_so_khach:
+            errors.append(errors_so_khach)
         if not ma_dv:
             errors.append('Vui lòng chọn dịch vụ đã sử dụng.')
         if not ma_nv:
@@ -1505,9 +1696,66 @@ def staff_customer_record_service_view(request, ma_kh):
 
         ngay_su_dung_val = parse_date(ngay_su_dung_str) if ngay_su_dung_str else None
 
+        if loai_ghi_nhan not in ('thu_cong', 'booking'):
+            errors.append('Loại ghi nhận không hợp lệ.')
+        if loai_ghi_nhan == 'booking' and not ma_lh:
+            errors.append('Vui lòng chọn Booking đã hoàn thành.')
+        if loai_ghi_nhan == 'booking' and ma_ctud:
+            errors.append('Booking khong duoc chon uu dai them.')
+        if loai_ghi_nhan == 'thu_cong' and ma_lh:
+            errors.append('Ghi nhận độc lập không được đính kèm mã Booking.')
+        if not ngay_su_dung_val:
+            errors.append('Ngày sử dụng không hợp lệ.')
+
         if not errors:
             try:
                 with transaction.atomic():
+                    # Lock customer to serialize manual point updates with other writers.
+                    khach_hang = KhachHang.objects.select_for_update().get(pk=khach_hang.pk)
+                    booking_lien_ket = None
+                    uu_dai_thu_cong = None
+                    # Voi Booking, so luong duoc luu tren lich hen, khong tin gia tri form.
+                    so_khach_ghi_nhan = so_luong_khach
+                    if loai_ghi_nhan == 'thu_cong' and ma_ctud:
+                        # Filter theo ma dv, trang thai va ngay su dung, khong tin form.
+                        # So sanh khoang thoi gian theo ngay dia phuong (Django TZ).
+                        uu_dai_thu_cong = ChuongTrinhUuDai.objects.filter(
+                            pk=ma_ctud, ma_dv=dich_vu, trang_thai='Đang áp dụng',
+                        ).first()
+                        if uu_dai_thu_cong is None:
+                            raise ValueError('Chuong trinh khong ton tai, khong hoat dong hoac sai dich vu.')
+                        bat_dau = timezone.localtime(uu_dai_thu_cong.ngay_bat_dau).date()
+                        ket_thuc = timezone.localtime(uu_dai_thu_cong.ngay_ket_thuc).date()
+                        if not (bat_dau <= ngay_su_dung_val <= ket_thuc):
+                            raise ValueError('Chuong trinh khong co hieu luc vao ngay su dung.')
+                    if loai_ghi_nhan == 'booking':
+                        booking_lien_ket = (
+                            LichHen.objects.select_for_update()
+                            .filter(pk=ma_lh, ma_kh=khach_hang,
+                                    trang_thai='Hoàn thành', ma_dv=dich_vu).first()
+                        )
+                        if booking_lien_ket is None:
+                            raise ValueError('Booking không hợp lệ hoặc chưa hoàn thành.')
+                        so_khach_ghi_nhan = max(1, int(booking_lien_ket.so_luong_khach or 1))
+                        if str(booking_lien_ket.ngay_hen)[:10] != ngay_su_dung_val.isoformat():
+                            raise ValueError('Ngày sử dụng phải trùng ngày hẹn của Booking.')
+                        if not LichSuTichDiemBooking.objects.filter(ma_lh=booking_lien_ket).exists():
+                            raise ValueError('Booking chưa có lịch sử cộng điểm.')
+                        if DichVuDaSuDung.objects.filter(ma_lh=booking_lien_ket).exists():
+                            raise ValueError('Booking này đã có bản ghi dịch vụ liên kết.')
+                    else:
+                        # A completed awarded booking for same customer/service/day must
+                        # not be silently claimed as an independent manual service.
+                        if LichHen.objects.filter(
+                            ma_kh=khach_hang, ma_dv=dich_vu,
+                            ngay_hen=ngay_su_dung_val,
+                            trang_thai='Hoàn thành',
+                            lich_su_tich_diem__isnull=False,
+                        ).exists():
+                            raise ValueError(
+                                'Có Booking đã hoàn thành của dịch vụ này trong ngày. '
+                                'Hãy chọn chế độ Gắn với Booking để không cộng điểm trùng.'
+                            )
                     # 5.1. Sinh mã sử dụng duy nhất (độ dài tối đa 10 ký tự theo model)
                     count_sd = DichVuDaSuDung.objects.count() + 1
                     ma_sd = f"SD{count_sd:05d}"
@@ -1515,12 +1763,41 @@ def staff_customer_record_service_view(request, ma_kh):
                         count_sd += 1
                         ma_sd = f"SD{count_sd:05d}"
 
+                    # Gia snapshot: uu dai chuong trinh truoc, giam hang sau.
+                    # Luu gia va muc hang ap dung tai thoi diem ghi nhan.
+                    if booking_lien_ket is not None:
+                        booking_promo = LichHenUuDai.objects.filter(ma_lh=booking_lien_ket).first()
+                        gia_ghi_nhan = (booking_promo.gia_goc if booking_promo else
+                                         Decimal(str(dich_vu.gia_dich_vu)) * (booking_lien_ket.so_luong_khach or 1))
+                        thanh_tien_ghi_nhan = booking_promo.gia_sau_giam if booking_promo else gia_ghi_nhan
+                        phan_tram_hang = None  # Booking giu gia da xac nhan, khong giam tiep.
+                    else:
+                        from decimal import ROUND_HALF_UP
+                        gia_ghi_nhan = Decimal(str(dich_vu.gia_dich_vu)) * so_khach_ghi_nhan
+                        phan_tram_hang = Decimal(str(khach_hang.ma_tv.ty_le_giam_gia)) if khach_hang.ma_tv else Decimal('0')
+                        if not (Decimal('0') <= phan_tram_hang <= Decimal('100')):
+                            raise ValueError('Ty le giam hang khong hop le.')
+                        gia_sau_ct = _gia_sau_uu_dai_thu_cong(dich_vu, uu_dai_thu_cong)
+                        # Uu dai tinh tren DON GIA moi khach (ke ca giam tien/gia co dinh).
+                        # Sau do giam hang cho moi khach va nhan so khach.
+                        gia_mot_khach = (gia_sau_ct * (Decimal('100') - phan_tram_hang) / Decimal('100')).quantize(
+                            Decimal('0.01'), rounding=ROUND_HALF_UP)
+                        thanh_tien_ghi_nhan = gia_mot_khach * so_khach_ghi_nhan
+
                     # 5.2. Tạo bản ghi DichVuDaSuDung
                     DichVuDaSuDung.objects.create(
                         ma_sd=ma_sd,
                         ma_kh=khach_hang,
                         ma_nv=nhan_vien,
-                        ma_dv=dich_vu
+                        ma_dv=dich_vu,
+                        ma_lh=booking_lien_ket,
+                        ma_ctud=uu_dai_thu_cong,
+                        gia_goc=gia_ghi_nhan,
+                        gia_sau_giam=thanh_tien_ghi_nhan,
+                        ty_le_giam_ap_dung=phan_tram_hang,
+                        so_luong_khach=so_khach_ghi_nhan,
+                        diem_da_cong=(0 if booking_lien_ket else
+                                      (dich_vu.diem_tich_luy_dich_vu or 0) * so_khach_ghi_nhan),
                     )
 
                     # Cập nhật ngày sử dụng thực tế do nhân viên chọn
@@ -1530,8 +1807,10 @@ def staff_customer_record_service_view(request, ma_kh):
                         )
                         DichVuDaSuDung.objects.filter(pk=ma_sd).update(ngay_su_dung=ngay_gio)
 
-                    # 5.3. Cộng điểm tích lũy dịch vụ
-                    diem_cong = dich_vu.diem_tich_luy_dich_vu or 0
+                    # Existing Booking was already credited during completion.
+                    # Giu lai hang cu de chi thong bao khi hang thuc su thay doi.
+                    hang_cu_id = khach_hang.ma_tv_id
+                    diem_cong = 0 if booking_lien_ket else (dich_vu.diem_tich_luy_dich_vu or 0) * so_khach_ghi_nhan
                     khach_hang.diem_tich_luy_kh = (khach_hang.diem_tich_luy_kh or 0) + diem_cong
 
                     # 5.4. Tự động kiểm tra và nâng hạng thành viên nếu đủ điều kiện
@@ -1547,6 +1826,50 @@ def staff_customer_record_service_view(request, ma_kh):
                         thong_bao_len_hang = f" Khách hàng đã được tự động thăng hạng lên: {hang_moi.ten_hang}!"
 
                     khach_hang.save(update_fields=['diem_tich_luy_kh', 'ma_tv'])
+
+                    # Thong bao CHI cho dich vu doc lap duoc cong diem moi.
+                    # Tao trong cung transaction voi ban ghi su dung + cap nhat diem.
+                    # Booking da co he thong thong bao rieng, tuyet doi khong gui lai.
+                    if booking_lien_ket is None and diem_cong > 0:
+                        from uuid import uuid4
+                        from notifications.models import ThongBao, ThongBaoKhachHang
+
+                        def tao_thong_bao_thu_cong(loai, tieu_de, noi_dung):
+                            # Ma TB/TK: 10 ky tu, tuong thich model hien tai.
+                            thong_bao = ThongBao.objects.create(
+                                ma_tb='TB' + uuid4().hex[:8].upper(),
+                                loai_tb=loai,
+                                tieu_de=tieu_de,
+                                noi_dung=noi_dung,
+                                trang_thai='Đã gửi',
+                            )
+                            ThongBaoKhachHang.objects.create(
+                                ma_tbkh='TK' + uuid4().hex[:8].upper(),
+                                ma_tb=thong_bao,
+                                ma_kh=khach_hang,
+                                thoi_gian_gui=timezone.now(),
+                                trang_thai_gui='Chưa đọc',
+                            )
+
+                        tao_thong_bao_thu_cong(
+                            'Tích điểm',
+                            f'Bạn vừa nhận {diem_cong} điểm tích lũy!',
+                            f'Charm Grand Spa & Wellness cảm ơn bạn đã sử dụng '
+                            f'dịch vụ {dich_vu.ten_dich_vu} cho {so_khach_ghi_nhan} khách. '
+                            f'Bạn nhận được {diem_cong} điểm tích lũy. '
+                            f'Tổng điểm hiện tại: {khach_hang.diem_tich_luy_kh}. '
+                            f'Mã lượt sử dụng: {ma_sd}.',
+                        )
+
+                        if khach_hang.ma_tv_id != hang_cu_id and khach_hang.ma_tv:
+                            tao_thong_bao_thu_cong(
+                                'Nâng hạng',
+                                f'Chúc mừng bạn lên hạng {khach_hang.ma_tv.ten_hang}!',
+                                f'Bạn đã đạt {khach_hang.diem_tich_luy_kh} điểm '
+                                f'và được cập nhật lên hạng '
+                                f'{khach_hang.ma_tv.ten_hang} tại Charm Spa. '
+                                f'Mã lượt sử dụng: {ma_sd}.',
+                            )
 
                 messages.success(
                     request,
@@ -1572,6 +1895,9 @@ def staff_customer_record_service_view(request, ma_kh):
         'ten_hang': ten_hang,
         'ty_le_giam_gia': ty_le_giam_gia,
         'services_json': services_json,
+        'booking_options': booking_options,
+        'booking_json': booking_json,
+        'promotions_json': promotions_json,
         'today': timezone.now().date(),
         'errors': errors,
     }

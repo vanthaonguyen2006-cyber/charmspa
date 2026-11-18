@@ -1,226 +1,239 @@
+"""Charm Spa service management views.
+
+Replace services/views.py only after backing it up. Requires wiring the delete route
+in services/urls.py (or the project's corresponding URLConf).
+"""
+import logging
+import re
 from datetime import date
+from decimal import Decimal, InvalidOperation
+
+from functools import wraps
+
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, transaction
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from bookings.models import DichVu
-from datetime import date
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from bookings.models import DichVu
-from services.models import DichVuDaSuDung
+
+from accounts.models import is_customer_role, is_manager_role, is_staff_portal_user
 from customers.models import KhachHang
-def is_staff(user):
-    return user.is_authenticated and (user.is_staff or getattr(user, 'vai_tro', '') in ['Staff', 'Admin'])
+from services.models import DichVu, DichVuDaSuDung
+
+logger = logging.getLogger(__name__)
+LOGIN_URL = '/accounts/dang_nhap/'
 
 
-@login_required(login_url='/accounts/dang_nhap/')
-@user_passes_test(is_staff, login_url='/accounts/dang_nhap/')
-@require_POST
-def api_sua_dich_vu(request):
+def role_required(check_role, *, api=False):
+    """Enforce business roles from TaiKhoan.vai_tro (not Django is_staff).
+
+    Authentication is handled by the outer @login_required decorator.
+    Authenticated users without access receive 403 instead of a login redirect.
     """
-    API xử lý cập nhật thông tin dịch vụ qua AJAX
-    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped(request, *args, **kwargs):
+            if not check_role(request.user):
+                if api:
+                    return JsonResponse(
+                        {'success': False, 'error': 'Bạn không có quyền thực hiện thao tác này.'},
+                        status=403,
+                    )
+                return HttpResponseForbidden('Bạn không có quyền truy cập trang này.')
+            return view_func(request, *args, **kwargs)
+        return wrapped
+    return decorator
+
+
+def _parse_service_data(post, existing=None):
+    """Validate the actual fields in services.DichVu, without altering promo data."""
+    name = post.get('ten_dich_vu', '').strip()
+    category = post.get('loai_dich_vu', '').strip()
+    description = post.get('mo_ta', existing.mo_ta or '' if existing else '').strip()
+    if not name or len(name) > 100:
+        raise ValueError('Tên dịch vụ phải có từ 1 đến 100 ký tự.')
+    if not category or len(category) > 50:
+        raise ValueError('Loại dịch vụ phải có từ 1 đến 50 ký tự.')
     try:
-        ma_dv = request.POST.get('ma_dv', '').strip()
-        ten_dich_vu = request.POST.get('ten_dich_vu', '').strip()
-        loai_dich_vu = request.POST.get('loai_dich_vu', '').strip()
-        thoi_luong = int(request.POST.get('thoi_luong', 0) or 0)
-        gia_dich_vu = float(request.POST.get('gia_dich_vu', 0) or 0)
-        diem_tich_luy = int(request.POST.get('diem_tich_luy', 0) or 0)
-
-        if not ma_dv or not ten_dich_vu:
-            return JsonResponse({'success': False, 'error': 'Thiếu thông tin mã hoặc tên dịch vụ!'})
-
-        # Tìm dịch vụ trong database theo mã
-        service = DichVu.objects.filter(ma_dv=ma_dv).first()
-        if not service:
-            return JsonResponse({'success': False, 'error': 'Không tìm thấy dịch vụ cần sửa!'})
-
-        # Cập nhật thông tin mới
-        service.ten_dich_vu = ten_dich_vu
-        service.loai_dich_vu = loai_dich_vu
-        service.thoi_luong = thoi_luong
-        service.gia_dich_vu = gia_dich_vu
-        service.diem_tich_luy_dich_vu = diem_tich_luy
-        service.save()
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Cập nhật dịch vụ thành công!'
-        })
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        duration = int(post.get('thoi_luong', ''))
+        capacity = int(post.get('suc_chua_toi_da', str(existing.suc_chua_toi_da) if existing else '30') or '30')
+        points = int(post.get('diem_tich_luy', post.get('diem_tich_luy_dich_vu', '')))
+        price = Decimal(str(post.get('gia_dich_vu', '')).strip())
+    except (ValueError, TypeError, InvalidOperation):
+        raise ValueError('Thời lượng, sức chứa, giá và điểm phải là số hợp lệ.')
+    if duration <= 0:
+        raise ValueError('Thời lượng phải lớn hơn 0 phút.')
+    if capacity <= 0:
+        raise ValueError('Sức chứa tối đa phải lớn hơn 0.')
+    if points < 0:
+        raise ValueError('Điểm tích lũy không được âm.')
+    if not price.is_finite() or price <= 0 or price > Decimal('9999999999.99'):
+        raise ValueError('Giá dịch vụ phải lớn hơn 0 và nằm trong giới hạn cho phép.')
+    if price.as_tuple().exponent < -2:
+        raise ValueError('Giá dịch vụ chỉ được có tối đa 2 chữ số thập phân.')
+    return {
+        'ten_dich_vu': name,
+        'loai_dich_vu': category,
+        'mo_ta': description,
+        'thoi_luong': duration,
+        'suc_chua_toi_da': capacity,
+        'gia_dich_vu': price,
+        'diem_tich_luy_dich_vu': points,
+    }
 
 
-@login_required(login_url='/accounts/dang_nhap/')
-@user_passes_test(is_staff, login_url='/accounts/dang_nhap/')
+def _service_payload(item):
+    return {
+        'ma_dv': item.ma_dv,
+        'ten_dich_vu': item.ten_dich_vu,
+        'loai_dich_vu': item.loai_dich_vu,
+        'mo_ta': item.mo_ta or '',
+        'thoi_luong': item.thoi_luong,
+        'suc_chua_toi_da': item.suc_chua_toi_da,
+        'gia_dich_vu': str(item.gia_dich_vu),
+        'gia_formatted': f'{item.gia_dich_vu:,.0f} đ'.replace(',', '.'),
+        'diem_tich_luy': item.diem_tich_luy_dich_vu,
+        # DichVu has no trang_thai field. Do not pretend this controls booking availability.
+        'trang_thai': True,
+    }
+
+
+@login_required(login_url=LOGIN_URL)
+@role_required(is_staff_portal_user)
 def staff_services(request):
-    """
-    Trang Quản lý dịch vụ dành riêng cho Nhân viên (Staff/Admin)
-    """
-    services_qs = DichVu.objects.all().order_by('ma_dv')
-
-    services = []
-    for item in services_qs:
-        # 1. Xử lý mã dịch vụ an toàn tuyệt đối
-        ma_dv = getattr(item, 'ma_dv', None)
-        if not ma_dv:
-            pk_val = getattr(item, 'pk', 1)
-            try:
-                pk_int = int(pk_val)
-            except (ValueError, TypeError):
-                pk_int = 1
-            ma_dv = f"DV{pk_int:02d}"
-
-        # 2. Xử lý giá dịch vụ an toàn tuyệt đối
-        raw_gia = getattr(item, 'gia_dich_vu', 0)
-        gia_float = 0.0
-        if raw_gia is not None:
-            if isinstance(raw_gia, (int, float)):
-                gia_float = float(raw_gia)
-            else:
-                cleaned_str = ''.join(c for c in str(raw_gia) if c.isdigit() or c == '.')
-                try:
-                    gia_float = float(cleaned_str) if cleaned_str else 0.0
-                except ValueError:
-                    gia_float = 0.0
-
-        services.append({
-            'ma_dv': ma_dv,
-            'ten_dich_vu': getattr(item, 'ten_dich_vu', ''),
-            'loai_dich_vu': getattr(item, 'loai_dich_vu', ''),
-            'thoi_luong': getattr(item, 'thoi_luong', 0),
-            'gia_formatted': f"{int(gia_float):,.0f} đ".replace(',', '.'),
-            'diem_tich_luy': getattr(item, 'diem_tich_luy_dich_vu', 0),
-            'trang_thai': True
-        })
-
+    queryset = DichVu.objects.all().order_by('ma_dv')
+    services = [_service_payload(item) for item in queryset]
     context = {
         'today': date.today(),
         'services': services,
-        'active_menu': 'dich_vu'
+        'active_menu': 'dich_vu',
+        'can_manage_services': is_manager_role(request.user),
+        'tong_dich_vu': len(services),
+        'so_loai_dich_vu': len({row['loai_dich_vu'] for row in services}),
     }
     return render(request, 'services/staff_service_list.html', context)
 
 
-@login_required(login_url='/accounts/dang_nhap/')
-@user_passes_test(is_staff, login_url='/accounts/dang_nhap/')
+@login_required(login_url=LOGIN_URL)
+@role_required(is_manager_role, api=True)
 @require_POST
 def api_them_dich_vu(request):
-    """
-    API xử lý thêm dịch vụ mới từ Popup Modal
-    """
     try:
-        ten_dich_vu = request.POST.get('ten_dich_vu', '').strip()
-        loai_dich_vu = request.POST.get('loai_dich_vu', '').strip()
-        thoi_luong = int(request.POST.get('thoi_luong', 0) or 0)
-        gia_dich_vu = float(request.POST.get('gia_dich_vu', 0) or 0)
-        diem_tich_luy = int(request.POST.get('diem_tich_luy', 0) or 0)
+        fields = _parse_service_data(request.POST)
+    except ValueError as exc:
+        return JsonResponse({'success': False, 'error': str(exc)}, status=400)
+    try:
+        with transaction.atomic():
+            existing = list(DichVu.objects.values_list('ma_dv', flat=True))
+            numbers = [int(code[2:]) for code in existing if re.fullmatch(r'DV\d+', code or '')]
+            next_number = max(numbers, default=0) + 1
+            code = f'DV{next_number:02d}'
+            # Conflict detection; database uniqueness protects primary key.
+            while code in existing:
+                next_number += 1
+                code = f'DV{next_number:02d}'
+            service = DichVu.objects.create(ma_dv=code, **fields)
+        return JsonResponse({'success': True, 'message': 'Thêm dịch vụ thành công!', 'service': _service_payload(service)})
+    except IntegrityError:
+        return JsonResponse({'success': False, 'error': 'Mã dịch vụ vừa được tạo bởi yêu cầu khác. Vui lòng thử lại.'}, status=409)
+    except Exception:
+        logger.exception('Service create failed')
+        return JsonResponse({'success': False, 'error': 'Không thể thêm dịch vụ. Vui lòng thử lại.'}, status=500)
 
-        if not ten_dich_vu:
-            return JsonResponse({'success': False, 'error': 'Tên dịch vụ không được để trống!'})
 
-        # 📌 Tự động sinh mã dịch vụ tiếp theo (VD: DV16 -> tự sinh DV17)
-        last_service = DichVu.objects.all().order_by('-ma_dv').first()
-        if last_service and last_service.ma_dv and last_service.ma_dv.startswith('DV'):
+@login_required(login_url=LOGIN_URL)
+@role_required(is_manager_role, api=True)
+@require_POST
+def api_sua_dich_vu(request):
+    code = request.POST.get('ma_dv', '').strip()
+    if not code:
+        return JsonResponse({'success': False, 'error': 'Thiếu mã dịch vụ.'}, status=400)
+    try:
+        with transaction.atomic():
+            service = DichVu.objects.select_for_update().filter(ma_dv=code).first()
+            if service is None:
+                return JsonResponse({'success': False, 'error': 'Không tìm thấy dịch vụ cần sửa.'}, status=404)
             try:
-                num = int(last_service.ma_dv.replace('DV', ''))
-                next_ma_dv = f"DV{num + 1:02d}"
-            except ValueError:
-                next_ma_dv = f"DV{DichVu.objects.count() + 1:02d}"
-        else:
-            next_ma_dv = f"DV{DichVu.objects.count() + 1:02d}"
-
-        # Tạo dịch vụ mới trong Database
-        new_service = DichVu.objects.create(
-            ma_dv=next_ma_dv,
-            ten_dich_vu=ten_dich_vu,
-            loai_dich_vu=loai_dich_vu,
-            thoi_luong=thoi_luong,
-            gia_dich_vu=gia_dich_vu,
-            diem_tich_luy_dich_vu=diem_tich_luy,
-            suc_chua_toi_da=30
-        )
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Thêm dịch vụ thành công!',
-            'service': {
-                'ma_dv': new_service.ma_dv,
-                'ten_dich_vu': new_service.ten_dich_vu,
-                'loai_dich_vu': getattr(new_service, 'loai_dich_vu', ''),
-                'thoi_luong': new_service.thoi_luong,
-                'gia_formatted': f"{int(new_service.gia_dich_vu):,.0f} đ".replace(',', '.'),
-                'diem_tich_luy': getattr(new_service, 'diem_tich_luy_dich_vu', 0),
-            }
-        })
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+                fields = _parse_service_data(request.POST, existing=service)
+            except ValueError as exc:
+                return JsonResponse({'success': False, 'error': str(exc)}, status=400)
+            for key, value in fields.items():
+                setattr(service, key, value)
+            service.save(update_fields=list(fields))
+        return JsonResponse({'success': True, 'message': 'Cập nhật dịch vụ thành công!', 'service': _service_payload(service)})
+    except Exception:
+        logger.exception('Service update failed')
+        return JsonResponse({'success': False, 'error': 'Không thể sửa dịch vụ. Vui lòng thử lại.'}, status=500)
 
 
-def is_customer_user(user):
-    return user.is_authenticated and not user.is_staff and not user.is_superuser
+@login_required(login_url=LOGIN_URL)
+@role_required(is_manager_role, api=True)
+@require_POST
+def api_xoa_dich_vu(request):
+    """Delete only services with zero references in any related model."""
+    code = request.POST.get('ma_dv', '').strip()
+    if not code:
+        return JsonResponse({'success': False, 'error': 'Thiếu mã dịch vụ.'}, status=400)
+    try:
+        with transaction.atomic():
+            service = DichVu.objects.select_for_update().filter(ma_dv=code).first()
+            if service is None:
+                return JsonResponse({'success': False, 'error': 'Không tìm thấy dịch vụ.'}, status=404)
+            # Cover booking, manual history, promotions and any other reverse FK/O2O,
+            # including future relations, to avoid cascading deletion of business history.
+            for relation in service._meta.related_objects:
+                field = relation.field
+                if field.many_to_many:
+                    continue
+                if relation.related_model._default_manager.filter(**{field.name: service}).exists():
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Dịch vụ đã có Booking, ưu đãi hoặc dữ liệu liên quan nên không được xóa.',
+                    }, status=409)
+            service.delete()
+        return JsonResponse({'success': True, 'message': 'Đã xóa dịch vụ chưa được sử dụng.'})
+    except Exception:
+        logger.exception('Service delete failed')
+        return JsonResponse({'success': False, 'error': 'Không thể xóa dịch vụ do có dữ liệu liên quan hoặc lỗi hệ thống.'}, status=409)
 
 
-@login_required(login_url='/accounts/dang_nhap/')
-@user_passes_test(is_customer_user, login_url='/home/staff/')
+@login_required(login_url=LOGIN_URL)
+@role_required(is_customer_role)
 def customer_service_history_view(request):
-    """Trang Lịch sử dịch vụ dành cho Khách hàng (thuộc app services)."""
-    if request.user.is_staff or request.user.is_superuser:
-        return redirect('/home/staff/')
-
+    """Customer-only service history, using the current business role system."""
     tai_khoan = getattr(request.user, 'thong_tin_tai_khoan', None)
-
-    khach_hang = None
-    if tai_khoan:
-        khach_hang = getattr(tai_khoan, 'ho_so_khach_hang', None)
+    khach_hang = getattr(tai_khoan, 'ho_so_khach_hang', None) if tai_khoan else None
     if not khach_hang:
-        khach_hang = (
-            KhachHang.objects.select_related('ma_tk', 'ma_tv')
-            .filter(ma_tk__user=request.user)
-            .first()
-        )
-
+        khach_hang = (KhachHang.objects.select_related('ma_tk', 'ma_tv')
+                      .filter(ma_tk__user=request.user).first())
     lich_su_dich_vu = []
     tong_so_dich_vu = 0
     if khach_hang and hasattr(khach_hang, 'ma_kh'):
         try:
-            qs = (
-                DichVuDaSuDung.objects.filter(ma_kh=khach_hang)
-                .select_related('ma_dv', 'ma_nv')
-                .order_by('-ngay_su_dung')
-            )
+            qs = (DichVuDaSuDung.objects.filter(ma_kh=khach_hang)
+                  .select_related('ma_dv', 'ma_nv').order_by('-ngay_su_dung'))
             tong_so_dich_vu = qs.count()
             lich_su_dich_vu = list(qs)
-        except Exception as e:
-            print(f"Lỗi truy vấn lịch sử dịch vụ khách hàng: {e}")
-            lich_su_dich_vu = []
-            tong_so_dich_vu = 0
-
+        except Exception:
+            logger.exception('Customer service history lookup failed')
     if not khach_hang:
         class TempKhachHang:
             ho_ten = request.user.get_full_name() or request.user.username
             ngay_sinh = None
-            gioi_tinh = "Nam"
-            ma_kh = "Chưa có mã"
+            gioi_tinh = 'Nam'
+            ma_kh = 'Chưa có mã'
             diem_tich_luy_kh = 0
             ma_tv = None
 
             @property
             def ma_tk(self):
                 class DummyTk:
-                    so_dien_thoai = tai_khoan.so_dien_thoai if tai_khoan else ""
+                    so_dien_thoai = tai_khoan.so_dien_thoai if tai_khoan else ''
                 return DummyTk()
-
         khach_hang = TempKhachHang()
-
-    context = {
+    return render(request, 'services/customer_service_history.html', {
         'khach_hang': khach_hang,
         'tai_khoan': tai_khoan,
         'lich_su_dich_vu': lich_su_dich_vu,
         'tong_so_dich_vu': tong_so_dich_vu,
-    }
-    return render(request, 'services/customer_service_history.html', context)
+    })

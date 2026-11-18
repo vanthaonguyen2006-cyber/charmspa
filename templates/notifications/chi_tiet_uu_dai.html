@@ -1,137 +1,336 @@
 {% extends 'layouts/customer_base.html' %}
-{% load static %}
+{% load static charm_format %}
 
 {% block title %}{{ promo.ten_chuong_trinh|default:'Chi tiết ưu đãi' }} - Charm Grand Spa{% endblock %}
 
 {% block content %}
 <style>
-  .charm-promo-page { background:#f7f4ee; padding:42px 16px 86px; font-family:'Segoe UI',Roboto,Arial,sans-serif; color:#30271f; }
-  .charm-promo-detail { max-width:820px; margin:auto; background:#fff; border:1px solid #e8e0d5; border-radius:18px; box-shadow:0 12px 36px rgba(48,35,20,.07); overflow:hidden; }
-  .charm-promo-inner { padding:28px 34px 36px; }
-  .charm-promo-banner { height:310px; overflow:hidden; border-radius:12px; position:relative; background:linear-gradient(130deg,#f7efe3,#dfc7a6); }
-  .charm-promo-banner img { display:block; width:100%; height:100%; object-fit:cover; }
-  .charm-promo-placeholder { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:30px; text-align:center; }
-  .charm-promo-placeholder .brand { color:#937045; font-size:11px; letter-spacing:3px; font-weight:700; }
-  .charm-promo-placeholder .symbol { font:46px Georgia,serif; color:#a88658; }
-  .charm-promo-placeholder .name { font:normal 25px/1.4 Georgia,serif; color:#453627; max-width:540px; }
-  .charm-promo-topline { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin:24px 0 12px; }
-  .charm-promo-status { font-size:11px; font-weight:700; padding:6px 11px; border-radius:99px; background:#eff7ef; color:#327342; }
-  .charm-promo-status.upcoming { background:#fff4dc; color:#a56e15; }
-  .charm-promo-status.ended { background:#f2f1f0; color:#777; }
-  .charm-promo-brand { color:#a68b71; font-size:11px; letter-spacing:2px; font-weight:700; }
-  .charm-promo-title { font:700 clamp(23px,3.6vw,32px)/1.35 Georgia,'Times New Roman',serif; color:#2c241e; margin:0 0 14px; overflow-wrap:anywhere; }
-  .charm-promo-desc { font-size:14px; color:#6b6056; line-height:1.85; white-space:pre-line; overflow-wrap:anywhere; margin-bottom:25px; }
-  .charm-promo-offer { border-top:1px solid #ede5db; border-bottom:1px solid #ede5db; padding:22px 0 26px; }
-  .charm-promo-eyebrow { color:#952e2f; font-size:11px; font-weight:700; letter-spacing:1.6px; margin-bottom:10px; }
-  .charm-promo-price-row { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
-  .charm-promo-price { font-size:30px; color:#3d2f22; font-weight:800; }
-  .charm-promo-old-price { font-size:17px; color:#a9a19a; text-decoration:line-through; }
-  .charm-promo-book { display:block; margin-top:20px; text-align:center; text-decoration:none; background:#80634e; color:white!important; border-radius:9px; padding:15px; font-size:13px; letter-spacing:1px; font-weight:700; transition:background .2s; }
-  .charm-promo-book:hover { background:#624935; }
-  .charm-promo-section { padding:27px 0; border-bottom:1px solid #ede5db; }
-  .charm-promo-section:last-child { border:0; padding-bottom:0; }
-  .charm-promo-section h2 { font-size:15px; font-weight:800; color:#35291f; letter-spacing:.3px; margin:0 0 19px; }
-  .charm-promo-dates { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding-bottom:17px; margin-bottom:18px; border-bottom:1px solid #f0eae2; }
-  .charm-promo-data-label { display:block; color:#8b8178; font-size:12px; margin-bottom:6px; }
-  .charm-promo-data-value { display:block; color:#382d24; font-size:14px; font-weight:700; line-height:1.65; overflow-wrap:anywhere; }
-  .charm-promo-info-grid { display:grid; gap:17px; }
-  .charm-promo-info-item { display:flex; align-items:flex-start; gap:13px; }
-  .charm-promo-info-icon { width:28px; flex-shrink:0; text-align:center; font-size:17px; }
-  .charm-promo-textblock { background:#fbf8f4; border:1px solid #f0e7db; border-radius:12px; padding:20px; font-size:14px; color:#5e5144; line-height:1.9; white-space:pre-line; overflow-wrap:anywhere; }
-  .charm-promo-back { display:inline-block; margin-bottom:19px; text-decoration:none; color:#82634a; font-size:13px; font-weight:600; }
-  .charm-promo-back:hover { text-decoration:underline; }
-  @media(max-width:640px) { .charm-promo-page{padding:25px 12px 55px;} .charm-promo-inner{padding:17px 19px 26px;} .charm-promo-banner{height:220px;} .charm-promo-price{font-size:26px;} .charm-promo-placeholder .name{font-size:19px;} }
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+
+    /* Scoped styles: do not affect shared customer layout */
+    .charm-promo-page {
+        --cp-brown: #765323;
+        --cp-gold: #AF884C;
+        --cp-ink: #46392E;
+        --cp-muted: #756B61;
+        --cp-cream: #F8F5EF;
+        --cp-beige: #E9D9C3;
+        --cp-border: #E8DFD2;
+        --cp-sage: #DDE6DC;
+        background: radial-gradient(ellipse at 50% 0%, #fffdf9 0%, var(--cp-cream) 53%, #F5F0E7 100%);
+        color: var(--cp-ink);
+        font-family: 'Montserrat', sans-serif;
+        padding: 48px 20px 100px;
+        min-height: 75vh;
+    }
+    .charm-promo-page *,
+    .charm-promo-page *::before,
+    .charm-promo-page *::after { box-sizing: border-box; }
+    .charm-promo-page :is(h1, h2, h3, p, div, span, strong, a, time) {
+        font-family: 'Montserrat', sans-serif;
+    }
+    .charm-promo-shell { max-width: 960px; margin: 0 auto; }
+    .charm-promo-back {
+        display: inline-flex; align-items: center; gap: 10px;
+        margin-bottom: 22px; color: var(--cp-brown); text-decoration: none;
+        font-size: 12px; font-weight: 700; transition: color .2s;
+    }
+    .charm-promo-back:hover { color: var(--cp-gold); }
+    .charm-promo-back-icon {
+        display: inline-flex; justify-content: center; align-items: center;
+        width: 30px; height: 30px; border: 1px solid var(--cp-border);
+        border-radius: 50%; background: white; font-size: 17px;
+    }
+    .charm-promo-detail {
+        background: #fff; border: 1px solid var(--cp-border);
+        border-radius: 22px; overflow: hidden;
+        box-shadow: 0 18px 55px rgba(70, 57, 46, .085);
+    }
+    .charm-promo-banner {
+        height: 345px; position: relative; overflow: hidden;
+        background: linear-gradient(135deg, #f4eadb, var(--cp-beige));
+    }
+    .charm-promo-banner::after {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        border: 1px solid rgba(255,255,255,.18);
+    }
+    .charm-promo-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .charm-promo-placeholder {
+        width: 100%; height: 100%; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 13px;
+        padding: 36px; text-align: center;
+        background: radial-gradient(circle at 84% 15%, rgba(255,255,255,.65), transparent 36%),
+                    radial-gradient(circle at 8% 88%, rgba(175,136,76,.1), transparent 40%),
+                    linear-gradient(135deg, #f5ebdc, #e6d2b5);
+    }
+    .charm-promo-placeholder .symbol { font-size: 39px; line-height: 1; color: var(--cp-gold); }
+    .charm-promo-placeholder .brand {
+        font-size: 10px; letter-spacing: 3px; font-weight: 700;
+        text-transform: uppercase; color: var(--cp-brown);
+    }
+    .charm-promo-placeholder .name {
+        max-width: 620px; margin: 0; font-size: clamp(19px, 3vw, 29px);
+        font-weight: 700; line-height: 1.5; color: var(--cp-ink);
+        overflow-wrap: anywhere;
+    }
+    .charm-promo-placeholder .line { height: 2px; width: 54px; background: var(--cp-gold); border-radius: 3px; }
+    .charm-promo-inner { padding: 35px 44px 46px; }
+    .charm-promo-topline {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 18px;
+    }
+    .charm-promo-status {
+        display: inline-flex; align-items: center; gap: 7px;
+        border-radius: 99px; padding: 7px 12px; background: var(--cp-sage);
+        color: #365B40; font-size: 10px; font-weight: 800; letter-spacing: .55px;
+    }
+    .charm-promo-status::before { content: ''; height: 6px; width: 6px; background: currentColor; border-radius: 50%; }
+    .charm-promo-status.upcoming { background: #FFF2D8; color: #916218; }
+    .charm-promo-status.ended { background: #EEECE9; color: #77716A; }
+    .charm-promo-brand { font-size: 10px; color: var(--cp-gold); font-weight: 800; letter-spacing: 2px; }
+    .charm-promo-title {
+        font-size: clamp(23px, 3.5vw, 34px); line-height: 1.42;
+        font-weight: 700; letter-spacing: -.6px; color: var(--cp-ink);
+        margin: 0 0 14px; overflow-wrap: anywhere;
+    }
+    .charm-promo-desc {
+        color: var(--cp-muted); font-size: 13px; line-height: 1.95;
+        white-space: pre-line; overflow-wrap: anywhere; margin: 0 0 28px;
+    }
+    .charm-promo-offer {
+        padding: 24px 27px 27px; margin-bottom: 10px;
+        background: linear-gradient(135deg, #fffdf9, #F8F3EB);
+        border: 1px solid var(--cp-border); border-radius: 16px;
+    }
+    .charm-promo-eyebrow {
+        font-size: 10px; color: var(--cp-gold); font-weight: 800;
+        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .charm-promo-price-row { display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap; }
+    .charm-promo-price { color: var(--cp-brown); font-size: clamp(25px, 4vw, 34px); font-weight: 800; line-height: 1.3; }
+    .charm-promo-old-price { color: #9E958C; font-size: 15px; text-decoration: line-through; }
+    .charm-promo-book {
+        margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 9px;
+        width: 100%; min-height: 50px; padding: 15px 20px;
+        background: var(--cp-brown); color: #fff !important;
+        text-decoration: none; font-size: 12px; font-weight: 800;
+        letter-spacing: 1px; border-radius: 10px;
+        box-shadow: 0 6px 18px rgba(118,83,35,.16);
+        transition: background .2s, transform .2s, box-shadow .2s;
+    }
+    .charm-promo-book:hover {
+        background: var(--cp-gold); color: #fff !important;
+        transform: translateY(-2px); box-shadow: 0 10px 24px rgba(118,83,35,.19);
+    }
+    .charm-promo-section {
+        padding: 28px 0; border-bottom: 1px solid var(--cp-border);
+    }
+    .charm-promo-section:last-child { border-bottom: 0; padding-bottom: 0; }
+    .charm-promo-section-heading {
+        display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    }
+    .charm-promo-section-icon {
+        width: 35px; height: 35px; border-radius: 10px; flex: 0 0 35px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--cp-brown); background: #F5EDE0; font-size: 17px;
+    }
+    .charm-promo-section h2 {
+        margin: 0; color: var(--cp-ink); font-size: 14px;
+        font-weight: 800; letter-spacing: .15px; line-height: 1.5;
+    }
+    .charm-promo-dates {
+        display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px;
+        margin-bottom: 21px;
+    }
+    .charm-promo-date-item {
+        padding: 16px 19px; border: 1px solid #EFE7DD;
+        border-radius: 11px; background: #FCFAF7;
+    }
+    .charm-promo-data-label { display: block; color: #8B8178; font-size: 11px; line-height: 1.5; margin-bottom: 5px; }
+    .charm-promo-data-value {
+        display: block; color: var(--cp-ink); font-size: 13px; font-weight: 700;
+        line-height: 1.7; overflow-wrap: anywhere;
+    }
+    .charm-promo-info-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 20px; }
+    .charm-promo-info-item { display: flex; gap: 11px; align-items: flex-start; min-width: 0; }
+    .charm-promo-info-icon {
+        width: 32px; height: 32px; flex: 0 0 32px;
+        border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
+        background: #F6F0E7; color: var(--cp-gold); font-size: 16px;
+    }
+    .charm-promo-textblock {
+        white-space: pre-line; overflow-wrap: anywhere;
+        padding: 22px 24px; border: 1px solid #ECE2D5; border-radius: 12px;
+        background: #FCFAF7; color: #62564B; font-size: 13px; line-height: 2;
+    }
+    .charm-promo-service {
+        margin-top: 15px; display: flex; gap: 9px; align-items: flex-start;
+        color: var(--cp-ink); font-size: 12px; line-height: 1.7;
+    }
+    .charm-promo-service strong { color: var(--cp-brown); }
+    .charm-promo-price-note { margin: 10px 0 0; color: var(--cp-muted); font-size: 11px; line-height: 1.7; }
+    .charm-promo-unavailable {
+        margin: 16px 0 0; padding: 13px 15px; border-radius: 10px;
+        background: #f6f1e9; color: #765f44; font-size: 12px; line-height: 1.7;
+    }
+
+    @media (max-width: 700px) {
+        .charm-promo-page { padding: 30px 12px 65px; }
+        .charm-promo-inner { padding: 25px 22px 30px; }
+        .charm-promo-banner { height: 245px; }
+        .charm-promo-info-grid { grid-template-columns: 1fr; }
+        .charm-promo-topline { margin-bottom: 15px; }
+    }
+    @media (max-width: 430px) {
+        .charm-promo-inner { padding: 21px 16px 27px; }
+        .charm-promo-banner { height: 215px; }
+        .charm-promo-placeholder { padding: 22px; }
+        .charm-promo-placeholder .brand { font-size: 9px; letter-spacing: 2px; }
+        .charm-promo-placeholder .name { font-size: 18px; }
+        .charm-promo-offer { padding: 20px 17px; }
+        .charm-promo-dates { gap: 9px; }
+        .charm-promo-date-item { padding: 13px 12px; }
+        .charm-promo-section h2 { font-size: 12px; }
+        .charm-promo-textblock { padding: 17px 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .charm-promo-page * { transition: none !important; }
+    }
 </style>
 
 <div class="charm-promo-page">
-  <div class="charm-promo-detail">
-    <div class="charm-promo-inner">
-      <a href="{% url 'notifications:danh_sach_uu_dai' %}" class="charm-promo-back">← Quay lại danh sách ưu đãi</a>
+    <div class="charm-promo-shell">
+        <a href="{% url 'notifications:danh_sach_uu_dai' %}" class="charm-promo-back">
+            <span class="charm-promo-back-icon" aria-hidden="true">←</span>
+            Quay lại danh sách ưu đãi
+        </a>
 
-      <!-- Banner riêng theo URL Admin lưu trong trường CharField hinh_anh -->
-      <div class="charm-promo-banner">
-        {% if promo.hinh_anh %}
-          <img src="{{ promo.hinh_anh }}" alt="{{ promo.ten_chuong_trinh }}">
-        {% else %}
-          <div class="charm-promo-placeholder">
-            <span class="symbol">✦</span>
-            <span class="brand">CHARM GRAND SPA & WELLNESS</span>
-            <span class="name">{{ promo.ten_chuong_trinh }}</span>
-          </div>
-        {% endif %}
-      </div>
+        <article class="charm-promo-detail">
+            <!-- Ảnh chương trình lấy từ URL do Admin nhập -->
+            <div class="charm-promo-banner">
+                {% if promo.hinh_anh %}
+                    <img src="{{ promo.hinh_anh }}" alt="{{ promo.ten_chuong_trinh }}">
+                {% else %}
+                    <div class="charm-promo-placeholder">
+                        <span class="symbol" aria-hidden="true">✦</span>
+                        <span class="brand">CHARM GRAND SPA & WELLNESS</span>
+                        <h2 class="name">{{ promo.ten_chuong_trinh }}</h2>
+                        <span class="line" aria-hidden="true"></span>
+                    </div>
+                {% endif %}
+            </div>
 
-      <div class="charm-promo-topline">
-        {% if promo.trang_thai == 'Đang áp dụng' %}
-          <span class="charm-promo-status">ĐANG ÁP DỤNG</span>
-        {% elif promo.trang_thai == 'Sắp diễn ra' %}
-          <span class="charm-promo-status upcoming">SẮP DIỄN RA</span>
-        {% else %}
-          <span class="charm-promo-status ended">{{ promo.trang_thai|default:'CHƯA XÁC ĐỊNH' }}</span>
-        {% endif %}
-        <span class="charm-promo-brand">SIGNATURE EXPERIENCE</span>
-      </div>
+            <div class="charm-promo-inner">
+                <div class="charm-promo-topline">
+                    {% if promo.trang_thai == 'Đang áp dụng' %}
+                        <span class="charm-promo-status">ĐANG ÁP DỤNG</span>
+                    {% elif promo.trang_thai == 'Sắp diễn ra' %}
+                        <span class="charm-promo-status upcoming">SẮP DIỄN RA</span>
+                    {% else %}
+                        <span class="charm-promo-status ended">{{ promo.trang_thai|default:'CHƯA XÁC ĐỊNH' }}</span>
+                    {% endif %}
+                    <span class="charm-promo-brand">SIGNATURE EXPERIENCE</span>
+                </div>
 
-      <h1 class="charm-promo-title">{{ promo.ten_chuong_trinh }}</h1>
-      {% if promo.mo_ta %}<div class="charm-promo-desc">{{ promo.mo_ta }}</div>{% endif %}
+                <h1 class="charm-promo-title">{{ promo.ten_chuong_trinh }}</h1>
+                {% if promo.mo_ta %}
+                    <p class="charm-promo-desc">{{ promo.mo_ta }}</p>
+                {% endif %}
 
-      <!-- Giá lấy đúng tên trường trong model -->
-      <div class="charm-promo-offer">
-        <div class="charm-promo-eyebrow">ƯU ĐÃI ĐẶC BIỆT</div>
-        <div class="charm-promo-price-row">
-          <strong class="charm-promo-price">{{ promo.gia_tri_uu_dai|floatformat:0 }}đ</strong>
-          {% if promo.gia_goc and promo.gia_goc > promo.gia_tri_uu_dai %}
-            <span class="charm-promo-old-price">{{ promo.gia_goc|floatformat:0 }}đ</span>
-          {% endif %}
-        </div>
-        <a href="{% url 'bookings:booking_customer_create' %}" class="charm-promo-book">✦ ĐẶT LỊCH NGAY</a>
-      </div>
+                <!-- Giá hiển thị theo chương trình; giá thực tế phải được backend Booking xác nhận lại. -->
+                <div class="charm-promo-offer">
+                    <div class="charm-promo-eyebrow">ƯU ĐÃI ĐẶC BIỆT</div>
+                    <div class="charm-promo-price-row">
+                        <strong class="charm-promo-price">{{ promo.gia_tri_uu_dai|vnd }}</strong>
+                        {% if promo.gia_goc and promo.gia_goc > promo.gia_tri_uu_dai %}
+                            <span class="charm-promo-old-price">{{ promo.gia_goc|vnd }}</span>
+                        {% endif %}
+                    </div>
+                    {% if promo.ma_dv_id %}
+                        <p class="charm-promo-service">
+                            <span aria-hidden="true">✦</span>
+                            <span>Áp dụng cho dịch vụ: <strong>{{ promo.ma_dv.ten_dich_vu }}</strong></span>
+                        </p>
+                        <p class="charm-promo-price-note">Giá hiển thị cho 1 khách. Tổng tiền được xác nhận khi đặt lịch.</p>
+                        <a href="{% url 'bookings:booking_customer_create' %}?promo={{ promo.pk|urlencode }}"
+                           class="charm-promo-book" aria-label="Đặt lịch với ưu đãi {{ promo.ten_chuong_trinh }}">
+                            <span aria-hidden="true">✦</span> ĐẶT LỊCH VỚI ƯU ĐÃI
+                        </a>
+                    {% else %}
+                        <p class="charm-promo-unavailable" role="status">
+                            Chương trình chưa được liên kết với một dịch vụ cụ thể.
+                            Vui lòng liên hệ Charm Spa để được hỗ trợ trước khi đặt lịch.
+                        </p>
+                    {% endif %}
+                </div>
 
-      <!-- Thông tin chương trình -->
-      <section class="charm-promo-section">
-        <h2>📅 01. THÔNG TIN CHƯƠNG TRÌNH</h2>
-        <div class="charm-promo-dates">
-          <div>
-            <span class="charm-promo-data-label">Ngày bắt đầu</span>
-            <strong class="charm-promo-data-value">{{ promo.ngay_bat_dau|date:'d/m/Y' }}</strong>
-          </div>
-          <div>
-            <span class="charm-promo-data-label">Ngày kết thúc</span>
-            <strong class="charm-promo-data-value">{{ promo.ngay_ket_thuc|date:'d/m/Y' }}</strong>
-          </div>
-        </div>
-        <div class="charm-promo-info-grid">
-          {% if promo.loai_uu_dai %}
-            <div class="charm-promo-info-item"><span class="charm-promo-info-icon">✦</span><div><span class="charm-promo-data-label">Loại ưu đãi</span><strong class="charm-promo-data-value">{{ promo.loai_uu_dai }}</strong></div></div>
-          {% endif %}
-          {% if promo.thoi_luong %}
-            <div class="charm-promo-info-item"><span class="charm-promo-info-icon">⏱</span><div><span class="charm-promo-data-label">Thời lượng liệu trình</span><strong class="charm-promo-data-value">{{ promo.thoi_luong }}</strong></div></div>
-          {% endif %}
-          {% if promo.doi_tuong_ap_dung %}
-            <div class="charm-promo-info-item"><span class="charm-promo-info-icon">♙</span><div><span class="charm-promo-data-label">Đối tượng áp dụng</span><strong class="charm-promo-data-value">{{ promo.doi_tuong_ap_dung }}</strong></div></div>
-          {% endif %}
-          {% if promo.dia_diem_ap_dung %}
-            <div class="charm-promo-info-item"><span class="charm-promo-info-icon">📍</span><div><span class="charm-promo-data-label">Địa điểm áp dụng</span><strong class="charm-promo-data-value">{{ promo.dia_diem_ap_dung }}</strong></div></div>
-          {% endif %}
-        </div>
-      </section>
+                <section class="charm-promo-section">
+                    <div class="charm-promo-section-heading">
+                        <span class="charm-promo-section-icon" aria-hidden="true">▦</span>
+                        <h2>01. THÔNG TIN CHƯƠNG TRÌNH</h2>
+                    </div>
+                    <div class="charm-promo-dates">
+                        <div class="charm-promo-date-item">
+                            <span class="charm-promo-data-label">Ngày bắt đầu</span>
+                            <strong class="charm-promo-data-value">{{ promo.ngay_bat_dau|date:'d/m/Y' }}</strong>
+                        </div>
+                        <div class="charm-promo-date-item">
+                            <span class="charm-promo-data-label">Ngày kết thúc</span>
+                            <strong class="charm-promo-data-value">{{ promo.ngay_ket_thuc|date:'d/m/Y' }}</strong>
+                        </div>
+                    </div>
+                    <div class="charm-promo-info-grid">
+                        {% if promo.loai_uu_dai %}
+                            <div class="charm-promo-info-item">
+                                <span class="charm-promo-info-icon" aria-hidden="true">✦</span>
+                                <div><span class="charm-promo-data-label">Loại ưu đãi</span><strong class="charm-promo-data-value">{{ promo.loai_uu_dai }}</strong></div>
+                            </div>
+                        {% endif %}
+                        {% if promo.thoi_luong %}
+                            <div class="charm-promo-info-item">
+                                <span class="charm-promo-info-icon" aria-hidden="true">◷</span>
+                                <div><span class="charm-promo-data-label">Thời lượng liệu trình</span><strong class="charm-promo-data-value">{{ promo.thoi_luong }}</strong></div>
+                            </div>
+                        {% endif %}
+                        {% if promo.doi_tuong_ap_dung %}
+                            <div class="charm-promo-info-item">
+                                <span class="charm-promo-info-icon" aria-hidden="true">♙</span>
+                                <div><span class="charm-promo-data-label">Đối tượng áp dụng</span><strong class="charm-promo-data-value">{{ promo.doi_tuong_ap_dung }}</strong></div>
+                            </div>
+                        {% endif %}
+                        {% if promo.dia_diem_ap_dung %}
+                            <div class="charm-promo-info-item">
+                                <span class="charm-promo-info-icon" aria-hidden="true">⌖</span>
+                                <div><span class="charm-promo-data-label">Địa điểm áp dụng</span><strong class="charm-promo-data-value">{{ promo.dia_diem_ap_dung }}</strong></div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
 
-      <!-- Chỉ hiện quyền lợi thực sự nhập từ Admin -->
-      {% if promo.quyen_loi %}
-        <section class="charm-promo-section">
-          <h2>🎁 02. QUYỀN LỢI KHÁCH HÀNG</h2>
-          <div class="charm-promo-textblock">{{ promo.quyen_loi }}</div>
-        </section>
-      {% endif %}
+                {% if promo.quyen_loi %}
+                    <section class="charm-promo-section">
+                        <div class="charm-promo-section-heading">
+                            <span class="charm-promo-section-icon" aria-hidden="true">✧</span>
+                            <h2>02. QUYỀN LỢI KHÁCH HÀNG</h2>
+                        </div>
+                        <div class="charm-promo-textblock">{{ promo.quyen_loi }}</div>
+                    </section>
+                {% endif %}
 
-      <!-- Chỉ hiện điều kiện thực sự nhập từ Admin -->
-      {% if promo.dieu_kien %}
-        <section class="charm-promo-section">
-          <h2>📜 03. ĐIỀU KIỆN ÁP DỤNG</h2>
-          <div class="charm-promo-textblock">{{ promo.dieu_kien }}</div>
-        </section>
-      {% endif %}
+                {% if promo.dieu_kien %}
+                    <section class="charm-promo-section">
+                        <div class="charm-promo-section-heading">
+                            <span class="charm-promo-section-icon" aria-hidden="true">▤</span>
+                            <h2>03. ĐIỀU KIỆN ÁP DỤNG</h2>
+                        </div>
+                        <div class="charm-promo-textblock">{{ promo.dieu_kien }}</div>
+                    </section>
+                {% endif %}
+            </div>
+        </article>
     </div>
-  </div>
 </div>
 {% endblock %}
+
+```
+`
