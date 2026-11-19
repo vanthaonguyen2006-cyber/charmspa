@@ -5,7 +5,7 @@
 
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'css/notifications/cham_soc_sau_lieu_trinh.css' %}?v=20261118_03">
+  <link rel="stylesheet" href="{% static 'css/notifications/cham_soc_sau_lieu_trinh.css' %}?v=20261119_aftercare_heading_fix_03">
 {% endblock %}
 
 {% block content %}
@@ -15,17 +15,16 @@
  <div class="hdcs-wrap">
   <div class="hdcs-heading">
    <div>
-    <div class="hdcs-eyebrow"><i data-lucide="sparkles" aria-hidden="true"></i> CHĂM SÓC SAU LIỆU TRÌNH</div>
-    <h1>Hướng dẫn sau liệu trình</h1>
+    <h1>HƯỚNG DẪN SAU LIỆU TRÌNH</h1>
     <p>Quản lý lời dặn chăm sóc dành riêng cho khách hàng sau khi hoàn thành dịch vụ.</p>
    </div>
    <div class="hdcs-note"><i data-lucide="shield-check" aria-hidden="true"></i> Hướng dẫn cá nhân hóa · Gửi trực tiếp đến khách hàng</div>
   </div>
 
   <div class="hdcs-metrics">
-   <div class="hdcs-metric"><div class="hdcs-metric-top"><div class="hdcs-metric-name">Hoàn thành hôm nay</div><span class="hdcs-metric-icon"><i data-lucide="calendar-check-2"></i></span></div><div class="hdcs-metric-value" id="hdcsToday">0</div></div>
-   <div class="hdcs-metric"><div class="hdcs-metric-top"><div class="hdcs-metric-name">Chờ gửi hướng dẫn</div><span class="hdcs-metric-icon"><i data-lucide="clock-3"></i></span></div><div class="hdcs-metric-value" id="hdcsPending">0</div></div>
-   <div class="hdcs-metric"><div class="hdcs-metric-top"><div class="hdcs-metric-name">Đã gửi hướng dẫn</div><span class="hdcs-metric-icon"><i data-lucide="send"></i></span></div><div class="hdcs-metric-value" id="hdcsSent">0</div></div>
+   <div class="hdcs-metric"><span class="hdcs-metric-icon"><i data-lucide="calendar-check-2" aria-hidden="true"></i></span><div class="hdcs-metric-info"><div class="hdcs-metric-name">Hoàn thành hôm nay</div><div class="hdcs-metric-value" id="hdcsToday">0</div></div></div>
+   <div class="hdcs-metric"><span class="hdcs-metric-icon"><i data-lucide="clock-3" aria-hidden="true"></i></span><div class="hdcs-metric-info"><div class="hdcs-metric-name">Chờ gửi hướng dẫn</div><div class="hdcs-metric-value" id="hdcsPending">0</div></div></div>
+   <div class="hdcs-metric"><span class="hdcs-metric-icon"><i data-lucide="send" aria-hidden="true"></i></span><div class="hdcs-metric-info"><div class="hdcs-metric-name">Đã gửi hướng dẫn</div><div class="hdcs-metric-value" id="hdcsSent">0</div></div></div>
   </div>
 
   <section class="hdcs-panel">
@@ -52,7 +51,9 @@
        <td><div>{{ record.gio_checkout|date:'H:i' }}</div><div class="hdcs-sub">{{ record.gio_checkout|date:'d/m/Y' }}</div></td>
        <td>{% if record.trang_thai %}<span class="hdcs-pill sent">Đã gửi</span>{% else %}<span class="hdcs-pill pending">Chưa gửi</span>{% endif %}</td>
        <td>
-        <button type="button" class="hdcs-btn {% if not record.trang_thai %}primary{% endif %} hdcs-open"
+        <button type="button" class="hdcs-btn hdcs-icon-only {% if not record.trang_thai %}primary{% endif %} hdcs-open"
+          title="{% if record.trang_thai %}Xem nội dung{% else %}Soạn hướng dẫn{% endif %}"
+          aria-label="{% if record.trang_thai %}Xem nội dung hướng dẫn của {{ record.ten_khach_hang|escape }}{% else %}Soạn hướng dẫn cho {{ record.ten_khach_hang|escape }}{% endif %}"
          data-name="{{ record.ten_khach_hang|escape }}"
          data-service="{{ record.ten_dich_vu|escape }}"
          data-staff="{{ record.ten_ktv|default:'Chưa phân công'|escape }}"
@@ -62,7 +63,7 @@
          data-send-url="{% url 'notifications:gui_hdcs_action' record.id %}"
          data-status="{% if record.trang_thai %}sent{% else %}pending{% endif %}"
          data-content="{{ record.noi_dung_gui|default:''|escape }}">
-         <i data-lucide="{% if record.trang_thai %}eye{% else %}send{% endif %}" aria-hidden="true"></i><span>{% if record.trang_thai %}Xem nội dung{% else %}Soạn hướng dẫn{% endif %}</span>
+         <i data-lucide="{% if record.trang_thai %}eye{% else %}send{% endif %}" aria-hidden="true"></i>
         </button>
        </td>
       </tr>
@@ -353,5 +354,3 @@
 })();
 </script>
 {% endblock %}
-
-```

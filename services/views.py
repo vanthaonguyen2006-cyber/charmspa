@@ -5,10 +5,13 @@ in services/urls.py (or the project's corresponding URLConf).
 """
 import logging
 import re
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from functools import wraps
+from collections import Counter
+from types import SimpleNamespace
+from django.utils import timezone
 
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
@@ -19,6 +22,7 @@ from django.views.decorators.http import require_POST
 from accounts.models import is_customer_role, is_manager_role, is_staff_portal_user
 from customers.models import KhachHang
 from services.models import DichVu, DichVuDaSuDung
+from bookings.models import LichHen, PhanCongLichHen
 
 logger = logging.getLogger(__name__)
 LOGIN_URL = '/accounts/dang_nhap/'
@@ -197,25 +201,78 @@ def api_xoa_dich_vu(request):
         return JsonResponse({'success': False, 'error': 'Không thể xóa dịch vụ do có dữ liệu liên quan hoặc lỗi hệ thống.'}, status=409)
 
 
+def _history_datetime(value):
+    """Normalize date/datetime values for sorting and comparing without timezone errors."""
+    if isinstance(value, datetime):
+        if timezone.is_aware(value):
+            return timezone.localtime(value).replace(tzinfo=None)
+        return value
+    return datetime.combine(value, datetime.min.time())
+
+
 @login_required(login_url=LOGIN_URL)
 @role_required(is_customer_role)
 def customer_service_history_view(request):
-    """Customer-only service history, using the current business role system."""
+    """Show recorded service usage plus completed bookings not yet in usage history.
+
+    Read-only: no history rows, customer points, or bookings are created/updated.
+    A same-customer, same-service, same-day record is assumed to describe the
+    completed booking; matching is one-to-one, not a blanket distinct().
+    """
     tai_khoan = getattr(request.user, 'thong_tin_tai_khoan', None)
-    khach_hang = getattr(tai_khoan, 'ho_so_khach_hang', None) if tai_khoan else None
-    if not khach_hang:
-        khach_hang = (KhachHang.objects.select_related('ma_tk', 'ma_tv')
-                      .filter(ma_tk__user=request.user).first())
+    khach_hang = (KhachHang.objects.select_related('ma_tk', 'ma_tv')
+                   .filter(ma_tk__user=request.user).first())
     lich_su_dich_vu = []
-    tong_so_dich_vu = 0
-    if khach_hang and hasattr(khach_hang, 'ma_kh'):
-        try:
-            qs = (DichVuDaSuDung.objects.filter(ma_kh=khach_hang)
-                  .select_related('ma_dv', 'ma_nv').order_by('-ngay_su_dung'))
-            tong_so_dich_vu = qs.count()
-            lich_su_dich_vu = list(qs)
-        except Exception:
-            logger.exception('Customer service history lookup failed')
+
+    if khach_hang:
+        # Source A: explicit usage records (existing history, including walk-ins).
+        usage_records = list(
+            DichVuDaSuDung.objects.filter(ma_kh=khach_hang)
+            .select_related('ma_dv', 'ma_nv').order_by('-ngay_su_dung')
+        )
+
+        # Source B: bookings marked completed, even when the booking workflow
+        # has not created a corresponding DichVuDaSuDung row.
+        completed = list(
+            LichHen.objects.filter(ma_kh=khach_hang, trang_thai='Hoàn thành')
+            .select_related('ma_dv', 'ma_nv')
+            .order_by('-ngay_hen', '-gio_hen', '-ma_lh')
+        )
+
+        # Prefer the actual assigned professional where a booking has one.
+        assignments = {}
+        if completed:
+            for assignment in (PhanCongLichHen.objects
+                               .filter(ma_lh_id__in=[booking.pk for booking in completed])
+                               .select_related('ma_nv_phu_trach')
+                               .order_by('ngay_phan_cong', 'pk')):
+                assignments.setdefault(assignment.ma_lh_id, assignment.ma_nv_phu_trach)
+
+        # One-to-one matching avoids counting one completed appointment twice
+        # when its usage record was also saved. Unmatched usage rows stay visible.
+        unused_matches = Counter(
+            (str(row.ma_dv_id), _history_datetime(row.ngay_su_dung).date())
+            for row in usage_records if row.ngay_su_dung
+        )
+        lich_su_dich_vu.extend(usage_records)
+        for booking in completed:
+            key = (str(booking.ma_dv_id), booking.ngay_hen)
+            if unused_matches[key] > 0:
+                unused_matches[key] -= 1
+                continue
+            usage_time = datetime.combine(booking.ngay_hen, booking.gio_hen)
+            lich_su_dich_vu.append(SimpleNamespace(
+                ma_sd='LH: ' + str(booking.ma_lh),
+                ma_dv=booking.ma_dv,
+                ma_nv=assignments.get(booking.pk) or booking.ma_nv,
+                ngay_su_dung=usage_time,
+            ))
+
+        lich_su_dich_vu.sort(
+            key=lambda row: _history_datetime(row.ngay_su_dung), reverse=True
+        )
+
+    tong_so_dich_vu = len(lich_su_dich_vu)
     if not khach_hang:
         class TempKhachHang:
             ho_ten = request.user.get_full_name() or request.user.username
@@ -231,6 +288,7 @@ def customer_service_history_view(request):
                     so_dien_thoai = tai_khoan.so_dien_thoai if tai_khoan else ''
                 return DummyTk()
         khach_hang = TempKhachHang()
+
     return render(request, 'services/customer_service_history.html', {
         'khach_hang': khach_hang,
         'tai_khoan': tai_khoan,
