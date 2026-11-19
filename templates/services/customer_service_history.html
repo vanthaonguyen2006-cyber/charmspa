@@ -35,10 +35,134 @@
     #tabContentHistory .text-gray-500 {
         font-size: 13px !important;
     }
+    /* Five balanced columns, without the price column. */
+    #tabContentHistory .history-table { table-layout: fixed; min-width: 940px; }
+    #tabContentHistory .history-table th,
+    #tabContentHistory .history-table td { vertical-align: middle; }
+    #tabContentHistory .history-table th { white-space: nowrap; font-size: 12px; }
+    #tabContentHistory .history-table td:first-child { overflow-wrap: anywhere; }
     #tabContentHistory .text-amber-700 {
         font-size: 40px !important;
         font-weight: 700 !important;
         color: #000000 !important;
+    }
+
+    /* Charm Grand: service history filters */
+    #tabContentHistory .history-filter-panel {
+        padding: 19px 20px; margin: 0 0 20px; background: #fffdfa;
+        border: 1px solid #eadfD1; border-radius: 13px;
+    }
+    #tabContentHistory .history-filter-grid {
+        display: grid; grid-template-columns: minmax(0,1.25fr) minmax(0,1fr) minmax(0,.88fr) minmax(0,.88fr);
+        gap: 14px; align-items: end;
+    }
+    #tabContentHistory .history-filter-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    #tabContentHistory .history-filter-field label {
+        font-size: 13px; font-weight: 600; color: #8a7161;
+    }
+    #tabContentHistory .history-filter-field input,
+    #tabContentHistory .history-filter-field select {
+        width: 100%; height: 43px; padding: 0 12px; border: 1px solid #e7d8c6;
+        border-radius: 9px; background: #fff; font: 500 13px 'Montserrat', sans-serif;
+        color: #3e342e; outline: none; min-width: 0;
+    }
+    #tabContentHistory .history-filter-field input:focus,
+    #tabContentHistory .history-filter-field select:focus {
+        border-color: #b38a56; box-shadow: 0 0 0 3px rgba(179,138,86,.13);
+    }
+    #tabContentHistory .history-filter-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+    #tabContentHistory .history-filter-submit, #tabContentHistory .history-filter-reset {
+        min-height: 40px; padding: 0 19px; font: 700 13px 'Montserrat', sans-serif;
+        border-radius: 9px; cursor: pointer;
+    }
+    #tabContentHistory .history-filter-submit { background: #a8804e; border: 1px solid #a8804e; color: #fff; }
+    #tabContentHistory .history-filter-submit:hover { background: #8b683e; }
+    #tabContentHistory .history-filter-reset { background: #fff; border: 1px solid #e8d9c8; color: #946f46; }
+    #tabContentHistory .history-filter-reset:hover { background: #faf3e8; }
+    #tabContentHistory .history-filter-feedback { margin-top: 10px; color: #766554; font-size: 12px; }
+    #tabContentHistory .history-filter-empty { text-align: center; color: #806c5a; font-size: 14px; padding: 27px 12px; }
+    #tabContentHistory .history-filter-empty[hidden] { display: none !important; }
+    @media (max-width: 1050px) {
+      #tabContentHistory .history-filter-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 580px) {
+      #tabContentHistory .history-filter-panel { padding: 14px; }
+      #tabContentHistory .history-filter-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+      #tabContentHistory .history-filter-actions { flex-wrap: wrap; }
+    }
+
+    /* Booking-page visual alignment: heading, filter bar and a separate table card. */
+    #tabContentHistory .history-page-layout { display: flex; flex-direction: column; gap: 18px; }
+    #tabContentHistory .history-page-heading {
+        display: flex; justify-content: space-between; align-items: center; gap: 18px;
+        flex-wrap: wrap; padding: 4px 0 0; border: 0; margin: 0;
+    }
+    #tabContentHistory .history-main-title,
+    #tabContentHistory .history-page-heading h3 {
+        font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+        font-size: 29px !important; font-weight: 800 !important; letter-spacing: -.55px;
+        line-height: 1.25; color: #332a22 !important; margin: 0 0 6px;
+    }
+    #tabContentHistory .history-page-subtitle { margin: 0; color: #958276 !important; font-size: 13px !important; line-height: 1.5; }
+    #tabContentHistory .history-total-badge {
+        border: 1px solid #eedab7; background: #fffaf1; border-radius: 999px;
+        padding: 7px 14px; color: #936a3e; font-size: 13px; font-weight: 700; white-space: nowrap;
+    }
+    #tabContentHistory .history-filter-panel {
+        padding: 20px 21px; margin: 0; background: #fff;
+        border: 1px solid #e9ded1; border-radius: 13px;
+    }
+    #tabContentHistory .history-filter-grid {
+        display: grid;
+        grid-template-columns: minmax(140px,1.12fr) minmax(165px,1.06fr) minmax(133px,.98fr) minmax(133px,.98fr) auto;
+        gap: 12px; align-items: end;
+    }
+    #tabContentHistory .history-filter-field { gap: 7px; }
+    #tabContentHistory .history-filter-field label { font-size: 12px !important; font-weight: 500; color: #998476; }
+    #tabContentHistory .history-filter-field input,
+    #tabContentHistory .history-filter-field select {
+        height: 43px; border-radius: 9px; border-color: #e6d9c8;
+        font-size: 12px; background-color: #fff;
+    }
+    #tabContentHistory .history-filter-actions {
+        display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin: 0;
+        white-space: nowrap;
+    }
+    #tabContentHistory .history-filter-submit,
+    #tabContentHistory .history-filter-reset { height: 43px; min-height: 43px; padding: 0 15px; border-radius: 9px; font-size: 12px; }
+    #tabContentHistory .history-filter-submit { background: #ad8958; border-color: #ad8958; }
+    #tabContentHistory .history-filter-reset { border-color: transparent; color: #9a744a; padding: 0 6px; }
+    #tabContentHistory .history-results-card {
+        background: #fff; border: 1px solid #e9ded1; border-radius: 13px;
+        overflow: hidden;
+    }
+    #tabContentHistory .history-table { table-layout: fixed; width: 100%; min-width: 830px; }
+    #tabContentHistory .history-table thead tr { background: #fbf7f2; border-bottom: 1px solid #eee2d3; }
+    #tabContentHistory .history-table thead th {
+        padding: 18px 18px; font-size: 12px !important; font-weight: 750;
+        color: #887463; letter-spacing: .35px;
+    }
+    #tabContentHistory .history-table tbody td { padding: 21px 18px; font-size: 13px; }
+    #tabContentHistory .history-table tbody tr + tr { border-top: 1px solid #f0e9e1; }
+    #tabContentHistory .history-table tbody tr:hover { background: #fefbf7; }
+    #tabContentHistory .history-table th:last-child,
+    #tabContentHistory .history-table td:last-child { text-align: center; }
+    #tabContentHistory .history-filter-feedback { margin: 12px 0 0; }
+    #tabContentHistory .history-filter-empty { padding: 30px; }
+    #tabContentHistory #btnToggleHistory { margin-bottom: 14px; }
+    @media (max-width: 1260px) {
+        #tabContentHistory .history-filter-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+        #tabContentHistory .history-filter-actions { grid-column: 1 / -1; justify-content: flex-end; }
+    }
+    @media (max-width: 790px) {
+        #tabContentHistory .history-filter-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        #tabContentHistory .history-main-title { font-size: 25px !important; }
+        #tabContentHistory .history-page-heading { align-items: flex-start; }
+    }
+    @media (max-width: 530px) {
+        #tabContentHistory .history-filter-grid { grid-template-columns: minmax(0,1fr); }
+        #tabContentHistory .history-filter-panel { padding: 15px; }
+        #tabContentHistory .history-filter-actions { grid-column: auto; }
     }
 </style>
 
@@ -47,37 +171,77 @@
     <!-- LỊCH SỬ DỊCH VỤ (APP SERVICES)                                     -->
     <!-- ================================================================= -->
     <div id="tabContentHistory">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6">
-            <div class="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
+        <div class="history-page-layout">
+            <div class="history-page-heading">
                 <div>
-                    <h3 style="font-size: 22px; font-weight: 700; color: #000000;" class="flex items-center gap-2">
+                    <h3 class="history-main-title">
                         LỊCH SỬ DỊCH VỤ
                     </h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Các liệu trình và dịch vụ bạn đã trải nghiệm tại Charm Spa</p>
+                    <p class="history-page-subtitle">Các liệu trình và dịch vụ bạn đã trải nghiệm tại Charm Spa</p>
                 </div>
                 {% if tong_so_dich_vu > 0 %}
-                    <span class="text-xs font-semibold px-3 py-1 bg-amber-50 text-[#8C6D4F] rounded-full border border-amber-200">
+                    <span class="history-total-badge">
                         {{ tong_so_dich_vu }} lượt sử dụng
                     </span>
                 {% endif %}
             </div>
 
+
+            <!-- Lọc lịch sử ở trình duyệt, không thay đổi dữ liệu database. -->
+            {% if lich_su_dich_vu %}
+            <form id="historyFilterForm" class="history-filter-panel" autocomplete="off">
+                <div class="history-filter-grid">
+                    <div class="history-filter-field">
+                        <label for="historyKeyword">Tìm dịch vụ</label>
+                        <input type="search" id="historyKeyword" placeholder="Tên dịch vụ..." aria-label="Tìm dịch vụ">
+                    </div>
+                    <div class="history-filter-field">
+                        <label for="historyCategory">Loại dịch vụ</label>
+                        <select id="historyCategory" aria-label="Lọc theo loại dịch vụ"><option value="">Tất cả loại dịch vụ</option></select>
+                    </div>
+                    <div class="history-filter-field">
+                        <label for="historyDateFrom">Từ ngày</label>
+                        <input type="date" id="historyDateFrom" aria-label="Từ ngày">
+                    </div>
+                    <div class="history-filter-field">
+                        <label for="historyDateTo">Đến ngày</label>
+                        <input type="date" id="historyDateTo" aria-label="Đến ngày">
+                    </div>
+                    <div class="history-filter-actions">
+                        <button type="submit" class="history-filter-submit">Lọc</button>
+                        <button type="reset" class="history-filter-reset">Xóa bộ lọc</button>
+                    </div>
+                </div>
+                <p id="historyFilterFeedback" class="history-filter-feedback" aria-live="polite" hidden></p>
+            </form>
+            {% endif %}
+
+            <section class="history-results-card" aria-label="Danh sách lịch sử dịch vụ">
             {% if lich_su_dich_vu %}
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                    <table class="w-full text-left text-sm history-table">
+                        <colgroup>
+                            <col style="width:34%">
+                            <col style="width:19%">
+                            <col style="width:22%">
+                            <col style="width:13%">
+                            <col style="width:12%">
+                        </colgroup>
                         <thead>
                             <tr class="bg-gray-50/80 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
                                 <th class="py-3 px-4">Tên dịch vụ</th>
                                 <th class="py-3 px-4">Ngày sử dụng</th>
                                 <th class="py-3 px-4">Nhân viên thực hiện</th>
-                                <th class="py-3 px-4 text-right">Giá dịch vụ</th>
                                 <th class="py-3 px-4 text-center">Điểm tích lũy</th>
                                 <th class="py-3 px-4 text-center">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-gray-700">
                             {% for item in lich_su_dich_vu %}
-                                <tr class="hover:bg-amber-50/30 transition {% if forloop.counter > 5 %}extra-history-row hidden{% endif %}">
+                                <tr class="history-data-row hover:bg-amber-50/30 transition {% if forloop.counter > 5 %}extra-history-row hidden{% endif %}"
+                                    data-history-name="{{ item.ma_dv.ten_dich_vu|default:''|escape }}"
+                                    data-history-category="{{ item.ma_dv.loai_dich_vu|default:''|escape }}"
+                                    data-history-date="{{ item.ngay_su_dung|date:'Y-m-d' }}">
                                     <td class="py-3.5 px-4">
                                         <div class="font-semibold text-gray-900">{{ item.ma_dv.ten_dich_vu }}</div>
                                         <div class="text-xs text-gray-400">{{ item.ma_dv.loai_dich_vu|default:"Dịch vụ chăm sóc" }}</div>
@@ -90,9 +254,6 @@
                                             <i class="fa-regular fa-user text-xs text-gray-400"></i>
                                             {{ item.ma_nv.ho_ten|default:"Chuyên viên Spa" }}
                                         </span>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right font-semibold text-gray-900 whitespace-nowrap">
-                                        {{ item.ma_dv.gia_dich_vu|floatformat:0 }} đ
                                     </td>
                                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
@@ -122,7 +283,9 @@
                     </table>
                 </div>
 
-                <!-- Nút xem tất cả lịch sử dịch vụ -->
+                <div id="historyFilterEmpty" class="history-filter-empty" hidden>Không tìm thấy dịch vụ phù hợp với bộ lọc.</div>
+
+                <!-- Nút xem tất cả lịch sử dịch vụ, gồm các lịch hẹn hoàn thành chưa ghi sang bảng sử dụng -->
                 {% if tong_so_dich_vu > 5 %}
                     <div class="mt-4 pt-4 border-t border-gray-100 text-center">
                         <button type="button" id="btnToggleHistory" onclick="toggleAllHistory()"
@@ -148,6 +311,7 @@
                     </a>
                 </div>
             {% endif %}
+            </section>
         </div>
     </div>
 </div>
@@ -245,5 +409,60 @@
                 : '<span>Xem tất cả lịch sử dịch vụ ({{ tong_so_dich_vu }} lượt)</span><i class="fa-solid fa-chevron-down text-xs"></i>';
         }
     }
+
+    // Giữ nguyên giới hạn 5 dòng khi chưa lọc; khi lọc hiển thị toàn bộ kết quả phù hợp.
+    (function setupHistoryFilters() {
+        const form = document.getElementById('historyFilterForm');
+        if (!form) return;
+        const keyword = document.getElementById('historyKeyword');
+        const category = document.getElementById('historyCategory');
+        const dateFrom = document.getElementById('historyDateFrom');
+        const dateTo = document.getElementById('historyDateTo');
+        const feedback = document.getElementById('historyFilterFeedback');
+        const empty = document.getElementById('historyFilterEmpty');
+        const toggle = document.getElementById('btnToggleHistory');
+        const rows = Array.from(document.querySelectorAll('#tabContentHistory .history-data-row'));
+        const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('vi').trim();
+        const categories = [...new Set(rows.map(row => row.dataset.historyCategory).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b, 'vi'));
+        categories.forEach(value => category.add(new Option(value, value)));
+
+        function applyFilter() {
+            const name = normalize(keyword.value);
+            const type = category.value;
+            const from = dateFrom.value;
+            const to = dateTo.value;
+            const active = Boolean(name || type || from || to);
+            let matches = 0;
+            rows.forEach(row => {
+                const day = row.dataset.historyDate || '';
+                const ok = (!name || normalize(row.dataset.historyName).includes(name)) &&
+                    (!type || row.dataset.historyCategory === type) &&
+                    (!from || (day && day >= from)) &&
+                    (!to || (day && day <= to));
+                if (ok) matches++;
+                if (active) {
+                    row.classList.toggle('hidden', !ok);
+                    row.hidden = !ok;
+                } else {
+                    row.hidden = false;
+                    row.classList.toggle('hidden', rows.indexOf(row) >= 5);
+                }
+            });
+            if (toggle) {
+                toggle.hidden = active;
+                toggle.style.display = active ? 'none' : '';
+                if (!active) toggle.innerHTML = '<span>Xem tất cả lịch sử dịch vụ ({{ tong_so_dich_vu }} lượt)</span><i class="fa-solid fa-chevron-down text-xs"></i>';
+            }
+            empty.hidden = !active || matches !== 0;
+            feedback.hidden = !active;
+            feedback.textContent = active ? 'Tìm thấy ' + matches + ' / ' + rows.length + ' lượt sử dụng phù hợp.' : '';
+        }
+        form.addEventListener('submit', function(event) { event.preventDefault(); applyFilter(); });
+        form.addEventListener('reset', function() {
+            window.requestAnimationFrame(function() { applyFilter(); });
+        });
+    })();
+
 </script>
 {% endblock %}

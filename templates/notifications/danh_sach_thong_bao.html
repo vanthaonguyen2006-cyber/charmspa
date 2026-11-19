@@ -1,3 +1,4 @@
+
 {% extends 'layouts/customer_base.html' %}
 {% load static %}
 
@@ -8,7 +9,53 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/notifications/charm_thong_bao_center.css' %}?v=20261118_02">
+    <link rel="stylesheet" href="{% static 'css/notifications/charm_thong_bao_center.css' %}?v=20261119_06">
+    <style>
+
+/* Charm Grand Spa | Notification Center readability (embedded to avoid missing static CSS) */
+.notice-page{font-family:Montserrat,'Segoe UI',Arial,sans-serif;color:#312820}
+.notice-page .notice-head{background:#fffdfa;border:1px solid #e3d3bc;box-shadow:0 6px 22px rgba(91,64,32,.07)}
+.notice-page .notice-head-symbol{background:#f3e2ca;color:#885d2b;width:54px;height:54px;flex:0 0 54px}
+.notice-page .notice-head-symbol svg{width:25px;height:25px}
+.notice-page .notice-head h2{font-size:28px;font-weight:800;line-height:1.32;color:#30251a;letter-spacing:-.45px}
+.notice-page .notice-head p{font-size:15px;line-height:1.7;color:#675441}
+.notice-page .notice-count{font-size:13px;font-weight:700;color:#71502d;border-color:#dfc9aa;background:#f8f0e5;padding:8px 13px}
+.notice-page .notice-count-unread{background:#946b37;color:#fff;border-color:#946b37}
+.notice-page .notice-toolbar{background:#fffdfa;border-color:#e7dac9}
+.notice-page .notice-tab{font-size:14px;font-weight:700;color:#64503d;padding:12px 16px}
+.notice-page .notice-tab.is-active{background:#e9d7bd;color:#65401d;border-color:#cfaa77}
+.notice-page .notice-tab:hover{background:#f3e8d8;color:#6b441f}
+.notice-page .notice-tab-num{font-size:12px;font-weight:800}
+.notice-page .notice-toolbar-meta{font-size:13px;color:#74614f}
+.notice-page .notice-item{padding:24px 25px;gap:18px;border-bottom-color:#ebe0d2}
+.notice-page .notice-item.unread{background:#fff9ed;box-shadow:inset 4px 0 #a97b3e}
+.notice-page .notice-item:hover{background:#fcf5eb}
+.notice-page .notice-icon{width:52px;height:52px;flex:0 0 52px;border-radius:13px;background:#f1e3ce;color:#8b5c24}
+.notice-page .notice-icon svg{width:23px;height:23px;stroke-width:2}
+.notice-page .notice-icon.promotion{background:#f5e6c9;color:#956227}
+.notice-page .notice-icon.points{background:#e4f1e9;color:#367250}
+.notice-page .notice-icon.tier{background:#faecc9;color:#97661e}
+.notice-page .notice-icon.aftercare{background:#f5e3df;color:#a05a4b}
+.notice-page .notice-type{font-size:13px;font-weight:800;color:#855924;letter-spacing:.15px}
+.notice-page .notice-top h3{font-size:17px;font-weight:800;line-height:1.5;color:#30251c}
+.notice-page .notice-time{font-size:13px;font-weight:600;color:#77624c}
+.notice-page .notice-preview{font-size:15px;line-height:1.8;color:#554637;margin:10px 0 15px}
+.notice-page .notice-status{font-size:13px;font-weight:700;color:#93632e}
+.notice-page .notice-status.read{color:#337051}
+.notice-page .notice-link{font-size:14px;font-weight:800;color:#805321;padding:8px 5px}
+.notice-page .notice-link:hover{color:#5b3717}
+.notice-page .notice-link svg{width:17px;height:17px}
+.notice-page .notice-footer-count{font-size:13px;color:#786451}
+.notice-page .notice-empty,.notice-page .notice-filter-empty{font-size:15px;color:#695641}
+.notice-modal .notice-dialog .notice-modal-title{font-size:26px;color:#31251c}
+.notice-modal .notice-dialog .notice-promo-name{font-size:21px;color:#33261e}
+.notice-modal .notice-dialog .notice-message,.notice-modal .notice-dialog .notice-promo-desc,.notice-modal .notice-dialog .notice-note,.notice-modal .notice-dialog .notice-row{font-size:15px;line-height:1.8;color:#584737}
+.notice-modal .notice-dialog .notice-section{font-size:16px}
+.notice-modal .notice-dialog .notice-primary,.notice-modal .notice-dialog .notice-secondary{font-size:14px}
+.notice-modal .notice-dialog .aftercare-title{font-size:22px}
+.notice-modal .notice-dialog .aftercare-intro,.notice-modal .notice-dialog .aftercare-line,.notice-modal .notice-dialog .aftercare-bullet{font-size:15px;line-height:1.85}
+@media(max-width:750px){.notice-page .notice-head h2{font-size:22px}.notice-page .notice-head p{font-size:14px}.notice-page .notice-tab{font-size:13px;padding:10px 11px}.notice-page .notice-item{padding:18px 15px;gap:12px}.notice-page .notice-top h3{font-size:16px}.notice-page .notice-preview{font-size:14px}.notice-page .notice-icon{width:44px;height:44px;flex-basis:44px}.notice-page .notice-time{font-size:12px;white-space:normal}}
+    </style>
 {% endblock %}
 
 {% block content %}
