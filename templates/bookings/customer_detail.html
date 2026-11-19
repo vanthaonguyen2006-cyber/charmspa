@@ -3,15 +3,10 @@
 {% block extra_css %}
    {{ block.super }}
    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
-   <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_popup_expand_20261118">
+   <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_customer_inline_red_20261120">
    <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_fix1">
 {% endblock %}
 {% block profile_content %}
-
-
-<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
-<link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_popup_expand_20261118">
-<link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_fix1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 
@@ -299,7 +294,8 @@
                                                </div>
 
 
-                                               <div class="row g-3" id="service_container_{{ lich_hen.ma_lh }}" data-current-duration="{{ lich_hen.ma_dv.thoi_luong|default:150 }} phút" data-is-expanded="false">
+                                               <small class="booking-inline-error" id="reschedule_service_error_{{ lich_hen.ma_lh }}" hidden></small>
+                                                <div class="row g-3" id="service_container_{{ lich_hen.ma_lh }}" data-current-duration="{{ lich_hen.ma_dv.thoi_luong|default:150 }} phút" data-is-expanded="false">
                                                    {% if dich_vu_list %}
                                                        {% for dv in dich_vu_list %}
                                                        <div class="col-md-4 service-item-col {% if forloop.counter > 3 %}d-none{% endif %}">
@@ -330,6 +326,7 @@
                                                            <input type="text" name="ngay_hen_moi" id="input_ngay_hen_{{ lich_hen.ma_lh }}" class="form-control fw-bold edit-date-picker" value="{{ lich_hen.ngay_hen|date:'d/m/Y' }}" required>
                                                            <button type="button" class="booking-date-trigger" aria-label="Mở lịch chọn ngày"><i class="bi bi-calendar3 text-warning"></i></button>
                                                        </div>
+                                                       <small class="booking-inline-error" id="reschedule_date_error_{{ lich_hen.ma_lh }}" hidden></small>
                                                    </div>
                                                </div>
                                                <div class="col-md-7">
@@ -339,6 +336,7 @@
                                                            <span class="badge bg-light text-success border" id="bed_capacity_info_{{ lich_hen.ma_lh }}" >Quỹ giường: 6 giường</span>
                                                        </div>
                                                        <div class="row g-2 time-slots-container_modal" data-booking-id="{{ lich_hen.ma_lh }}"></div>
+                                                        <small class="booking-inline-error" id="reschedule_time_error_{{ lich_hen.ma_lh }}" hidden></small>
                                                    </div>
                                                </div>
                                            </div>
@@ -353,6 +351,7 @@
                                                    <div class="mb-3">
                                                        <label class="form-label fw-bold text-secondary" >Số lượng khách *</label>
                                                        <input type="number" name="so_luong_khach_moi" id="input_so_luong_{{ lich_hen.ma_lh }}" class="form-control form-control-sm" value="{{ lich_hen.so_luong_khach }}" min="1" max="10" required onchange="updateModalSlots('{{ lich_hen.ma_lh }}')">
+                                                        <small class="booking-inline-error" id="reschedule_guests_error_{{ lich_hen.ma_lh }}" hidden></small>
                                                    </div>
                                                    <div class="mb-3">
                                                        <label class="form-label fw-bold text-secondary" >Ghi chú thay đổi</label>
@@ -514,6 +513,7 @@
            badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã chọn';
        }
        document.getElementById('input_ma_dv_moi_' + id).value = serviceId;
+       clearRescheduleError(id, 'service');clearRescheduleError(id, 'time');
        document.getElementById('summary_service_name_' + id).textContent = serviceName;
        container.dataset.currentDuration = duration;
 
@@ -571,6 +571,13 @@
        const now = new Date();
        const today = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
        const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+       if (isoDate < `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`) {
+           container.innerHTML = date === form.dataset.originalDate && timeInput.value === form.dataset.originalTime
+               ? `<div class="col-12"><div class="time-slot-modal selected booking-original-slot"><strong>${form.dataset.originalTime}</strong><br><small>Giờ hẹn ban đầu (đã qua)</small></div></div>`
+               : '<div class="col-12 text-danger py-3">Ngày đã qua. Vui lòng chọn ngày mới.</div>';
+           updateModalSummary(id);
+           return;
+       }
        if (disabledDates.includes(isoDate)) {
            timeInput.value = '';
            container.innerHTML = '<div class="text-danger py-3">Ngày này spa không hoạt động.</div>';
@@ -603,9 +610,14 @@
            }
        }));
        if (requestNo !== rescheduleRequestSerial[id]) return;
-       const firstValid = cards.find(c => c.available);
-       const selectedTime = cards.some(c => c.available && c.time === oldTime) ? oldTime : (firstValid?.time || '');
-       timeInput.value = selectedTime;
+       // Giữ giờ ban đầu nếu phù hợp; khi đổi ngày không tự chọn giờ đầu tiên.
+       const selectedTime = cards.some(c => c.available && c.time === oldTime) ? oldTime : '';
+       if (oldTime && !selectedTime && date === form.dataset.originalDate && oldTime === form.dataset.originalTime) {
+           // Giờ cũ không còn chọn được: vẫn hiển thị trong tóm tắt, bắt buộc chọn giờ hợp lệ để lưu.
+           timeInput.value = oldTime;
+       } else {
+           timeInput.value = selectedTime;
+       }
        container.innerHTML = cards.map(c => `
            <div class="col-6 col-md-4">
                <button type="button" class="time-slot-modal w-100 ${c.available ? '' : 'disabled'} ${c.time === selectedTime && c.available ? 'selected' : ''}"
@@ -614,7 +626,7 @@
                    <small class="${c.available ? 'text-success' : 'text-danger'}">${c.note}</small>
                </button>
            </div>`).join('');
-       if (!firstValid) container.insertAdjacentHTML('afterbegin', '<div class="col-12 text-danger small mb-2">Không có giờ phù hợp với số khách đã chọn.</div>');
+       if (!cards.some(c => c.available)) container.insertAdjacentHTML('afterbegin', '<div class="col-12 text-danger small mb-2">Không có giờ phù hợp với số khách đã chọn.</div>');
        updateModalSummary(id);
    }
 
@@ -624,10 +636,29 @@
        document.querySelectorAll('.time-slots-container_modal[data-booking-id="' + id + '"] .time-slot-modal').forEach(slot => slot.classList.remove('selected'));
        element.classList.add('selected');
        document.getElementById('input_time_slot_' + id).value = time;
+       clearRescheduleError(id, 'time');
        updateModalSummary(id);
    }
 
 
+   function showRescheduleError(id, field, message) {
+       const el = document.getElementById(`reschedule_${field}_error_${id}`);
+       if (el) {el.textContent = message;el.hidden = false;}
+       const target = field === 'date' ? document.getElementById('input_ngay_hen_' + id)
+           : field === 'time' ? document.querySelector('.time-slots-container_modal[data-booking-id="' + id + '"]')
+           : field === 'guests' ? document.getElementById('input_so_luong_' + id)
+           : document.getElementById('service_container_' + id);
+       target?.classList.add('booking-field-invalid');
+   }
+   function clearRescheduleError(id, field) {
+       const el = document.getElementById(`reschedule_${field}_error_${id}`);
+       if (el) el.hidden = true;
+       const target = field === 'date' ? document.getElementById('input_ngay_hen_' + id)
+           : field === 'time' ? document.querySelector('.time-slots-container_modal[data-booking-id="' + id + '"]')
+           : field === 'guests' ? document.getElementById('input_so_luong_' + id)
+           : document.getElementById('service_container_' + id);
+       target?.classList.remove('booking-field-invalid');
+   }
    document.addEventListener('DOMContentLoaded', function() {
        document.querySelectorAll('.customer-reschedule-form').forEach(form => {
            const id = form.dataset.bookingId;
@@ -645,18 +676,66 @@
                appendTo: document.body,
                onChange: () => {
                    document.getElementById('input_time_slot_' + id).value = '';
+                   clearRescheduleError(id, 'date');clearRescheduleError(id, 'time');
                    updateModalSlots(id);
                }
            });
-           // Nếu lịch cũ trước hôm nay hoặc ngày bị khóa, yêu cầu khách chọn ngày hợp lệ.
-           if (fp.selectedDates.length === 0) dateInput.value = '';
+           // Giữ ngày gốc để xem dù Flatpickr không cho chọn ngày đã qua.
+           if (!fp.selectedDates.length) dateInput.value = form.dataset.originalDate;
+           form.noValidate = true; // Lỗi hiển thị trong popup thay vì tooltip mặc định.
+           const originalNote = form.querySelector('textarea[name="ghi_chu_moi"]').value;
+           const originalServiceName = document.getElementById('summary_service_name_' + id).textContent;
+           const originalDuration = document.getElementById('service_container_' + id).dataset.currentDuration;
            form.addEventListener('submit', event => {
-               if (!dateInput.value || !document.getElementById('input_time_slot_' + id).value) {
-                   event.preventDefault();
-                   alert('Vui lòng chọn ngày và khung giờ còn đủ chỗ trước khi lưu.');
+               ['service','date','time','guests'].forEach(field => clearRescheduleError(id, field));
+               const dateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dateInput.value);
+               const todayIso = (() => {const now=new Date();return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;})();
+               const dateIso = dateMatch ? `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}` : '';
+               const parsed = dateMatch ? new Date(Number(dateMatch[3]),Number(dateMatch[2])-1,Number(dateMatch[1])) : null;
+               const correctDate = parsed && parsed.getFullYear() === Number(dateMatch[3]) && parsed.getMonth() === Number(dateMatch[2])-1 && parsed.getDate() === Number(dateMatch[1]);
+               let hasError = false;
+               if (!correctDate || dateIso < todayIso || disabledDates.includes(dateIso)) {
+                   showRescheduleError(id, 'date', 'Vui lòng chọn ngày hẹn hợp lệ, không ở quá khứ hoặc bị khóa.');hasError=true;
                }
+               const qty = Number(document.getElementById('input_so_luong_' + id).value);
+               if (!Number.isInteger(qty) || qty < 1 || qty > 10) {showRescheduleError(id,'guests','Số khách phải từ 1 đến 10.');hasError=true;}
+               const time = document.getElementById('input_time_slot_' + id).value;
+               const selectedButton = [...document.querySelectorAll('.time-slots-container_modal[data-booking-id="' + id + '"] button.time-slot-modal.selected:not(:disabled)')]
+                   .some(btn => btn.querySelector('strong')?.textContent?.trim().endsWith(time));
+               if (!time || !selectedButton) {showRescheduleError(id, 'time', 'Vui lòng chọn khung giờ còn đủ chỗ.');hasError=true;}
+               if (!document.getElementById('input_ma_dv_moi_' + id).value) {showRescheduleError(id, 'service', 'Vui lòng chọn dịch vụ.');hasError=true;}
+               if (hasError) event.preventDefault();
            });
-           document.getElementById('rescheduleModal' + id).addEventListener('shown.bs.modal', () => updateModalSlots(id));
+           const modal = document.getElementById('rescheduleModal' + id);
+           modal.addEventListener('shown.bs.modal', () => {
+               if (!fp.selectedDates.length) dateInput.value = form.dataset.originalDate;
+               updateModalSlots(id);
+           });
+           modal.addEventListener('hidden.bs.modal', () => {
+               fp.clear(false);
+               fp.setDate(form.dataset.originalDate, false, 'd/m/Y');
+               if (!fp.selectedDates.length) dateInput.value = form.dataset.originalDate;
+               document.getElementById('input_time_slot_' + id).value = form.dataset.originalTime;
+               document.getElementById('input_so_luong_' + id).value = form.dataset.originalGuests;
+               form.querySelector('textarea[name="ghi_chu_moi"]').value = originalNote;
+               const serviceBox=document.getElementById('service_container_' + id);
+               const oldCard=[...serviceBox.querySelectorAll('.service-card-modal')].find(card =>
+                   card.getAttribute('onclick')?.includes("'" + form.dataset.originalService + "'"));
+               serviceBox.querySelectorAll('.service-card-modal').forEach(card => {
+                   const selected = card === oldCard;
+                   card.classList.toggle('selected', selected);
+                   const badge=card.querySelector('.status-badge');
+                   if(badge){badge.className=selected?'status-badge text-warning fw-bold':'status-badge text-muted';badge.innerHTML=selected?'<i class="bi bi-check-circle-fill"></i> Đã chọn':'<i class="bi bi-circle"></i> Chọn dịch vụ';}
+               });
+               if(oldCard){const col=oldCard.closest('.service-item-col');serviceBox.prepend(col);}
+               serviceBox.querySelectorAll('.service-item-col').forEach((col,index)=>col.classList.toggle('d-none',index>=3));
+               serviceBox.dataset.currentDuration=originalDuration;
+               document.getElementById('input_ma_dv_moi_' + id).value=form.dataset.originalService;
+               document.getElementById('summary_service_name_' + id).textContent=originalServiceName;
+               ['service','date','time','guests'].forEach(field => clearRescheduleError(id,field));
+               rescheduleRequestSerial[id]=(rescheduleRequestSerial[id]||0)+1;
+               updateModalSummary(id);
+           });
            updateModalSummary(id);
        });
    });
