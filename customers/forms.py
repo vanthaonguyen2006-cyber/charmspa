@@ -22,12 +22,15 @@ class ThemKhachHangForm(forms.Form):
     ho_ten = forms.CharField(
         max_length=100,
         required=True,
-        error_messages={'required': 'Vui lòng nhập họ và tên khách hàng.'}
+        error_messages={
+            'required': 'Họ và tên không được để trống.',
+            'max_length': 'Họ và tên không được vượt quá 100 ký tự.',
+        }
     )
     so_dien_thoai = forms.CharField(
         max_length=15,
         required=True,
-        error_messages={'required': 'Vui lòng nhập số điện thoại.'}
+        error_messages={'required': 'Số điện thoại không được để trống.'}
     )
     email = forms.EmailField(
         required=False,
@@ -36,28 +39,45 @@ class ThemKhachHangForm(forms.Form):
     ngay_sinh = forms.DateField(
         required=False,
         input_formats=['%Y-%m-%d', '%d/%m/%Y'],
-        error_messages={'invalid': 'Ngày sinh không hợp lệ (định dạng YYYY-MM-DD hoặc DD/MM/YYYY).'}
+        error_messages={'invalid': 'Ngày sinh không hợp lệ.'}
     )
     gioi_tinh = forms.ChoiceField(
         choices=GIOI_TINH_CHOICES,
         initial='Nam',
         required=True,
-        error_messages={'required': 'Vui lòng chọn giới tính.'}
+        error_messages={
+            'required': 'Vui lòng chọn giới tính.',
+            'invalid_choice': 'Giới tính không hợp lệ.',
+        }
     )
 
     def clean_ho_ten(self):
-        ho_ten = self.cleaned_data.get('ho_ten', '').strip()
+        ho_ten = (self.cleaned_data.get('ho_ten') or '').strip()
         if not ho_ten:
             raise forms.ValidationError("Họ và tên không được để trống.")
         return ho_ten
 
     def clean_so_dien_thoai(self):
-        sdt = self.cleaned_data.get('so_dien_thoai', '').strip()
+        sdt = (self.cleaned_data.get('so_dien_thoai') or '').strip()
+        if not sdt:
+            raise forms.ValidationError("Số điện thoại không được để trống.")
         if not sdt.isdigit() or len(sdt) < 9 or len(sdt) > 11:
-            raise forms.ValidationError("Số điện thoại không hợp lệ (phải từ 9 đến 11 số).")
+            raise forms.ValidationError("Số điện thoại không hợp lệ (phải từ 9 đến 11 chữ số).")
         if TaiKhoan.objects.filter(so_dien_thoai=sdt).exists():
-            raise forms.ValidationError("Số điện thoại này đã được sử dụng cho tài khoản khác.")
+            raise forms.ValidationError("Số điện thoại này đã được sử dụng bởi tài khoản khác.")
         return sdt
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Email này đã được sử dụng bởi tài khoản khác.")
+        return email
+
+    def clean_ngay_sinh(self):
+        ngay_sinh = self.cleaned_data.get('ngay_sinh')
+        if ngay_sinh and ngay_sinh > timezone.localdate():
+            raise forms.ValidationError("Ngày sinh không được lớn hơn ngày hiện tại.")
+        return ngay_sinh
 
 
 class ThemNhanVienForm(forms.Form):
@@ -74,30 +94,36 @@ class ThemNhanVienForm(forms.Form):
     ho_ten = forms.CharField(
         max_length=100,
         required=True,
-        error_messages={'required': 'Vui lòng nhập họ và tên.'}
+        error_messages={
+            'required': 'Họ và tên không được để trống.',
+            'max_length': 'Họ và tên không được vượt quá 100 ký tự.',
+        }
     )
     gioi_tinh = forms.ChoiceField(
         choices=GIOI_TINH_CHOICES,
         initial='Nữ',
         required=True,
-        error_messages={'required': 'Vui lòng chọn giới tính.'}
+        error_messages={
+            'required': 'Vui lòng chọn giới tính.',
+            'invalid_choice': 'Giới tính không hợp lệ.',
+        }
     )
     so_dien_thoai = forms.CharField(
         max_length=15,
         required=True,
-        error_messages={'required': 'Vui lòng nhập số điện thoại.'}
+        error_messages={'required': 'Số điện thoại không được để trống.'}
     )
     email = forms.EmailField(
         required=True,
         error_messages={
-            'required': 'Vui lòng nhập địa chỉ email.',
+            'required': 'Email không được để trống.',
             'invalid': 'Địa chỉ email không đúng định dạng.'
         }
     )
     ngay_sinh = forms.DateField(
         required=False,
         input_formats=['%Y-%m-%d', '%d/%m/%Y'],
-        error_messages={'invalid': 'Ngày sinh không hợp lệ (định dạng YYYY-MM-DD).'}
+        error_messages={'invalid': 'Ngày sinh không hợp lệ.'}
     )
     vai_tro = forms.ChoiceField(
         choices=VAI_TRO_CHOICES,
@@ -111,7 +137,7 @@ class ThemNhanVienForm(forms.Form):
     username = forms.CharField(
         max_length=150,
         required=True,
-        error_messages={'required': 'Vui lòng nhập tên đăng nhập.'}
+        error_messages={'required': 'Tên đăng nhập không được để trống.'}
     )
     password = forms.CharField(
         widget=forms.PasswordInput,
@@ -124,25 +150,45 @@ class ThemNhanVienForm(forms.Form):
         error_messages={'required': 'Vui lòng xác nhận mật khẩu.'}
     )
 
+    def clean_ho_ten(self):
+        ho_ten = (self.cleaned_data.get('ho_ten') or '').strip()
+        if not ho_ten:
+            raise forms.ValidationError("Họ và tên không được để trống.")
+        return ho_ten
+
     def clean_username(self):
-        username = self.cleaned_data.get('username', '').strip()
+        username = (self.cleaned_data.get('username') or '').strip()
+        if not username:
+            raise forms.ValidationError("Tên đăng nhập không được để trống.")
+        if ' ' in username:
+            raise forms.ValidationError("Tên đăng nhập không được chứa khoảng trắng.")
         if User.objects.filter(username__iexact=username).exists():
-            raise forms.ValidationError("Tên đăng nhập này đã tồn tại trong hệ thống.")
+            raise forms.ValidationError("Tên đăng nhập này đã được sử dụng bởi tài khoản khác.")
         return username
 
     def clean_email(self):
-        email = self.cleaned_data.get('email', '').strip()
-        if email and User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("Địa chỉ email này đã được sử dụng.")
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if not email:
+            raise forms.ValidationError("Email không được để trống.")
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Email này đã được sử dụng bởi tài khoản khác.")
         return email
 
     def clean_so_dien_thoai(self):
-        sdt = self.cleaned_data.get('so_dien_thoai', '').strip()
+        sdt = (self.cleaned_data.get('so_dien_thoai') or '').strip()
+        if not sdt:
+            raise forms.ValidationError("Số điện thoại không được để trống.")
         if not sdt.isdigit() or len(sdt) < 9 or len(sdt) > 11:
-            raise forms.ValidationError("Số điện thoại không hợp lệ (phải từ 9 đến 11 số).")
+            raise forms.ValidationError("Số điện thoại không hợp lệ (phải từ 9 đến 11 chữ số).")
         if TaiKhoan.objects.filter(so_dien_thoai=sdt).exists():
-            raise forms.ValidationError("Số điện thoại này đã được sử dụng cho tài khoản khác.")
+            raise forms.ValidationError("Số điện thoại này đã được sử dụng bởi tài khoản khác.")
         return sdt
+
+    def clean_ngay_sinh(self):
+        ngay_sinh = self.cleaned_data.get('ngay_sinh')
+        if ngay_sinh and ngay_sinh > timezone.localdate():
+            raise forms.ValidationError("Ngày sinh không được lớn hơn ngày hiện tại.")
+        return ngay_sinh
 
     def clean_vai_tro(self):
         vai_tro = normalize_role(self.cleaned_data.get('vai_tro'))
@@ -159,7 +205,7 @@ class ThemNhanVienForm(forms.Form):
             self.add_error('password', "Mật khẩu phải có độ dài tối thiểu 6 ký tự.")
 
         if pw and pwc and pw != pwc:
-            self.add_error('password_confirm', "Mật khẩu xác nhận không khớp!")
+            self.add_error('password_confirm', "Mật khẩu xác nhận không khớp.")
 
         return cleaned_data
 
@@ -175,7 +221,10 @@ class ChinhSuaTaiKhoanForm(forms.Form):
     ho_ten = forms.CharField(
         max_length=100,
         required=True,
-        error_messages={'required': 'Họ và tên không được để trống.'}
+        error_messages={
+            'required': 'Họ và tên không được để trống.',
+            'max_length': 'Họ và tên không được vượt quá 100 ký tự.',
+        }
     )
     so_dien_thoai = forms.CharField(
         max_length=15,
@@ -196,7 +245,10 @@ class ChinhSuaTaiKhoanForm(forms.Form):
     gioi_tinh = forms.ChoiceField(
         choices=GIOI_TINH_CHOICES,
         required=True,
-        error_messages={'required': 'Vui lòng chọn giới tính.'}
+        error_messages={
+            'required': 'Vui lòng chọn giới tính.',
+            'invalid_choice': 'Giới tính không hợp lệ.',
+        }
     )
     ngay_sinh = forms.DateField(
         required=False,
@@ -204,21 +256,41 @@ class ChinhSuaTaiKhoanForm(forms.Form):
         error_messages={'invalid': 'Ngày sinh không hợp lệ.'}
     )
 
-    def __init__(self, *args, current_role=None, **kwargs):
+    def __init__(self, *args, current_role=None, current_user=None, current_tai_khoan=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.current_role = normalize_role(current_role)
+        self.current_user = current_user
+        self.current_tai_khoan = current_tai_khoan
 
     def clean_ho_ten(self):
-        ho_ten = self.cleaned_data.get('ho_ten', '').strip()
+        ho_ten = (self.cleaned_data.get('ho_ten') or '').strip()
         if not ho_ten:
-            raise forms.ValidationError("Họ và tên không được chỉ chứa khoảng trắng.")
+            raise forms.ValidationError("Họ và tên không được để trống.")
         return ho_ten
 
     def clean_so_dien_thoai(self):
-        sdt = self.cleaned_data.get('so_dien_thoai', '').strip()
+        sdt = (self.cleaned_data.get('so_dien_thoai') or '').strip()
+        if not sdt:
+            raise forms.ValidationError("Số điện thoại không được để trống.")
         if not sdt.isdigit() or len(sdt) < 9 or len(sdt) > 11:
             raise forms.ValidationError("Số điện thoại không hợp lệ (phải từ 9 đến 11 chữ số).")
+        qs = TaiKhoan.objects.filter(so_dien_thoai=sdt)
+        if self.current_tai_khoan and self.current_tai_khoan.pk:
+            qs = qs.exclude(pk=self.current_tai_khoan.pk)
+        if qs.exists():
+            raise forms.ValidationError("Số điện thoại này đã được sử dụng bởi tài khoản khác.")
         return sdt
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        if not email:
+            raise forms.ValidationError("Email không được để trống.")
+        qs = User.objects.filter(email__iexact=email)
+        if self.current_user and self.current_user.pk:
+            qs = qs.exclude(pk=self.current_user.pk)
+        if qs.exists():
+            raise forms.ValidationError("Email này đã được sử dụng bởi tài khoản khác.")
+        return email
 
     def clean_vai_tro(self):
         raw_val = (self.cleaned_data.get('vai_tro') or '').strip()
@@ -254,7 +326,10 @@ class ChinhSuaHoSoKhachHangForm(forms.Form):
     ho_ten = forms.CharField(
         max_length=100,
         required=True,
-        error_messages={'required': 'Họ và tên không được để trống.'}
+        error_messages={
+            'required': 'Họ và tên không được để trống.',
+            'max_length': 'Họ và tên không được vượt quá 100 ký tự.',
+        }
     )
     username = forms.CharField(
         max_length=150,
@@ -287,13 +362,13 @@ class ChinhSuaHoSoKhachHangForm(forms.Form):
         self.current_tai_khoan = current_tai_khoan
 
     def clean_ho_ten(self):
-        ho_ten = self.cleaned_data.get('ho_ten', '').strip()
+        ho_ten = (self.cleaned_data.get('ho_ten') or '').strip()
         if not ho_ten:
-            raise forms.ValidationError("Họ và tên không được chỉ chứa khoảng trắng.")
+            raise forms.ValidationError("Họ và tên không được để trống.")
         return ho_ten
 
     def clean_username(self):
-        username = self.cleaned_data.get('username', '').strip()
+        username = (self.cleaned_data.get('username') or '').strip()
         if not username:
             raise forms.ValidationError("Tên đăng nhập không được để trống.")
         if ' ' in username:
@@ -306,11 +381,11 @@ class ChinhSuaHoSoKhachHangForm(forms.Form):
         return username
 
     def clean_so_dien_thoai(self):
-        sdt = self.cleaned_data.get('so_dien_thoai', '').strip()
+        sdt = (self.cleaned_data.get('so_dien_thoai') or '').strip()
         if not sdt:
             raise forms.ValidationError("Số điện thoại không được để trống.")
         if not sdt.isdigit() or len(sdt) < 9 or len(sdt) > 11:
-            raise forms.ValidationError("Số điện thoại chỉ chứa chữ số, từ 9–11 số.")
+            raise forms.ValidationError("Số điện thoại không hợp lệ (phải từ 9 đến 11 chữ số).")
         qs = TaiKhoan.objects.filter(so_dien_thoai=sdt)
         if self.current_tai_khoan and self.current_tai_khoan.pk:
             qs = qs.exclude(pk=self.current_tai_khoan.pk)
@@ -319,7 +394,7 @@ class ChinhSuaHoSoKhachHangForm(forms.Form):
         return sdt
 
     def clean_email(self):
-        email = self.cleaned_data.get('email', '').strip()
+        email = (self.cleaned_data.get('email') or '').strip().lower()
         if email:
             qs = User.objects.filter(email__iexact=email)
             if self.current_user and self.current_user.pk:
@@ -337,9 +412,9 @@ class ChinhSuaHoSoKhachHangForm(forms.Form):
         return ngay_sinh
 
     def clean_gioi_tinh(self):
-        gioi_tinh = self.cleaned_data.get('gioi_tinh', '').strip()
+        gioi_tinh = (self.cleaned_data.get('gioi_tinh') or '').strip()
         if gioi_tinh and gioi_tinh not in ('Nam', 'Nữ', 'Khác'):
-            raise forms.ValidationError("Giới tính không hợp lệ theo hệ thống.")
+            raise forms.ValidationError("Giới tính không hợp lệ.")
         return gioi_tinh
 
 
@@ -356,19 +431,19 @@ class StaffProfileUpdateForm(forms.Form):
         max_length=100,
         required=True,
         error_messages={
-            'required': 'Vui lòng nhập họ và tên.',
+            'required': 'Họ và tên không được để trống.',
             'max_length': 'Họ và tên không được vượt quá 100 ký tự.',
         }
     )
     so_dien_thoai = forms.CharField(
         max_length=15,
         required=True,
-        error_messages={'required': 'Vui lòng nhập số điện thoại.'}
+        error_messages={'required': 'Số điện thoại không được để trống.'}
     )
     email = forms.EmailField(
         required=True,
         error_messages={
-            'required': 'Vui lòng nhập địa chỉ email.',
+            'required': 'Email không được để trống.',
             'invalid': 'Địa chỉ email không đúng định dạng.',
         }
     )
@@ -395,11 +470,13 @@ class StaffProfileUpdateForm(forms.Form):
     def clean_ho_ten(self):
         ho_ten = (self.cleaned_data.get('ho_ten') or '').strip()
         if not ho_ten:
-            raise forms.ValidationError('Họ và tên không được chỉ chứa khoảng trắng.')
+            raise forms.ValidationError('Họ và tên không được để trống.')
         return ho_ten
 
     def clean_so_dien_thoai(self):
         sdt = (self.cleaned_data.get('so_dien_thoai') or '').strip()
+        if not sdt:
+            raise forms.ValidationError('Số điện thoại không được để trống.')
         if not sdt.isdigit() or len(sdt) < 9 or len(sdt) > 11:
             raise forms.ValidationError('Số điện thoại không hợp lệ (phải từ 9 đến 11 chữ số).')
 
@@ -413,13 +490,13 @@ class StaffProfileUpdateForm(forms.Form):
     def clean_email(self):
         email = (self.cleaned_data.get('email') or '').strip().lower()
         if not email:
-            raise forms.ValidationError('Vui lòng nhập địa chỉ email.')
+            raise forms.ValidationError('Email không được để trống.')
 
         qs = User.objects.filter(email__iexact=email)
         if self.current_user and self.current_user.pk:
             qs = qs.exclude(pk=self.current_user.pk)
         if qs.exists():
-            raise forms.ValidationError('Địa chỉ email này đã được sử dụng bởi tài khoản khác.')
+            raise forms.ValidationError('Email này đã được sử dụng bởi tài khoản khác.')
         return email
 
     def clean_ngay_sinh(self):

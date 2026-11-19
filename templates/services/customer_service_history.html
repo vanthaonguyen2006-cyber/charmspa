@@ -109,12 +109,11 @@
                                                     thoi_luong: '{{ item.ma_dv.thoi_luong|default:0 }}',
                                                     ngay_su_dung: '{{ item.ngay_su_dung|date:'d/m/Y H:i' }}',
                                                     nhan_vien: '{{ item.ma_nv.ho_ten|default:'Chuyên viên Spa'|escapejs }}',
-                                                    vi_tri: '{{ item.ma_nv.vi_tri|default:'Chuyên viên'|escapejs }}',
                                                     gia_dv: '{{ item.ma_dv.gia_dich_vu|floatformat:0 }}',
                                                     diem: '{{ item.ma_dv.diem_tich_luy_dich_vu|default:0 }}'
                                                 })"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-200 text-[#8C6D4F] hover:bg-amber-50 text-xs font-semibold transition">
-                                            <i class="fa-regular fa-eye"></i> Xem chi tiết
+                                                class="inline-flex items-center gap-1.5 text-black no-underline hover:no-underline text-xs font-semibold transition cursor-pointer bg-transparent border-0 p-0">
+                                            <i class="fa-regular"></i> Xem chi tiết
                                         </button>
                                     </td>
                                 </tr>

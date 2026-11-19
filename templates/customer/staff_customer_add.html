@@ -5,11 +5,36 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261118_v9">
     <style>
-        .is-invalid {
-            border-color: #dc3545 !important;
+        .is-invalid,
+        .form-control.is-invalid,
+        input.is-invalid {
+            border: 1.5px solid #dc3545 !important;
             background-color: #fff8f8 !important;
+            background-image: none !important;
+            padding-right: 0.75rem !important;
+        }
+        .form-select.is-invalid,
+        select.is-invalid {
+            border: 1.5px solid #dc3545 !important;
+            background-color: #fff8f8 !important;
+            background-image: var(--bs-form-select-bg-img) !important;
+            padding-right: 2.25rem !important;
+        }
+        .is-invalid:focus,
+        .form-control.is-invalid:focus,
+        .form-select.is-invalid:focus,
+        input.is-invalid:focus,
+        select.is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+            outline: none !important;
+            background-image: none !important;
+        }
+        .form-select.is-invalid:focus,
+        select.is-invalid:focus {
+            background-image: var(--bs-form-select-bg-img) !important;
         }
         .invalid-feedback {
             display: block;
@@ -34,14 +59,33 @@
         </a>
     </div>
 
+    <!-- Thông báo hệ thống -->
+    {% if messages %}
+        <div class="customer-flash-wrap">
+            {% for message in messages %}
+                <div class="customer-flash-msg {% if 'error' in message.tags %}error{% else %}success{% endif %}">
+                    <div class="customer-flash-content">
+                        <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="customer-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <!-- Thông báo lỗi chung nếu có -->
     {% if form.non_field_errors %}
-        <div class="mb-4">
-            <div class="alert alert-danger" role="alert" style="border-radius: 8px;">
-                {% for err in form.non_field_errors %}
-                    <div>{{ err }}</div>
-                {% endfor %}
-            </div>
+        <div class="customer-flash-wrap">
+            {% for err in form.non_field_errors %}
+                <div class="customer-flash-msg error">
+                    <div class="customer-flash-content">
+                        <span>⚠️</span>
+                        <span>{{ err }}</span>
+                    </div>
+                    <button type="button" class="customer-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                </div>
+            {% endfor %}
         </div>
     {% endif %}
 
@@ -149,7 +193,7 @@
                 <!-- Nút hành động -->
                 <div class="col-12 text-end mt-4 pt-3 border-top">
                     <a href="{% url 'staff_customer_list' %}" class="btn btn-light px-4 py-2 me-2 border" style="border-radius: 8px; font-size: 14px;">Hủy bỏ</a>
-                    <button type="submit" class="btn text-white px-4 py-2" style="background-color: #31572c; border-radius: 8px; font-size: 14px; font-weight: 500;">
+                    <button type="submit" class="btn text-white px-4 py-2" style="background-color: #8C6D4F; border-radius: 8px; font-size: 14px; font-weight: 500;">
                         Lưu hồ sơ khách hàng
                     </button>
                 </div>

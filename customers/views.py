@@ -208,6 +208,9 @@ def customer_lock_account_view(request):
     if request.method == 'POST':
         ly_do_chon = request.POST.get('ly_do', '').strip()
         ly_do_khac = request.POST.get('ly_do_khac', '').strip()
+        if ly_do_chon == 'Lý do khác' and not ly_do_khac:
+            messages.error(request, 'Vui lòng nhập lý do khóa tài khoản cụ thể.')
+            return redirect('customer_profile')
         ly_do_chi_tiet = ly_do_khac if ly_do_chon == 'Lý do khác' else ly_do_chon
 
         user = request.user
@@ -553,7 +556,12 @@ def staff_account_detail_view(request, ma_tk):
     is_ajax = (request.headers.get('x-requested-with') == 'XMLHttpRequest')
 
     if request.method == 'POST':
-        form = ChinhSuaTaiKhoanForm(request.POST, current_role=vai_tro_hien_tai)
+        form = ChinhSuaTaiKhoanForm(
+            request.POST,
+            current_role=vai_tro_hien_tai,
+            current_user=user_obj,
+            current_tai_khoan=tai_khoan,
+        )
         if form.is_valid():
             cleaned = form.cleaned_data
             ho_ten_moi = cleaned['ho_ten']
@@ -563,92 +571,75 @@ def staff_account_detail_view(request, ma_tk):
             gioi_tinh_moi = cleaned.get('gioi_tinh') or 'Nam'
             ngay_sinh_moi = cleaned.get('ngay_sinh')
 
-            # 1. Kiểm tra trùng số điện thoại
-            if TaiKhoan.objects.filter(so_dien_thoai=sdt_moi).exclude(pk=tai_khoan.pk).exists():
-                err_msg = f"Số điện thoại '{sdt_moi}' đã được sử dụng bởi tài khoản khác."
-                form.add_error('so_dien_thoai', err_msg)
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-                is_editing = True
+            try:
+                with transaction.atomic():
+                    # Cập nhật Email của Django User (KHÔNG thay đổi is_active)
+                    user_obj.email = email_moi
+                    user_obj.save(update_fields=['email'])
 
-            # 2. Kiểm tra trùng Email
-            elif User.objects.filter(email__iexact=email_moi).exclude(pk=user_obj.pk).exists():
-                err_msg = f"Email '{email_moi}' đã được sử dụng bởi tài khoản khác."
-                form.add_error('email', err_msg)
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-                is_editing = True
+                    # Cập nhật Số điện thoại và Vai trò trong TAI_KHOAN
+                    tai_khoan.so_dien_thoai = sdt_moi
+                    tai_khoan.vai_tro = vai_tro_db
+                    tai_khoan.save(update_fields=['so_dien_thoai', 'vai_tro'])
 
-            else:
-                try:
-                    with transaction.atomic():
-                        # Cập nhật Email của Django User (KHÔNG thay đổi is_active)
-                        user_obj.email = email_moi
-                        user_obj.save(update_fields=['email'])
+                    # Đồng bộ hai cờ quyền Django theo vai trò mới
+                    sync_user_flags_with_role(user_obj, vai_tro_db)
 
-                        # Cập nhật Số điện thoại và Vai trò trong TAI_KHOAN
-                        tai_khoan.so_dien_thoai = sdt_moi
-                        tai_khoan.vai_tro = vai_tro_db
-                        tai_khoan.save(update_fields=['so_dien_thoai', 'vai_tro'])
-
-                        # Đồng bộ hai cờ quyền Django theo vai trò mới
-                        sync_user_flags_with_role(user_obj, vai_tro_db)
-
-                        # Cập nhật Họ tên, Giới tính, Ngày sinh vào hồ sơ tương ứng
-                        if vai_tro_db in (ROLE_MANAGER, ROLE_STAFF):
-                            if not nhan_vien:
-                                nhan_vien = NhanVien.objects.filter(ma_tk=tai_khoan).first()
-                            if nhan_vien:
-                                nhan_vien.ho_ten = ho_ten_moi
-                                nhan_vien.gioi_tinh = gioi_tinh_moi
-                                if ngay_sinh_moi:
-                                    nhan_vien.ngay_sinh = ngay_sinh_moi
-                                nhan_vien.save(update_fields=['ho_ten', 'gioi_tinh', 'ngay_sinh'])
-                            else:
-                                ma_nv_str = f"NV{user_obj.id:03d}"
-                                suffix = 1
-                                while NhanVien.objects.filter(ma_nv=ma_nv_str).exists():
-                                    ma_nv_str = f"NV{user_obj.id:03d}_{suffix}"
-                                    suffix += 1
-                                NhanVien.objects.create(
-                                    ma_nv=ma_nv_str,
-                                    ma_tk=tai_khoan,
-                                    ho_ten=ho_ten_moi,
-                                    gioi_tinh=gioi_tinh_moi,
-                                    ngay_sinh=ngay_sinh_moi or date(2000, 1, 1),
-                                )
+                    # Cập nhật Họ tên, Giới tính, Ngày sinh vào hồ sơ tương ứng
+                    if vai_tro_db in (ROLE_MANAGER, ROLE_STAFF):
+                        if not nhan_vien:
+                            nhan_vien = NhanVien.objects.filter(ma_tk=tai_khoan).first()
+                        if nhan_vien:
+                            nhan_vien.ho_ten = ho_ten_moi
+                            nhan_vien.gioi_tinh = gioi_tinh_moi
+                            if ngay_sinh_moi:
+                                nhan_vien.ngay_sinh = ngay_sinh_moi
+                            nhan_vien.save(update_fields=['ho_ten', 'gioi_tinh', 'ngay_sinh'])
                         else:
-                            if not khach_hang:
-                                khach_hang = KhachHang.objects.filter(ma_tk=tai_khoan).first()
-                            if khach_hang:
-                                khach_hang.ho_ten = ho_ten_moi
-                                khach_hang.gioi_tinh = gioi_tinh_moi
-                                if ngay_sinh_moi:
-                                    khach_hang.ngay_sinh = ngay_sinh_moi
-                                khach_hang.save(update_fields=['ho_ten', 'gioi_tinh', 'ngay_sinh'])
-                            else:
-                                hang_mac_dinh = HangThanhVien.objects.order_by('diem_toi_thieu').first()
-                                KhachHang.objects.create(
-                                    ma_kh=f"KH{user_obj.id:03d}",
-                                    ma_tk=tai_khoan,
-                                    ho_ten=ho_ten_moi,
-                                    gioi_tinh=gioi_tinh_moi,
-                                    ngay_sinh=ngay_sinh_moi,
-                                    ma_tv=hang_mac_dinh,
-                                    diem_tich_luy_kh=0
-                                )
+                            ma_nv_str = f"NV{user_obj.id:03d}"
+                            suffix = 1
+                            while NhanVien.objects.filter(ma_nv=ma_nv_str).exists():
+                                ma_nv_str = f"NV{user_obj.id:03d}_{suffix}"
+                                suffix += 1
+                            NhanVien.objects.create(
+                                ma_nv=ma_nv_str,
+                                ma_tk=tai_khoan,
+                                ho_ten=ho_ten_moi,
+                                gioi_tinh=gioi_tinh_moi,
+                                ngay_sinh=ngay_sinh_moi or date(2000, 1, 1),
+                            )
+                    else:
+                        if not khach_hang:
+                            khach_hang = KhachHang.objects.filter(ma_tk=tai_khoan).first()
+                        if khach_hang:
+                            khach_hang.ho_ten = ho_ten_moi
+                            khach_hang.gioi_tinh = gioi_tinh_moi
+                            if ngay_sinh_moi:
+                                khach_hang.ngay_sinh = ngay_sinh_moi
+                            khach_hang.save(update_fields=['ho_ten', 'gioi_tinh', 'ngay_sinh'])
+                        else:
+                            hang_mac_dinh = HangThanhVien.objects.order_by('diem_toi_thieu').first()
+                            KhachHang.objects.create(
+                                ma_kh=f"KH{user_obj.id:03d}",
+                                ma_tk=tai_khoan,
+                                ho_ten=ho_ten_moi,
+                                gioi_tinh=gioi_tinh_moi,
+                                ngay_sinh=ngay_sinh_moi,
+                                ma_tv=hang_mac_dinh,
+                                diem_tich_luy_kh=0
+                            )
 
-                    messages.success(request, f"Cập nhật tài khoản '{user_obj.username}' thành công!")
-                    if is_ajax:
-                        return JsonResponse({'success': True})
-                    return redirect('staff_account_detail', ma_tk=tai_khoan.ma_tk)
+                messages.success(request, f"Cập nhật tài khoản '{user_obj.username}' thành công!")
+                if is_ajax:
+                    return JsonResponse({'success': True})
+                return redirect('staff_account_detail', ma_tk=tai_khoan.ma_tk)
 
-                except Exception as e:
-                    err_msg = f"Lỗi khi cập nhật tài khoản: {e}"
-                    form.add_error(None, err_msg)
-                    if is_ajax:
-                        return JsonResponse({'success': False, 'errors': {'__all__': [err_msg]}}, status=400)
-                    is_editing = True
+            except Exception as e:
+                err_msg = f"Lỗi khi cập nhật tài khoản: {e}"
+                form.add_error(None, err_msg)
+                if is_ajax:
+                    return JsonResponse({'success': False, 'errors': {'__all__': [err_msg]}}, status=400)
+                is_editing = True
         else:
             if is_ajax:
                 return JsonResponse({'success': False, 'errors': form.errors}, status=400)
@@ -662,7 +653,12 @@ def staff_account_detail_view(request, ma_tk):
             'gioi_tinh': current_gioi_tinh,
             'ngay_sinh': current_ngay_sinh,
         }
-        form = ChinhSuaTaiKhoanForm(initial=initial_data, current_role=vai_tro_hien_tai)
+        form = ChinhSuaTaiKhoanForm(
+            initial=initial_data,
+            current_role=vai_tro_hien_tai,
+            current_user=user_obj,
+            current_tai_khoan=tai_khoan,
+        )
 
     # Lấy lịch sử khóa / mở khóa tài khoản
     lich_su_list = (
@@ -1000,7 +996,7 @@ def staff_customer_add_view(request):
                     # 1. Tạo User Django cho khách hàng
                     username_moi = f'kh_{so_dien_thoai}'
                     if User.objects.filter(username=username_moi).exists():
-                        form.add_error('so_dien_thoai', 'Tên đăng nhập theo số điện thoại này đã tồn tại.')
+                        form.add_error('so_dien_thoai', 'Số điện thoại này đã được sử dụng bởi tài khoản khác.')
                         return render(request, 'customer/staff_customer_add.html', {'form': form})
 
                     user_moi = User(
@@ -1351,7 +1347,12 @@ def staff_account_edit_view(request, ma_tk):
     vai_tro_hien_tai = normalize_role(tai_khoan.vai_tro) or ROLE_CUSTOMER
 
     if request.method == 'POST':
-        form = ChinhSuaTaiKhoanForm(request.POST, current_role=vai_tro_hien_tai)
+        form = ChinhSuaTaiKhoanForm(
+            request.POST,
+            current_role=vai_tro_hien_tai,
+            current_user=user_bi_tac_dong,
+            current_tai_khoan=tai_khoan,
+        )
         if form.is_valid():
             cleaned = form.cleaned_data
             ho_ten_moi = cleaned['ho_ten']
@@ -1360,22 +1361,6 @@ def staff_account_edit_view(request, ma_tk):
             vai_tro_db = cleaned['vai_tro']
             gioi_tinh_moi = cleaned.get('gioi_tinh') or 'Nam'
             ngay_sinh_moi = cleaned.get('ngay_sinh')
-
-            # 1. Kiểm tra trùng số điện thoại
-            if TaiKhoan.objects.filter(so_dien_thoai=sdt_moi).exclude(pk=tai_khoan.pk).exists():
-                err_msg = f"Số điện thoại '{sdt_moi}' đã được sử dụng bởi tài khoản khác."
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': {'so_dien_thoai': [err_msg]}}, status=400)
-                messages.error(request, err_msg)
-                return redirect('staff_account_list')
-
-            # 2. Kiểm tra trùng Email
-            if User.objects.filter(email__iexact=email_moi).exclude(pk=user_bi_tac_dong.pk).exists():
-                err_msg = f"Email '{email_moi}' đã được sử dụng bởi tài khoản khác."
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': {'email': [err_msg]}}, status=400)
-                messages.error(request, err_msg)
-                return redirect('staff_account_list')
 
             try:
                 with transaction.atomic():
@@ -1487,6 +1472,9 @@ def staff_toggle_account_status_view(request, ma_tk):
 
         ly_do_chon = request.POST.get('ly_do', '').strip()
         ly_do_khac = request.POST.get('ly_do_khac', '').strip()
+        if ly_do_chon == 'Lý do khác' and not ly_do_khac:
+            messages.error(request, "Vui lòng nhập lý do cụ thể khi chọn 'Lý do khác'.")
+            return redirect('staff_account_list')
         ly_do_chi_tiet = ly_do_khac if ly_do_chon == 'Lý do khác' else ly_do_chon
 
         trang_thai_moi = not user_bi_tac_dong.is_active

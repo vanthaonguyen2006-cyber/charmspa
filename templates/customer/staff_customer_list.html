@@ -5,11 +5,35 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261115_7">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261118_v8">
 {% endblock %}
 
 {% block content %}
 <section class="customer-page">
+    <!-- Flash Messages Thông báo (Thêm mới khách hàng / Cập nhật) -->
+    {% if messages %}
+        <div class="customer-flash-wrap">
+            {% for message in messages %}
+                <div class="customer-flash-msg {% if 'error' in message.tags %}error{% else %}success{% endif %}" role="alert">
+                    <div class="customer-flash-content">
+                        <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="customer-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Thông báo thành công khi cập nhật từ Popup AJAX -->
+    <div id="customerAjaxAlert" class="customer-flash-msg success" role="alert" style="display: none;">
+        <div class="customer-flash-content">
+            <span>✅</span>
+            <span id="customerAjaxAlertText"></span>
+        </div>
+        <button type="button" class="customer-flash-close" onclick="hideCustomerAlert()" aria-label="Đóng thông báo">&times;</button>
+    </div>
+
     <div class="customer-page-heading">
         <div>
             <h1>KHÁCH HÀNG</h1>
@@ -22,12 +46,6 @@
             <i data-lucide="plus" style="width: 15px; height: 15px; color: #ffffff !important; stroke: #ffffff !important;"></i>
             <span style="color: #ffffff !important;">Thêm mới khách hàng</span>
         </a>
-    </div>
-
-    <!-- Thông báo thành công khi cập nhật từ Popup -->
-    <div id="customerAjaxAlert" class="customer-flash-msg" role="alert" style="display: none;">
-        <span id="customerAjaxAlertText"></span>
-        <button type="button" class="customer-flash-close" onclick="hideCustomerAlert()" aria-label="Đóng thông báo">&times;</button>
     </div>
 
     <div class="customer-stats">
@@ -227,7 +245,7 @@
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ item.next_page_number }}" aria-label="Trang tiếp theo">
+                        <a class="page-arrow" href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}" aria-label="Trang tiếp theo">
                             <i data-lucide="chevron-right"></i>
                         </a>
                     {% else %}

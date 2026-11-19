@@ -5,248 +5,109 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_account_detail.css' %}?v=20261115">
-    <style>
-        /* Đồng bộ Typography cho trang Chi tiết tài khoản chuẩn theo Lịch hẹn */
-        .info-item label {
-            display: block;
-            font-size: 13.5px !important;
-            color: #554e43 !important;
-            margin-bottom: 7px !important;
-            font-weight: 650 !important;
-            letter-spacing: 0.2px !important;
-        }
-
-        .info-item .form-input,
-        .info-item .form-select {
-            width: 100%;
-            min-height: 44px !important;
-            padding: 9px 14px !important;
-            border: 1px solid #dcd6cc;
-            border-radius: 9px !important;
-            font-size: 14.5px !important;
-            font-weight: 500;
-            color: #2b2118;
-            background: #ffffff;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-
-        .info-item .form-input:focus,
-        .info-item .form-select:focus {
-            border-color: #B99552;
-            box-shadow: 0 0 0 3px rgba(185, 149, 82, 0.18);
-        }
-
-        /* Viền đỏ và nền khi có lỗi */
-        .info-item .form-input.is-invalid,
-        .info-item .form-select.is-invalid {
-            border: 1.5px solid #dc3545 !important;
-            background-color: #fff8f8 !important;
-        }
-
-        .info-item .field-error-text {
-            color: #dc3545;
-            font-size: 13px !important;
-            margin-top: 6px !important;
-            display: block;
-            font-weight: 500;
-            line-height: 1.4;
-        }
-
-        .info-item label .req {
-            color: #dc3545;
-            margin-left: 2px;
-        }
-
-        .info-item .readonly-value {
-            min-height: 44px !important;
-            display: flex;
-            align-items: center;
-            color: #302D27 !important;
-            background: #f7f4ee;
-            padding: 9px 14px !important;
-            border-radius: 9px !important;
-            border: 1px dashed #dcd6cc;
-            font-size: 14.5px !important;
-            font-weight: 600 !important;
-        }
-
-        .section-heading-with-btn {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .section-heading-with-btn h3 {
-            font-size: 18px !important;
-            font-weight: 700 !important;
-            color: #242c36 !important;
-        }
-
-        .section-heading-with-btn p {
-            font-size: 14px !important;
-            color: #77706a !important;
-        }
-
-        .btn-edit-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 18px !important;
-            border: 1px solid #EEE8DD;
-            border-radius: 9px;
-            background: #ffffff;
-            color: #302D27 !important;
-            font-size: 14px !important;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-edit-action:hover {
-            background: #FAF7F0;
-            border-color: #B99552;
-            color: #242c36;
-        }
-
-        .account-form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 22px;
-            padding-top: 18px;
-            border-top: 1px solid #EEE8DD;
-        }
-
-        .btn-cancel-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 22px !important;
-            border: 1px solid #dcd6cc;
-            border-radius: 9px;
-            background: #ffffff;
-            color: #4a4036;
-            font-size: 14px !important;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-cancel-action:hover {
-            background: #f3efe9;
-            border-color: #c4baa9;
-        }
-
-        .btn-save-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 26px !important;
-            border: 1px solid #B99552;
-            border-radius: 9px;
-            background: #B99552;
-            color: #ffffff;
-            font-size: 14px !important;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-save-action:hover {
-            background: #a38140;
-            border-color: #a38140;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/customers/staff_account_detail.css' %}?v=20261118_v5">
 {% endblock %}
 
 {% block content %}
-<section class="account-detail-page">
-
-    <!-- Flash Messages Thông báo -->
-    {% if messages %}
-        <div class="account-flash-wrap" style="margin-bottom: 16px;">
-            {% for message in messages %}
-                <div class="account-flash-msg {% if message.tags == 'success' %}success{% else %}error{% endif %}">
-                    <span>{% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}</span>
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+<div class="account-detail-page">
 
     <!-- Điều hướng breadcrumb -->
-    <nav class="account-detail-breadcrumb" aria-label="Điều hướng">
+    <nav class="account-detail-breadcrumb" aria-label="Breadcrumb">
+        <span>Charm Spa</span>
+        <span aria-hidden="true">›</span>
         <a href="{% url 'staff_account_list' %}">Quản trị người dùng</a>
         <span aria-hidden="true">›</span>
-        <span aria-current="page">Chi tiết tài khoản ({{ tai_khoan.ma_tk }})</span>
+        <span aria-current="page">Chi tiết tài khoản</span>
     </nav>
 
-    <!-- Tiêu đề trang -->
+    <!-- TIÊU ĐỀ TRANG -->
     <div class="account-page-heading">
         <div class="heading-left">
-            <a class="account-back-button" href="{% url 'staff_account_list' %}" title="Quay lại danh sách tài khoản" aria-label="Quay lại danh sách">
-                <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
-            </a>
+            <a class="account-back-button"
+               href="{% url 'staff_account_list' %}"
+               aria-label="Quay lại danh sách">&#8592;</a>
+
             <div>
-                <h1>Chi tiết tài khoản người dùng</h1>
-                <p>Hồ sơ định danh tài khoản và nhật ký lịch sử quản trị hệ thống.</p>
+                <h1>Hồ sơ tài khoản</h1>
+                <p>Thông tin định danh người dùng · Nhật ký lịch sử quản trị</p>
             </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            {% if not is_editing and can_edit_target|default:True %}
-                <a href="?edit=1" class="btn-edit-action" id="btnHeadingEdit">
-                    <i data-lucide="pencil" style="width: 15px; height: 15px;"></i>
-                    <span>Chỉnh sửa</span>
-                </a>
-            {% endif %}
-            <a class="account-back-button btn-back-text" href="{% url 'staff_account_list' %}">
-                <i data-lucide="list" style="width: 16px; height: 16px;"></i> Quay lại danh sách
-            </a>
+
+        <div class="sync-status">
+            <span class="sync-dot"></span>
+            Dữ liệu tài khoản
         </div>
     </div>
 
-    <!-- Thẻ tóm tắt tài khoản -->
-    <div class="account-summary-card">
-        <div class="summary-user-wrap">
+    <!-- THẺ TỔNG QUAN TÀI KHOẢN (Đồng bộ với Thẻ tổng quan khách hàng) -->
+    <section class="account-summary-card">
+
+        <div class="account-identity">
             <div class="summary-avatar">{{ avatar_initials }}</div>
-            <div class="summary-info">
-                <h2>{{ ho_ten }}</h2>
-                <div class="summary-subline">
-                    <span><strong>Mã TK:</strong> {{ tai_khoan.ma_tk }}</span>
-                    <span>·</span>
-                    <span><strong>Username:</strong> @{{ user_obj.username }}</span>
+
+            <div class="account-identity-text">
+                <div class="account-name-line">
+                    <h2>{{ ho_ten }}</h2>
+
+                    <span class="role-pill role-{{ vai_tro_display|default:tai_khoan.vai_tro|slugify }}">
+                        {{ vai_tro_display|default:tai_khoan.vai_tro }}
+                    </span>
+                </div>
+
+                <div class="account-subline">
+                    <span>
+                        &#9742;
+                        {% if tai_khoan.so_dien_thoai %}
+                            {{ tai_khoan.so_dien_thoai }}
+                        {% else %}
+                            Chưa cập nhật số điện thoại
+                        {% endif %}
+                    </span>
+
+                    <span>{{ tai_khoan.ma_tk }}</span>
+                    {% if user_obj and user_obj.username %}<span>@{{ user_obj.username }}</span>{% endif %}
+                    {% if user_obj and user_obj.email %}<span>{{ user_obj.email }}</span>{% endif %}
+
+                    <span class="account-status {% if not user_obj.is_active %}status-locked{% else %}status-active{% endif %}">
+                        <i></i>{% if user_obj.is_active %}Đang hoạt động{% else %}Đã khóa{% endif %}
+                    </span>
                 </div>
             </div>
         </div>
 
-        <div class="summary-badges-wrap">
-            <span class="badge-role">{{ vai_tro_display|default:tai_khoan.vai_tro }}</span>
-            {% if user_obj.is_active %}
-                <span class="badge-status active">
-                    <span class="status-dot"></span> Đang hoạt động
-                </span>
-            {% else %}
-                <span class="badge-status locked">
-                    <span class="status-dot"></span> Đã khóa
-                </span>
-            {% endif %}
+        <div class="summary-metric role-metric">
+            <span class="metric-label">VAI TRÒ HỆ THỐNG</span>
+            <strong>{{ vai_tro_display|default:tai_khoan.vai_tro }}</strong>
         </div>
-    </div>
 
-    <!-- THẺ THÔNG TIN TÀI KHOẢN (CHUYỂN ĐỔI CHẾ ĐỘ TRỰC TIẾP TẠI ĐÂY) -->
-    <div class="detail-card">
+        <div class="summary-metric">
+            <span class="metric-label">NGÀY THAM GIA</span>
+            <strong>{{ tai_khoan.ngay_tao|date:'d/m/Y'|default:'—' }}</strong>
+        </div>
+
+        <div class="summary-actions">
+            {% if not is_editing and can_edit_target|default:True %}
+                <a class="btn-gold" href="?edit=1" id="btnHeadingEdit">
+                    <i data-lucide="pencil" style="width: 16px; height: 16px;"></i>
+                    Chỉnh sửa thông tin
+                </a>
+            {% endif %}
+            <a class="btn-outline" href="{% url 'staff_account_list' %}">
+                Quay lại danh sách
+            </a>
+        </div>
+
+    </section>
+
+    <!-- THÔNG TIN CÁ NHÂN & TÀI KHOẢN -->
+    <section class="detail-card personal-card">
+
         <div class="section-heading-with-btn">
-            <div class="section-title-wrap" style="margin-bottom: 0;">
+            <div class="section-title-wrap">
                 <h3>Thông tin tài khoản</h3>
-                <p>Dữ liệu thông tin liên lạc và định danh đã đồng bộ với hệ thống</p>
+                <p>Thông tin hiện có trong hồ sơ tài khoản người dùng</p>
             </div>
+
             {% if not is_editing and can_edit_target|default:True %}
                 <a href="?edit=1" class="btn-edit-action" id="btnSectionEdit">
                     <i data-lucide="pencil" style="width: 15px; height: 15px;"></i>
@@ -255,27 +116,43 @@
             {% endif %}
         </div>
 
+        <!-- THÔNG BÁO THÀNH CÔNG / HỆ THỐNG -->
+        {% if messages %}
+            <div class="account-flash-wrap">
+                {% for message in messages %}
+                    <div class="account-flash-msg {% if 'error' in message.tags %}error{% else %}success{% endif %}" role="alert">
+                        <div class="account-flash-content">
+                            <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="account-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- THÔNG BÁO LỖI CHUNG -->
         {% if form.non_field_errors %}
-            <div class="account-general-error">
+            <div class="account-flash-wrap">
                 {% for error in form.non_field_errors %}
-                    <div>{{ error }}</div>
+                    <div class="account-flash-msg error" role="alert">
+                        <div class="account-flash-content">
+                            <span>⚠️</span>
+                            <span>{{ error }}</span>
+                        </div>
+                        <button type="button" class="account-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                    </div>
                 {% endfor %}
             </div>
         {% endif %}
 
         {% if is_editing %}
-            <!-- FORM CHỈNH SỬA TRỰC TIẾP TRÊN TRANG (KHÔNG SỬ DỤNG MODAL) -->
+            <!-- FORM CHỈNH SỬA TRỰC TIẾP TRÊN TRANG -->
             <form method="post" action="{% url 'staff_account_detail' tai_khoan.ma_tk %}" id="accountInlineEditForm" novalidate>
                 {% csrf_token %}
 
                 <div class="info-grid">
-                    <!-- 1. Mã tài khoản (Chỉ đọc) -->
-                    <div class="info-item">
-                        <label>Mã tài khoản</label>
-                        <div class="value readonly-value">{{ tai_khoan.ma_tk }}</div>
-                    </div>
-
-                    <!-- 2. Họ và tên (Chỉnh sửa) -->
+                    <!-- 1. Họ và tên (Chỉnh sửa) -->
                     <div class="info-item">
                         <label for="id_ho_ten">Họ và tên <span class="req">*</span></label>
                         <input type="text"
@@ -291,13 +168,13 @@
                         <span class="field-error-text" id="js_error_ho_ten" style="display: none;"></span>
                     </div>
 
-                    <!-- 3. Tên đăng nhập (Chỉ đọc) -->
+                    <!-- 2. Tên đăng nhập (Chỉ đọc) -->
                     <div class="info-item">
                         <label>Tên đăng nhập (Username)</label>
-                        <div class="value readonly-value">@{{ user_obj.username }}</div>
+                        <div class="value readonly-value">{{ user_obj.username }}</div>
                     </div>
 
-                    <!-- 4. Số điện thoại (Chỉnh sửa) -->
+                    <!-- 3. Số điện thoại (Chỉnh sửa) -->
                     <div class="info-item">
                         <label for="id_so_dien_thoai">Số điện thoại <span class="req">*</span></label>
                         <input type="tel"
@@ -313,9 +190,9 @@
                         <span class="field-error-text" id="js_error_so_dien_thoai" style="display: none;"></span>
                     </div>
 
-                    <!-- 5. Địa chỉ Email (Chỉnh sửa) -->
+                    <!-- 4. Địa chỉ Email (Chỉnh sửa) -->
                     <div class="info-item">
-                        <label for="id_email">Địa chỉ Email <span class="req">*</span></label>
+                        <label for="id_email">Email <span class="req">*</span></label>
                         <input type="email"
                                name="email"
                                id="id_email"
@@ -329,7 +206,38 @@
                         <span class="field-error-text" id="js_error_email" style="display: none;"></span>
                     </div>
 
-                    <!-- 6. Vai trò hệ thống (Chỉ chuyển đổi giữa Nhân viên và Quản lý) -->
+                    <!-- 5. Ngày sinh (Chỉnh sửa) -->
+                    <div class="info-item">
+                        <label for="id_ngay_sinh">Ngày sinh</label>
+                        <input type="date"
+                               name="ngay_sinh"
+                               id="id_ngay_sinh"
+                               class="form-input {% if form.ngay_sinh.errors %}is-invalid{% endif %}"
+                               value="{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:'' }}">
+                        {% for error in form.ngay_sinh.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_ngay_sinh" style="display: none;"></span>
+                    </div>
+
+                    <!-- 6. Giới tính (Chỉnh sửa) -->
+                    <div class="info-item">
+                        <label for="id_gioi_tinh">Giới tính <span class="req">*</span></label>
+                        <select name="gioi_tinh"
+                                id="id_gioi_tinh"
+                                class="form-select {% if form.gioi_tinh.errors %}is-invalid{% endif %}"
+                                required>
+                            <option value="Nam" {% if form.gioi_tinh.value == 'Nam' %}selected{% endif %}>Nam</option>
+                            <option value="Nữ" {% if form.gioi_tinh.value == 'Nữ' %}selected{% endif %}>Nữ</option>
+                            <option value="Khác" {% if form.gioi_tinh.value == 'Khác' %}selected{% endif %}>Khác</option>
+                        </select>
+                        {% for error in form.gioi_tinh.errors %}
+                            <span class="field-error-text">{{ error }}</span>
+                        {% endfor %}
+                        <span class="field-error-text" id="js_error_gioi_tinh" style="display: none;"></span>
+                    </div>
+
+                    <!-- 7. Vai trò hệ thống -->
                     <div class="info-item">
                         <label for="id_vai_tro">Vai trò hệ thống <span class="req">*</span></label>
                         {% if can_change_role %}
@@ -350,59 +258,32 @@
                         <span class="field-error-text" id="js_error_vai_tro" style="display: none;"></span>
                     </div>
 
-                    <!-- 7. Giới tính (Chỉnh sửa) -->
+                    <!-- 8. Mã tài khoản (Chỉ đọc) -->
                     <div class="info-item">
-                        <label for="id_gioi_tinh">Giới tính <span class="req">*</span></label>
-                        <select name="gioi_tinh"
-                                id="id_gioi_tinh"
-                                class="form-select {% if form.gioi_tinh.errors %}is-invalid{% endif %}"
-                                required>
-                            <option value="Nam" {% if form.gioi_tinh.value == 'Nam' %}selected{% endif %}>Nam</option>
-                            <option value="Nữ" {% if form.gioi_tinh.value == 'Nữ' %}selected{% endif %}>Nữ</option>
-                            <option value="Khác" {% if form.gioi_tinh.value == 'Khác' %}selected{% endif %}>Khác</option>
-                        </select>
-                        {% for error in form.gioi_tinh.errors %}
-                            <span class="field-error-text">{{ error }}</span>
-                        {% endfor %}
-                        <span class="field-error-text" id="js_error_gioi_tinh" style="display: none;"></span>
+                        <label>Mã tài khoản</label>
+                        <div class="value readonly-value">{{ tai_khoan.ma_tk }}</div>
                     </div>
 
-                    <!-- 8. Ngày sinh (Chỉnh sửa) -->
+                    <!-- 9. Ngày tạo tài khoản (Chỉ đọc) -->
                     <div class="info-item">
-                        <label for="id_ngay_sinh">Ngày sinh</label>
-                        <input type="date"
-                               name="ngay_sinh"
-                               id="id_ngay_sinh"
-                               class="form-input {% if form.ngay_sinh.errors %}is-invalid{% endif %}"
-                               value="{{ form.ngay_sinh.value|date:'Y-m-d'|default:form.ngay_sinh.value|default:'' }}">
-                        {% for error in form.ngay_sinh.errors %}
-                            <span class="field-error-text">{{ error }}</span>
-                        {% endfor %}
-                        <span class="field-error-text" id="js_error_ngay_sinh" style="display: none;"></span>
+                        <label>Ngày tạo tài khoản</label>
+                        <div class="value readonly-value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i" }}</div>
                     </div>
 
-                    <!-- 9. Trạng thái tài khoản (Chỉ đọc) -->
+                    <!-- 10. Ngày cập nhật gần nhất (Chỉ đọc) -->
+                    <div class="info-item">
+                        <label>Ngày cập nhật gần nhất</label>
+                        <div class="value readonly-value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i" }}</div>
+                    </div>
+
+                    <!-- 11. Trạng thái tài khoản (Chỉ đọc) -->
                     <div class="info-item">
                         <label>Trạng thái tài khoản</label>
                         <div class="value readonly-value">
-                            {% if user_obj.is_active %}
-                                <span class="status-text-active">Đang hoạt động</span>
-                            {% else %}
-                                <span class="status-text-locked">Đã khóa</span>
-                            {% endif %}
+                            <span class="account-status {% if not user_obj.is_active %}status-locked{% else %}status-active{% endif %}">
+                                <i></i>{% if user_obj.is_active %}Đang hoạt động{% else %}Đã khóa{% endif %}
+                            </span>
                         </div>
-                    </div>
-
-                    <!-- 10. Ngày tạo tài khoản (Chỉ đọc) -->
-                    <div class="info-item">
-                        <label>Ngày tạo tài khoản</label>
-                        <div class="value readonly-value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i:s" }}</div>
-                    </div>
-
-                    <!-- 11. Ngày cập nhật gần nhất (Chỉ đọc) -->
-                    <div class="info-item">
-                        <label>Ngày cập nhật gần nhất</label>
-                        <div class="value readonly-value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i:s" }}</div>
                     </div>
                 </div>
 
@@ -420,13 +301,8 @@
             <!-- HIỂN THỊ DỮ LIỆU TĨNH KHI CHƯA NHẤN CHỈNH SỬA -->
             <div class="info-grid">
                 <div class="info-item">
-                    <label>Mã tài khoản</label>
-                    <div class="value">{{ tai_khoan.ma_tk }}</div>
-                </div>
-
-                <div class="info-item">
                     <label>Họ và tên</label>
-                    <div class="value">{{ ho_ten }}</div>
+                    <div class="value">{{ ho_ten|default:"Chưa cập nhật" }}</div>
                 </div>
 
                 <div class="info-item">
@@ -440,8 +316,26 @@
                 </div>
 
                 <div class="info-item">
-                    <label>Địa chỉ Email</label>
+                    <label>Email</label>
                     <div class="value">{{ user_obj.email|default:"Chưa cập nhật" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Ngày sinh</label>
+                    <div class="value">
+                        {% if ngay_sinh_obj %}
+                            {{ ngay_sinh_obj|date:"d/m/Y" }}
+                        {% elif ngay_sinh %}
+                            {{ ngay_sinh }}
+                        {% else %}
+                            Chưa cập nhật
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <label>Giới tính</label>
+                    <div class="value">{{ gioi_tinh|default:"Chưa cập nhật" }}</div>
                 </div>
 
                 <div class="info-item">
@@ -450,86 +344,90 @@
                 </div>
 
                 <div class="info-item">
-                    <label>Giới tính</label>
-                    <div class="value">{{ gioi_tinh|default:"Nam" }}</div>
+                    <label>Mã tài khoản</label>
+                    <div class="value">{{ tai_khoan.ma_tk }}</div>
                 </div>
 
                 <div class="info-item">
-                    <label>Ngày sinh</label>
-                    <div class="value">{{ ngay_sinh|default:"Chưa cập nhật" }}</div>
+                    <label>Ngày tạo tài khoản</label>
+                    <div class="value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <label>Ngày cập nhật gần nhất</label>
+                    <div class="value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i" }}</div>
                 </div>
 
                 <div class="info-item">
                     <label>Trạng thái tài khoản</label>
                     <div class="value">
-                        {% if user_obj.is_active %}
-                            <span class="status-text-active">Đang hoạt động</span>
-                        {% else %}
-                            <span class="status-text-locked">Đã khóa</span>
-                        {% endif %}
+                        <span class="account-status {% if not user_obj.is_active %}status-locked{% else %}status-active{% endif %}">
+                            <i></i>{% if user_obj.is_active %}Đang hoạt động{% else %}Đã khóa{% endif %}
+                        </span>
                     </div>
                 </div>
-
-                <div class="info-item">
-                    <label>Ngày tạo tài khoản</label>
-                    <div class="value">{{ tai_khoan.ngay_tao|date:"d/m/Y H:i:s" }}</div>
-                </div>
-
-                <div class="info-item">
-                    <label>Ngày cập nhật gần nhất</label>
-                    <div class="value">{{ tai_khoan.ngay_cap_nhat|date:"d/m/Y H:i:s" }}</div>
-                </div>
             </div>
         {% endif %}
-    </div>
 
-    <!-- THẺ LỊCH SỬ KHÓA VÀ MỞ KHÓA TÀI KHOẢN -->
-    <div class="detail-card">
-        <div class="section-title-wrap">
-            <h3>Lịch sử khóa và mở khóa tài khoản</h3>
-            <p>Nhật ký toàn bộ các thao tác thay đổi trạng thái khóa/mở khóa của tài khoản này</p>
+    </section>
+
+    <!-- THẺ LỊCH SỬ KHÓA VÀ MỞ KHÓA TÀI KHOẢN (Đồng bộ với .history-card) -->
+    <section class="detail-card history-card">
+
+        <div class="history-heading">
+            <div class="history-title-wrap">
+                <div class="history-title-line">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #302D27;">Lịch sử khóa và mở khóa tài khoản</h3>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: #898276;">Nhật ký toàn bộ các thao tác thay đổi trạng thái khóa/mở khóa của tài khoản này</p>
+                </div>
+                <span class="count-pill">{{ lich_su_list|length }} lượt</span>
+            </div>
         </div>
 
-        {% if lich_su_list %}
-            <div class="table-responsive-wrap">
-                <table class="history-table">
-                    <thead>
+        <div class="table-responsive-wrap">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>MÃ LỊCH SỬ</th>
+                        <th>HÀNH ĐỘNG</th>
+                        <th>LÝ DO</th>
+                        <th>NGƯỜI THỰC HIỆN</th>
+                        <th>THỜI GIAN THỰC HIỆN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ls in lich_su_list %}
                         <tr>
-                            <th>MÃ LỊCH SỬ</th>
-                            <th>HÀNH ĐỘNG</th>
-                            <th>LÝ DO</th>
-                            <th>NGƯỜI THỰC HIỆN</th>
-                            <th>THỜI GIAN THỰC HIỆN</th>
+                            <td class="col-code">{{ ls.ma_ls }}</td>
+                            <td>
+                                {% if ls.hanh_dong == "Khóa" %}
+                                    <span class="badge-action lock">🔒 Khóa</span>
+                                {% else %}
+                                    <span class="badge-action unlock">🔓 Mở khóa</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ls.ly_do }}</td>
+                            <td><strong>{{ ls.ten_nguoi_thuc_hien }}</strong></td>
+                            <td>{{ ls.thoi_gian|date:"d/m/Y H:i:s" }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for ls in lich_su_list %}
-                            <tr>
-                                <td class="col-code">{{ ls.ma_ls }}</td>
-                                <td>
-                                    {% if ls.hanh_dong == "Khóa" %}
-                                        <span class="badge-action lock">🔒 Khóa</span>
-                                    {% else %}
-                                        <span class="badge-action unlock">🔓 Mở khóa</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ ls.ly_do }}</td>
-                                <td><strong>{{ ls.ten_nguoi_thuc_hien }}</strong></td>
-                                <td>{{ ls.thoi_gian|date:"d/m/Y H:i:s" }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="empty-history">
-                <i data-lucide="shield-alert" class="empty-icon"></i>
-                <p class="empty-text">Tài khoản chưa có lịch sử khóa hoặc mở khóa</p>
-            </div>
-        {% endif %}
-    </div>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="empty-history">
+                                Tài khoản chưa có lịch sử khóa hoặc mở khóa.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-</section>
+        <div class="history-footer">
+            Hiển thị toàn bộ lịch sử thao tác quản trị trên tài khoản
+        </div>
+
+    </section>
+
+</div>
 {% endblock %}
 
 {% block extra_js %}

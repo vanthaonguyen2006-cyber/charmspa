@@ -79,7 +79,7 @@
 
 .auth-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 .auth-header h2 {
@@ -92,6 +92,63 @@
 .auth-header p {
     font-size: 14px;
     color: #8c827b;
+}
+
+/* Thông báo Flash / Lỗi chung đồng bộ với app customers */
+.auth-flash-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.auth-flash-msg {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.auth-flash-msg.success {
+    background-color: #e6f4ea;
+    color: #137333;
+    border: 1px solid #ceead6;
+}
+
+.auth-flash-msg.error {
+    background-color: #fce8e6;
+    color: #c5221f;
+    border: 1px solid #fad2cf;
+}
+
+.auth-flash-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.auth-flash-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0.75;
+    flex-shrink: 0;
+}
+
+.auth-flash-close:hover {
+    opacity: 1;
 }
 
 /* Tùy chỉnh các trường form */
@@ -110,7 +167,12 @@
     font-size: 13px;
     color: #5c524c;
     margin-bottom: 6px;
-    font-weight: 500;
+    font-weight: 600;
+}
+
+.form-group label .req {
+    color: #dc3545;
+    margin-left: 2px;
 }
 
 .form-control {
@@ -121,7 +183,7 @@
     font-size: 14px;
     background-color: #fff;
     box-sizing: border-box;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .form-control:focus {
@@ -152,7 +214,7 @@
     padding: 14px;
     border-radius: 8px;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: background 0.3s ease;
 }
@@ -179,30 +241,30 @@
 }
 
 /* =====================================
-   HIỂN THỊ LỖI FORM ĐĂNG KÝ
-===================================== */
-/* =====================================
-   HIỂN THỊ LỖI FORM ĐĂNG KÝ
+   HIỂN THỊ LỖI FORM ĐĂNG KÝ (ĐỒNG BỘ VỚI APP CUSTOMERS)
 ===================================== */
 
-/* Thông báo lỗi */
-.auth-card .error-message {
+/* Thông báo lỗi dưới từng trường */
+.auth-card .error-message,
+.auth-card .field-error-text {
     display: block;
     color: #dc3545 !important;
-    font-size: 12px !important;
-    font-weight: 500;
-    margin-top: 5px;
-    line-height: 1.5;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    margin-top: 5px !important;
+    line-height: 1.4 !important;
 }
 
-/* Viền đỏ cho ô nhập bị lỗi */
-.auth-card .form-control.input-error {
-    border: 1px solid #dc3545 !important;
+/* Viền đỏ và nền hồng nhạt cho ô nhập bị lỗi */
+.auth-card .form-control.input-error,
+.auth-card .form-control.is-invalid {
+    border: 1.5px solid #dc3545 !important;
     background-color: #fff8f8 !important;
 }
 
 /* Khi nhấn vào ô đang bị lỗi */
-.auth-card .form-control.input-error:focus {
+.auth-card .form-control.input-error:focus,
+.auth-card .form-control.is-invalid:focus {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
     outline: none;
@@ -212,5 +274,5 @@
 .auth-card .errorlist,
 .auth-card .errorlist li {
     color: #dc3545 !important;
-    font-size: 12px !important;
+    font-size: 12.5px !important;
 }

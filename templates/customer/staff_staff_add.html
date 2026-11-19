@@ -5,21 +5,37 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/customers/staff_customer.css' %}?v=20261118_v9">
     <style>
-        /* ÉP BUỘC IN ĐỎ VIỀN VÀ NỀN Ô KHI CÓ LỖI */
+        /* ÉP BUỘC IN ĐỎ VIỀN VÀ NỀN Ô KHI CÓ LỖI (BỎ ICON CHẤM THAN MẶC ĐỊNH CỦA BOOTSTRAP) */
         .is-invalid,
-        input.is-invalid,
+        .form-control.is-invalid,
+        input.is-invalid {
+            border: 1.5px solid #dc3545 !important;
+            background-color: #fff8f8 !important;
+            background-image: none !important;
+        }
+        .form-select.is-invalid,
         select.is-invalid {
             border: 1.5px solid #dc3545 !important;
             background-color: #fff8f8 !important;
+            background-image: var(--bs-form-select-bg-img) !important;
+            padding-right: 2.25rem !important;
         }
         .is-invalid:focus,
-        input.is-invalid:focus,
+        .form-control.is-invalid:focus,
+        input.is-invalid:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+            outline: none !important;
+            background-image: none !important;
+        }
+        .form-select.is-invalid:focus,
         select.is-invalid:focus {
             border-color: #dc3545 !important;
             box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
             outline: none !important;
+            background-image: var(--bs-form-select-bg-img) !important;
         }
         .invalid-feedback {
             display: block !important;
@@ -60,14 +76,33 @@
         </a>
     </div>
 
+    <!-- Thông báo hệ thống -->
+    {% if messages %}
+        <div class="account-flash-wrap">
+            {% for message in messages %}
+                <div class="account-flash-msg {% if 'error' in message.tags %}error{% else %}success{% endif %}">
+                    <div class="account-flash-content">
+                        <span>{% if 'error' in message.tags %}⚠️{% else %}✅{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="account-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <!-- Thông báo lỗi chung (nếu có) -->
     {% if form.non_field_errors %}
-        <div class="mb-4">
-            <div class="alert alert-danger" role="alert" style="border-radius: 8px;">
-                {% for err in form.non_field_errors %}
-                    <div>{{ err }}</div>
-                {% endfor %}
-            </div>
+        <div class="account-flash-wrap">
+            {% for err in form.non_field_errors %}
+                <div class="account-flash-msg error">
+                    <div class="account-flash-content">
+                        <span>⚠️</span>
+                        <span>{{ err }}</span>
+                    </div>
+                    <button type="button" class="account-flash-close" onclick="this.parentElement.style.display='none'" aria-label="Đóng thông báo">&times;</button>
+                </div>
+            {% endfor %}
         </div>
     {% endif %}
 
