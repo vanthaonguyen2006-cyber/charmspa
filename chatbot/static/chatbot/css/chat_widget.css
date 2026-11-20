@@ -1,5 +1,5 @@
 @charset "UTF-8";
-/* Widget chatbot tư vấn trên website khách hàng. Mọi class bắt đầu bằng cg- để không đụng CSS cũ. */
+/* Widget chatbot tư vấn trên website khách hàng */
 #cgWidget {
     --cg-primary: #8B1515;
     --cg-primary-dark: #6E1010;

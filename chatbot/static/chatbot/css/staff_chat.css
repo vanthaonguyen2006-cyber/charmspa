@@ -1,7 +1,7 @@
 @charset "UTF-8";
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-/* Giao diện Bảng điều khiển Chat CSKH - Font Montserrat, Tiêu đề 700, Nút đen */
+/* Giao diện Bảng điều khiển Chat CSKH  */
 .staff-chat-container, .staff-chat-container * {
     font-family: 'Montserrat', sans-serif !important;
 }

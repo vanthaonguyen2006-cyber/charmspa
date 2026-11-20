@@ -3,7 +3,7 @@ Chatbot khách hàng chạy theo kịch bản + trang quản lý hội thoại (
 
 Phần A - API cho widget trên website khách hàng:
     chat_me, chat_flow, chat_consult, chat_state, chat_send
-Phần B - Trang quản lý hội thoại theo báo cáo:
+Phần B - Trang quản lý hội thoại :
     admin_conversation_list / detail / accept / reply / complete / messages
 """
 import csv
