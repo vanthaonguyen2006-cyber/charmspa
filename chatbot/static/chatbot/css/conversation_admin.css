@@ -1,7 +1,7 @@
 @charset "UTF-8";
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-/* Quản lý hội thoại (Admin / CSKH) - Font Montserrat, Tiêu đề 700, Nút trên màu đen, Nút lọc màu vàng đậm */
+/* Quản lý hội thoại (Admin / CSKH)  */
 .cv-page, body {
     --cv-primary: #1a1a1a;
     --cv-primary-dark: #333333;
@@ -28,7 +28,7 @@
 .cv-sub { color: var(--cv-muted); font-size: 14px; }
 .cv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
 
-/* Nút bấm bình thường phía trên chuyển thành màu đen */
+/* Nút bấm màu đen */
 .cv-btn {
     display: inline-flex; align-items: center; gap: 8px;
     border: 1px solid #1a1a1a; background: #1a1a1a; color: #ffffff;
@@ -42,7 +42,7 @@
 .cv-btn.primary:hover:not(:disabled) { background: #333333; border-color: #333333; color: #fff; }
 .cv-btn svg { width: 16px; height: 16px; }
 
-/* Nút Lọc / Tìm kiếm trong thanh .cv-filter tự động có màu vàng đậm giống trang Lịch hẹn */
+/* Nút Lọc / Tìm kiếm trong thanh .cv-filter tự động  */
 .cv-filter .cv-btn.primary,
 .cv-filter button[type="submit"],
 .btn-filter-gold {

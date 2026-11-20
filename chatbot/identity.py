@@ -1,5 +1,5 @@
 """
-Tra cứu hồ sơ gắn với người đăng nhập theo cấu trúc hiện tại của nhóm:
+Tra cứu hồ sơ gắn với người đăng nhập theo cấu trúc hiện tại :
 
     User  ->  TaiKhoan   (related_name = 'thong_tin_tai_khoan')
               TaiKhoan   ->  KhachHang  (related_name = 'ho_so_khach_hang')
