@@ -4,7 +4,7 @@ from django.contrib import admin
 # Import model Tài khoản và hàm kiểm tra quyền
 from .models import LichSuTaiKhoan, NhanVien, TaiKhoan, can_access_django_admin
 
-# Giới hạn Django Admin (/admin/): chỉ tài khoản Admin kỹ thuật (is_staff=True, is_superuser=True) được phép truy cập
+# Giới hạn Django Admin (/admin/)
 admin.site.has_permission = lambda request: can_access_django_admin(request.user)
 
 # Đăng ký model Tài khoản trên trang Admin
