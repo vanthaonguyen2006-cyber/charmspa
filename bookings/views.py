@@ -1040,10 +1040,6 @@ def assign_staff_to_booking(request, ma_lh):
     messages.success(request, f'Đã phân công đủ {so_khach} nhân viên cho lịch #{ma_lh}.')
     return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-@staff_portal_only
-def staff_home(request):
-    return render(request, 'core/staff_home.html', get_staff_context(request))
-
 
 # ============================================================================
 # [BO SUNG] KET NOI UU DAI VOI BOOKING KHACH HANG
