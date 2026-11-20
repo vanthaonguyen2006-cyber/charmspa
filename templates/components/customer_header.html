@@ -71,7 +71,7 @@
                 <!-- Nếu tài khoản là Staff hoặc Admin -->
                 <div style="display: flex; align-items: center; gap: 10px; margin-left: 10px;">
                     {% if request.user.is_superuser %}
-                        <a href="/home/staff/" class="btn-login-pill" style="padding: 6px 12px; background: #8C6D4F; color: white; border-radius: 8px; text-decoration: none; font-size: 13px;">Quản trị Admin</a>
+                        <a href="{% url 'core:staff_dashboard' %}" class="btn-login-pill" style="padding: 6px 12px; background: #8C6D4F; color: white; border-radius: 8px; text-decoration: none; font-size: 13px;">Quản trị Admin</a>
                     {% else %}
                         <a href="/bookings/staff/dashboard/" class="btn-login-pill" style="padding: 6px 12px; background: #8C6D4F; color: white; border-radius: 8px; text-decoration: none; font-size: 13px;">Trang Nhân viên</a>
                     {% endif %}

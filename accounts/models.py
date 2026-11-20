@@ -1,17 +1,8 @@
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
-# =========================================================================
-# HỆ THỐNG VAI TRÒ NGHIỆP VỤ WEBSITE (nguồn duy nhất: TaiKhoan.vai_tro)
-# Website chỉ có đúng 3 vai trò nghiệp vụ: Quản lý, Nhân viên, Khách hàng.
-# Tài khoản Admin kỹ thuật (is_staff=True, is_superuser=True) là tài khoản
-# kỹ thuật riêng của Django, chỉ dùng cho /admin/, không phải vai trò nghiệp vụ.
-# =========================================================================
 ROLE_MANAGER = "Quản lý"
 ROLE_STAFF = "Nhân viên"
 ROLE_CUSTOMER = "Khách hàng"
@@ -22,7 +13,6 @@ ROLE_CHOICES = [
     (ROLE_MANAGER, ROLE_MANAGER),
 ]
 
-# Hai vai trò duy nhất được phép phân quyền qua lại tại trang quản lý tài khoản
 ASSIGNABLE_ROLES = (ROLE_STAFF, ROLE_MANAGER)
 
 
@@ -31,7 +21,6 @@ class TaiKhoan(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="thong_tin_tai_khoan",
                                 verbose_name="Tài khoản đăng nhập")
 
-    # Đưa số điện thoại và email tập trung hết về bảng TAI_KHOAN ở đây
     so_dien_thoai = models.CharField(max_length=15, unique=True, verbose_name="Số điện thoại")
 
     vai_tro = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name="Vai trò")
@@ -56,7 +45,6 @@ class NhanVien(models.Model):
                                  verbose_name="Giới tính")
     ngay_sinh = models.DateField(verbose_name="Ngày sinh")
 
-    # Đã lược bỏ sdt, email và trường chức vụ riêng ở đây!
 
     def __str__(self):
         return self.ho_ten
@@ -87,13 +75,8 @@ class LichSuTaiKhoan(models.Model):
         verbose_name_plural = "Lịch sử tài khoản"
         ordering = ["-thoi_gian"]
 
-
-# =========================================================================
 # HÀM KIỂM TRA QUYỀN DÙNG CHUNG
-# - Quyền nghiệp vụ website chỉ dựa vào TaiKhoan.vai_tro (Quản lý / Nhân viên / Khách hàng).
-# - Admin kỹ thuật (user.is_superuser and user.is_staff) chỉ được vào /admin/,
-#   không thuộc 3 vai trò nghiệp vụ và được loại khỏi danh sách/quản lý website.
-# =========================================================================
+
 def normalize_role(value):
     """Kiểm tra và trả về tên vai trò hợp lệ trong 3 vai trò nghiệp vụ (Quản lý, Nhân viên, Khách hàng)."""
     value = (value or "").strip()
@@ -101,11 +84,6 @@ def normalize_role(value):
 
 
 def get_user_role(user):
-    """
-    Lấy vai trò nghiệp vụ của user trên website:
-    - Trả về None nếu chưa đăng nhập hoặc là Admin kỹ thuật (user.is_superuser).
-    - Ngược lại trả về một trong 3 vai trò: Quản lý, Nhân viên, Khách hàng.
-    """
     if user is None or not getattr(user, "is_authenticated", False):
         return None
     if user.is_superuser:
@@ -130,12 +108,10 @@ def is_staff_role(user):
 
 
 def can_manage_accounts(user):
-    """Chỉ vai trò Quản lý được truy cập trang quản lý tài khoản và phân quyền trên website."""
     return get_user_role(user) == ROLE_MANAGER
 
 
 def is_staff_portal_user(user):
-    """Quản lý và Nhân viên được truy cập các trang nghiệp vụ nội bộ."""
     return get_user_role(user) in (ROLE_MANAGER, ROLE_STAFF)
 
 
@@ -144,11 +120,6 @@ def is_customer_role(user):
 
 
 def can_access_django_admin(user):
-    """
-    Chỉ tài khoản Admin kỹ thuật đang hoạt động (is_active=True, is_staff=True, is_superuser=True)
-    được truy cập Django Admin tại /admin/.
-    Quản lý, Nhân viên và Khách hàng tuyệt đối không được vào /admin/.
-    """
     return bool(
         user is not None
         and getattr(user, "is_authenticated", False)
@@ -158,13 +129,7 @@ def can_access_django_admin(user):
     )
 
 
-def sync_user_flags_with_role(user, role=None):
-    """
-    Đồng bộ hai cờ Django cho tài khoản nghiệp vụ:
-    - Bảo vệ tuyệt đối tài khoản Admin kỹ thuật (user.is_superuser): không thay đổi hoặc hạ quyền.
-    - Tất cả tài khoản nghiệp vụ (Quản lý, Nhân viên, Khách hàng) đều có is_staff=False, is_superuser=False.
-    - Không thay đổi is_active.
-    """
+def sync_user_flags_with_role(user):
     if user is None or user.is_superuser:
         return False
     if not user.is_staff and not user.is_superuser:
@@ -173,35 +138,3 @@ def sync_user_flags_with_role(user, role=None):
     user.is_superuser = False
     type(user).objects.filter(pk=user.pk).update(is_staff=False, is_superuser=False)
     return True
-
-
-
-
-@receiver(post_save, sender=User)
-def dong_bo_tai_khoan_va_vai_tro(sender, instance, created, **kwargs):
-    """
-    Tự động tạo bản ghi TAI_KHOAN khi User nghiệp vụ MỚI được tạo.
-    - KHÔNG tạo TAI_KHOAN, NhanVien hoặc KhachHang cho Admin kỹ thuật (instance.is_superuser=True).
-    - KHÔNG tự động ghi đè TaiKhoan.vai_tro khi cập nhật User.
-    """
-    if not created:
-        return
-    if instance.is_superuser:
-        return
-    if TaiKhoan.objects.filter(user=instance).exists():
-        return
-
-    vai_tro_moi = normalize_role(getattr(instance, "_vai_tro_dong_bo", None)) or ROLE_CUSTOMER
-
-    sdt_kem_theo = (getattr(instance, "_so_dien_thoai_dang_ky", "") or "").strip()
-    if not sdt_kem_theo:
-        prefix = "KH" if vai_tro_moi == ROLE_CUSTOMER else "NV"
-        sdt_kem_theo = f"{prefix}_{instance.id:06d}"
-
-    TaiKhoan.objects.create(
-        ma_tk=f"TK{instance.id:03d}",
-        user=instance,
-        vai_tro=vai_tro_moi,
-        so_dien_thoai=sdt_kem_theo,
-    )
-    sync_user_flags_with_role(instance, vai_tro_moi)

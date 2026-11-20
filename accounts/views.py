@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -12,7 +13,7 @@ def dang_ky_view(request):
     if request.method == 'POST':
         form = DangKyForm(request.POST)
         if form.is_valid():
-            form.save()  # Lưu user và tự động tạo profile, gán vai trò Khách hàng
+            form.save()
             return redirect('dang_nhap')
     else:
         form = DangKyForm()
@@ -33,7 +34,6 @@ def dang_nhap_view(request):
         # Lấy dữ liệu từ form HTML gửi lên (Hỗ trợ nhập Username, Email hoặc Số điện thoại)
         login_input = request.POST.get('username', '').strip()
         password_nhap = request.POST.get('password', '')
-        remember_me = request.POST.get('remember_me')
 
         user_obj = None
 
@@ -59,7 +59,6 @@ def dang_nhap_view(request):
                 return render(request, 'accounts/dang_nhap.html', {
                     'error': 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ bộ phận hỗ trợ!',
                     'login_input': login_input,
-                    'remember_me': bool(remember_me),
                 })
 
             # Xác thực mật khẩu
@@ -68,15 +67,7 @@ def dang_nhap_view(request):
             if user is not None:
                 auth_login(request, user)  # Tạo phiên đăng nhập
 
-                # --- XỬ LÝ GHI NHỚ ĐĂNG NHẬP ---
-                if remember_me:
-                    # Tích chọn: Duy trì phiên đăng nhập trong 14 ngày (14 * 24 * 60 * 60 = 1,209,600 giây)
-                    request.session.set_expiry(1209600)
-                else:
-                    # Không tích chọn: Phiên đăng nhập sẽ hết hạn ngay khi đóng trình duyệt
-                    request.session.set_expiry(0)
-
-                # Điều hướng: Admin kỹ thuật -> /admin/, Quản lý & Nhân viên -> cổng nội bộ, Khách hàng -> /home/
+                # Điều hướng
                 if user.is_superuser and user.is_staff:
                     return redirect('/admin/')
                 elif is_staff_portal_user(user):
@@ -84,29 +75,27 @@ def dang_nhap_view(request):
                 else:
                     return redirect('/home/')
 
-        # 3. Nếu sai thông tin hoặc mật khẩu không đúng (Thất bại: giữ lại login_input và remember_me)
+        # 3. Nếu sai thông tin hoặc mật khẩu không đúng
         return render(request, 'accounts/dang_nhap.html', {
             'error': 'Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác!',
             'login_input': login_input,
-            'remember_me': bool(remember_me),
         })
 
     return render(request, 'accounts/dang_nhap.html')
 
 
 def dang_xuat_view(request):
-    """Đăng xuất tài khoản, xóa phiên và làm sạch session hoàn toàn"""
     auth_logout(request)
     return redirect('dang_nhap')
 
 
 @login_required(login_url='/accounts/dang_nhap/')
 def account_change_password_view(request):
-    """Change the password for a signed-in customer account."""
+    """Đổi mk trang kh"""
     if request.user.is_superuser and request.user.is_staff:
         return redirect('/admin/')
     if not is_customer_role(request.user):
-        return redirect('/home/staff/')
+        return redirect('core:staff_dashboard')
 
     form = AccountPasswordChangeForm(
         user=request.user,
@@ -132,7 +121,7 @@ def account_change_password_view(request):
 
 @login_required(login_url='/accounts/dang_nhap/')
 def staff_change_password_view(request):
-    """Change the password for a signed-in staff or manager account."""
+    """Đổi mk trang nv"""
     if request.user.is_superuser and request.user.is_staff:
         return redirect('/admin/')
     if not is_staff_portal_user(request.user):
@@ -154,7 +143,7 @@ def staff_change_password_view(request):
         'accounts/staff_change_password.html',
         {
             'form': form,
-            'cancel_url': '/home/staff/',
+            'cancel_url': reverse('staff_profile'),
             'page_description': 'Cập nhật mật khẩu định kỳ để bảo vệ tài khoản nhân viên của bạn.',
         },
     )

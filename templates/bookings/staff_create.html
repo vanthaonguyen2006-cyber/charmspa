@@ -37,12 +37,12 @@
     {% endif %}
 
     <!-- Form gửi dữ liệu sang view tạo lịch nhân viên -->
-    <form method="POST">
+    <form method="POST" id="staffCreateBookingForm" novalidate>
         {% csrf_token %}
         <input type="hidden" name="ma_kh" id="input_ma_kh" value="">
 
-        <input type="hidden" name="ma_dv" id="input_ma_dv" value="{{ dich_vu_list.first.pk|default:'' }}">
-        <input type="hidden" name="time_slot" id="input_time_slot" value="09:00">
+        <input type="hidden" name="ma_dv" id="input_ma_dv" value="">
+        <input type="hidden" name="time_slot" id="input_time_slot" value="">
 
         <div class="row g-4">
             <!-- CỘT TRÁI -->
@@ -59,14 +59,14 @@
                             {% for dv in dich_vu_list %}
                                 {% if forloop.counter <= 3 %}
                                 <div class="col-md-4">
-                                    <div class="service-card {% if forloop.first %}selected{% endif %}"
+                                    <div class="service-card"
                                          data-service-id="{{ dv.pk }}"
                                          onclick="selectService(this, '{{ dv.pk }}', '{{ dv.ten_dich_vu|escapejs }}', '{{ dv.thoi_luong }} phút', '{{ dv.gia_dich_vu }}đ')">
                                         <img src="{% static 'images/services/service' %}{{ forloop.counter }}.jpg" alt="{{ dv.ten_dich_vu }}">
                                         <div class="fw-bold bk-s-div">{{ dv.ten_dich_vu }}</div>
                                         <small class="text-muted d-block mt-1 bk-s-small">{{ dv.thoi_luong }} phút · {{ dv.gia_dich_vu }}đ</small>
-                                        <small class="status-badge {% if forloop.first %}text-warning fw-bold{% else %}text-muted{% endif %} bk-s-status-badge">
-                                            {% if forloop.first %}<i class="bi bi-check-circle-fill"></i> Đã chọn{% else %}<i class="bi bi-circle"></i> Chọn dịch vụ{% endif %}
+                                        <small class="status-badge text-muted bk-s-status-badge">
+                                            <i class="bi bi-circle"></i> Chọn dịch vụ
                                         </small>
                                     </div>
                                 </div>
@@ -76,6 +76,7 @@
                             <div class="col-12 text-muted">Chưa có dịch vụ nào trong hệ thống.</div>
                         {% endif %}
                     </div>
+                    <div id="staff_create_service_error" class="staff-create-field-error" hidden></div>
                 </div>
 
                 <!-- Ngày & Khung Giờ -->
@@ -86,13 +87,14 @@
                             <div class="custom-date-container">
                                 <input type="text" name="ngay_hen" id="input_ngay_hen" class="form-control form-control-custom-date" placeholder="dd/mm/yyyy">
                             </div>
+                            <div id="staff_create_date_error" class="staff-create-field-error" hidden></div>
                         </div>
                     </div>
                     <div class="col-md-7">
                         <div class="time-box">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6 class="staff-create-inline-13 fw-bold m-0">3. Khung giờ trống</h6>
-                                <span class="staff-create-inline-14 badge bg-light text-success border" id="bed_capacity_info">Quỹ giường: 6 giường gội</span>
+                                <span class="staff-create-inline-14 badge bg-light text-success border" id="bed_capacity_info">Chọn dịch vụ để xem quỹ giường</span>
                             </div>
 
                             <!-- KHUNG THÔNG BÁO MÀU VÀNG CẢNH BÁO KHI HẾT GIỜ / KÍN CHỖ -->
@@ -104,6 +106,7 @@
                             </div>
 
                             <div class="row g-2" id="time_slots_container"></div>
+                            <div id="staff_create_time_error" class="staff-create-field-error" hidden></div>
                         </div>
                     </div>
                 </div>
@@ -140,23 +143,28 @@
                                 <div id="customerNoResults" class="d-none small text-danger px-3 py-2" role="status">Không tìm thấy khách hàng. Vui lòng tạo tài khoản khách hàng trước khi đặt lịch.</div>
                             </div>
                         </div>
+                        <div id="staff_create_customer_error" class="staff-create-field-error" hidden></div>
                     </div>
 
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_ho_ten">Họ và tên khách *</label>
                         <input type="text" id="input_ho_ten" name="ho_ten" class="form-control form-control-custom" placeholder="Nhập họ và tên..." required>
+                        <div id="staff_create_name_error" class="staff-create-field-error" hidden></div>
                     </div>
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_sdt">Số điện thoại *</label>
                         <input type="text" id="input_sdt" name="sdt" class="form-control form-control-custom" placeholder="Nhập số điện thoại..." required>
+                        <div id="staff_create_phone_error" class="staff-create-field-error" hidden></div>
                     </div>
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_email">Email</label>
                         <input type="email" id="input_email" name="email" class="form-control form-control-custom" placeholder="Nhập email...">
+                        <div id="staff_create_email_error" class="staff-create-field-error" hidden></div>
                     </div>
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_so_luong">Số lượng khách *</label>
                         <input type="number" name="so_luong" id="input_so_luong" class="form-control form-control-custom" value="1" min="1" max="10" onchange="updateFullSummary()">
+                        <div id="staff_create_guests_error" class="staff-create-field-error" hidden></div>
                     </div>
                     <div class="mb-3">
                         <label class="small fw-bold" for="input_ghi_chu">Ghi chú nội bộ</label>
@@ -165,8 +173,8 @@
 
                     <div class="staff-create-inline-17 p-3 mb-3 rounded">
                         <small class="staff-create-inline-18 text-muted d-block text-uppercase">TÓM TẮT LỊCH HẸN</small>
-                        <strong class="staff-create-inline-19 d-block" id="summary_service_name">NOURISHING HAIR SHAMPOO - CHARM SPA</strong>
-                        <small class="staff-create-inline-20 text-muted" id="summary_details">19/10/2026 · 09:00 · 150 phút · 1 khách</small>
+                        <strong class="staff-create-inline-19 d-block" id="summary_service_name">Chưa chọn dịch vụ</strong>
+                        <small class="staff-create-inline-20 text-muted" id="summary_details">Chưa chọn ngày · Chưa chọn giờ · 1 khách</small>
                     </div>
 
                     <button type="submit" class="btn btn-confirm"><i class="bi bi-check-circle me-1"></i> Tạo Lịch Hẹn Cho Khách</button>
@@ -212,8 +220,8 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
 
 <script>
-    let currentDuration = "{% if dich_vu_list %}{{ dich_vu_list.first.thoi_luong }}{% else %}150{% endif %} phút";
-    let currentServiceType = "shampoo";
+    let currentDuration = '';
+    let currentServiceType = '';
 
     const disabledDates = {{ locked_dates_json|safe|default:"[]" }};
 
@@ -245,13 +253,10 @@
                 }
             ],
             static: true,
-            onChange: function() { updateAvailableSlots(); }
+            onChange: function() { clearStaffCreateError('date'); clearStaffCreateError('time'); updateAvailableSlots(); }
         });
-        const firstServiceName = document.querySelector('#main_service_container .service-card .fw-bold')?.textContent.toLowerCase() || '';
-        currentServiceType = (firstServiceName.includes('shampoo') || firstServiceName.includes('gội')) ? 'shampoo' : 'massage';
-        const selectedFirst = document.querySelector('#main_service_container .service-card.selected');
-        if (selectedFirst) document.getElementById('summary_service_name').textContent = selectedFirst.querySelector('.fw-bold').textContent.trim();
         updateAvailableSlots();
+        updateFullSummary();
 
         // Khi nhân viên tự sửa tên/SĐT, bỏ mã khách đã chọn để tra cứu lại theo SĐT.
         ['input_ho_ten', 'input_sdt'].forEach(id => {
@@ -301,6 +306,7 @@
         document.getElementById('input_ho_ten').value = hoTen;
         document.getElementById('input_sdt').value = sdt;
         document.getElementById('input_email').value = email || '';
+        ['customer', 'name', 'phone', 'email'].forEach(clearStaffCreateError);
 
         const displayEl = document.getElementById('dropdownSelectedText');
         displayEl.innerText = `${hoTen} - SĐT: ${sdt}`;
@@ -334,11 +340,13 @@
         });
 
         document.getElementById('input_ma_dv').value = serviceId;
+        clearStaffCreateError('service');
         document.getElementById('summary_service_name').textContent = serviceName;
         currentDuration = duration;
         const name = serviceName.toLowerCase();
         currentServiceType = (name.includes('shampoo') || name.includes('gội')) ? 'shampoo' : 'massage';
         document.getElementById('input_time_slot').value = '';
+        clearStaffCreateError('time');
         updateAvailableSlots();
     }
 
@@ -404,10 +412,10 @@
     let staffSlotsRequestId = 0;
     async function updateAvailableSlots() {
         const ngayVal = document.getElementById('input_ngay_hen').value;
-        if (!ngayVal) {
+        if (!ngayVal || !document.getElementById('input_ma_dv').value) {
             ++staffSlotsRequestId;
             document.getElementById('input_time_slot').value = '';
-            document.getElementById('time_slots_container').innerHTML = '<div class="col-12 text-center text-muted small py-2">Vui lòng chọn ngày hẹn trước.</div>';
+            document.getElementById('time_slots_container').innerHTML = '<div class="col-12 text-center text-muted small py-2">' + (!document.getElementById('input_ma_dv').value ? 'Vui lòng chọn dịch vụ trước.' : 'Vui lòng chọn ngày hẹn trước.') + '</div>';
             const alertBox = document.getElementById('no-slots-alert');
             alertBox.classList.remove('d-flex');
             alertBox.classList.add('d-none');
@@ -436,8 +444,6 @@
         const currentMinute = now.getMinutes();
         const currentTotalMinutes = (currentHour * 60) + currentMinute;
 
-        let defaultSlot = '';
-        let isFirstSelected = false;
         let slotsHTML = '';
         let allSlotsDisabled = true;
 
@@ -452,7 +458,6 @@
             let remaining = loaiDv === 'shampoo' ? 6 : 30;
             let disabledClass = '';
             let statusText = '';
-            let selectedClass = '';
 
             if (isPastTime) {
                 disabledClass = 'disabled';
@@ -472,17 +477,13 @@
                 } else {
                     statusText = `<small class="text-success bk-s-small-05">Còn ${remaining} giường</small>`;
                     allSlotsDisabled = false;
-                    if (!isFirstSelected) {
-                        selectedClass = 'selected';
-                        defaultSlot = time;
-                        isFirstSelected = true;
-                    }
+
                 }
             }
 
             slotsHTML += `
                 <div class="col-6 col-md-3">
-                    <div class="time-slot ${disabledClass} ${selectedClass}" onclick="selectTime(this, '${time}')">
+                    <div class="time-slot ${disabledClass}" onclick="selectTime(this, '${time}')">
                         <strong class="bk-s-strong">${time}</strong><br>${statusText}
                     </div>
                 </div>
@@ -501,11 +502,8 @@
             alertBox.classList.add('d-none');
         }
 
-        if (defaultSlot) {
-            document.getElementById('input_time_slot').value = defaultSlot;
-        } else {
-            document.getElementById('input_time_slot').value = '';
-        }
+        document.getElementById('input_time_slot').value = '';
+        clearStaffCreateError('time');
         updateFullSummary();
     }
 
@@ -514,14 +512,66 @@
         document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
         element.classList.add('selected');
         document.getElementById('input_time_slot').value = timeStr;
+        clearStaffCreateError('time');
         updateFullSummary();
+    }
+
+    // Chỉ báo lỗi ngay trong biểu mẫu Tạo lịch, không thay đổi các thao tác khác.
+    const staffCreateFields = {
+        service: 'input_ma_dv', date: 'input_ngay_hen', time: 'input_time_slot',
+        name: 'input_ho_ten', phone: 'input_sdt', email: 'input_email', guests: 'input_so_luong'
+    };
+    function clearStaffCreateError(key) {
+        const node = document.getElementById('staff_create_' + key + '_error');
+        if (node) { node.textContent = ''; node.hidden = true; }
+        document.getElementById(staffCreateFields[key])?.classList.remove('staff-create-input-error');
+        if (key === 'service') document.getElementById('main_service_container')?.classList.remove('staff-create-area-error');
+        if (key === 'time') document.getElementById('time_slots_container')?.classList.remove('staff-create-area-error');
+        if (key === 'customer') document.getElementById('dropdownToggleBtn')?.classList.remove('staff-create-input-error');
+    }
+    function showStaffCreateError(key, message) {
+        const node = document.getElementById('staff_create_' + key + '_error');
+        if (node) { node.textContent = message; node.hidden = false; }
+        document.getElementById(staffCreateFields[key])?.classList.add('staff-create-input-error');
+        if (key === 'service') document.getElementById('main_service_container')?.classList.add('staff-create-area-error');
+        if (key === 'time') document.getElementById('time_slots_container')?.classList.add('staff-create-area-error');
+        if (key === 'customer') document.getElementById('dropdownToggleBtn')?.classList.add('staff-create-input-error');
+    }
+    const staffCreateForm = document.getElementById('staffCreateBookingForm');
+    if (staffCreateForm) {
+        ['name', 'phone', 'email', 'guests'].forEach(key => {
+            document.getElementById(staffCreateFields[key])?.addEventListener('input', () => clearStaffCreateError(key));
+        });
+        staffCreateForm.addEventListener('submit', event => {
+            Object.keys(staffCreateFields).forEach(clearStaffCreateError);
+            clearStaffCreateError('customer');
+            let firstError = null;
+            const fail = (key, message) => { showStaffCreateError(key, message); if (!firstError) firstError = key; };
+            const value = id => document.getElementById(id).value.trim();
+            if (!value('input_ma_dv')) fail('service', 'Vui lòng chọn dịch vụ trị liệu.');
+            const day = value('input_ngay_hen');
+            if (!day) fail('date', 'Vui lòng chọn ngày hẹn.');
+            else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(day)) fail('date', 'Ngày hẹn không hợp lệ.');
+            if (!value('input_time_slot')) fail('time', 'Vui lòng chọn khung giờ còn đủ chỗ.');
+            if (!value('input_ho_ten')) fail('name', 'Vui lòng nhập họ và tên khách.');
+            if (!value('input_sdt')) fail('phone', 'Vui lòng nhập số điện thoại khách hàng.');
+            const email = value('input_email');
+            if (email && !document.getElementById('input_email').checkValidity()) fail('email', 'Email không đúng định dạng.');
+            const qty = Number(value('input_so_luong'));
+            if (!Number.isInteger(qty) || qty < 1 || qty > 10) fail('guests', 'Số lượng khách phải từ 1 đến 10.');
+            if (firstError) {
+                event.preventDefault();
+                const field = document.getElementById(staffCreateFields[firstError]) || document.getElementById('dropdownToggleBtn');
+                (field?.type === 'hidden' ? document.getElementById('staff_create_' + firstError + '_error') : field)?.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }
+        });
     }
 
     function updateFullSummary() {
         const dateVal = document.getElementById('input_ngay_hen').value || 'Chưa chọn ngày';
         const timeVal = document.getElementById('input_time_slot').value || 'Chưa chọn giờ';
         const guestVal = document.getElementById('input_so_luong').value || '1';
-        document.getElementById('summary_details').innerText = `${dateVal} · ${timeVal} · ${currentDuration} · ${guestVal} khách`;
+        document.getElementById('summary_details').innerText = [dateVal, timeVal, currentDuration, `${guestVal} khách`].filter(Boolean).join(' · ');
     }
 </script>
 {% endblock %}

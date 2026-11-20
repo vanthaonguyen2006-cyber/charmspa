@@ -1,94 +1,11 @@
 {% extends 'layouts/staff_base.html' %}
 {% load static %}
-{% block title %}Chi tiết lịch hẹn - Charm Spa
-<script>
-// Dropdown riêng cho phân công: luôn mở xuống, giữ select gốc để gửi nhan_vien_ids.
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.staff-detail-page .assign-controls:not(.staff-clear-assign)').forEach(function (form) {
-    const dropdowns = [...form.querySelectorAll('.staff-assignee-dropdown')];
-    function closeAll(except) {
-      dropdowns.forEach(function (dropdown) {
-        if (dropdown === except) return;
-        dropdown.querySelector('.staff-assignee-options').hidden = true;
-        dropdown.querySelector('.staff-assignee-trigger').setAttribute('aria-expanded', 'false');
-      });
-    }
-    dropdowns.forEach(function (dropdown) {
-      const select = dropdown.previousElementSibling;
-      const trigger = dropdown.querySelector('.staff-assignee-trigger');
-      const label = dropdown.querySelector('.staff-assignee-trigger-text');
-      const list = dropdown.querySelector('.staff-assignee-options');
-      function sync() {
-        label.textContent = select.selectedOptions[0]?.textContent || '-- Chọn nhân viên --';
-        list.querySelectorAll('[role="option"]').forEach(function (item) {
-          item.setAttribute('aria-selected', String(item.dataset.value === select.value));
-        });
-      }
-      [...select.options].forEach(function (option) {
-        if (option.disabled) return;
-        const item = document.createElement('button');
-        item.type = 'button';
-        item.className = 'staff-assignee-option';
-        item.setAttribute('role', 'option');
-        item.dataset.value = option.value;
-        item.textContent = option.textContent;
-        item.addEventListener('click', function () {
-          select.value = option.value;
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-          sync();
-          closeAll();
-          trigger.focus();
-        });
-        list.appendChild(item);
-      });
-      sync();
-      trigger.addEventListener('click', function () {
-        const opening = list.hidden;
-        closeAll();
-        list.hidden = !opening;
-        trigger.setAttribute('aria-expanded', String(opening));
-        if (opening) {
-          // Bố trí đủ không gian để danh sách mở phía dưới, thay vì bị khuất cuối trang.
-          const bottom = Math.min(list.scrollHeight, 220) + trigger.getBoundingClientRect().bottom + 12;
-          if (bottom > window.innerHeight) window.scrollBy({top: bottom - window.innerHeight + 16, behavior: 'smooth'});
-        }
-      });
-      trigger.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') { closeAll(); return; }
-        if (event.key === 'ArrowDown' && list.hidden) {
-          event.preventDefault(); trigger.click();
-          list.querySelector('[role="option"]')?.focus();
-        }
-      });
-      list.addEventListener('keydown', function (event) {
-        const items = [...list.querySelectorAll('[role="option"]')];
-        const index = items.indexOf(document.activeElement);
-        if (event.key === 'Escape') { event.preventDefault(); closeAll(); trigger.focus(); }
-        if (event.key === 'ArrowDown') { event.preventDefault(); items[Math.min(index + 1, items.length - 1)]?.focus(); }
-        if (event.key === 'ArrowUp') { event.preventDefault(); (index <= 0 ? trigger : items[index - 1])?.focus(); }
-      });
-    });
-    document.addEventListener('click', function (event) {
-      if (!event.target.closest('.staff-assignee-dropdown')) closeAll();
-    });
-    form.addEventListener('submit', function (event) {
-      const empty = [...form.querySelectorAll('.staff-assignee-native-select')].find(select => !select.value);
-      if (empty) {
-        event.preventDefault();
-        const trigger = empty.nextElementSibling.querySelector('.staff-assignee-trigger');
-        trigger.focus();
-        trigger.click();
-      }
-    });
-  });
-});
-</script>
-{% endblock %}
+{% block title %}Chi tiết lịch hẹn - Charm Spa{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_incremental2">
+<link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_staff_detail_validation_20261120">
 <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=charmspa_20261117_incremental2">
 <div class="staff-detail-page">
   {% if messages %}
@@ -103,9 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="top-actions">
       <a class="detail-btn" href="{% url 'bookings:staff_booking_list' %}"><i class="bi bi-arrow-left"></i> Quay lại</a>
       {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
-      <form method="POST" action="{% url 'bookings:staff_booking_complete' lich_hen.ma_lh %}" class="m-0" onsubmit="return confirm('Xác nhận hoàn thành lịch hẹn này?');">
-        {% csrf_token %}<button type="submit" class="detail-btn complete"><i class="bi bi-check-circle"></i> Hoàn thành</button>
-      </form>
+      <button type="button" class="detail-btn complete" data-bs-toggle="modal" data-bs-target="#staffCompleteModal"><i class="bi bi-check-circle"></i> Hoàn thành</button>
       {% endif %}
       {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
       <button type="button" class="detail-btn dark" data-bs-toggle="modal" data-bs-target="#staffEditModal"><i class="bi bi-calendar2-range"></i> Đổi lịch</button>
@@ -219,6 +134,25 @@ document.addEventListener('DOMContentLoaded', function () {
   </div>
 </div>
 
+{% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
+<!-- Xác nhận Hoàn thành: chỉ thay hộp thoại trình duyệt, giữ nguyên POST và CSRF. -->
+<div class="modal fade staff-complete-modal" id="staffCompleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'bookings:staff_booking_complete' lich_hen.ma_lh %}">
+        {% csrf_token %}
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Xác nhận hoàn thành lịch hẹn</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+        <div class="modal-body">
+          <p>Bạn có chắc chắn muốn đánh dấu lịch hẹn này là <strong>Hoàn thành</strong>?</p>
+          <div class="staff-complete-booking-info"><strong>#{{ lich_hen.ma_lh }}</strong><span>{{ lich_hen.ma_dv.ten_dich_vu }}</span><small>{{ lich_hen.ngay_hen|date:'d/m/Y' }} · {{ lich_hen.gio_hen|time:'H:i' }} · {{ lich_hen.so_luong_khach }} khách</small></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button><button type="submit" class="btn staff-complete-confirm">Xác nhận hoàn thành</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% if is_manager %}
 <!-- ================= MODAL XÓA LỊCH HẸN ================= -->
 <div class="modal fade staff-delete-modal" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
@@ -260,7 +194,11 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="modal staff-edit-modal" id="staffEditModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
-      <form method="POST" action="{% url 'bookings:booking_customer_reschedule' lich_hen.ma_lh %}" id="staffDetailEditForm">
+      <form method="POST" action="{% url 'bookings:booking_customer_reschedule' lich_hen.ma_lh %}" id="staffDetailEditForm"
+            data-original-date="{{ lich_hen.ngay_hen|date:'d/m/Y' }}"
+            data-original-time="{{ lich_hen.gio_hen|time:'H:i' }}"
+            data-original-service="{{ lich_hen.ma_dv.pk }}"
+            data-original-guests="{{ lich_hen.so_luong_khach }}" novalidate>
         {% csrf_token %}
         <div class="modal-header">
           <h5 class="modal-title"><i class="bi bi-calendar2-range me-2"></i>Đổi lịch hẹn #{{ lich_hen.ma_lh }}</h5>
@@ -291,12 +229,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h6 class="staff-edit-heading mb-2">2. Chọn ngày hẹn mới</h6>
                     <div class="custom-date-container">
                       <input type="text" id="staffDetailNewDate" name="ngay_hen_moi" class="form-control form-control-custom-date" value="{{ lich_hen.ngay_hen|date:'d/m/Y' }}" placeholder="Chọn ngày hẹn" required>
+                      <small class="booking-inline-error" id="staffDetailDateError" hidden></small>
                     </div>
                   </div>
                 </div>
                 <div class="col-md-7"><div class="staff-edit-panel">
                   <h6 class="staff-edit-heading">3. Khung giờ trống</h6>
                   <div class="row g-2" id="staffDetailSlots"></div>
+                  <small class="booking-inline-error" id="staffDetailTimeError" hidden></small>
                 </div></div>
               </div>
             </div>
@@ -304,6 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <h6 class="staff-edit-heading">4. Thông tin lịch hẹn</h6>
               <label>Khách hàng</label><input type="text" value="{{ lich_hen.ma_kh.ho_ten }}" readonly>
               <label>Số lượng khách</label><input type="number" name="so_luong_khach_moi" id="staffDetailGuests" min="1" max="10" value="{{ lich_hen.so_luong_khach }}" required>
+              <small class="booking-inline-error" id="staffDetailGuestsError" hidden></small>
               <label>Ghi chú</label><textarea name="ghi_chu_moi" rows="3">{{ lich_hen.ghi_chu|default:'' }}</textarea>
               <div class="staff-edit-summary"><small>TÓM TẮT THAY ĐỔI</small><strong id="staffDetailSummaryName">{{ lich_hen.ma_dv.ten_dich_vu }}</strong><p id="staffDetailSummaryLine"></p></div>
             </div></div>
@@ -328,6 +269,32 @@ document.addEventListener('DOMContentLoaded', () => {
  const cards = [...grid.querySelectorAll('.staff-edit-service')];
  const locked = new Set({{ locked_dates_json|safe|default:'[]' }});
  const times=['09:00','10:30','12:00','13:30','15:00','16:30','18:00','19:30','21:00'];
+ const originalDate = form.dataset.originalDate || '';
+ const originalTime = form.dataset.originalTime || '';
+ const originalService = form.dataset.originalService || '';
+ const originalGuests = form.dataset.originalGuests || '1';
+ const originalNote = form.querySelector('textarea[name="ghi_chu_moi"]')?.value || '';
+ const errorIds = {date:'staffDetailDateError',time:'staffDetailTimeError',guests:'staffDetailGuestsError'};
+ function clearError(field){
+   const el=document.getElementById(errorIds[field]);
+   if(el){el.textContent='';el.hidden=true;}
+   if(field==='date')dateInput.classList.remove('booking-invalid-field');
+   if(field==='guests')guests.classList.remove('booking-invalid-field');
+ }
+ function showError(field,message){
+   const el=document.getElementById(errorIds[field]);
+   if(el){el.textContent=message;el.hidden=false;}
+   if(field==='date')dateInput.classList.add('booking-invalid-field');
+   if(field==='guests')guests.classList.add('booking-invalid-field');
+ }
+ function validDate(){
+   const match=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dateInput.value.trim());
+   if(!match)return false;
+   const d=new Date(Number(match[3]),Number(match[2])-1,Number(match[1]));
+   if(d.getFullYear()!==Number(match[3])||d.getMonth()!==Number(match[2])-1||d.getDate()!==Number(match[1]))return false;
+   const now=new Date();now.setHours(0,0,0,0);
+   return d>=now&&!locked.has(iso(d));
+ }
  let current = cards.find(c=>c.classList.contains('selected')) || cards[0], serial = 0;
  // Khi dịch vụ đang chọn không nằm trong 3 dịch vụ đầu: đưa lên đầu,
  // ẩn những ô còn lại để màn hình Đổi lịch luôn có đúng 3 thẻ.
@@ -346,8 +313,10 @@ document.addEventListener('DOMContentLoaded', () => {
    minDate:'today',
    disable:[d=>locked.has(iso(d))],
    static:true,
-   onChange:()=>{timeInput.value='';renderSlots();}
+   onChange:()=>{timeInput.value='';clearError('date');clearError('time');renderSlots();}
  });
+ // Ngày lịch cũ có thể đã qua: vẫn hiển thị để đối chiếu, nhưng không cho lưu.
+ if (originalDate) dateInput.value = originalDate;
 
  function summary(){const name=current?.dataset.name||'';document.getElementById('staffDetailSummaryName').textContent=name;document.getElementById('staffDetailSummaryLine').textContent=`${dateInput.value} · ${timeInput.value||'Chưa chọn giờ'} · ${current?.dataset.duration||150} phút · ${guests.value} khách`;}
 
@@ -400,14 +369,86 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   layer.classList.add('show');layer.querySelector('.btn-close').focus({preventScroll:true});
  });
- async function renderSlots(){const seq=++serial;const pieces=dateInput.value.split('/');if(pieces.length!==3)return;const date=pieces.reverse().join('-');const qty=Number(guests.value);slots.replaceChildren();if(locked.has(date)){slots.textContent='Ngày này đã khóa.';return;}const now=new Date();const dateNow=iso(now);const type=current?.dataset.type||'massage';const cap=type==='shampoo'?6:30;
- for(const time of times){const el=document.createElement('div');el.className='col-4';const btn=document.createElement('button');btn.type='button';btn.className='staff-edit-slot';btn.innerHTML=`<strong>${time}</strong><small>Đang kiểm tra...</small>`;el.appendChild(btn);slots.appendChild(el);const [h,m]=time.split(':').map(Number);const expired=date<dateNow||(date===dateNow&&(h*60+m<=now.getHours()*60+now.getMinutes()));if(expired){btn.disabled=true;btn.querySelector('small').textContent='Đã qua';continue;}
- try{const response=await fetch(`{% url 'bookings:api_kiem_tra_giuong' %}?ngay=${date}&gio=${time}&loai=${type}`);const data=await response.json();if(seq!==serial)return;const left=Number(data.con_lai??cap);const enough=left>=qty;btn.disabled=!enough;btn.querySelector('small').textContent=enough?`Còn ${left} giường`:'Kín chỗ';}catch(e){btn.disabled=true;btn.querySelector('small').textContent='Không kiểm tra được';}
- btn.addEventListener('click',()=>{slots.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');timeInput.value=time;summary();});if(time===timeInput.value&&!btn.disabled)btn.classList.add('selected');}
- summary();}
- guests.addEventListener('change',()=>{timeInput.value='';renderSlots();});
- form.addEventListener('submit',e=>{if(!dateInput.value||!timeInput.value||!serviceId.value){e.preventDefault();alert('Hãy chọn dịch vụ, ngày và khung giờ còn trống trước khi lưu.');}});
- document.getElementById('staffEditModal').addEventListener('shown.bs.modal',renderSlots);
+  async function renderSlots(){
+    const seq = ++serial;
+    const pieces = dateInput.value.split('/');
+    slots.replaceChildren();
+    if (pieces.length !== 3) {summary();return;}
+    const date = [...pieces].reverse().join('-');
+    const qty = Number(guests.value);
+    const now = new Date(), dateNow = iso(now);
+    const type = current?.dataset.type || 'massage', cap = type === 'shampoo' ? 6 : 30;
+    if (locked.has(date)) {slots.textContent='Ngày này đã khóa. Vui lòng chọn ngày mới.';summary();return;}
+    if (date < dateNow) {
+      // Giờ cũ chỉ để xem, không cho chọn hoặc lưu lịch đã quá hạn.
+      if (dateInput.value === originalDate && timeInput.value === originalTime) {
+        const old = document.createElement('div'); old.className='col-12';
+        old.innerHTML = `<div class="staff-edit-slot selected booking-original-slot"><strong>${originalTime}</strong><small>Giờ hẹn ban đầu (đã qua)</small></div>`;
+        slots.appendChild(old);
+      } else { slots.textContent = 'Ngày này đã qua. Vui lòng chọn ngày mới.'; }
+      summary(); return;
+    }
+    for (const time of times){
+      const el=document.createElement('div');el.className='col-4';
+      const btn=document.createElement('button');btn.type='button';btn.className='staff-edit-slot';
+      btn.innerHTML=`<strong>${time}</strong><small>Đang kiểm tra...</small>`;
+      el.appendChild(btn);slots.appendChild(el);
+      const [h,m]=time.split(':').map(Number);
+      const expired=date===dateNow&&(h*60+m<=now.getHours()*60+now.getMinutes());
+      if(expired){btn.disabled=true;btn.querySelector('small').textContent='Đã qua';continue;}
+      try {
+        const response=await fetch(`{% url 'bookings:api_kiem_tra_giuong' %}?ngay=${date}&gio=${time}&loai=${type}`);
+        if (!response.ok) throw new Error('Không lấy được dữ liệu');
+        const data=await response.json();if(seq!==serial)return;
+        let left=Number(data.con_lai);
+        if (!Number.isFinite(left)) throw new Error('Dữ liệu không hợp lệ');
+        // Chỉ trả lại giường của lịch hiện tại nếu giữ đúng ngày, giờ và loại phòng cũ.
+        const originalType = cards.find(c => c.dataset.id === originalService)?.dataset.type;
+        if (dateInput.value === originalDate && time === originalTime && type === originalType) left += Number(originalGuests || 0);
+        const enough=left>=qty;
+        btn.disabled=!enough;
+        btn.querySelector('small').textContent=enough?`Còn ${left} giường`:`Còn ${Math.max(left,0)} giường`;
+      }catch(e){btn.disabled=true;btn.querySelector('small').textContent='Không kiểm tra được';}
+      btn.addEventListener('click',()=>{
+        slots.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');timeInput.value=time;clearError('time');summary();
+      });
+      if(time===timeInput.value&&!btn.disabled)btn.classList.add('selected');
+    }
+    summary();
+  }
+  guests.addEventListener('change',()=>{timeInput.value='';clearError('guests');renderSlots();});
+  form.addEventListener('submit',e=>{
+    ['date','time','guests'].forEach(clearError);
+    let bad=false;
+    if (!validDate()) {showError('date','Vui lòng chọn ngày hẹn hợp lệ, không ở quá khứ hoặc bị khóa.');bad=true;}
+    const qty=Number(guests.value);
+    if (!Number.isInteger(qty)||qty<1||qty>10){showError('guests','Số khách phải từ 1 đến 10.');bad=true;}
+    if (!timeInput.value || ![...slots.querySelectorAll('button.staff-edit-slot.selected:not(:disabled)')].some(b=>b.querySelector('strong')?.textContent===timeInput.value)) {
+      showError('time','Vui lòng chọn khung giờ còn đủ chỗ.');bad=true;
+    }
+    if (!serviceId.value || !current || serviceId.value !== current.dataset.id){showError('time','Vui lòng chọn dịch vụ hợp lệ.');bad=true;}
+    if(bad)e.preventDefault();
+  });
+  editor.addEventListener('shown.bs.modal',()=>{
+    if (!picker.selectedDates.length && originalDate) dateInput.value=originalDate;
+    renderSlots();
+  });
+  editor.addEventListener('hidden.bs.modal',()=>{
+    const old=cards.find(c=>c.dataset.id===originalService);
+    if(old) {
+      current=old;serviceId.value=originalService;
+      cards.forEach(c=>{const selected=c===old;c.classList.toggle('selected',selected);const badge=c.querySelector('.staff-edit-selected');if(badge)badge.textContent=selected?'✓ Đã chọn':'○ Chọn dịch vụ';});
+      const col=old.closest('.staff-edit-service-col');if(col)grid.prepend(col);
+      grid.querySelectorAll('.staff-edit-service-col').forEach((c,i)=>c.classList.toggle('d-none',i>=3));
+    }
+    picker.clear(false);dateInput.value=originalDate;timeInput.value=originalTime;
+    guests.value=originalGuests;
+    ['date','time','guests'].forEach(clearError);
+    ++serial;
+    summary();
+    form.querySelector('textarea[name="ghi_chu_moi"]').value=originalNote;
+  });
  summary();
 });
 </script>

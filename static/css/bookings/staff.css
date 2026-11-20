@@ -1,9 +1,5 @@
-/* QUY CHUẨN CHỮ STAFF — giữ tỷ lệ bảng/bộ lọc gọn như ảnh duyệt.
-   Sửa giá trị trong common.css để đồng bộ theo vai trò. */
-/* Danh sách: giữ nguyên cách áp dụng font hiện tại. */
 .staff-booking-page, .staff-booking-page :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a,table,th,td){font-family:var(--booking-font-family) !important;}
-/* Tạo lịch và Chi tiết: áp dụng Montserrat cho mọi phần tử, kể cả icon-label và nội dung lồng nhau.
-   Hai popup được JS chuyển ra body nên cần chọn theo ID, không phụ thuộc cha của trang. */
+
 :is(.booking-staff-create,.staff-detail-page,#modalAllServices,#staffEditModal,.staff-edit-all-modal),
 :is(.booking-staff-create,.staff-detail-page,#modalAllServices,#staffEditModal,.staff-edit-all-modal) *{font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif) !important;}
 :is(.booking-staff-create,.staff-booking-page,.staff-detail-page){font-size:var(--booking-font-body);}
@@ -706,3 +702,83 @@ body>.flatpickr-calendar{z-index:13000 !important;}
 
 
 
+
+/* Thông báo xác thực riêng trang Nhân viên tạo lịch. */
+.booking-staff-create .staff-create-field-error {display:block;margin-top:5px;color:#dc3545;font-size:12px;font-weight:500;line-height:1.4;}
+.booking-staff-create .staff-create-field-error[hidden] {display:none!important;}
+.booking-staff-create .staff-create-input-error {border-color:#dc3545!important;background-color:#fff8f8!important;}
+.booking-staff-create .staff-create-area-error {border:0!important;padding:0!important;outline:0!important;}
+.booking-staff-create #main_service_container.staff-create-area-error .service-card {border-color:#dc3545;}
+
+/* Staff detail: chỉ chỉnh thông báo xác thực trong popup Đổi lịch. */
+#staffEditModal .booking-inline-error {
+    display: block !important;
+    width: 100%;
+    clear: both;
+    margin-top: 6px;
+    color: #dc3545 !important;
+    font-size: 12px !important;
+    line-height: 1.45;
+    font-weight: 500;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+#staffEditModal .booking-inline-error[hidden] { display: none !important; }
+#staffEditModal .custom-date-container { display: block; width: 100%; }
+#staffEditModal .custom-date-container .flatpickr-wrapper { display: block; width: 100%; }
+#staffEditModal .custom-date-container #staffDetailNewDate { display: block; width: 100%; }
+#staffEditModal #staffDetailSlots { width: 100%; }
+
+/* Staff detail: nút xác nhận hoàn thành có màu xanh, không đổi POST. */
+#staffCompleteModal .staff-complete-confirm {
+    background-color: #38734d !important;
+    border: 1px solid #38734d !important;
+    color: #fff !important;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 16px;
+}
+#staffCompleteModal .staff-complete-confirm:hover,
+#staffCompleteModal .staff-complete-confirm:focus-visible {
+    background-color: #2c5d3d !important;
+    border-color: #2c5d3d !important;
+    color: #fff !important;
+}
+#staffCompleteModal .staff-complete-booking-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: #faf6f0;
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+#staffCompleteModal .staff-complete-booking-info strong,
+#staffCompleteModal .staff-complete-booking-info span,
+#staffCompleteModal .staff-complete-booking-info small { display: block; }
+
+/* Popup Hoàn thành: hai nút đồng kích thước và cỡ chữ, không ảnh hưởng modal khác. */
+#staffCompleteModal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+#staffCompleteModal .modal-footer > .btn {
+    flex: 0 1 200px;
+    width: 200px;
+    min-width: 0;
+    height: 46px;
+    padding: 0 12px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    font-family: 'Montserrat', Arial, sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    border-radius: 8px;
+    white-space: nowrap;
+}

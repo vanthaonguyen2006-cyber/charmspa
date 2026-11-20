@@ -4,7 +4,6 @@
 
 {% block content %}
 <script>
-/* Giao diện riêng cho select dịch vụ; giữ #filterService để bộ lọc cũ sử dụng. */
 document.addEventListener('DOMContentLoaded', () => {
   const select = document.getElementById('filterService');
   if (!select || select.dataset.customReady) return;
@@ -1069,64 +1068,6 @@ document.addEventListener('DOMContentLoaded', function () {
   // Thay trang lọc hoặc mở popup đổi lịch thì đóng hộp xổ cho gọn.
   document.querySelectorAll('#applyFilters, #resetFilters, #prevPage, #nextPage, #filterTodayCard, #filterUnassignedCard, [data-bs-toggle="modal"]').forEach(el => {
     el.addEventListener('click', () => triggers.forEach(button => bootstrap.Popover.getInstance(button)?.hide()));
-  });
-});
-</script>
-
-<script>
-/* Giao diện riêng cho select dịch vụ; giữ #filterService để bộ lọc cũ sử dụng. */
-document.addEventListener('DOMContentLoaded', () => {
-  const select = document.getElementById('filterService');
-  if (!select || select.dataset.customReady) return;
-  select.dataset.customReady = '1';
-  const wrap = document.createElement('div');
-  wrap.className = 'staff-service-filter';
-  const toggle = document.createElement('button');
-  toggle.type = 'button';
-  toggle.className = 'staff-service-filter-toggle';
-  toggle.setAttribute('aria-expanded', 'false');
-  toggle.setAttribute('aria-haspopup', 'listbox');
-  const label = document.createElement('span');
-  label.className = 'staff-service-filter-label';
-  const caret = document.createElement('i');
-  caret.className = 'bi bi-chevron-down';
-  toggle.append(label, caret);
-  const menu = document.createElement('div');
-  menu.className = 'staff-service-filter-menu';
-  menu.setAttribute('role', 'listbox');
-  menu.hidden = true;
-  wrap.append(toggle, menu);
-  select.insertAdjacentElement('afterend', wrap);
-  const sync = () => { label.textContent = select.options[select.selectedIndex]?.textContent || 'Tất cả dịch vụ'; };
-  const close = () => { menu.hidden = true; toggle.setAttribute('aria-expanded','false'); };
-  const populate = () => {
-    menu.replaceChildren();
-    [...select.options].forEach(opt => {
-      const btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'staff-service-filter-option';
-      btn.setAttribute('role', 'option');
-      btn.setAttribute('aria-selected', String(opt.value === select.value));
-      btn.textContent = opt.textContent;
-      btn.addEventListener('click', () => {
-        select.value = opt.value;
-        select.dispatchEvent(new Event('change', {bubbles:true}));
-        sync(); close(); toggle.focus();
-      });
-      menu.appendChild(btn);
-    });
-  };
-  toggle.addEventListener('click', () => {
-    if (!menu.hidden) {close();return;}
-    populate(); menu.hidden = false;
-    toggle.setAttribute('aria-expanded','true');
-  });
-  document.addEventListener('click', e => {if (!wrap.contains(e.target)) close();});
-  document.addEventListener('keydown', e => {if (e.key === 'Escape') close();});
-  select.addEventListener('change', sync);
-  // Bộ lọc cũ thêm option tự động sau khi DOMContentLoaded; mở menu sẽ lấy danh sách mới nhất.
-  sync();
-  ['resetFilters','filterTodayCard','filterUnassignedCard'].forEach(id => {
-    document.getElementById(id)?.addEventListener('click', () => {sync();close();});
   });
 });
 </script>

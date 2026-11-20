@@ -23,9 +23,7 @@
 .booking-admin-activity .activity-day-locked-label{font-size:12px !important;}
 @media(max-width:650px){.booking-admin-activity > div:first-child h1{font-size:var(--booking-font-title-mobile) !important;}}
 
-/* ADMIN ACTIVITY DAYS - admin_activity_day.html
-   Trang gốc chủ yếu dùng Tailwind utility classes.
-   Các khai báo dưới đây chỉ hỗ trợ giao diện quản lý ngày hoạt động. */
+/* ADMIN ACTIVITY DAYS - admin_activity_day.html*/
 body:has(.booking-admin-activity) .booking-activity-calendar { overflow-x: auto; }
 body:has(.booking-admin-activity) .booking-activity-calendar .booking-day-cell { min-width: 0; }
 /* Đảm bảo modal khóa ngày có thể cuộn khi màn hình thấp. */
@@ -70,12 +68,6 @@ body > .flatpickr-calendar { z-index: 100000 !important; max-width: calc(100vw -
 /* Màu focus nhất quán với form của module. */
 #khoaNgayModal input:focus,#khoaNgayModal select:focus,#khoaNgayModal textarea:focus {outline-color:#ab8e56;}
 
-/* ===== STYLE CHUYỂN TỪ HTML: KHÔNG ĐỔI LOGIC ===== */
-/* CSS chuyển từ trang admin_activity_day.html */
-/* ========================================================
-   NGAY HOAT DONG - CHINH FONT VA KHOANG CACH RIENG TRANG
-   Khong anh huong Header, Sidebar, Create, List, Detail.
-   ======================================================== */
 /* Khoảng cách riêng cho trang Quản lý ngày hoạt động */
 :root { --activity-top-gap: 20px; }
 .staff-content:has(> .booking-admin-activity) {

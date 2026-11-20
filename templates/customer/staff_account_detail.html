@@ -245,7 +245,7 @@
                                     id="id_vai_tro"
                                     class="form-select {% if form.vai_tro.errors %}is-invalid{% endif %}"
                                     required>
-                                <option value="Nhân viên" {% if form.vai_tro.value == 'Nhân viên' or form.vai_tro.value == 'Nhân viên CSKH' or form.vai_tro.value == 'Chuyên viên' %}selected{% endif %}>Nhân viên</option>
+                                <option value="Nhân viên" {% if form.vai_tro.value == 'Nhân viên' %}selected{% endif %}>Nhân viên</option>
                                 <option value="Quản lý" {% if form.vai_tro.value == 'Quản lý' %}selected{% endif %}>Quản lý</option>
                             </select>
                         {% else %}

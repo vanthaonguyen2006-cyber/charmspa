@@ -207,15 +207,15 @@
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size: 14px;">Mật khẩu <span class="text-danger">*</span></label>
                     <div class="password-field-wrapper">
-                        <input type="password" name="password" id="staffPassword"
-                               class="form-control py-2 px-3 {% if form.password.errors %}is-invalid{% endif %}"
-                               placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required
+                        <input type="password" name="password1" id="staffPassword"
+                               class="form-control py-2 px-3 {% if form.password1.errors %}is-invalid{% endif %}"
+                               placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)" autocomplete="new-password" required
                                style="border-radius: 8px; font-size: 14px; padding-right: 40px;">
                         <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('staffPassword', this)" title="Ẩn/Hiện mật khẩu">
                             <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
                         </button>
                     </div>
-                    {% for error in form.password.errors %}
+                    {% for error in form.password1.errors %}
                         <div class="invalid-feedback">{{ error }}</div>
                     {% endfor %}
                 </div>
@@ -224,15 +224,15 @@
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size: 14px;">Xác nhận mật khẩu <span class="text-danger">*</span></label>
                     <div class="password-field-wrapper">
-                        <input type="password" name="password_confirm" id="staffPasswordConfirm"
-                               class="form-control py-2 px-3 {% if form.password_confirm.errors %}is-invalid{% endif %}"
-                               placeholder="Nhập lại mật khẩu" required
+                        <input type="password" name="password2" id="staffPasswordConfirm"
+                               class="form-control py-2 px-3 {% if form.password2.errors %}is-invalid{% endif %}"
+                               placeholder="Nhập lại mật khẩu" autocomplete="new-password" required
                                style="border-radius: 8px; font-size: 14px; padding-right: 40px;">
                         <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('staffPasswordConfirm', this)" title="Ẩn/Hiện mật khẩu">
                             <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
                         </button>
                     </div>
-                    {% for error in form.password_confirm.errors %}
+                    {% for error in form.password2.errors %}
                         <div class="invalid-feedback">{{ error }}</div>
                     {% endfor %}
                 </div>
