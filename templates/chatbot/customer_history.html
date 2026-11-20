@@ -1,8 +1,16 @@
 {% extends 'layouts/customer_base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <style>
+  .history-container,
+  .history-container * {
+    font-family: 'Montserrat', sans-serif !important;
+  }
   .history-container {
     max-width: 1200px;
     margin: 40px auto;
@@ -16,9 +24,9 @@
     margin-bottom: 8px;
   }
   .history-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Montserrat', sans-serif !important;
     font-size: 32px;
-    font-weight: 700;
+    font-weight: 700 !important;
     color: #1a1a1a;
     margin-bottom: 8px;
   }
@@ -46,7 +54,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
-    font-weight: 600;
+    font-weight: 700;
   }
   .session-item {
     display: block;
@@ -70,7 +78,7 @@
     margin-bottom: 4px;
   }
   .session-item-title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
     color: #222;
     margin-bottom: 4px;
@@ -98,6 +106,12 @@
     padding-bottom: 16px;
     margin-bottom: 20px;
   }
+  .chat-detail-header h2 {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 20px;
+    font-weight: 700 !important;
+    margin: 0;
+  }
   .chat-messages-scroll {
     flex: 1;
     max-height: 400px;
@@ -112,7 +126,7 @@
   }
   .history-msg-row.user { align-items: flex-end; }
   .history-msg-row.bot, .history-msg-row.staff { align-items: flex-start; }
-  
+
   .history-msg-bubble {
     max-width: 70%;
     padding: 12px 16px;
@@ -159,11 +173,11 @@
     <div class="session-list-card">
       <div class="session-header">
         <span>Hội thoại của bạn</span>
-        <span style="font-size: 12px; color: #888;">{{ phien_list.count }} hội thoại</span>
+        <span style="font-size: 12px; color: #888; font-weight: 500;">{{ phien_list.count }} hội thoại</span>
       </div>
 
       {% for phien in phien_list %}
-        <a href="?session_id={{ phien.ma_pht }}" 
+        <a href="?session_id={{ phien.ma_pht }}"
            class="session-item {% if selected_phien and selected_phien.ma_pht == phien.ma_pht %}active{% endif %}">
           <div class="session-item-date">
             <span>{{ phien.thoi_gian_bat_dau|date:"d/m/Y H:i" }}</span>
@@ -185,7 +199,7 @@
     <div class="chat-detail-card">
       {% if selected_phien %}
         <div class="chat-detail-header">
-          <h2 style="font-size: 20px; font-weight: 600; font-family: 'Playfair Display', serif;">
+          <h2>
             {% if selected_phien.ma_kb %}{{ selected_phien.ma_kb.ten_kich_ban }}{% else %}Tư vấn trực tiếp{% endif %}
           </h2>
           <div style="font-size: 12px; color: #888; margin-top: 4px;">
@@ -221,8 +235,8 @@
 <script>
   function continueConversation(sessionId) {
     // Lưu phiên được chọn vào localStorage và chuyển hướng về trang chủ/profile để mở Widget Chat
-       localStorage.setItem('cg_session', sessionId);
-       window.location.href = "{% url 'core:customer_home' %}?open_chat=true";
+    localStorage.setItem('cg_session', sessionId);
+    window.location.href = "{% url 'core:customer_home' %}?open_chat=true";
   }
 </script>
 {% endblock %}

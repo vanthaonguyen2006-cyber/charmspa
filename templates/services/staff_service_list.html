@@ -1,3 +1,4 @@
+```
 {% extends 'layouts/staff_base.html' %}
 {% load static %}
 {% block title %}Quản lý dịch vụ - Charm Spa{% endblock %}
@@ -6,18 +7,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/services/staff_service_list.css' %}?v=20261118_02">
+  <link rel="stylesheet" href="{% static 'css/services/staff_service_list.css' %}?v=20261119_04">
 {% endblock %}
 {% block content %}
 {% url 'services:api_xoa_dich_vu' as service_delete_url %}
 <div class="svc-page">
   <div class="svc-container">
-    <div class="svc-topline"><span class="svc-eyebrow">CHARM SPA · QUẢN LÝ DỊCH VỤ</span></div>
-    <div class="svc-heading"><div><h1>Quản lý dịch vụ</h1><p>Quản lý liệu trình, giá niêm yết và điểm tích lũy cho mỗi khách hàng.</p></div><button class="svc-button svc-primary" type="button" id="svcAddOpen"><span aria-hidden="true">＋</span> Thêm dịch vụ</button></div>
-    <div class="svc-metrics">
-      <div class="svc-metric"><span>Tổng dịch vụ</span><strong>{{ services|length }}</strong><small>Trong danh mục hiện tại</small></div>
-      <div class="svc-metric"><span>Loại dịch vụ</span><strong>{{ so_loai_dich_vu|default:'—' }}</strong><small>Nhóm liệu trình</small></div>
-      <div class="svc-metric"><span>Chính sách tích điểm</span><strong>Theo dịch vụ</strong><small>Số điểm cố định cho mỗi khách</small></div>
+    <div class="svc-heading"><div><h1>QUẢN LÝ DỊCH VỤ</h1><p>Quản lý liệu trình, giá niêm yết và điểm tích lũy cho mỗi khách hàng.</p></div><button class="svc-button svc-primary" type="button" id="svcAddOpen"><span aria-hidden="true">＋</span> Thêm dịch vụ</button></div>
+    <div class="svc-metrics" aria-label="Tổng quan dịch vụ">
+      <div class="svc-metric">
+        <span class="svc-metric-icon svc-metric-icon-gold" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M8 15h3M8 18h6"/></svg></span>
+        <div class="svc-metric-info"><span>Tổng dịch vụ</span><strong>{{ services|length }}</strong><small>Trong danh mục hiện tại</small></div>
+      </div>
+      <div class="svc-metric">
+        <span class="svc-metric-icon svc-metric-icon-green" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="15" width="7" height="6" rx="1"/><rect x="14" y="15" width="7" height="6" rx="1"/></svg></span>
+        <div class="svc-metric-info"><span>Loại dịch vụ</span><strong>{{ so_loai_dich_vu|default:'—' }}</strong><small>Nhóm liệu trình</small></div>
+      </div>
+      <div class="svc-metric">
+        <span class="svc-metric-icon svc-metric-icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></span>
+        <div class="svc-metric-info"><span>Chính sách tích điểm</span><strong class="svc-metric-text">Theo dịch vụ</strong><small>Số điểm cố định cho mỗi khách</small></div>
+      </div>
     </div>
     <section class="svc-panel">
       <div class="svc-panel-head"><div><h2>Danh sách dịch vụ <span class="svc-count">{{ services|length }}</span></h2><p>Chọn Sửa để cập nhật hoặc Xóa nếu dịch vụ chưa có dữ liệu liên quan.</p></div>
@@ -62,3 +71,5 @@
 })();
 </script>
 {% endblock %}
+
+```

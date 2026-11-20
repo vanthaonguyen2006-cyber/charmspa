@@ -8,7 +8,6 @@ from datetime import date, datetime, timedelta
 from customers.models import KhachHang
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
@@ -19,7 +18,7 @@ from services.models import DichVu
 from .forms import KhoaNgayForm
 from .models import LichHen, NgayHoatDong, PhanCongLichHen
 from accounts.models import (
-    NhanVien, TaiKhoan, ROLE_MANAGER, ROLE_STAFF,
+    NhanVien, TaiKhoan, ROLE_STAFF,
     get_user_role, is_manager_role, is_staff_portal_user, is_customer_role,
 )
 
@@ -342,6 +341,27 @@ def booking_customer_reschedule(request, ma_lh):
         so_luong_moi = request.POST.get('so_luong_khach_moi')
         ghi_chu_moi = request.POST.get('ghi_chu_moi')
 
+        # Chặn form Đổi lịch thiếu ngày/giờ: không âm thầm dùng lại ngày/giờ cũ.
+        if not (ngay_hen_moi or '').strip():
+            messages.error(request, 'Vui lòng chọn ngày hẹn mới.')
+            return redirect(redirect_url)
+        if not (gio_hen_moi or '').strip():
+            messages.error(request, 'Vui lòng chọn khung giờ hẹn mới.')
+            return redirect(redirect_url)
+        try:
+            raw_date = ngay_hen_moi.strip()
+            ngay_moi_kiem_tra = datetime.strptime(
+                raw_date, '%d/%m/%Y' if '/' in raw_date else '%Y-%m-%d'
+            ).date()
+            gio_moi_kiem_tra = datetime.strptime(gio_hen_moi.strip(), '%H:%M').time()
+        except (TypeError, ValueError):
+            messages.error(request, 'Ngày hoặc giờ hẹn không hợp lệ. Vui lòng chọn lại.')
+            return redirect(redirect_url)
+        ngay_gio_moi = datetime.combine(ngay_moi_kiem_tra, gio_moi_kiem_tra)
+        if timezone.make_aware(ngay_gio_moi, timezone.get_current_timezone()) <= timezone.now():
+            messages.error(request, 'Không thể đổi lịch sang thời điểm đã qua.')
+            return redirect(redirect_url)
+
         dich_vu_hien_tai = lich_hen.ma_dv
         if ma_dv_moi:
             dich_vu_moi = DichVu.objects.filter(pk=ma_dv_moi).first()
@@ -376,7 +396,7 @@ def booking_customer_reschedule(request, ma_lh):
 
         query = LichHen.objects.filter(ngay_hen=ngay_str).exclude(trang_thai__in=['Đã hủy', 'Đã xóa']).exclude(ma_lh=lich_hen.ma_lh)
 
-        gio_clean = gio_str.strip().lower()
+        gio_clean = str(gio_str).strip().lower()
         target_hour_str = gio_clean.split(':')[0] if ':' in gio_clean else '12'
 
         matched_bookings = []
@@ -471,12 +491,7 @@ def manage_activity_days(request):
             if ly_do == 'Khác':
                 ly_do = (form.cleaned_data.get('nhap_ly_do') or '').strip()
 
-            # Bảo vệ backend: không cho khóa quá khứ hoặc khoảng ngày ngược.
-            if start_date < today:
-                form.add_error('ngay_bat_dau', 'Không thể khóa ngày đã qua.')
-            elif end_date < start_date:
-                form.add_error('ngay_ket_thuc', 'Ngày kết thúc phải từ ngày bắt đầu trở đi.')
-            elif not ly_do:
+            if not ly_do:
                 form.add_error('nhap_ly_do', 'Vui lòng nhập lý do chi tiết.')
             else:
                 with transaction.atomic():
@@ -592,44 +607,6 @@ def api_check_bed_availability(request):
         return JsonResponse({'con_lai': tong_suc_chua, 'tong': tong_suc_chua})
 
 
-@staff_portal_only
-def staff_quan_ly_giuong(request):
-    ngay_chon = request.GET.get('ngay', datetime.today().strftime('%Y-%m-%d'))
-    khung_gio_list = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00']
-    thong_ke_gio = []
-
-    for gio in khung_gio_list:
-        query = LichHen.objects.filter(ngay_hen=ngay_chon).exclude(trang_thai__in=['Đã hủy', 'Đã xóa'])
-        target_hour_str = gio.split(':')[0]
-        matched_bookings = []
-        for b in query:
-            db_time = str(b.gio_hen).lower().strip()
-            if target_hour_str in db_time or gio.lower() in db_time:
-                matched_bookings.append(b)
-            elif 'noon' in db_time and target_hour_str == '12':
-                matched_bookings.append(b)
-
-        shampoo_dat = 0
-        massage_dat = 0
-        for b in matched_bookings:
-            if 'shampoo' in str(b.ma_dv.ten_dich_vu).lower():
-                shampoo_dat += b.so_luong_khach
-            else:
-                massage_dat += b.so_luong_khach
-
-        thong_ke_gio.append({
-            'gio': gio,
-            'shampoo_dat': shampoo_dat,
-            'shampoo_trong': max(0, 6 - shampoo_dat),
-            'massage_dat': massage_dat,
-            'massage_trong': max(0, 30 - massage_dat),
-        })
-
-    return render(request, 'bookings/staff_quan_ly_giuong.html', {
-        'ngay_chon': ngay_chon,
-        'thong_ke_gio': thong_ke_gio,
-        **get_staff_context(request)
-    })
 
 
 @staff_portal_only
@@ -654,15 +631,29 @@ def booking_staff_create(request):
         ghi_chu = request.POST.get('ghi_chu', '')
 
         try:
+            if not ma_dv:
+                messages.error(request, 'Vui lòng chọn dịch vụ trị liệu.')
+                return redirect('bookings:staff_booking_create')
             dich_vu = DichVu.objects.filter(pk=ma_dv).first()
             if not dich_vu:
-                dich_vu = DichVu.objects.first()
-            if not dich_vu:
-                messages.error(request, "Lỗi tạo lịch: Không tìm thấy dịch vụ nào trong hệ thống.")
+                messages.error(request, 'Dịch vụ đã chọn không hợp lệ. Vui lòng chọn lại.')
                 return redirect('bookings:staff_booking_create')
 
-            date_obj = datetime.strptime(ngay_hen.strip(), '%d/%m/%Y').date()
+            if not ngay_hen or not ngay_hen.strip():
+                messages.error(request, 'Vui lòng chọn ngày hẹn.')
+                return redirect('bookings:staff_booking_create')
+            try:
+                date_obj = datetime.strptime(ngay_hen.strip(), '%d/%m/%Y').date()
+            except (ValueError, TypeError):
+                messages.error(request, 'Ngày hẹn không đúng định dạng dd/mm/yyyy. Vui lòng chọn lại.')
+                return redirect('bookings:staff_booking_create')
             ngay_check = date_obj.strftime('%Y-%m-%d')
+            if date_obj < timezone.localdate():
+                messages.error(request, 'Không thể đặt lịch vào ngày đã qua.')
+                return redirect('bookings:staff_booking_create')
+            if not time_slot:
+                messages.error(request, 'Vui lòng chọn khung giờ hẹn.')
+                return redirect('bookings:staff_booking_create')
 
             if ngay_check in locked_dates_str:
                 messages.error(request, "Ngày bạn chọn hiện đang đóng cửa (Nghỉ lễ/Bảo trì).")
@@ -831,65 +822,18 @@ def booking_staff_detail(request, ma_lh):
 
 @staff_portal_only
 def booking_staff_complete(request, ma_lh):
-    """Hoan thanh lich va cong diem co dinh theo dich vu, mot lan moi lich."""
-    if request.method == "POST":
-        from customers.loyalty import cong_diem_khi_hoan_thanh
-        from notifications.loyalty import tao_thong_bao_tich_diem
-
-        try:
-            with transaction.atomic():
-                lich_hen = get_object_or_404(
-                    LichHen.objects.select_for_update(), ma_lh=ma_lh
-                )
-
-                if lich_hen.trang_thai in ('Đã hủy', 'Đã xóa'):
-                    messages.error(request, 'Lịch đã hủy hoặc xóa không thể hoàn thành.')
-                    return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
-
-                if lich_hen.trang_thai == 'Hoàn thành':
-                    # Neu da hoan thanh, khong xu ly lai va khong cong diem nua.
-                    messages.info(request, 'Lịch này đã hoàn thành trước đó.')
-                    return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
-
-                lich_hen.trang_thai = 'Hoàn thành'
-                lich_hen.save(update_fields=['trang_thai'])
-
-                ket_qua = cong_diem_khi_hoan_thanh(lich_hen.ma_lh)
-                if not ket_qua.get('success'):
-                    # Khong de hoan thanh Booking neu cong diem khong thanh cong.
-                    raise ValueError(ket_qua.get('message') or 'Không cộng được điểm.')
-
-                # Tao thong bao trong cung transaction voi cong diem.
-                tao_thong_bao_tich_diem(lich_hen.ma_lh, ket_qua)
-
-                diem = ket_qua['diem_cong']
-                thong_bao = (
-                    f"Đã cập nhật lịch hẹn #{lich_hen.ma_lh} thành Hoàn thành "
-                    f"và cộng {diem} điểm tích lũy!"
-                )
-                if ket_qua.get('len_hang'):
-                    thong_bao += f" Khách đã lên hạng {ket_qua['hang_moi']}!"
-
-            messages.success(request, thong_bao)
-        except Exception:
-            traceback.print_exc()
-            messages.error(
-                request,
-                'Không thể hoàn thành lịch và cộng điểm. Dữ liệu chưa thay đổi; '
-                'vui lòng kiểm tra cấu hình điểm và thử lại.'
-            )
-
-    # Tận dụng URL staff_booking_complete HIỆN CÓ; không thay urls.py.
+    """Xử lý hoàn thành lịch (kèm cộng điểm) hoặc hủy lịch từ portal nhân viên."""
     if request.method != 'POST':
         return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-    with transaction.atomic():
-        lich_hen = get_object_or_404(LichHen.objects.select_for_update(), ma_lh=ma_lh)
-        if lich_hen.trang_thai in ('Đã hủy', 'Hoàn thành', 'Đã xóa'):
-            messages.error(request, 'Lịch đã kết thúc hoặc hủy, không thể thao tác.')
-            return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+    # 1. Thao tác HỦY LỊCH từ modal nhân viên
+    if request.POST.get('booking_action') == 'cancel':
+        with transaction.atomic():
+            lich_hen = get_object_or_404(LichHen.objects.select_for_update(), ma_lh=ma_lh)
+            if lich_hen.trang_thai in ('Đã hủy', 'Hoàn thành', 'Đã xóa'):
+                messages.error(request, 'Lịch đã kết thúc hoặc hủy, không thể thao tác.')
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-        if request.POST.get('booking_action') == 'cancel':
             ly_do = (request.POST.get('ly_do_huy') or '').strip()
             if ly_do == 'Khác':
                 ly_do = (request.POST.get('ly_do_khac') or '').strip()
@@ -915,10 +859,52 @@ def booking_staff_complete(request, ma_lh):
             lich_hen.ly_do_huy = ly_do
             lich_hen.save(update_fields=['trang_thai', 'ly_do_huy'])
             messages.success(request, f'Đã hủy lịch #{lich_hen.ma_lh} thành công.')
-        else:
+        return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
+    # 2. Thao tác HOÀN THÀNH LỊCH và cộng điểm loyalty
+    from customers.loyalty import cong_diem_khi_hoan_thanh
+    from notifications.loyalty import tao_thong_bao_tich_diem
+
+    try:
+        with transaction.atomic():
+            lich_hen = get_object_or_404(
+                LichHen.objects.select_for_update(), ma_lh=ma_lh
+            )
+
+            if lich_hen.trang_thai in ('Đã hủy', 'Đã xóa'):
+                messages.error(request, 'Lịch đã hủy hoặc xóa không thể hoàn thành.')
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
+            if lich_hen.trang_thai == 'Hoàn thành':
+                messages.info(request, 'Lịch này đã hoàn thành trước đó.')
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
             lich_hen.trang_thai = 'Hoàn thành'
             lich_hen.save(update_fields=['trang_thai'])
-            messages.success(request, f'Đã cập nhật lịch hẹn #{lich_hen.ma_lh} thành Hoàn thành thành công!')
+
+            ket_qua = cong_diem_khi_hoan_thanh(lich_hen.ma_lh)
+            if not ket_qua.get('success'):
+                raise ValueError(ket_qua.get('message') or 'Không cộng được điểm.')
+
+            tao_thong_bao_tich_diem(lich_hen.ma_lh, ket_qua)
+
+            diem = ket_qua['diem_cong']
+            thong_bao = (
+                f"Đã cập nhật lịch hẹn #{lich_hen.ma_lh} thành Hoàn thành "
+                f"và cộng {diem} điểm tích lũy!"
+            )
+            if ket_qua.get('len_hang'):
+                thong_bao += f" Khách đã lên hạng {ket_qua['hang_moi']}!"
+
+            messages.success(request, thong_bao)
+    except Exception:
+        traceback.print_exc()
+        messages.error(
+            request,
+            'Không thể hoàn thành lịch và cộng điểm. Dữ liệu chưa thay đổi; '
+            'vui lòng kiểm tra cấu hình điểm và thử lại.'
+        )
+
     return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
 
@@ -1244,6 +1230,14 @@ def booking_customer_reschedule(request, ma_lh):
     if not (request.user.is_staff or request.user.is_superuser):
         qs = qs.filter(ma_kh__ma_tk__user=request.user)
 
+    # Kiểm tra bắt buộc cho cả lịch có/không có ưu đãi trước khi gọi view gốc.
+    if not (request.POST.get('ngay_hen_moi') or '').strip():
+        messages.error(request, 'Vui lòng chọn ngày hẹn mới.')
+        return redirect(redirect_url)
+    if not (request.POST.get('gio_hen_moi') or '').strip():
+        messages.error(request, 'Vui lòng chọn khung giờ hẹn mới.')
+        return redirect(redirect_url)
+
     # Lich khong co ban ghi uu dai: tra cho Booking goc xu ly 100%.
     if not qs.filter(uu_dai_ap_dung__isnull=False).exists():
         return _booking_customer_reschedule_goc(request, ma_lh)
@@ -1381,6 +1375,4 @@ def booking_customer_reschedule(request, ma_lh):
         messages.error(request, 'Khong cap nhat duoc gia khi doi lich. Vui long thu lai.')
         return redirect(redirect_url)
 
-# Neu lich da bi huy: view booking_customer_cancel goc chi doi trang_thai.
-# Ban ghi LichHenUuDai duoc giu, khong tinh vao doanh thu/thong ke thanh cong.
 

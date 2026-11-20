@@ -1,3 +1,4 @@
+
 /* Charm Grand Spa | Aftercare | Scoped to hdcs components */
 .hdcs-page{--hdcs-ink:#302d27;--hdcs-muted:#8a8176;--hdcs-gold:#b58a50;--hdcs-gold-dark:#8c6d4f;--hdcs-line:#e9dfd3;--hdcs-soft:#faf7f1;box-sizing:border-box;background:#f8f5ef;color:var(--hdcs-ink);min-height:calc(100vh - 90px);padding:28px 26px 60px;font-family:'Montserrat','Segoe UI',Arial,sans-serif}
 .hdcs-page *, .hdcs-modal *{box-sizing:border-box}
@@ -98,3 +99,136 @@
 .hdcs-btn.review-button{border-color:#b58a50;color:#8c6d4f;background:#fffaf3}
 .hdcs-btn.review-button:hover{background:#f9eddc}
 .hdcs-modal-actions .hdcs-btn{font-size:12px;min-height:37px}
+
+/* ===== Aftercare layout aligned with Quản lý ưu đãi (2026-11-19) ===== */
+/* staff_base already provides page insets. Do not add another 26px/28px layer. */
+.hdcs-page {
+  padding: 0 0 44px;
+  background: transparent;
+  min-height: calc(100vh - 82px);
+}
+.hdcs-wrap { max-width: none; margin: 0; width: 100%; }
+.hdcs-heading { align-items: center; gap: 22px; margin-bottom: 22px; }
+.hdcs-heading h1 {
+  margin: 0 0 9px;
+  color: #1f1f1d;
+  font-size: clamp(24px, 2.1vw, 34px);
+  line-height: 1.25;
+  letter-spacing: -.7px;
+  font-weight: 800;
+}
+.hdcs-heading p { margin: 0; color: #a19486; font-size: 13px; line-height: 1.8; }
+.hdcs-note { font-size: 12px; padding: 12px 14px; }
+.hdcs-metrics { gap: 17px; margin-bottom: 20px; }
+.hdcs-metric { min-height: 121px; padding: 20px 22px; border-radius: 15px; }
+.hdcs-metric-name { font-size: 13px; }
+.hdcs-metric-value { font-size: 30px; font-weight: 800; }
+.hdcs-panel { border-radius: 15px; }
+.hdcs-panel-head { padding: 18px 21px; min-height: 75px; }
+.hdcs-panel-head h2 { font-size: 18px; font-weight: 800; }
+.hdcs-panel-head p { font-size: 12px; }
+.hdcs-search, .hdcs-filter { font-size: 13px; }
+.hdcs-search { width: 245px; height: 43px; }
+.hdcs-filter { height: 43px; }
+.hdcs-table { font-size: 13px; min-width: 990px; }
+.hdcs-table th { font-size: 11px; padding: 16px 17px; }
+.hdcs-table td { padding: 17px 17px; line-height: 1.6; }
+.hdcs-name { font-size: 13px; font-weight: 800; }
+.hdcs-sub { font-size: 11px; }
+.hdcs-pill { font-size: 11px; }
+.hdcs-table th:last-child, .hdcs-table td:last-child { width: 150px; text-align: center; }
+/* Pending row: keep the send icon only. Sent row keeps Xem nội dung label. */
+.hdcs-table td:last-child .hdcs-btn.hdcs-icon-only {
+  width: 40px; height: 40px; min-width: 40px; min-height: 40px;
+  padding: 0; gap: 0; max-width: none;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hdcs-table td:last-child .hdcs-btn.hdcs-icon-only svg { width: 17px; height: 17px; }
+.hdcs-table td:last-child .hdcs-btn:not(.hdcs-icon-only) { font-size: 11px; }
+@media(max-width: 1080px) {
+  .hdcs-heading { align-items: flex-start; }
+  .hdcs-note { max-width: 100%; }
+}
+@media(max-width: 760px) {
+  .hdcs-page { padding: 0 0 36px; }
+  .hdcs-heading h1 { font-size: 25px; }
+  .hdcs-metrics { grid-template-columns: 1fr; gap: 10px; }
+  .hdcs-metric { min-height: 98px; padding: 16px; }
+  .hdcs-panel-head { padding: 16px; }
+  .hdcs-table { min-width: 890px; }
+}
+
+
+/* ===== AFTERCARE: final dashboard alignment (reference: Quản lý ưu đãi) =====
+   The global staff layout already has its own content inset. Compensate only
+   on this page, without touching the navigation or the modal layout. */
+@media (min-width: 1200px) {
+  /* Keep the existing inset from staff_base. Negative top/side margins
+     were placing the heading underneath the sticky workspace header. */
+  .hdcs-page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 44px;
+  }
+}
+.hdcs-wrap { max-width: none; width: 100%; margin: 0; }
+.hdcs-page .hdcs-heading { margin-bottom: 22px; }
+.hdcs-page .hdcs-heading h1 { font-size: clamp(25px, 2.1vw, 34px); font-weight: 800; }
+.hdcs-page .hdcs-heading p { font-size: 13px; }
+
+/* Three KPI cards: same icon-left, label-and-number-right layout as promotions */
+.hdcs-page .hdcs-metrics { gap: 17px; margin-bottom: 22px; }
+.hdcs-page .hdcs-metric {
+  display: flex; flex-direction: row; align-items: center; justify-content: flex-start;
+  gap: 19px; min-height: 121px; padding: 20px 22px;
+  background: #fff; border: 1px solid #eae3d9; border-radius: 15px;
+}
+.hdcs-page .hdcs-metric-icon,
+.hdcs-page .hdcs-metric:first-child .hdcs-metric-icon {
+  flex: 0 0 54px; width: 54px; height: 54px;
+  border-radius: 12px; display: grid; place-items: center;
+  background: #f9f3e8; color: #bc923c;
+}
+.hdcs-page .hdcs-metric:nth-child(2) .hdcs-metric-icon { background: #e7f3ec; color: #349969; }
+.hdcs-page .hdcs-metric:nth-child(3) .hdcs-metric-icon { background: #f2ebf8; color: #8b66b6; }
+.hdcs-page .hdcs-metric-icon svg { width: 25px; height: 25px; }
+.hdcs-metric-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hdcs-page .hdcs-metric-name { font-size: 13px; font-weight: 600; color: #92877a; }
+.hdcs-page .hdcs-metric-value { margin: 0; font-size: 29px; line-height: 1.3; font-weight: 800; }
+
+/* Readable table and balanced column spacing */
+.hdcs-page .hdcs-table { min-width: 1050px; font-size: 14px; }
+.hdcs-page .hdcs-table th { font-size: 11px; padding: 16px 18px; }
+.hdcs-page .hdcs-table td { font-size: 13.5px; padding: 17px 18px; line-height: 1.6; }
+.hdcs-page .hdcs-name { font-size: 13.5px; font-weight: 800; }
+.hdcs-page .hdcs-sub { font-size: 11.5px; }
+.hdcs-page .hdcs-pill { font-size: 11px; }
+.hdcs-page .hdcs-panel-head h2 { font-size: 18px; }
+.hdcs-page .hdcs-panel-head p { font-size: 12px; }
+.hdcs-page .hdcs-search, .hdcs-page .hdcs-filter { font-size: 13px; }
+.hdcs-page .hdcs-table th:nth-child(3), .hdcs-page .hdcs-table td:nth-child(3) {
+  width: 170px; max-width: none;
+}
+.hdcs-page .hdcs-table th:last-child, .hdcs-page .hdcs-table td:last-child {
+  width: 100px; text-align: center;
+}
+/* All row actions (send and eye) are 40px square, icon-only. */
+.hdcs-page .hdcs-table td:last-child .hdcs-btn.hdcs-icon-only {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; min-width: 40px; max-width: 40px;
+  height: 40px; min-height: 40px; padding: 0; gap: 0;
+  border-radius: 9px;
+}
+.hdcs-page .hdcs-table td:last-child .hdcs-btn.hdcs-icon-only svg {
+  width: 17px; height: 17px;
+}
+@media (min-width: 761px) and (max-width: 1199px) {
+  .hdcs-page { width: 100%; margin: 0; padding: 0 0 40px; }
+}
+@media (max-width: 760px) {
+  .hdcs-page { width: 100%; margin: 0; padding: 0 0 36px; }
+  .hdcs-page .hdcs-metric { min-height: 98px; padding: 16px; gap: 15px; }
+  .hdcs-page .hdcs-metric-icon { flex-basis: 48px; width: 48px; height: 48px; }
+  .hdcs-page .hdcs-metric-value { font-size: 27px; }
+}

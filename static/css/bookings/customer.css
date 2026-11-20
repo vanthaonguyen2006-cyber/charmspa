@@ -1456,3 +1456,52 @@ body:has(.booking-customer-detail)
 .booking-customer-create .custom-date-container .booking-date-trigger {position:absolute;right:12px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:30px;height:30px;padding:0;z-index:3;}
 .booking-customer-list .customer-filter-field .flatpickr-wrapper {width:100%;display:block;}
 .booking-customer-list .customer-filter-field .flatpickr-input {width:100% !important;}
+
+/* CUSTOMER CREATE — chỉ thông báo lỗi kiểm tra form, không dùng popup */
+.booking-customer-create .booking-create-inline-error {
+    display: block;
+    color: #dc3545 !important;
+    font-size: 12px !important;
+    font-weight: 500;
+    line-height: 1.45;
+    margin-top: 6px;
+    overflow-wrap: anywhere;
+}
+.booking-customer-create .booking-create-inline-error[hidden] { display: none !important; }
+.booking-customer-create #input_ngay_hen.booking-create-invalid {
+    border: 1px solid #dc3545 !important;
+    background: #fff8f8 !important;
+    outline: none !important;
+}
+.booking-customer-create #time_slots_container.booking-create-invalid {
+    border: 1px solid #dc3545;
+    border-radius: 8px;
+    padding: 8px 2px;
+    margin-top: 2px;
+}
+
+/* KHACH HANG: thong bao loi popup Doi lich nhu form Staff. */
+.booking-reschedule-modal .booking-inline-error:not([hidden]) {
+    display: block !important;
+    width: 100%;
+    margin-top: 7px;
+    color: #dc3545 !important;
+    font-family: var(--booking-font-family, Montserrat, Arial, sans-serif) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+.booking-reschedule-modal .booking-inline-error[hidden] { display: none !important; }
+.booking-reschedule-modal .edit-date-picker.booking-field-invalid,
+.booking-reschedule-modal input.booking-field-invalid {
+    border-color: #dc3545 !important;
+    background-color: #fff8f8 !important;
+    outline-color: #dc3545 !important;
+}
+.booking-reschedule-modal .time-slots-container_modal.booking-field-invalid,
+.booking-reschedule-modal [id^="service_container_"].booking-field-invalid {
+    border: 1px solid #dc3545 !important;
+    border-radius: 8px;
+}
