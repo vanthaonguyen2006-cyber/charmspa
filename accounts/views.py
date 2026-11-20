@@ -13,7 +13,7 @@ def dang_ky_view(request):
     if request.method == 'POST':
         form = DangKyForm(request.POST)
         if form.is_valid():
-            form.save()  # Lưu user và tự động tạo profile, gán vai trò Khách hàng
+            form.save()
             return redirect('dang_nhap')
     else:
         form = DangKyForm()
@@ -67,7 +67,7 @@ def dang_nhap_view(request):
             if user is not None:
                 auth_login(request, user)  # Tạo phiên đăng nhập
 
-                # Điều hướng: Admin kỹ thuật -> /admin/, Quản lý & Nhân viên -> cổng nội bộ, Khách hàng -> /home/
+                # Điều hướng
                 if user.is_superuser and user.is_staff:
                     return redirect('/admin/')
                 elif is_staff_portal_user(user):
@@ -75,7 +75,7 @@ def dang_nhap_view(request):
                 else:
                     return redirect('/home/')
 
-        # 3. Nếu sai thông tin hoặc mật khẩu không đúng (Thất bại: giữ lại login_input)
+        # 3. Nếu sai thông tin hoặc mật khẩu không đúng
         return render(request, 'accounts/dang_nhap.html', {
             'error': 'Tên đăng nhập, số điện thoại hoặc mật khẩu không chính xác!',
             'login_input': login_input,
@@ -85,14 +85,13 @@ def dang_nhap_view(request):
 
 
 def dang_xuat_view(request):
-    """Đăng xuất tài khoản, xóa phiên và làm sạch session hoàn toàn"""
     auth_logout(request)
     return redirect('dang_nhap')
 
 
 @login_required(login_url='/accounts/dang_nhap/')
 def account_change_password_view(request):
-    """Change the password for a signed-in customer account."""
+    """Đổi mk trang kh"""
     if request.user.is_superuser and request.user.is_staff:
         return redirect('/admin/')
     if not is_customer_role(request.user):
@@ -122,7 +121,7 @@ def account_change_password_view(request):
 
 @login_required(login_url='/accounts/dang_nhap/')
 def staff_change_password_view(request):
-    """Change the password for a signed-in staff or manager account."""
+    """Đổi mk trang nv"""
     if request.user.is_superuser and request.user.is_staff:
         return redirect('/admin/')
     if not is_staff_portal_user(request.user):
