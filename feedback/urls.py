@@ -71,12 +71,6 @@ urlpatterns = [
         name="staff_feedback_list",
     ),
 
-    # Danh sách phiếu đã giải quyết
-    path(
-        "staff-ui/da-giai-quyet/",
-        ui_views.staff_feedback_resolved,
-        name="staff_feedback_resolved",
-    ),
 
     # Chi tiết và xử lý một phiếu
     path(
