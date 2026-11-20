@@ -1,9 +1,5 @@
-/* QUY CHUẨN CHỮ STAFF — giữ tỷ lệ bảng/bộ lọc gọn như ảnh duyệt.
-   Sửa giá trị trong common.css để đồng bộ theo vai trò. */
-/* Danh sách: giữ nguyên cách áp dụng font hiện tại. */
 .staff-booking-page, .staff-booking-page :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a,table,th,td){font-family:var(--booking-font-family) !important;}
-/* Tạo lịch và Chi tiết: áp dụng Montserrat cho mọi phần tử, kể cả icon-label và nội dung lồng nhau.
-   Hai popup được JS chuyển ra body nên cần chọn theo ID, không phụ thuộc cha của trang. */
+
 :is(.booking-staff-create,.staff-detail-page,#modalAllServices,#staffEditModal,.staff-edit-all-modal),
 :is(.booking-staff-create,.staff-detail-page,#modalAllServices,#staffEditModal,.staff-edit-all-modal) *{font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif) !important;}
 :is(.booking-staff-create,.staff-booking-page,.staff-detail-page){font-size:var(--booking-font-body);}

@@ -1,5 +1,3 @@
-/* QUY CHUẨN CHỮ CUSTOMER — theo cùng vai trò với STAFF / ADMIN.
-   Tất cả kích cỡ chữ được điều chỉnh tại common.css; không thêm override ở cuối. */
 :is(.booking-customer-create,.booking-customer-list,.booking-customer-detail,.booking-customer-success),
 :is(.booking-customer-create,.booking-customer-list,.booking-customer-detail,.booking-customer-success) :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a,table,th,td) {
     font-family: var(--booking-font-family) !important;
