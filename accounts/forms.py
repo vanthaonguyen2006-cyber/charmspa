@@ -177,7 +177,7 @@ class DangKyForm(UserCreationForm):
 
 
 class AccountPasswordChangeForm(PasswordChangeForm):
-    """Django's password change form with Vietnamese account-facing labels & unified error messages."""
+    """ĐỔI MK"""
 
     error_messages = {
         'password_incorrect': 'Mật khẩu hiện tại không chính xác. Vui lòng nhập lại.',

@@ -1,8 +1,13 @@
+from datetime import date
+
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 from accounts.models import (
     ASSIGNABLE_ROLES,
+    NhanVien,
     ROLE_CHOICES,
     ROLE_CUSTOMER,
     ROLE_MANAGER,
@@ -80,7 +85,7 @@ class ThemKhachHangForm(forms.Form):
         return ngay_sinh
 
 
-class ThemNhanVienForm(forms.Form):
+class ThemNhanVienForm(UserCreationForm):
     VAI_TRO_CHOICES = [
         (ROLE_STAFF, ROLE_STAFF),
         (ROLE_MANAGER, ROLE_MANAGER),
@@ -134,21 +139,33 @@ class ThemNhanVienForm(forms.Form):
             'invalid_choice': 'Chỉ được tạo tài khoản nhân sự với vai trò Nhân viên hoặc Quản lý.',
         }
     )
-    username = forms.CharField(
-        max_length=150,
-        required=True,
-        error_messages={'required': 'Tên đăng nhập không được để trống.'}
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput,
-        required=True,
-        error_messages={'required': 'Vui lòng nhập mật khẩu.'}
-    )
-    password_confirm = forms.CharField(
-        widget=forms.PasswordInput,
-        required=True,
-        error_messages={'required': 'Vui lòng xác nhận mật khẩu.'}
-    )
+
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'email',
+            'password1',
+            'password2',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'username' in self.fields:
+            self.fields['username'].error_messages.update({
+                'required': 'Tên đăng nhập không được để trống.',
+                'unique': 'Tên đăng nhập này đã được sử dụng bởi tài khoản khác.',
+                'invalid': 'Tên đăng nhập không hợp lệ.',
+            })
+        if 'password1' in self.fields:
+            self.fields['password1'].error_messages.update({
+                'required': 'Vui lòng nhập mật khẩu.',
+            })
+        if 'password2' in self.fields:
+            self.fields['password2'].error_messages.update({
+                'required': 'Vui lòng xác nhận mật khẩu.',
+            })
+        self.error_messages['password_mismatch'] = 'Mật khẩu xác nhận không khớp.'
 
     def clean_ho_ten(self):
         ho_ten = (self.cleaned_data.get('ho_ten') or '').strip()
@@ -196,18 +213,37 @@ class ThemNhanVienForm(forms.Form):
             raise forms.ValidationError("Chỉ được phép chọn vai trò Nhân viên hoặc Quản lý.")
         return vai_tro
 
-    def clean(self):
-        cleaned_data = super().clean()
-        pw = cleaned_data.get('password')
-        pwc = cleaned_data.get('password_confirm')
+    @transaction.atomic
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.is_active = True
+        user.is_staff = False
+        user.is_superuser = False
 
-        if pw and len(pw) < 6:
-            self.add_error('password', "Mật khẩu phải có độ dài tối thiểu 6 ký tự.")
+        if commit:
+            user.save()
+            tai_khoan = TaiKhoan.objects.create(
+                ma_tk=f"TK{user.id:03d}",
+                user=user,
+                so_dien_thoai=self.cleaned_data['so_dien_thoai'],
+                vai_tro=self.cleaned_data['vai_tro'],
+            )
 
-        if pw and pwc and pw != pwc:
-            self.add_error('password_confirm', "Mật khẩu xác nhận không khớp.")
+            ma_nv_str = f"NV{user.id:03d}"
+            suffix = 1
+            while NhanVien.objects.filter(ma_nv=ma_nv_str).exists():
+                ma_nv_str = f"NV{user.id:03d}_{suffix}"
+                suffix += 1
 
-        return cleaned_data
+            NhanVien.objects.create(
+                ma_nv=ma_nv_str,
+                ma_tk=tai_khoan,
+                ho_ten=self.cleaned_data['ho_ten'],
+                gioi_tinh=self.cleaned_data['gioi_tinh'],
+                ngay_sinh=self.cleaned_data.get('ngay_sinh') or date(2000, 1, 1),
+            )
+        return user
 
 
 class ChinhSuaTaiKhoanForm(forms.Form):
