@@ -14,14 +14,12 @@
 .booking-ui-modal :is(.time-slot-modal strong,.booking-reschedule-summary strong),
 .booking-reschedule-modal :is(.time-slot-modal strong,.booking-reschedule-summary strong){font-size:var(--booking-font-body) !important;}
 
-/* CHARM SPA: Bootstrap-like modal presentation, scoped ONLY to booking popups.
-   Does not load Bootstrap's global CSS or change customer_base_pro banner/nav. */
 .booking-ui-modal,
 .booking-ui-modal *,
 .booking-ui-modal *::before,
 .booking-ui-modal *::after { box-sizing: border-box; }
 
-/* Hide popups in the page until Bootstrap's existing JS opens them. */
+
 .booking-ui-modal {
   position: fixed !important;
   inset: 0;
@@ -89,7 +87,7 @@
 .booking-ui-modal .btn-close::before { content: "×"; font: 27px/28px "Montserrat", Arial, sans-serif; color: #333; }
 .booking-ui-modal .btn-close:hover { opacity: 1; }
 
-/* Scoped Bootstrap grid for rescheduling, never affecting site header. */
+
 .booking-ui-modal .row { --bs-gutter-x: 16px; --bs-gutter-y: 16px; display: flex; flex-wrap: wrap; margin: calc(var(--bs-gutter-y) * -.5) calc(var(--bs-gutter-x) * -.5); }
 .booking-ui-modal .row > * { flex-shrink: 0; max-width: 100%; width: 100%; padding: calc(var(--bs-gutter-y) * .5) calc(var(--bs-gutter-x) * .5); }
 .booking-ui-modal .row.g-2 { --bs-gutter-x: 8px; --bs-gutter-y: 8px; }
@@ -111,7 +109,7 @@
   .booking-ui-modal .modal-header, .booking-ui-modal .modal-body, .booking-ui-modal .modal-footer { padding: 14px !important; }
 }
 
-/* Typography, form fields, buttons and Bootstrap utilities used inside booking modals. */
+
 .booking-ui-modal h5, .booking-ui-modal h6 { margin-top: 0; }
 .booking-ui-modal .d-flex { display: flex !important; }
 .booking-ui-modal .d-block { display: block !important; }
@@ -180,7 +178,7 @@
 .booking-ui-modal .booking-reschedule-panel { min-width: 0; }
 .booking-ui-modal .modal-body { max-height: min(75vh, 740px); overflow-y: auto; }
 .booking-ui-modal .flatpickr-calendar { z-index: 1100 !important; }
-/* Bootstrap JS inserts this backdrop outside the modal. */
+
 .modal-backdrop { position: fixed; inset: 0; z-index: 1050; background: #000; }
 .modal-backdrop.fade { opacity: 0; }
 .modal-backdrop.show { opacity: .5; }
