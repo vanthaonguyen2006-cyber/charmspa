@@ -24,7 +24,6 @@ from accounts.models import (
 
 
 # Phân quyền nghiệp vụ dùng chung từ accounts.models.
-# is_staff / is_superuser của Django KHÔNG đại diện cho Quản lý / Nhân viên.
 manager_only = user_passes_test(is_manager_role, login_url='/accounts/dang_nhap/')
 staff_portal_only = user_passes_test(is_staff_portal_user, login_url='/accounts/dang_nhap/')
 
@@ -879,6 +878,20 @@ def booking_staff_complete(request, ma_lh):
                 messages.info(request, 'Lịch này đã hoàn thành trước đó.')
                 return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
+            # Chỉ được hoàn thành sau khi đã hết thời lượng dịch vụ.
+            # Kiểm tra tại backend để không thể bỏ qua bằng cách gửi POST trực tiếp.
+            bat_dau = datetime.combine(lich_hen.ngay_hen, lich_hen.gio_hen)
+            if timezone.is_naive(bat_dau):
+                bat_dau = timezone.make_aware(bat_dau, timezone.get_current_timezone())
+            ket_thuc = bat_dau + timedelta(minutes=_thoi_luong_phut(lich_hen))
+            if timezone.now() < ket_thuc:
+                messages.error(
+                    request,
+                    'Chưa thể hoàn thành lịch hẹn! Dịch vụ dự kiến kết thúc lúc '
+                    f'{timezone.localtime(ket_thuc):%H:%M ngày %d/%m/%Y}.'
+                )
+                return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
+
             lich_hen.trang_thai = 'Hoàn thành'
             lich_hen.save(update_fields=['trang_thai'])
 
@@ -1378,5 +1391,3 @@ def booking_customer_reschedule(request, ma_lh):
         traceback.print_exc()
         messages.error(request, 'Khong cap nhat duoc gia khi doi lich. Vui long thu lai.')
         return redirect(redirect_url)
-
-
