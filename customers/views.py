@@ -41,7 +41,6 @@ from accounts.models import (
     sync_user_flags_with_role,
 )
 from services.models import DichVu, DichVuDaSuDung
-from django.conf import settings
 User = get_user_model()
 
 
@@ -100,11 +99,8 @@ def _next_ma_lich_su():
 # XEM VÀ CHỈNH SỬA HỒ SƠ CÁ NHÂN (DÀNH CHO KHÁCH HÀNG)
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
-@user_passes_test(is_customer_user, login_url='/home/staff/')
+@user_passes_test(is_customer_user, login_url='/home/staff/dashboard/')
 def customer_profile_view(request):
-    if is_staff_portal_user(request.user):
-        return redirect('/home/staff/')
-
     tai_khoan = getattr(request.user, 'thong_tin_tai_khoan', None)
 
     khach_hang = None
@@ -197,7 +193,7 @@ def customer_profile_view(request):
 # KHÁCH HÀNG TỰ KHÓA TÀI KHOẢN
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
-@user_passes_test(is_customer_user, login_url='/home/staff/')
+@user_passes_test(is_customer_user, login_url='/home/staff/dashboard/')
 def customer_lock_account_view(request):
     """
     Cho phép khách hàng chủ động yêu cầu khóa tài khoản của chính mình:
@@ -553,7 +549,6 @@ def staff_account_detail_view(request, ma_tk):
         or request.GET.get('edit') == 'true'
         or request.method == 'POST'
     ) and can_edit_target
-    is_ajax = (request.headers.get('x-requested-with') == 'XMLHttpRequest')
 
     if request.method == 'POST':
         form = ChinhSuaTaiKhoanForm(
@@ -583,7 +578,7 @@ def staff_account_detail_view(request, ma_tk):
                     tai_khoan.save(update_fields=['so_dien_thoai', 'vai_tro'])
 
                     # Đồng bộ hai cờ quyền Django theo vai trò mới
-                    sync_user_flags_with_role(user_obj, vai_tro_db)
+                    sync_user_flags_with_role(user_obj)
 
                     # Cập nhật Họ tên, Giới tính, Ngày sinh vào hồ sơ tương ứng
                     if vai_tro_db in (ROLE_MANAGER, ROLE_STAFF):
@@ -630,19 +625,13 @@ def staff_account_detail_view(request, ma_tk):
                             )
 
                 messages.success(request, f"Cập nhật tài khoản '{user_obj.username}' thành công!")
-                if is_ajax:
-                    return JsonResponse({'success': True})
                 return redirect('staff_account_detail', ma_tk=tai_khoan.ma_tk)
 
             except Exception as e:
                 err_msg = f"Lỗi khi cập nhật tài khoản: {e}"
                 form.add_error(None, err_msg)
-                if is_ajax:
-                    return JsonResponse({'success': False, 'errors': {'__all__': [err_msg]}}, status=400)
                 is_editing = True
         else:
-            if is_ajax:
-                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
             is_editing = True
     else:
         initial_data = {
@@ -728,13 +717,10 @@ def staff_customer_detail_view(request, ma_kh):
 
     if not tai_khoan:
         trang_thai_tai_khoan = 'Chưa có tài khoản'
-        trang_thai_class = 'neutral'
     elif user and user.is_active:
         trang_thai_tai_khoan = 'Đang hoạt động'
-        trang_thai_class = 'success'
     else:
         trang_thai_tai_khoan = 'Đã khóa'
-        trang_thai_class = 'danger'
 
     is_editing = (
             request.GET.get('edit') == '1'
@@ -949,7 +935,6 @@ def staff_customer_detail_view(request, ma_kh):
         'user': user,
         'ngay_tao': tai_khoan.ngay_tao if tai_khoan else None,
         'trang_thai_tai_khoan': trang_thai_tai_khoan,
-        'trang_thai_class': trang_thai_class,
         'initials': initials,
         'lich_su_dich_vu': lich_su_dich_vu,
         'so_luot_su_dung': so_luot_su_dung,
@@ -1002,14 +987,20 @@ def staff_customer_add_view(request):
                     user_moi = User(
                         username=username_moi,
                         email=email,
+                        is_active=True,
+                        is_staff=False,
+                        is_superuser=False,
                     )
-                    user_moi._so_dien_thoai_dang_ky = so_dien_thoai
-                    user_moi._vai_tro_dong_bo = ROLE_CUSTOMER
                     user_moi.set_password('Password123@')
                     user_moi.save()
 
-                    # 2. Lấy TaiKhoan vừa được Signal tạo tự động
-                    tai_khoan_moi = TaiKhoan.objects.get(user=user_moi)
+                    # 2. Tạo TaiKhoan tường minh cho khách hàng
+                    tai_khoan_moi = TaiKhoan.objects.create(
+                        ma_tk=f"TK{user_moi.id:03d}",
+                        user=user_moi,
+                        so_dien_thoai=so_dien_thoai,
+                        vai_tro=ROLE_CUSTOMER,
+                    )
 
                     # 3. Sinh mã khách hàng tự động tăng (dạng KH-00001)
                     ma_kh_moi = None
@@ -1053,7 +1044,7 @@ def staff_customer_add_view(request):
 # =========================================================================
 @login_required(login_url='/accounts/dang_nhap/')
 @user_passes_test(is_staff_user, login_url='/home/customer/')
-def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
+def staff_account_list_view(request):
     if not is_account_manager_user(request.user):
         raise PermissionDenied("Chức năng Quản trị người dùng chỉ dành cho Quản lý.")
 
@@ -1061,7 +1052,6 @@ def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
     query = request.GET.get('q', '').strip()
     vai_tro = request.GET.get('vai_tro', '').strip()
     trang_thai = request.GET.get('trang_thai', '').strip()
-    ngay_tao_loc = request.GET.get('ngay_tao', '').strip()
 
     # 2. Lấy danh sách tài khoản nghiệp vụ (loại trừ hoàn toàn Admin kỹ thuật Django)
     base_qs = _website_accounts_queryset()
@@ -1090,20 +1080,6 @@ def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
         tai_khoan_list = tai_khoan_list.filter(user__is_active=True)
     elif trang_thai == 'da_khoa':
         tai_khoan_list = tai_khoan_list.filter(user__is_active=False)
-
-    today = timezone.localdate()
-    dau_thang = today.replace(day=1)
-    if ngay_tao_loc == 'thang_nay':
-        tai_khoan_list = tai_khoan_list.filter(
-            ngay_tao__date__gte=dau_thang,
-            ngay_tao__date__lte=today,
-        )
-    elif ngay_tao_loc == '30_ngay':
-        tu_ngay = today - timedelta(days=29)
-        tai_khoan_list = tai_khoan_list.filter(
-            ngay_tao__date__gte=tu_ngay,
-            ngay_tao__date__lte=today,
-        )
 
     tai_khoan_list = tai_khoan_list.order_by('-ngay_tao', '-ma_tk')
 
@@ -1229,7 +1205,6 @@ def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
         'query': query,
         'vai_tro_selected': normalize_role(vai_tro) or '',
         'trang_thai_selected': trang_thai,
-        'ngay_tao_selected': ngay_tao_loc,
         'tong_tai_khoan_display': _format_number_vn(tong_tai_khoan),
         'tong_khach_hang_display': _format_number_vn(tong_khach_hang),
         'tong_nhan_su_display': _format_number_vn(tong_nhan_su),
@@ -1240,8 +1215,6 @@ def staff_account_list_view(request, add_staff_form=None, show_add_modal=False):
         'showing_start': page_obj.start_index() if paginator.count else 0,
         'showing_end': page_obj.end_index() if paginator.count else 0,
         'filtered_count_display': _format_number_vn(paginator.count),
-        'add_staff_form': add_staff_form or ThemNhanVienForm(),
-        'show_add_modal': show_add_modal,
     }
 
     return render(request, 'customer/staff_account_list.html', context)
@@ -1276,24 +1249,14 @@ def staff_account_add_staff_view(request):
                         is_superuser=False,
                     )
                     user.set_password(cleaned['password'])
-                    user._so_dien_thoai_dang_ky = cleaned['so_dien_thoai']
-                    user._vai_tro_dong_bo = vai_tro
                     user.save()
 
-                    ma_tk_str = f"TK{user.id:03d}"
-                    tai_khoan, _ = TaiKhoan.objects.get_or_create(
+                    tai_khoan = TaiKhoan.objects.create(
+                        ma_tk=f"TK{user.id:03d}",
                         user=user,
-                        defaults={
-                            'ma_tk': ma_tk_str,
-                            'so_dien_thoai': cleaned['so_dien_thoai'],
-                            'vai_tro': vai_tro,
-                        }
+                        so_dien_thoai=cleaned['so_dien_thoai'],
+                        vai_tro=vai_tro,
                     )
-                    tai_khoan.so_dien_thoai = cleaned['so_dien_thoai']
-                    tai_khoan.vai_tro = vai_tro
-                    tai_khoan.save(update_fields=['so_dien_thoai', 'vai_tro'])
-
-                    sync_user_flags_with_role(user, vai_tro)
 
                     ma_nv_str = f"NV{user.id:03d}"
                     suffix = 1
@@ -1374,7 +1337,7 @@ def staff_account_edit_view(request, ma_tk):
                     tai_khoan.save(update_fields=['so_dien_thoai', 'vai_tro'])
 
                     # Đồng bộ hai cờ quyền Django theo vai trò
-                    sync_user_flags_with_role(user_bi_tac_dong, vai_tro_db)
+                    sync_user_flags_with_role(user_bi_tac_dong)
 
                     # Cập nhật Họ và tên, Giới tính, Ngày sinh vào hồ sơ tương ứng
                     if vai_tro_db in (ROLE_MANAGER, ROLE_STAFF):
@@ -1438,9 +1401,6 @@ def staff_account_edit_view(request, ma_tk):
             first_error = next(iter(form.errors.values()))[0]
             messages.error(request, f"Không thể lưu thay đổi: {first_error}")
 
-        referer = request.META.get('HTTP_REFERER')
-        if referer and f'/staff/account/{ma_tk}/' in referer:
-            return redirect('staff_account_detail', ma_tk=ma_tk)
         return redirect('staff_account_list')
 
     return redirect('staff_account_list')
@@ -1672,7 +1632,7 @@ def staff_customer_record_service_view(request, ma_kh):
             .filter(
                 ma_nv=ma_nv,
                 ma_tk__user__is_active=True,
-                ma_tk__vai_tro__in=[ROLE_STAFF, 'Chuyên viên', 'Nhân viên CSKH'],
+                ma_tk__vai_tro=ROLE_STAFF,
             )
             .first()
         )
@@ -1879,7 +1839,6 @@ def staff_customer_record_service_view(request, ma_kh):
         'initials': initials,
         'dich_vu_list': dich_vu_list,
         'nhan_vien_list': nhan_vien_list,
-        'hang_tv': hang_tv,
         'ten_hang': ten_hang,
         'ty_le_giam_gia': ty_le_giam_gia,
         'services_json': services_json,
@@ -2012,7 +1971,6 @@ def staff_profile_view(request):
 
     context = {
         'user_obj': user_obj,
-        'tai_khoan': tai_khoan,
         'nhan_vien': nhan_vien,
         'display_ho_ten': display_ho_ten,
         'display_so_dien_thoai': display_so_dien_thoai,

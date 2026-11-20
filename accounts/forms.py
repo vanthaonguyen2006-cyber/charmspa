@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import TaiKhoan
+from .models import ROLE_CUSTOMER, TaiKhoan
 from customers.models import KhachHang, HangThanhVien
 
 
@@ -147,22 +147,17 @@ class DangKyForm(UserCreationForm):
             )
 
         if commit:
-            # Cung cấp số điện thoại cho Signal
-            user._so_dien_thoai_dang_ky = so_dien_thoai
-
-            # Lưu User
+            # Lưu User (đảm bảo tài khoản nghiệp vụ không có quyền Django Admin)
+            user.is_staff = False
+            user.is_superuser = False
             user.save()
 
-            # Tạo hoặc lấy TaiKhoan
-            ma_tk_str = f"TK{user.id:03d}"
-
-            tai_khoan, created_tk = TaiKhoan.objects.get_or_create(
+            # Tạo tường minh TaiKhoan
+            tai_khoan = TaiKhoan.objects.create(
+                ma_tk=f"TK{user.id:03d}",
                 user=user,
-                defaults={
-                    'ma_tk': ma_tk_str,
-                    'so_dien_thoai': so_dien_thoai,
-                    'vai_tro': 'Khách hàng'
-                }
+                so_dien_thoai=so_dien_thoai,
+                vai_tro=ROLE_CUSTOMER,
             )
 
             # Tạo hồ sơ khách hàng
@@ -179,20 +174,6 @@ class DangKyForm(UserCreationForm):
             )
 
         return user
-
-
-class DangNhapForm(forms.Form):
-    username = forms.CharField(
-        max_length=150,
-        label="Tên đăng nhập, email hoặc số điện thoại",
-        error_messages={'required': 'Vui lòng nhập tên đăng nhập, email hoặc số điện thoại.'},
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập username, email hoặc SĐT'})
-    )
-    password = forms.CharField(
-        label="Mật khẩu",
-        error_messages={'required': 'Vui lòng nhập mật khẩu.'},
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nhập mật khẩu'})
-    )
 
 
 class AccountPasswordChangeForm(PasswordChangeForm):

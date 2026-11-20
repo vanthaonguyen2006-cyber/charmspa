@@ -188,14 +188,14 @@
 
                                     {% if tk.can_toggle_lock|default:False %}
                                         {% if tk.user.is_active %}
-                                            <button type="button" class="customer-icon-button text-amber-700 bg-amber-50"
+                                            <button type="button" class="customer-icon-button"
                                                     onclick="openLockModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|default:tk.user.username|escapejs }}', '{{ tk.user.username|escapejs }}')"
                                                     title="Khóa tài khoản" aria-label="Khóa tài khoản">
                                                 <i data-lucide="lock"></i>
                                             </button>
                                         {% else %}
-                                            <button type="button" class="customer-icon-button text-emerald-700 bg-emerald-50"
-                                                    onclick="openUnlockModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|default:tk.user.username|escapejs }}', '{{ tk.user.username|escapejs }}', '{{ tk.so_dien_thoai|default:''|escapejs }}', '{{ tk.user.email|default:''|escapejs }}', '{{ tk.avatar_initials|default:''|escapejs }}')"
+                                            <button type="button" class="customer-icon-button"
+                                                    onclick="openUnlockModal('{{ tk.ma_tk }}', '{{ tk.display_ho_ten|default:tk.user.username|escapejs }}', '{{ tk.user.username|escapejs }}')"
                                                     title="Mở khóa tài khoản" aria-label="Mở khóa tài khoản">
                                                 <i data-lucide="unlock"></i>
                                             </button>
@@ -417,10 +417,6 @@
         document.addEventListener('DOMContentLoaded', function () {
             if (window.lucide) window.lucide.createIcons();
 
-            {% if show_add_modal %}
-                openAddStaffModal();
-            {% endif %}
-
             const vaiTroSelect = document.getElementById('editVaiTro');
             const vaiTroHidden = document.getElementById('editVaiTroHidden');
             if (vaiTroSelect && vaiTroHidden) {
@@ -500,28 +496,6 @@
             }
         });
 
-        function openAddStaffModal() {
-            const m = document.getElementById('addStaffModal');
-            if (m) m.style.display = 'flex';
-            if (window.lucide) window.lucide.createIcons();
-        }
-        function closeAddStaffModal() {
-            const m = document.getElementById('addStaffModal');
-            if (m) m.style.display = 'none';
-        }
-
-        function togglePasswordVisibility(inputId, btn) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.innerHTML = '<i data-lucide="eye-off" style="width: 17px; height: 17px;"></i>';
-            } else {
-                input.type = 'password';
-                btn.innerHTML = '<i data-lucide="eye" style="width: 17px; height: 17px;"></i>';
-            }
-            if (window.lucide) window.lucide.createIcons();
-        }
-
         // Xóa viền đỏ và text lỗi cũ
         function clearEditErrors() {
             ['editHoTen', 'editEmail', 'editSoDienThoai', 'editVaiTro', 'editGioiTinh', 'editNgaySinh'].forEach(id => {
@@ -542,8 +516,8 @@
 
         function normalizeRoleClient(rawRole) {
             const r = (rawRole || '').trim();
-            if (r === 'Admin' || r === 'Quản lý') return 'Quản lý';
-            if (r === 'Nhân viên CSKH' || r === 'Chuyên viên' || r === 'Nhân viên') return 'Nhân viên';
+            if (r === 'Quản lý') return 'Quản lý';
+            if (r === 'Nhân viên') return 'Nhân viên';
             return 'Khách hàng';
         }
 

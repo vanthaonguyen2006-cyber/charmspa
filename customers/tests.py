@@ -13,7 +13,12 @@ class StaffCustomerAddViewTests(TestCase):
             username='customer_add_staff',
             password='test-password',
         )
-        TaiKhoan.objects.filter(user=self.staff).update(vai_tro=ROLE_STAFF)
+        TaiKhoan.objects.create(
+            ma_tk=f'TK{self.staff.id:03d}',
+            user=self.staff,
+            so_dien_thoai=f'NV_{self.staff.id:06d}',
+            vai_tro=ROLE_STAFF,
+        )
         self.client.force_login(self.staff)
 
         self.lowest_tier = HangThanhVien.objects.create(

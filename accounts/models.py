@@ -1,9 +1,6 @@
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 # =========================================================================
@@ -158,7 +155,7 @@ def can_access_django_admin(user):
     )
 
 
-def sync_user_flags_with_role(user, role=None):
+def sync_user_flags_with_role(user):
     """
     Đồng bộ hai cờ Django cho tài khoản nghiệp vụ:
     - Bảo vệ tuyệt đối tài khoản Admin kỹ thuật (user.is_superuser): không thay đổi hoặc hạ quyền.
@@ -173,35 +170,3 @@ def sync_user_flags_with_role(user, role=None):
     user.is_superuser = False
     type(user).objects.filter(pk=user.pk).update(is_staff=False, is_superuser=False)
     return True
-
-
-
-
-@receiver(post_save, sender=User)
-def dong_bo_tai_khoan_va_vai_tro(sender, instance, created, **kwargs):
-    """
-    Tự động tạo bản ghi TAI_KHOAN khi User nghiệp vụ MỚI được tạo.
-    - KHÔNG tạo TAI_KHOAN, NhanVien hoặc KhachHang cho Admin kỹ thuật (instance.is_superuser=True).
-    - KHÔNG tự động ghi đè TaiKhoan.vai_tro khi cập nhật User.
-    """
-    if not created:
-        return
-    if instance.is_superuser:
-        return
-    if TaiKhoan.objects.filter(user=instance).exists():
-        return
-
-    vai_tro_moi = normalize_role(getattr(instance, "_vai_tro_dong_bo", None)) or ROLE_CUSTOMER
-
-    sdt_kem_theo = (getattr(instance, "_so_dien_thoai_dang_ky", "") or "").strip()
-    if not sdt_kem_theo:
-        prefix = "KH" if vai_tro_moi == ROLE_CUSTOMER else "NV"
-        sdt_kem_theo = f"{prefix}_{instance.id:06d}"
-
-    TaiKhoan.objects.create(
-        ma_tk=f"TK{instance.id:03d}",
-        user=instance,
-        vai_tro=vai_tro_moi,
-        so_dien_thoai=sdt_kem_theo,
-    )
-    sync_user_flags_with_role(instance, vai_tro_moi)

@@ -18,11 +18,6 @@ def customer_home(request):
     return render(request, 'core/customer_home.html')
 
 
-# Trang chủ nhân viên
-def staff_home(request):
-    return render(request, 'core/staff_home.html')
-
-
 # Trang chủ Charm Spa Grand (AMy)
 def home(request):
     return render(request, "core/home.html")
