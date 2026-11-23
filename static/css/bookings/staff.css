@@ -1,5 +1,7 @@
+/* Áp dụng font chữ chuẩn của module cho toàn bộ vùng danh sách lịch hẹn nhân viên (.staff-booking-page) và các phần tử con. */
 .staff-booking-page, .staff-booking-page :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a,table,th,td){font-family:var(--booking-font-family) !important;}
 
+/* Áp dụng font chữ và cỡ chữ thân trang mặc định cho các trang/modal nhân viên (tạo lịch, danh sách, chi tiết, modal). */
 :is(.booking-staff-create,.staff-detail-page,#modalAllServices,#staffEditModal,.staff-edit-all-modal),
 :is(.booking-staff-create,.staff-detail-page,#modalAllServices,#staffEditModal,.staff-edit-all-modal) *{font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif) !important;}
 :is(.booking-staff-create,.staff-booking-page,.staff-detail-page){font-size:var(--booking-font-body);}
@@ -37,6 +39,7 @@
 .staff-booking-page .table-scroll tbody td{line-height:1.45;}
 /* Popover được Bootstrap gắn ngoài khung trang */
 .staff-assignees-popover,.staff-assignees-popover *{font-family:var(--booking-font-family) !important;}
+/* Responsive màn hình nhỏ (<= 650px): thu gọn cỡ chữ tiêu đề chính các trang nhân viên. */
 @media (max-width:650px){
   .booking-staff-create > .d-flex:first-child h3, .staff-booking-page :is(.staff-title,.booking-page-title), .staff-detail-page .detail-top h1{font-size:var(--booking-font-title-mobile) !important;}
 }
@@ -59,6 +62,7 @@
 .staff-cancel-modal .modal-content{height:auto;min-height:0;max-height:calc(100dvh - 32px);overflow-y:auto;}
 .staff-cancel-modal .modal-footer, .staff-cancel-modal .modal-header{padding:16px 20px;}
 .staff-cancel-modal .form-control, .staff-cancel-modal .form-select{font-size:13px;}
+/* Dropdown lý do mở rộng tự nhiên trong luồng modal (.popup-expanding-*). */
 .popup-expanding-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;}
 .popup-expanding-picker{position:relative;width:100%;font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif);}
 .popup-expanding-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:43px;padding:9px 13px;background:#fff;border:1px solid #d8cdc3;border-radius:8px;color:#302c29;text-align:left;font:inherit;cursor:pointer;}
@@ -73,6 +77,7 @@
 .staff-cancel-modal .staff-cancel-other[hidden]{display:none;}
 /* Popup Xóa lịch cũng chỉ nở theo chiều cao của danh sách khi được mở. */
 .staff-delete-modal .modal-content{height:auto;min-height:0;max-height:calc(100dvh - 32px);overflow-y:auto;}
+/* Picker chọn lý do dùng chung cho modal Hủy lịch và Xóa lịch của nhân viên (.staff-reason-*). */
 :is(.staff-delete-modal,.staff-cancel-modal) .staff-reason-native{position:absolute;width:1px;height:1px;padding:0;opacity:0;pointer-events:none;}
 :is(.staff-delete-modal,.staff-cancel-modal) .staff-reason-picker{position:relative;width:100%;}
 :is(.staff-delete-modal,.staff-cancel-modal) .staff-reason-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:42px;padding:9px 13px;text-align:left;border:1px solid #d8cdc3;border-radius:7px;background:#fff;color:#302c29;cursor:pointer;font-size:13px;font-family:var(--booking-font-family,'Montserrat',Arial,sans-serif);}
@@ -86,6 +91,7 @@
 /* STAFF BOOKING STYLES
    Có page scope để staff_create và staff_list không ghi đè nhau. */
 /* ===== staff_create.html ===== */
+/* Nền, thẻ dịch vụ, khung ngày/giờ/tóm tắt, ô nhập liệu, nút xác nhận và dropdown tìm kiếm khách hàng. */
 body:has(.booking-staff-create){background-color:var(--bg-beige) !important;color:var(--text-dark);}
 body:has(.booking-staff-create) .service-card{background:#ffffff;border:1px solid var(--border-color);border-radius:10px;padding:10px;height:100%;cursor:pointer;transition:all 0.2s ease;}
 body:has(.booking-staff-create) .service-card.selected{border:2px solid var(--primary-gold);background-color:#fdfbf7;}
@@ -152,6 +158,7 @@ body:has(.booking-staff-create) .customer-search-input{border-bottom:1px solid v
 body:has(.booking-staff-create) .customer-option-item{padding:8px 12px;cursor:pointer;border-bottom:1px solid #f5f2eb;transition:background 0.15s;}
 body:has(.booking-staff-create) .customer-option-item:hover{background-color:#fdfbf7;color:var(--primary-gold);}
 /* ===== staff_list.html ===== */
+/* Style scope .booking-staff-list cho bảng, card dịch vụ, khung chọn ngày/giờ và modal đổi lịch. */
 body:has(.booking-staff-list){background-color:var(--bg-beige) !important;color:var(--text-dark);}
 body:has(.booking-staff-list) .table th{text-transform:uppercase;letter-spacing:.5px;color:#6c757d;white-space:nowrap;}
 body:has(.booking-staff-list) .table td{vertical-align:middle;}
@@ -196,6 +203,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
    (trang đang dùng .staff-booking-page, không phải .booking-staff-list)
    Giữ style cũ để không làm mất giao diện và hành vi bộ lọc.
    ========================================================== */
+/* Khung trang danh sách, tiêu đề, nút tạo lịch, thẻ thống kê và thanh bộ lọc. */
 .staff-booking-page{background:#f7f1e9;min-height:100vh;padding:26px 10px 50px;color:#302c29;}
 .staff-booking-page .staff-title{color:#242c36;font-weight:700;margin:0;}
 .staff-booking-page .staff-sub{color:#77706a;margin:8px 0 0;}
@@ -208,6 +216,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
 .staff-booking-page .stat-label{color:#888;display:block;}
 .staff-booking-page .stat-value{font-weight:700;margin-top:2px;}
 .staff-booking-page .filters{display:flex;flex-wrap:wrap;gap:10px;padding:14px;margin-bottom:16px;}
+/* Giữ các ô lọc trên 1 hàng ngang khi màn hình rộng >= 1150px. */
 @media (min-width: 1150px){
   .staff-booking-page .filters{flex-wrap:nowrap;align-items:center;}
   .staff-booking-page .filters > *{min-width:0;}
@@ -276,6 +285,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
 .staff-booking-page .staff-service-filter-option:hover,.staff-booking-page .staff-service-filter-option[aria-selected=true]{background:#f3ece1;}
 .staff-booking-page .staff-btn-light{padding:9px 14px;border:1px solid #e4d8cb;background:#faf7f3;border-radius:9px;color:#6b5b4d;}
 .staff-booking-page :is(.staff-btn-apply,.staff-btn-light) > i{margin-right:8px;display:inline-block;vertical-align:middle;}
+/* Bảng danh sách lịch hẹn nhân viên: header, hàng dữ liệu, trạng thái, nút hành động và phân trang. */
 .staff-booking-page .table-frame{padding:0;overflow:hidden;}
 .staff-booking-page .table-heading{padding:17px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-weight:700;}
 .staff-booking-page .count-label{color:#a48a65;font-weight:500;}
@@ -317,6 +327,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
 .staff-booking-page .paging-buttons button{padding:5px 10px;border:1px solid #e2d8cc;background:#fff;border-radius:6px;}
 .staff-booking-page .paging-buttons button:disabled{opacity:.45;}
 .staff-booking-page .paging-buttons .current{background:#262626;color:white;}
+/* Card dịch vụ, lịch, khung giờ và modal trong .staff-booking-page. */
 .staff-booking-page .service-card{background:white;border:1px solid #e5e0d8;border-radius:10px;padding:10px;height:100%;cursor:pointer;}
 .staff-booking-page .service-card.selected{border:2px solid #ab8e56;background:#fdfbf7;}
 .staff-booking-page .service-card img{width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;}
@@ -353,6 +364,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
 .staff-booking-page .booking-modal .reschedule-form > .modal-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;}
 .staff-booking-page .booking-modal .reschedule-form > .modal-footer{flex:0 0 auto;position:relative;z-index:2;padding:14px 24px !important;border-top:1px solid #e5e0d8 !important;background:white;}
 .staff-booking-page .booking-modal .reschedule-form > .modal-footer .btn-gold{background:#ab8e56;color:#fff;font-weight:600;}
+/* Responsive modal và lưới thống kê cho màn hình nhỏ. */
 @media (max-width: 700px){
   .staff-booking-page .booking-modal .modal-dialog, .staff-booking-page .booking-modal .modal-content, .staff-booking-page .booking-modal .modal-content > .reschedule-form{max-height:calc(100dvh - 16px);}
 }
@@ -375,6 +387,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
    STAFF DETAIL - chuyển style nội tuyến sang CSS dùng chung
    Giữ bố cục cột trái cao bằng tổng 2 thẻ cột phải.
    ========================================================== */
+/* Khung trang chi tiết, thanh action đầu trang, dải tóm tắt tối màu và badge trạng thái. */
 .staff-detail-page{background:#f7f0e8;min-height:100vh;padding:28px 10px 55px;color:#302d2a;}
 .staff-detail-page *{box-sizing:border-box;}
 .staff-detail-page .detail-top{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
@@ -423,6 +436,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
 .staff-detail-page .status-pill.cancelled{background:#ffe9e9;color:#b34646;}
 .staff-detail-page .status-pill.completed{background:#e8f0ff;color:#466aa5;}
 .staff-detail-page .status-pill.deleted{background:#e6e6e6;color:#656565;}
+/* Lưới chi tiết 2 cột: card thông tin lịch & khách hàng bên trái; card phân công nhân viên & thao tác nguy hiểm bên phải. */
 .staff-detail-page .detail-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(365px,1fr);gap:18px;align-items:stretch;}
 .staff-detail-page .detail-column{min-width:0;display:grid;gap:18px;}
 .staff-detail-page .detail-grid > .detail-column:first-child > .detail-card{height:100%;}
@@ -505,6 +519,7 @@ body:has(.booking-staff-create) .booking-date-trigger{background:transparent;bor
 .staff-detail-page .danger-action:hover{background:#fae0dc;}
 .staff-detail-page .warning-box{padding:12px;border:1px solid #f3e0dd;border-radius:9px;background:#fff6f4;color:#b86a5d;margin-top:13px;}
 .staff-detail-page .feedback-alert{margin-bottom:17px;}
+/* Responsive trang chi tiết nhân viên trên tablet (<= 1050px) và mobile (<= 650px). */
 @media (max-width:1050px){
   .staff-detail-page .detail-grid{grid-template-columns:1fr;}
   .staff-detail-page .detail-grid > .detail-column:first-child > .detail-card{height:auto;}
@@ -621,6 +636,7 @@ body:has(.booking-staff-create) .booking-staff-create #main_service_container .s
 #staffEditModal .staff-detail-services-layer .staff-edit-service{height:100%;}
 /* Chữ số giường không bị xuống dòng trong khung giờ. */
 #staffEditModal .staff-edit-slot small{white-space:nowrap;}
+/* Card dịch vụ, khung chọn ngày/giờ, tóm tắt và footer của popup Đổi lịch chi tiết staff. */
 .staff-edit-modal .modal-body{max-height:calc(100dvh - 180px);overflow-y:auto;}
 .staff-edit-modal .modal-title,.staff-edit-all-modal .modal-title{font-size:18px;font-weight:700;color:#a48a65;}
 .staff-edit-modal .staff-edit-heading{font-size:16px;font-weight:700;color:#302c29;margin:0 0 12px;line-height:1.4;}
@@ -669,6 +685,7 @@ body:has(.booking-staff-create) .booking-staff-create #main_service_container .s
 .staff-edit-modal .staff-edit-summary p{margin:6px 0 0;font-size:13px;}
 body>.flatpickr-calendar{z-index:13000 !important;}
 .staff-edit-modal .modal-footer .btn-warning{background:#ab8e56;border:0;color:white;}
+/* Popover danh sách nhân viên được phân công trên trang danh sách lịch hẹn nhân viên. */
 .staff-assignees-popover{
   --bs-popover-max-width:285px;
   --bs-popover-border-color:#e8ded0;

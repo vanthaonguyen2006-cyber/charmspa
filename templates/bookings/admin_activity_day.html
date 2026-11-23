@@ -3,19 +3,24 @@
 {% block title %}Quản lý ngày hoạt động - Charm Spa Grand{% endblock %}
 {% block extra_css %}
     {{ block.super }}
+    <!-- File CSS của trang quản lý ngày hoạt động -->
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_incremental2">
     <link rel="stylesheet" href="{% static 'css/bookings/admin.css' %}?v=charmspa_popup_expand_20261118">
 {% endblock %}
 {% block content %}
+<!-- Thư viện Tailwind và bộ chọn ngày Flatpickr -->
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 <div class="booking-admin-activity pt-4 px-8 pb-8 max-w-7xl w-full mx-auto">
+    <!-- Khung thông báo -->
     {% if messages %}
       {% for message in messages %}
       <div class="rounded-lg border p-3 mb-3 text-sm {% if 'error' in message.tags %}bg-red-50 border-red-200 text-red-700{% else %}bg-green-50 border-green-200 text-green-800{% endif %}">{{ message }}</div>
       {% endfor %}
     {% endif %}
+
+    <!-- Phần đầu trang & nút "+ Khóa ngày" -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
             <h1 class="text-3xl font-sans text-stone-900 tracking-wide">QUẢN LÝ NGÀY HOẠT ĐỘNG</h1>
@@ -26,7 +31,9 @@
         {% endif %}
     </div>
 
+    <!-- Khung lịch tháng -->
     <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-8 booking-activity-calendar">
+        <!-- Thanh chuyển tháng trước / tháng sau & chú thích màu -->
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-sans font-semibold text-stone-900">{{ current_month_year }}</h3>
             <div class="flex items-center gap-4">
@@ -40,9 +47,11 @@
                 </div>
             </div>
         </div>
+        <!-- Hàng tên thứ trong tuần -->
         <div class="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase text-stone-400 mb-2">
             <div>Thứ 2</div><div>Thứ 3</div><div>Thứ 4</div><div>Thứ 5</div><div>Thứ 6</div><div>Thứ 7</div><div>Chủ nhật</div>
         </div>
+        <!-- Các ô ngày trong lịch tháng -->
         <div class="grid grid-cols-7 gap-2">
             {% for week in calendar_matrix %}
                 {% for day in week %}
@@ -66,6 +75,7 @@
         </div>
     </div>
 
+    <!-- Bảng danh sách ngày đã khóa & nút mở khóa -->
     <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-stone-200 flex justify-between items-center">
             <h3 class="font-sans font-semibold text-lg">Danh sách ngày đã khóa</h3>
@@ -89,6 +99,7 @@
                         <td class="py-4 px-6"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Đã khóa</span></td>
                         <td class="py-4 px-6 text-right">
                             {% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
+                            <!-- Nút mở khóa từng ngày -->
                             <form method="POST" action="{% url 'bookings:mo_khoa_ngay' item.ma_nhd %}" class="inline-block m-0 activity-unlock-form">
                                 {% csrf_token %}
                                 <button type="button" data-unlock-date="{{ item.ngay|date:'d/m/Y' }}" class="activity-unlock-trigger text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded transition">Mở khóa</button>
@@ -108,20 +119,26 @@
 </div>
 
 {% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
+<!-- Popup (modal) khóa ngày -->
 <div id="khoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="activity-lock-dialog bg-white rounded-2xl w-full p-6 shadow-2xl border border-stone-100">
         <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
             <h3 class="text-xl font-sans font-semibold text-stone-900">Khóa ngày</h3>
             <button type="button" onclick="toggleModal(false)" class="activity-modal-close" aria-label="Đóng">&times;</button>
         </div>
+        <!-- Form nhập khoảng ngày & lý do khóa -->
         <form method="POST" class="space-y-4" id="khoaNgayForm">
             {% csrf_token %}
+            <!-- Ô chọn ngày bắt đầu & ngày kết thúc -->
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Ngày bắt đầu</label>{{ form.ngay_bat_dau }}</div>
                 <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Ngày kết thúc</label>{{ form.ngay_ket_thuc }}</div>
             </div>
+            <!-- Ô chọn lý do khóa -->
             <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Lý do</label>{{ form.ly_do }}</div>
+            <!-- Ô nhập lý do chi tiết khi chọn "Khác" -->
             <div id="lyDoChiTietBox" class="hidden"><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1" for="id_nhap_ly_do">Nhập lý do chi tiết *</label>{{ form.nhap_ly_do }}</div>
+            <!-- Khung cảnh báo lịch hẹn bị ảnh hưởng -->
             {% if pending_lock %}
             <div class="activity-lock-confirm" role="alert">
                 <strong>Cảnh báo: {{ pending_lock.count }} lịch hẹn sẽ bị ảnh hưởng.</strong>
@@ -129,7 +146,9 @@
                 <label class="activity-lock-confirm-label"><input type="checkbox" id="confirmAffected" name="confirm_affected" value="1" required> Tôi xác nhận đã xem và sẽ xử lý các lịch hẹn bị ảnh hưởng.</label>
             </div>
             {% endif %}
+            <!-- Dòng báo lỗi form khóa ngày -->
             <p id="khoaNgayError" class="hidden text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3" role="alert"></p>
+            <!-- Nút Hủy / Khóa ngày trong popup -->
             <div class="flex justify-end gap-3 pt-4 border-t border-stone-100">
                 <button type="button" onclick="toggleModal(false)" class="px-4 py-2 rounded-lg text-sm font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 transition">Hủy</button>
                 <button type="submit" name="btn_khoa_ngay" class="px-5 py-2 rounded-lg text-sm font-medium bg-stone-900 hover:bg-stone-800 text-white transition shadow-sm">Khóa ngày</button>
@@ -139,7 +158,7 @@
 </div>
 {% endif %}
 {% if request.user.thong_tin_tai_khoan.vai_tro == 'Quản lý' %}
-<!-- Xác nhận mở khóa: dùng lại chính form POST và URL có sẵn của từng ngày. -->
+<!-- Popup (modal) xác nhận mở khóa ngày -->
 <div id="moKhoaNgayModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="moKhoaNgayTitle">
     <div class="activity-unlock-dialog bg-white rounded-2xl w-full p-6 shadow-2xl border border-stone-100">
         <div class="flex justify-between items-center pb-4 border-b border-stone-100 mb-4">
@@ -155,15 +174,17 @@
     </div>
 </div>
 {% endif %}
+<!-- Script xử lý bộ chọn ngày & các popup -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
 <script>
-// Chỉ dùng dữ liệu ngày đã khóa do Django truyền sang, không sửa dữ liệu gốc.
+// Dữ liệu ngày đã khóa từ Django
 const activityLockedDates = new Set([
     {% for item in ngay_da_khoa %}"{{ item.ngay|date:'Y-m-d' }}"{% if not forloop.last %},{% endif %}
     {% endfor %}
 ]);
 
+// Hàm mở/đóng popup khóa ngày
 function toggleModal(show) {
     const modal = document.getElementById('khoaNgayModal');
     if (!modal) return;
@@ -172,6 +193,7 @@ function toggleModal(show) {
     if (show) syncActivityReason();
 }
 
+// Hàm ẩn/hiện ô nhập lý do chi tiết khi chọn "Khác"
 function syncActivityReason() {
     const choice = document.getElementById('id_ly_do');
     const details = document.getElementById('id_nhap_ly_do');
@@ -184,13 +206,14 @@ function syncActivityReason() {
     if (!isOther) details.value = '';
 }
 
+// Hàm hiện thông báo lỗi trong popup khóa ngày
 function showActivityError(message) {
     const node = document.getElementById('khoaNgayError');
     node.textContent = message;
     node.classList.remove('hidden');
 }
 
-// Chặn cả khoảng ngày chứa ngày đã khóa ở giao diện (không chỉ ngày đầu/cuối).
+// Hàm kiểm tra khoảng ngày khóa
 function checkActivityDateRange(start, end) {
     if (!start || !end) return 'Vui lòng chọn ngày bắt đầu và ngày kết thúc.';
     if (start > end) return 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.';
@@ -206,6 +229,7 @@ function checkActivityDateRange(start, end) {
     return '';
 }
 
+// Gắn lịch Flatpickr và kiểm tra form khóa ngày
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('khoaNgayForm');
     const start = document.getElementById('id_ngay_bat_dau');
@@ -216,8 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     syncActivityReason();
     if (window.flatpickr) {
         const opts = {
-            dateFormat: 'Y-m-d', // gửi đúng giá trị Django DateField
-            minDate: 'today', // không cho chọn ngày đã qua
+            dateFormat: 'Y-m-d',
+            minDate: 'today',
             altInput: true, altFormat: 'd/m/Y',
             allowInput: false,
             disable: [d => activityLockedDates.has([d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-'))],
@@ -244,11 +268,10 @@ document.addEventListener('DOMContentLoaded', () => {
             showActivityError('Vui lòng nhập lý do chi tiết khi chọn Khác.');
         }
     });
-    // Khi view trả về form có lỗi, mở lại popup để xem và sửa.
     {% if form.errors or pending_lock %}toggleModal(true);{% endif %}
 });
 
-// Popup xác nhận mở khóa: chỉ gửi form gốc khi bấm nút xác nhận.
+// Xử lý popup xác nhận mở khóa ngày
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('moKhoaNgayModal');
     if (!modal) return;
@@ -285,8 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// Chỉ thay cách HIỂN THỊ danh sách lý do bên trong popup;
-// select gốc vẫn giữ name, value, onchange và dữ liệu gửi về Django.
+// Xử lý dropdown chọn lý do mở rộng trong popup khóa ngày
 function initializePopupExpandingReason(select) {
     if (!select || select.dataset.popupExpandingReady === '1') return;
 
@@ -336,7 +358,6 @@ function initializePopupExpandingReason(select) {
         button.disabled = option.disabled;
         button.addEventListener('click', () => {
             select.value = option.value;
-            // Phát change để giữ nguyên logic hiển thị ô nhập 'Khác'.
             select.dispatchEvent(new Event('change', {bubbles: true}));
             sync();
             setClosed();
@@ -347,7 +368,6 @@ function initializePopupExpandingReason(select) {
 
     trigger.addEventListener('click', () => {
         const shouldOpen = list.hidden;
-        // Chỉ một danh sách lý do được mở tại một thời điểm.
         document.querySelectorAll('.popup-expanding-choices:not([hidden])').forEach(other => {
             other.hidden = true;
             other.parentElement?.querySelector('.popup-expanding-trigger')?.setAttribute('aria-expanded', 'false');
@@ -375,7 +395,7 @@ function initializePopupExpandingReason(select) {
 }
 
 
-// Popup Khóa ngày: xổ lý do thì khung tự cao lên, chọn xong thì thu lại.
+// Khởi tạo dropdown lý do mở rộng khi trang tải xong
 document.addEventListener('DOMContentLoaded', () => {
     initializePopupExpandingReason(document.querySelector('#khoaNgayModal select[name="ly_do"]'));
 });

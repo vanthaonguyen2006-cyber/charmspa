@@ -1,8 +1,10 @@
 /* QUY CHUẨN CHỮ MODAL — tách khỏi giao diện và header chung */
+/* Ép font chữ chuẩn của module cho toàn bộ modal và các phần tử con bên trong. */
 .booking-ui-modal,
 .booking-ui-modal :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a),
 .booking-reschedule-modal,
 .booking-reschedule-modal :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a){font-family:var(--booking-font-family) !important;}
+/* Quy định cỡ chữ cơ bản, tiêu đề modal, input/button, card dịch vụ, badge và khung giờ/tóm tắt. */
 .booking-ui-modal,.booking-reschedule-modal{font-size:var(--booking-font-body) !important;}
 .booking-ui-modal .modal-title,.booking-reschedule-modal .modal-title{font-size:var(--booking-font-section) !important;}
 .booking-ui-modal :is(.form-control,.form-select,.btn,.form-label),
@@ -14,12 +16,14 @@
 .booking-ui-modal :is(.time-slot-modal strong,.booking-reschedule-summary strong),
 .booking-reschedule-modal :is(.time-slot-modal strong,.booking-reschedule-summary strong){font-size:var(--booking-font-body) !important;}
 
+/* Dùng border-box cho modal và mọi phần tử bên trong để tính kích thước/padding không bị tràn. */
 .booking-ui-modal,
 .booking-ui-modal *,
 .booking-ui-modal *::before,
 .booking-ui-modal *::after { box-sizing: border-box; }
 
 
+/* Khung nền modal phủ toàn màn hình, mặc định ẩn (.show mới bật hiển thị). */
 .booking-ui-modal {
   position: fixed !important;
   inset: 0;
@@ -34,9 +38,11 @@
   color: #34302b;
   line-height: 1.5;
 }
+/* Trạng thái hiển thị & hiệu ứng mờ dần (.fade) của modal. */
 .booking-ui-modal.show { display: block !important; }
 .booking-ui-modal.fade { opacity: 0; transition: opacity .15s linear; }
 .booking-ui-modal.fade.show { opacity: 1; }
+/* Hộp thoại (.modal-dialog) mặc định rộng tối đa 500px và có hiệu ứng trượt nhẹ khi mở. */
 .booking-ui-modal .modal-dialog {
   position: relative;
   pointer-events: none;
@@ -48,7 +54,9 @@
 }
 .booking-ui-modal.fade:not(.show) .modal-dialog { transform: translateY(-40px); }
 .booking-ui-modal.show .modal-dialog { transform: none; }
+/* Căn giữa dialog theo chiều dọc khi dùng .modal-dialog-centered. */
 .booking-ui-modal .modal-dialog-centered { min-height: calc(100% - 3.5rem); display: flex; align-items: center; }
+/* Biến thể kích thước dialog lớn (modal-xl) và modal hủy lịch khách (customer-cancel-dialog). */
 .booking-ui-modal .modal-dialog.modal-xl { max-width: 1140px; }
 .booking-ui-modal .modal-dialog.customer-cancel-dialog {max-width:620px;}
 /* Popup xem dịch vụ giống tạo lịch: 3 cột, thẻ gọn và dễ chọn. */
@@ -59,6 +67,7 @@
 .booking-service-chooser .booking-service-options .reschedule-service-name {font-size:13px;font-weight:700;line-height:1.4;margin-top:8px;}
 .booking-service-chooser .booking-service-options small {font-size:12px;line-height:1.45;}
 
+/* Khối nội dung trắng của modal (bo góc 16px, đổ bóng nổi trên backdrop). */
 .booking-ui-modal .modal-content {
   position: relative;
   display: flex;
@@ -72,6 +81,7 @@
   box-shadow: 0 20px 50px rgba(0,0,0,.18);
 }
 .booking-ui-modal .modal-content > form { width: 100%; min-width: 0; }
+/* Header, body và footer của modal; nút đóng (×) trên header. */
 .booking-ui-modal .modal-header,
 .booking-ui-modal .modal-footer { display: flex; align-items: center; padding: 16px 24px; gap: 12px; }
 .booking-ui-modal .modal-header { justify-content: space-between; border-bottom: 1px solid #eee; }
@@ -88,12 +98,14 @@
 .booking-ui-modal .btn-close:hover { opacity: 1; }
 
 
+/* Hệ thống lưới grid (.row, .col-*) tự viết trong modal để không phụ thuộc Bootstrap bên ngoài. */
 .booking-ui-modal .row { --bs-gutter-x: 16px; --bs-gutter-y: 16px; display: flex; flex-wrap: wrap; margin: calc(var(--bs-gutter-y) * -.5) calc(var(--bs-gutter-x) * -.5); }
 .booking-ui-modal .row > * { flex-shrink: 0; max-width: 100%; width: 100%; padding: calc(var(--bs-gutter-y) * .5) calc(var(--bs-gutter-x) * .5); }
 .booking-ui-modal .row.g-2 { --bs-gutter-x: 8px; --bs-gutter-y: 8px; }
 .booking-ui-modal .row.g-3 { --bs-gutter-x: 16px; --bs-gutter-y: 16px; }
 .booking-ui-modal .col-6 { width: 50%; }
 .booking-ui-modal .col-12 { width: 100%; }
+/* Chia cột theo breakpoint md (>= 768px) và lg (>= 992px). */
 @media (min-width: 768px) {
   .booking-ui-modal .col-md-4 { width: 33.333333%; }
   .booking-ui-modal .col-md-5 { width: 41.666667%; }
@@ -103,6 +115,7 @@
   .booking-ui-modal .col-lg-4 { width: 33.333333%; }
   .booking-ui-modal .col-lg-8 { width: 66.666667%; }
 }
+/* Responsive màn hình nhỏ (<= 767px): thu gọn margin và padding của modal. */
 @media (max-width: 767px) {
   .booking-ui-modal .modal-dialog, .booking-ui-modal .modal-dialog.modal-xl { margin: 10px auto; width: 100%; }
   .booking-ui-modal .modal-dialog-centered { min-height: calc(100% - 20px); }
@@ -110,6 +123,7 @@
 }
 
 
+/* Các class tiện ích (màu chữ, nền, viền, bo góc, khoảng cách margin/padding) phạm vi trong .booking-ui-modal. */
 .booking-ui-modal h5, .booking-ui-modal h6 { margin-top: 0; }
 .booking-ui-modal .d-flex { display: flex !important; }
 .booking-ui-modal .d-block { display: block !important; }
@@ -155,6 +169,7 @@
 .booking-ui-modal .w-100 { width: 100% !important; }
 .booking-ui-modal .me-1 { margin-right: 4px !important; }
 .booking-ui-modal .me-2 { margin-right: 8px !important; }
+/* Style form control, nút bấm (.btn), alert cảnh báo, badge và ảnh card dịch vụ trong modal. */
 .booking-ui-modal .form-label { display: inline-block; margin-bottom: 6px; }
 .booking-ui-modal .form-control, .booking-ui-modal .form-select {
   display: block; width: 100%; min-width: 0; background: white;
@@ -176,9 +191,11 @@
 .booking-ui-modal .service-item-col { min-width: 0; }
 .booking-ui-modal .service-card-modal { cursor: pointer; }
 .booking-ui-modal .booking-reschedule-panel { min-width: 0; }
+/* Giới hạn chiều cao phần body để cuộn dọc khi nội dung dài; nâng z-index lịch Flatpickr trên modal. */
 .booking-ui-modal .modal-body { max-height: min(75vh, 740px); overflow-y: auto; }
 .booking-ui-modal .flatpickr-calendar { z-index: 1100 !important; }
 
+/* Lớp phủ tối phía sau modal (.modal-backdrop) và khóa cuộn trang nền khi modal mở. */
 .modal-backdrop { position: fixed; inset: 0; z-index: 1050; background: #000; }
 .modal-backdrop.fade { opacity: 0; }
 .modal-backdrop.show { opacity: .5; }
