@@ -3,6 +3,7 @@
 
 {% block extra_css %}
     {{ block.super }}
+    <!-- Thư viện CSS Bootstrap, icon, bộ chọn ngày và CSS riêng của trang đặt lịch -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -13,26 +14,28 @@
 {% block content %}
 
 <div class="booking-customer-create pt-4 px-8 pb-5 max-w-7xl w-full mx-auto">
+    <!-- Tiêu đề trang đặt lịch -->
     <div class="text-center mb-4">
         <h3 class="booking-create-title fw-bold text-uppercase">Đặt Lịch Hẹn Trực Tuyến</h3>
         <p class="text-muted small">Trải nghiệm dịch vụ chăm sóc sức khỏe & làm đẹp cao cấp tại Charm Spa Grand Đà Nẵng</p>
     </div>
 
-    <!-- Form gửi dữ liệu về hàm views xử lý lưu database -->
+    <!-- Form đặt lịch chính -->
     <form method="POST" action="{% url 'bookings:booking_customer_create' %}" onsubmit="return validateBookingForm(event)">
         {% csrf_token %}
 
+        <!-- Các ô ẩn lưu dịch vụ, khung giờ và mã ưu đãi đã chọn -->
         <input type="hidden" name="ma_dv" id="input_ma_dv" value="">
         <input type="hidden" name="time_slot" id="input_time_slot" value="">
 
-        {# Mã ưu đãi chỉ là yêu cầu; server phải xác thực lại khi nhận POST. #}
         {% if promo_ap_dung and promo_ap_dung.ma_dv_id %}
         <input type="hidden" name="promo_id" id="input_promo_id" value="{{ promo_ap_dung.pk }}">
         {% endif %}
 
         <div class="row g-4">
-            <!-- CỘT TRÁI -->
+            <!-- Cột trái: chọn dịch vụ, chọn ngày và khung giờ -->
             <div class="col-lg-8">
+                <!-- Khu vực 1: chọn dịch vụ & nút mở danh sách tất cả dịch vụ -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-bold m-0">1. Chọn dịch vụ</h6>
@@ -41,7 +44,7 @@
                         </button>
                     </div>
 
-                    <!-- Hiển thị danh sách 3 dịch vụ đầu tiên -->
+                    <!-- Danh sách 3 thẻ dịch vụ chính -->
                     <div class="row g-3" id="main_service_container">
                         {% if dich_vu_list %}
                             {% for dv in dich_vu_list %}
@@ -62,66 +65,79 @@
                             <div class="col-12 text-muted text-center">Chưa có dịch vụ nào trong hệ thống.</div>
                         {% endif %}
                     </div>
+                    <!-- Dòng báo lỗi khi chưa chọn dịch vụ -->
                     <small id="booking_customer_service_error" class="booking-create-inline-error" hidden></small>
                 </div>
 
-                <!-- Ngày & Khung Giờ -->
+                <!-- Khu vực 2 & 3: ô chọn ngày hẹn và danh sách khung giờ trống -->
                 <div class="row g-3">
+                    <!-- Ô chọn ngày hẹn -->
                     <div class="col-md-5">
                         <div class="calendar-box">
                             <h6 class="fw-bold mb-2 bk-c-h6-22">2. Chọn ngày hẹn *</h6>
                             <div class="custom-date-container">
                                 <input type="text" name="ngay_hen" id="input_ngay_hen" class="form-control form-control-custom-date" placeholder="dd/mm/yyyy">
                             </div>
+                            <!-- Dòng báo lỗi khi chưa chọn ngày hẹn -->
                             <small id="booking_customer_date_error" class="booking-create-inline-error" hidden></small>
                         </div>
                     </div>
+                    <!-- Khung chọn giờ trống & badge quỹ giường -->
                     <div class="col-md-7">
                         <div class="time-box">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6 class="fw-bold m-0 bk-c-h6-22">3. Khung giờ trống *</h6>
                                 <span class="badge bg-light text-success border bk-c-span-15" id="bed_capacity_info" hidden>Quỹ giường: 6 giường gội</span>
                             </div>
+                            <!-- Nơi render các ô khung giờ -->
                             <div class="row g-2" id="time_slots_container"></div>
+                            <!-- Dòng báo lỗi khi chưa chọn khung giờ -->
                             <small id="booking_customer_time_error" class="booking-create-inline-error" hidden></small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CỘT PHẢI: THÔNG TIN KHÁCH HÀNG & TÓM TẮT -->
+            <!-- Cột phải: thông tin khách, tóm tắt lịch, bảng ưu đãi và nút xác nhận -->
             <div class="col-lg-4">
                 <div class="summary-card">
                     <h6 class="fw-bold mb-1">4. Thông tin khách hàng</h6>
                     <p class=""></p>
 
+                    <!-- Ô nhập họ và tên -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_ho_ten">Họ và tên *</label>
                         <input type="text" id="input_ho_ten" name="ho_ten" class="form-control form-control-custom" placeholder="Nhập họ và tên..." value="{{ booking_customer_name }}" required>
                     </div>
+                    <!-- Ô nhập số điện thoại -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_sdt">Số điện thoại *</label>
                         <input type="text" id="input_sdt" name="sdt" class="form-control form-control-custom" placeholder="Nhập số điện thoại..." value="{{ booking_customer_phone }}" required>
                     </div>
+                    <!-- Ô nhập email -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_email">Email</label>
                         <input type="email" id="input_email" name="email" class="form-control form-control-custom" placeholder="Nhập email..." value="{{ booking_customer_email }}">
                     </div>
+                    <!-- Ô chọn số lượng khách -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_so_luong">Số lượng khách *</label>
                         <input type="number" name="so_luong" id="input_so_luong" class="form-control form-control-custom" value="1" min="1" max="10" onchange="updateFullSummary()">
                     </div>
+                    <!-- Ô nhập ghi chú -->
                     <div class="mb-3">
                         <label class="small fw-bold" for="input_ghi_chu">Ghi chú</label>
                         <textarea id="input_ghi_chu" name="ghi_chu" class="form-control form-control-custom" rows="2" placeholder="Yêu cầu đặc biệt..."></textarea>
                     </div>
 
+                    <!-- Khung tóm tắt lịch hẹn -->
                     <div class="p-3 mb-3 rounded bk-c-booking-reschedule-summary">
                         <small class="text-muted d-block text-uppercase bk-c-small-18">TÓM TẮT LỊCH HẸN</small>
                         <strong class="d-block bk-c-strong-23" id="summary_service_name">Chưa chọn dịch vụ</strong>
                         <small class="text-muted bk-c-small" id="summary_details">Chưa chọn ngày hẹn · Chưa chọn giờ · 1 khách</small>
                     </div>
-                    {# Khối mới: chỉ hiện nếu views đã xác thực promo_ap_dung. #}
+
+                    <!-- Khung hiển thị thông tin & giá ưu đãi -->
                     {% if promo_ap_dung and promo_ap_dung.ma_dv_id %}
                     <div id="booking_promo_panel" class="p-3 mb-3 rounded"
                          style="background:#faf5eb; border:1px solid #eadac1; color:#46392e;">
@@ -144,7 +160,8 @@
                         </small>
                     </div>
                     {% endif %}
-                    <!-- Giữ nút xác nhận ở vị trí ban đầu: sau Ghi chú và Tóm tắt -->
+
+                    <!-- Nút xác nhận đặt lịch -->
                     <input type="submit" value="Xác nhận đặt lịch"
                            class="btn btn-confirm text-center bk-c-btn-24"
                           >
@@ -156,7 +173,7 @@
     </form>
 </div>
 
-<!-- Modal Chọn Dịch Vụ -->
+<!-- Popup (modal) xem tất cả dịch vụ -->
 <div class="modal fade" id="modalAllServices" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content bk-c-div-25">
@@ -187,6 +204,7 @@
     </div>
 </div>
 
+<!-- Dữ liệu ẩn phục vụ tính giá ưu đãi ở JS -->
 {% if promo_ap_dung and promo_ap_dung.ma_dv_id %}
 <div id="booking_promo_data" hidden
      data-service-id="{{ promo_ap_dung.ma_dv_id }}"
@@ -203,15 +221,19 @@
 </div>
 {% endif %}
 
+<!-- Thư viện JS Bootstrap & Flatpickr -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
+    // Biến lưu thời lượng và loại dịch vụ đang chọn
     let currentDuration = '';
     let currentServiceType = '';
 
+    // Danh sách ngày bị khóa từ Django
     const disabledDates = {{ locked_dates_json|safe }};
 
+    // Khởi tạo lịch chọn ngày Flatpickr khi tải trang
     document.addEventListener('DOMContentLoaded', function() {
         flatpickr("#input_ngay_hen", {
             dateFormat: "d/m/Y",
@@ -238,7 +260,7 @@
         container.innerHTML = '<div class="col-12 text-center text-muted small py-3">Vui lòng chọn ngày hẹn để xem khung giờ trống.</div>';
     });
 
-    // Thông báo lỗi tại trường nhập, không mở popup.
+    // Hiển thị lỗi dưới từng mục (dịch vụ / ngày / giờ)
     function showBookingCreateError(field, message) {
         const error = document.getElementById('booking_customer_' + field + '_error');
         const target = field === 'date'
@@ -252,6 +274,7 @@
         target?.classList.add('booking-create-invalid');
     }
 
+    // Xóa lỗi dưới từng mục khi người dùng thao tác lại
     function clearBookingCreateError(field) {
         const error = document.getElementById('booking_customer_' + field + '_error');
         const target = field === 'date'
@@ -265,6 +288,7 @@
         target?.classList.remove('booking-create-invalid');
     }
 
+    // Kiểm tra bắt buộc chọn dịch vụ, ngày hẹn và khung giờ trước khi gửi form
     function validateBookingForm(event) {
         const ngayHen = document.getElementById('input_ngay_hen').value.trim();
         const timeSlot = document.getElementById('input_time_slot').value.trim();
@@ -293,11 +317,12 @@
         return true;
     }
 
+    // Xử lý chọn thẻ dịch vụ trên màn hình chính
     function selectService(element, serviceId, serviceName, duration, price) {
         const container = document.getElementById('main_service_container');
         const selectedColumn = element.closest('.col-md-4');
 
-        // Chuyển thẻ được chọn lên đầu mà không tạo bản sao.
+        // Đưa ô dịch vụ được chọn lên vị trí đầu tiên
         if (selectedColumn && container.firstElementChild !== selectedColumn) {
             container.prepend(selectedColumn);
         }
@@ -323,7 +348,7 @@
         currentDuration = duration;
         currentServiceType = serviceName.toLowerCase().includes('shampoo') ? 'shampoo' : 'massage';
 
-        // Dịch vụ thay đổi thì bỏ giờ cũ để kiểm tra lại số giường.
+        // Reset khung giờ đã chọn khi đổi dịch vụ
         document.getElementById('input_time_slot').value = '';
         updateFullSummary();
         if (document.getElementById('input_ngay_hen').value) {
@@ -331,6 +356,7 @@
         }
     }
 
+    // Xử lý chọn dịch vụ từ popup "Xem tất cả dịch vụ"
     function chooseFromModal(serviceId, serviceName, duration, price, imgUrl) {
         const container = document.getElementById('main_service_container');
         const columns = Array.from(container.querySelectorAll(':scope > .col-md-4'));
@@ -340,10 +366,10 @@
         let selectedCard;
 
         if (sameServiceColumn) {
-            // Dịch vụ vốn nằm trong 3 ô: di chuyển ô hiện có, không nhân đôi.
+            // Dùng lại ô đang có nếu dịch vụ đã nằm trong 3 ô hiển thị
             selectedCard = sameServiceColumn.querySelector('.service-card');
         } else {
-            // Dịch vụ mới: thay ô đầu bằng thẻ mới, 2 ô còn lại giữ nguyên.
+            // Thay ô đầu tiên bằng dịch vụ chọn từ popup
             const firstColumn = columns[0];
             if (!firstColumn) return;
             const card = document.createElement('div');
@@ -385,6 +411,7 @@
         bootstrap.Modal.getInstance(modal)?.hide();
     }
 
+    // Gọi API lấy số giường trống và dựng danh sách khung giờ
     async function updateAvailableSlots() {
         const ngayVal = document.getElementById('input_ngay_hen').value;
         const container = document.getElementById('time_slots_container');
@@ -474,11 +501,11 @@
         }
 
         container.innerHTML = slotsHTML;
-        // Không tự chọn giờ đầu tiên: khách tự chọn khung giờ muốn đặt.
         document.getElementById('input_time_slot').value = '';
         updateFullSummary();
     }
 
+    // Xử lý chọn một ô khung giờ
     function selectTime(element, timeStr) {
         if (element.classList.contains('disabled')) return;
         document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
@@ -488,6 +515,7 @@
         updateFullSummary();
     }
 
+    // Cập nhật dòng tóm tắt ngày, giờ, thời lượng và số khách
     function updateFullSummary() {
         const dateVal = document.getElementById('input_ngay_hen').value || 'Chưa chọn ngày hẹn';
         const timeVal = document.getElementById('input_time_slot').value || 'Chưa chọn giờ';
@@ -495,8 +523,7 @@
         document.getElementById('summary_details').innerText = [dateVal, timeVal, currentDuration, `${guestVal} khách`].filter(Boolean).join(' · ');
     }
 
-    // ======================= BỔ SUNG ƯU ĐÃI =======================
-    // Không thay đổi các hàm chọn dịch vụ/ngày/giờ và kiểm tra giường cũ.
+    // Khối JS xử lý tính tiền và đồng bộ ưu đãi theo dịch vụ/số lượng khách
     (function () {
         const promoData = document.getElementById('booking_promo_data');
         if (!promoData) return;
@@ -504,13 +531,13 @@
         const promoInput = document.getElementById('input_promo_id');
         const promoPanel = document.getElementById('booking_promo_panel');
         const promoServiceId = String(promoData.dataset.serviceId || '');
-        // Số được truyền qua template ở dạng chuẩn với dấu chấm thập phân.
         const originalUnitPrice = Number(promoData.dataset.originalPrice);
         const discountUnitPrice = Number(promoData.dataset.discountPrice);
         let promoIsActive = !!promoServiceId;
 
         const currency = value => Math.round(value).toLocaleString('vi-VN') + 'đ';
 
+        // Tính lại giá gốc, số tiền tiết kiệm và tạm tính sau giảm theo số khách
         function refreshPromoTotal() {
             if (!promoIsActive || !promoPanel) return;
             const quantity = Number(document.getElementById('input_so_luong').value);
@@ -527,7 +554,7 @@
             document.getElementById('booking_discount_total').textContent = currency(newTotal);
         }
 
-        // Bọc hàm gốc, không can thiệp logic cũ. Đổi sang dịch vụ khác sẽ hủy ưu đãi.
+        // Bọc selectService để hủy ưu đãi nếu khách đổi sang dịch vụ khác
         const selectServiceOriginal = selectService;
         selectService = function (element, serviceId, serviceName, duration, price) {
             selectServiceOriginal(element, serviceId, serviceName, duration, price);
@@ -540,7 +567,7 @@
             }
         };
 
-        // Dùng lại hàm gốc để giữ đúng kiểu giường, thẻ dịch vụ và modal.
+        // Tự chọn dịch vụ ưu đãi và gắn sự kiện cập nhật giá khi đổi số lượng khách
         document.addEventListener('DOMContentLoaded', function () {
             const catalog = document.getElementById('booking_promo_service_catalog');
             const service = Array.from(catalog.querySelectorAll('[data-id]'))
@@ -557,6 +584,5 @@
             document.getElementById('input_so_luong').addEventListener('input', refreshPromoTotal);
         });
     })();
-    // ===================== KẾT THÚC BỔ SUNG =====================
 </script>
 {% endblock %}

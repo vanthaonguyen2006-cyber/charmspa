@@ -2,12 +2,14 @@
 {% load static %}
 {% block title %}Chi tiết lịch hẹn - Charm Spa{% endblock %}
 {% block content %}
+<!-- Thư viện CSS Bootstrap, icon, bộ chọn ngày & CSS trang chi tiết lịch hẹn nhân viên -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_staff_detail_validation_20261120">
 <link rel="stylesheet" href="{% static 'css/bookings/staff.css' %}?v=charmspa_20261117_incremental2">
 <div class="staff-detail-page">
+  <!-- Khung thông báo -->
   {% if messages %}
     {% for message in messages %}
       <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show feedback-alert" role="alert">
@@ -15,6 +17,7 @@
       </div>
     {% endfor %}
   {% endif %}
+  <!-- Thanh tiêu đề & các nút thao tác trên lịch hẹn -->
   <div class="detail-top">
     <h1>CHI TIẾT LỊCH HẸN</h1>
     <div class="top-actions">
@@ -33,6 +36,7 @@
       {% endif %}
     </div>
   </div>
+  <!-- Thanh tóm tắt mã lịch, trạng thái, dịch vụ & thời gian -->
   <div class="summary-strip">
     <div class="summary-booking"><div class="summary-icon"><i class="bi bi-calendar2-check"></i></div>
       <div><div class="summary-code">#{{ lich_hen.ma_lh }}</div>
@@ -42,7 +46,9 @@
     <div><span class="summary-label">Dịch vụ</span><div class="summary-value">{{ lich_hen.ma_dv.ten_dich_vu }}</div><span class="staff-detail-inline-1">{{ lich_hen.ma_dv.thoi_luong|default:'150' }} phút · {{ lich_hen.so_luong_khach }} khách</span></div>
     <div><span class="summary-label">Ngày & giờ hẹn</span><div class="summary-value">{{ lich_hen.ngay_hen|date:'d/m/Y' }}</div><div class="summary-value">{{ lich_hen.gio_hen|time:'H:i' }}</div></div>
   </div>
+  <!-- Nội dung chính: cột trái thông tin lịch, cột phải thông tin khách & phân công nhân viên -->
   <div class="detail-grid">
+    <!-- Cột trái: thông tin chi tiết lịch hẹn -->
     <div class="detail-column">
       <section class="detail-card">
         <h2 class="card-head">Thông tin lịch hẹn</h2>
@@ -60,6 +66,7 @@
         {% endif %}
       </section>
     </div>
+    <!-- Cột phải: thông tin khách hàng & phân công nhân viên phụ trách -->
     <aside class="detail-column">
       <section class="detail-card">
         <h2 class="card-head">Thông tin khách hàng</h2>
@@ -69,6 +76,7 @@
           <div><div class="fact-label">Email</div><div class="fact-value">{{ lich_hen.ma_kh.ma_tk.user.email|default:'Chưa cập nhật' }}</div></div>
         </div>
       </section>
+      <!-- Khối hiển thị và phân công nhân viên phụ trách -->
       <section class="detail-card">
         <h2 class="card-head">Nhân viên phụ trách</h2>
         <div class="assignee-label">
@@ -85,6 +93,7 @@
         {% endfor %}
         {% if is_manager %}
           {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Đã xóa' and lich_hen.trang_thai != 'Hoàn thành' %}
+          <!-- Form phân công nhân viên theo từng khách -->
           <form method="POST" action="{% url 'bookings:assign_staff' lich_hen.ma_lh %}" class="assign-controls">
             {% csrf_token %}
             <p class="section-note">Mỗi khách chọn một nhân viên riêng, không trùng ca làm việc.</p>
@@ -116,6 +125,7 @@
             </button>
           </form>
           {% if so_nhan_vien_da_phan_cong %}
+          <!-- Form hủy toàn bộ nhân viên đã phân công -->
           <form method="POST" action="{% url 'bookings:assign_staff' lich_hen.ma_lh %}" class="assign-controls staff-clear-assign"
                 onsubmit="return confirm('Hủy toàn bộ nhân viên đã phân công cho lịch này?');">
             {% csrf_token %}
@@ -135,7 +145,7 @@
 </div>
 
 {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
-<!-- Xác nhận Hoàn thành: chỉ thay hộp thoại trình duyệt, giữ nguyên POST và CSRF. -->
+<!-- Popup (modal) xác nhận hoàn thành lịch hẹn -->
 <div class="modal fade staff-complete-modal" id="staffCompleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -154,7 +164,7 @@
 {% endif %}
 
 {% if is_manager %}
-<!-- ================= MODAL XÓA LỊCH HẸN ================= -->
+<!-- Popup (modal) xóa lịch hẹn dành cho quản lý -->
 <div class="modal fade staff-delete-modal" id="deleteModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content staff-detail-inline-4">
@@ -191,6 +201,7 @@
 {% endif %}
 
 {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
+<!-- Popup (modal) đổi lịch hẹn & dịch vụ -->
 <div class="modal staff-edit-modal" id="staffEditModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -205,14 +216,17 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
         </div>
         <div class="modal-body">
+          <!-- Ô ẩn lưu mã dịch vụ mới & khung giờ mới -->
           <input type="hidden" name="ma_dv_moi" id="staffDetailServiceId" value="{{ lich_hen.ma_dv.pk }}">
           <input type="hidden" name="gio_hen_moi" id="staffDetailTime" value="{{ lich_hen.gio_hen|time:'H:i' }}">
           <div class="row g-3">
+            <!-- Cột trái: chọn dịch vụ, ngày hẹn mới & khung giờ trống -->
             <div class="col-lg-8">
               <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
                 <h6 class="staff-edit-heading">1. Chọn dịch vụ trị liệu mới</h6>
                 <button type="button" class="staff-edit-all" id="staffDetailAllButton">Xem tất cả dịch vụ →</button>
               </div>
+              <!-- Danh sách thẻ dịch vụ -->
               <div class="row g-2" id="staffDetailServices">
                 {% for dv in dich_vu_list %}
                 <div class="col-md-4 staff-edit-service-col {% if forloop.counter > 3 and dv.pk != lich_hen.ma_dv.pk %}d-none{% endif %}">
@@ -223,6 +237,7 @@
                 </div>
                 {% endfor %}
               </div>
+              <!-- Mục 2 & 3: ngày hẹn mới và khung giờ trống -->
               <div class="row g-3 mt-2">
                 <div class="col-md-5">
                   <div class="calendar-box staff-edit-panel h-100">
@@ -240,6 +255,7 @@
                 </div></div>
               </div>
             </div>
+            <!-- Cột phải: thông tin khách, số khách, ghi chú & tóm tắt thay đổi -->
             <div class="col-lg-4"><div class="staff-edit-panel">
               <h6 class="staff-edit-heading">4. Thông tin lịch hẹn</h6>
               <label>Khách hàng</label><input type="text" value="{{ lich_hen.ma_kh.ho_ten }}" readonly>
@@ -255,9 +271,11 @@
     </div>
   </div>
 </div>
+<!-- Thư viện JS Flatpickr & script xử lý modal đổi lịch -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
 <script>
+// Khởi tạo & xử lý đổi dịch vụ, ngày hẹn, khung giờ trống và kiểm tra form trong popup đổi lịch
 document.addEventListener('DOMContentLoaded', () => {
  const form = document.getElementById('staffDetailEditForm');
  if (!form) return;
@@ -275,18 +293,21 @@ document.addEventListener('DOMContentLoaded', () => {
  const originalGuests = form.dataset.originalGuests || '1';
  const originalNote = form.querySelector('textarea[name="ghi_chu_moi"]')?.value || '';
  const errorIds = {date:'staffDetailDateError',time:'staffDetailTimeError',guests:'staffDetailGuestsError'};
+ // Xóa thông báo lỗi của từng trường
  function clearError(field){
    const el=document.getElementById(errorIds[field]);
    if(el){el.textContent='';el.hidden=true;}
    if(field==='date')dateInput.classList.remove('booking-invalid-field');
    if(field==='guests')guests.classList.remove('booking-invalid-field');
  }
+ // Hiển thị thông báo lỗi dưới trường tương ứng
  function showError(field,message){
    const el=document.getElementById(errorIds[field]);
    if(el){el.textContent=message;el.hidden=false;}
    if(field==='date')dateInput.classList.add('booking-invalid-field');
    if(field==='guests')guests.classList.add('booking-invalid-field');
  }
+ // Kiểm tra ngày hẹn mới có hợp lệ, không ở quá khứ và không bị khóa
  function validDate(){
    const match=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dateInput.value.trim());
    if(!match)return false;
@@ -296,8 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
    return d>=now&&!locked.has(iso(d));
  }
  let current = cards.find(c=>c.classList.contains('selected')) || cards[0], serial = 0;
- // Khi dịch vụ đang chọn không nằm trong 3 dịch vụ đầu: đưa lên đầu,
- // ẩn những ô còn lại để màn hình Đổi lịch luôn có đúng 3 thẻ.
+ // Đưa thẻ dịch vụ đang chọn lên đầu & chỉ hiển thị tối đa 3 thẻ
  if (current) {
    const selectedCol = current.closest('.staff-edit-service-col');
    if (selectedCol && grid.firstElementChild !== selectedCol) grid.prepend(selectedCol);
@@ -305,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
  grid.querySelectorAll('.staff-edit-service-col').forEach((col, index) => {
    col.classList.toggle('d-none', index >= 3);
  });
+ // Chuyển đối tượng Date sang định dạng YYYY-MM-DD
  function iso(d) {return [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-');}
 
  const picker = flatpickr(dateInput,{
@@ -315,16 +336,16 @@ document.addEventListener('DOMContentLoaded', () => {
    static:true,
    onChange:()=>{timeInput.value='';clearError('date');clearError('time');renderSlots();}
  });
- // Ngày lịch cũ có thể đã qua: vẫn hiển thị để đối chiếu, nhưng không cho lưu.
  if (originalDate) dateInput.value = originalDate;
 
+ // Cập nhật dòng tóm tắt thay đổi trong popup đổi lịch
  function summary(){const name=current?.dataset.name||'';document.getElementById('staffDetailSummaryName').textContent=name;document.getElementById('staffDetailSummaryLine').textContent=`${dateInput.value} · ${timeInput.value||'Chưa chọn giờ'} · ${current?.dataset.duration||150} phút · ${guests.value} khách`;}
 
+ // Chọn một dịch vụ trong danh sách đổi lịch
  function choose(card){
    current = card;
    serviceId.value = card.dataset.id;
 
-   // Cập nhật trạng thái selected cho tất cả các nút dịch vụ
    cards.forEach(c => {
      const yes = c === card;
      c.classList.toggle('selected', yes);
@@ -332,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
      if(selSpan) selSpan.textContent = yes ? '✓ Đã chọn' : '○ Chọn dịch vụ';
    });
 
-   // Đưa cột chứa dịch vụ được chọn lên đầu danh sách và chỉ hiển thị tối đa 3 thẻ đầu tiên
    const col = card.closest('.staff-edit-service-col');
    if(col && grid.firstElementChild !== col) {
      grid.prepend(col);
@@ -347,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
  cards.forEach(card=>card.addEventListener('click',()=>choose(card)));
 
+ // Mở lớp phủ chọn toàn bộ dịch vụ bên trong popup đổi lịch
  allButton.addEventListener('click',()=>{
   let layer=document.getElementById('staffDetailAllServices');
   const parent=document.querySelector('#staffEditModal > .modal-dialog > .modal-content');
@@ -369,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   layer.classList.add('show');layer.querySelector('.btn-close').focus({preventScroll:true});
  });
+  // Gọi API kiểm tra số giường trống và dựng các ô khung giờ
   async function renderSlots(){
     const seq = ++serial;
     const pieces = dateInput.value.split('/');
@@ -380,7 +402,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const type = current?.dataset.type || 'massage', cap = type === 'shampoo' ? 6 : 30;
     if (locked.has(date)) {slots.textContent='Ngày này đã khóa. Vui lòng chọn ngày mới.';summary();return;}
     if (date < dateNow) {
-      // Giờ cũ chỉ để xem, không cho chọn hoặc lưu lịch đã quá hạn.
       if (dateInput.value === originalDate && timeInput.value === originalTime) {
         const old = document.createElement('div'); old.className='col-12';
         old.innerHTML = `<div class="staff-edit-slot selected booking-original-slot"><strong>${originalTime}</strong><small>Giờ hẹn ban đầu (đã qua)</small></div>`;
@@ -402,7 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const data=await response.json();if(seq!==serial)return;
         let left=Number(data.con_lai);
         if (!Number.isFinite(left)) throw new Error('Dữ liệu không hợp lệ');
-        // Chỉ trả lại giường của lịch hiện tại nếu giữ đúng ngày, giờ và loại phòng cũ.
         const originalType = cards.find(c => c.dataset.id === originalService)?.dataset.type;
         if (dateInput.value === originalDate && time === originalTime && type === originalType) left += Number(originalGuests || 0);
         const enough=left>=qty;
@@ -455,6 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
 {% endif %}
 
 {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
+<!-- Popup (modal) hủy lịch hẹn phía nhân viên -->
 <div class="modal fade staff-cancel-modal" id="staffCancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-labelledby="staffCancelTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -467,6 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="modal-body">
           <p class="staff-cancel-note">Hủy thông thường phải trước giờ hẹn ít nhất <strong>6 tiếng</strong>.</p>
+          <!-- Ô chọn lý do hủy -->
           <label for="staffCancelReason" class="form-label">Lý do hủy *</label>
           <select id="staffCancelReason" name="ly_do_huy" class="form-select" required>
             <option value="">-- Chọn lý do --</option>
@@ -476,6 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
             {% if spa_closed %}<option value="Spa đóng cửa">Spa đóng cửa (ngoại lệ 6 tiếng)</option>{% endif %}
             <option value="Khác">Khác</option>
           </select>
+          <!-- Ô nhập chi tiết khi chọn lý do "Khác" -->
           <div class="staff-cancel-other" hidden>
             <label for="staffCancelOther" class="form-label">Ghi rõ lý do khác *</label>
             <textarea id="staffCancelOther" name="ly_do_khac" class="form-control" rows="3"></textarea>
@@ -493,14 +516,13 @@ document.addEventListener('DOMContentLoaded', () => {
 {% endif %}
 
 <script>
-// Menu lý do nằm trong modal (không dùng popup select do trình duyệt vẽ ngoài khung).
-// Giữ nguyên select name để backend nhận POST y như trước.
+// Dựng dropdown lý do tùy chỉnh cho popup xóa lịch & hủy lịch
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.staff-delete-modal, .staff-cancel-modal').forEach(modal => {
     const select = modal.querySelector('select[name="ly_do_xoa"], select[name="ly_do_huy"]');
     if (!select) return;
     select.classList.add('staff-reason-native');
-    select.removeAttribute('required'); // Bắt buộc chọn được kiểm tra ở form bên dưới.
+    select.removeAttribute('required');
     select.tabIndex = -1;
     const picker = document.createElement('div');
     picker.className = 'staff-reason-picker';
@@ -561,6 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.addEventListener('hidden.bs.modal', () => {list.hidden=true;trigger.setAttribute('aria-expanded','false');});
     const otherBox = modal.querySelector(select.name === 'ly_do_xoa' ? '[id^="deleteOtherReason"]' : '.staff-cancel-other');
     const otherText = otherBox?.querySelector('textarea');
+    // Ẩn/hiện ô nhập lý do chi tiết khi chọn "Khác"
     const syncOther = () => {
       if (!otherBox || !otherText) return;
       const isOther = select.value === 'Khác';
@@ -582,13 +605,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- Thư viện JS Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// Dropdown riêng cho phân công: luôn mở xuống, giữ select gốc để gửi nhan_vien_ids.
+// Dựng dropdown chọn nhân viên cho từng khách trong form phân công
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.staff-detail-page .assign-controls:not(.staff-clear-assign)').forEach(function (form) {
     const dropdowns = [...form.querySelectorAll('.staff-assignee-dropdown')];
+    // Đóng tất cả dropdown nhân viên trừ mục đang mở
     function closeAll(except) {
       dropdowns.forEach(function (dropdown) {
         if (dropdown === except) return;
@@ -601,6 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const trigger = dropdown.querySelector('.staff-assignee-trigger');
       const label = dropdown.querySelector('.staff-assignee-trigger-text');
       const list = dropdown.querySelector('.staff-assignee-options');
+      // Đồng bộ nhãn hiển thị với option đang được chọn trong select ẩn
       function sync() {
         label.textContent = select.selectedOptions[0]?.textContent || '-- Chọn nhân viên --';
         list.querySelectorAll('[role="option"]').forEach(function (item) {
@@ -631,7 +657,6 @@ document.addEventListener('DOMContentLoaded', function () {
         list.hidden = !opening;
         trigger.setAttribute('aria-expanded', String(opening));
         if (opening) {
-          // Bố trí đủ không gian để danh sách mở phía dưới, thay vì bị khuất cuối trang.
           const bottom = Math.min(list.scrollHeight, 220) + trigger.getBoundingClientRect().bottom + 12;
           if (bottom > window.innerHeight) window.scrollBy({top: bottom - window.innerHeight + 16, behavior: 'smooth'});
         }

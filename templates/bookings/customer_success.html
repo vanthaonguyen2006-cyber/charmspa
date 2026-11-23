@@ -3,6 +3,7 @@
 
 {% block extra_css %}
     {{ block.super }}
+    <!-- Thư viện CSS Bootstrap, icon và file CSS trang đặt lịch thành công -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
@@ -12,9 +13,10 @@
 {% block profile_content %}
 <div class="booking-customer-success container my-5">
 
+    <!-- Khung thẻ xác nhận đặt lịch thành công -->
     <div class="success-card">
 
-        <!-- THÔNG BÁO ĐẶT LỊCH THÀNH CÔNG -->
+        <!-- Biểu tượng & lời chào đặt lịch thành công -->
         <div class="success-icon-box">
             <i class="bi bi-check-lg"></i>
         </div>
@@ -30,9 +32,10 @@
 
         {% if lich_hen %}
 
-            <!-- THÔNG TIN LỊCH HẸN -->
+            <!-- Khối chi tiết thông tin lịch hẹn vừa đặt -->
             <div class="info-box">
 
+                <!-- Mã lịch hẹn -->
                 <div class="info-row">
                     <span class="text-muted">Mã lịch hẹn:</span>
                     <strong class="bk-c-strong-37">
@@ -40,6 +43,7 @@
                     </strong>
                 </div>
 
+                <!-- Tên dịch vụ trị liệu -->
                 <div class="info-row">
                     <span class="text-muted">Dịch vụ trị liệu:</span>
                     <strong class="text-end bk-c-strong-38">
@@ -47,6 +51,7 @@
                     </strong>
                 </div>
 
+                <!-- Ngày & giờ hẹn -->
                 <div class="info-row">
                     <span class="text-muted">Ngày & Giờ hẹn:</span>
                     <strong>
@@ -55,6 +60,7 @@
                     </strong>
                 </div>
 
+                <!-- Thông tin khách hàng -->
                 <div class="info-row">
                     <span class="text-muted">Khách hàng:</span>
                     <strong>
@@ -62,6 +68,7 @@
                     </strong>
                 </div>
 
+                <!-- Tên tài khoản -->
                 <div class="info-row">
                     <span class="text-muted">Tên tài khoản:</span>
                     <strong>
@@ -70,10 +77,9 @@
                 </div>
 
             </div>
-            <!-- KẾT THÚC THÔNG TIN LỊCH HẸN -->
 
 
-            <!-- THÔNG TIN ƯU ĐÃI ĐÃ ÁP DỤNG -->
+            <!-- Khối thông tin ưu đãi & giá dự kiến đã áp dụng -->
             {% with uu_dai=lich_hen.uu_dai_ap_dung %}
 
                 {% if uu_dai %}
@@ -86,7 +92,7 @@
                             text-align: left;
                          ">
 
-                        <!-- TIÊU ĐỀ ƯU ĐÃI -->
+                        <!-- Tiêu đề khối ưu đãi -->
                         <div class="d-flex align-items-center gap-2 mb-3">
 
                             <i class="bi bi-tag-fill"
@@ -104,7 +110,7 @@
                         </div>
 
 
-                        <!-- TÊN CHƯƠNG TRÌNH -->
+                        <!-- Tên chương trình ưu đãi -->
                         <div class="mb-3">
 
                             <span class="d-block small text-muted mb-1">
@@ -121,7 +127,7 @@
                         </div>
 
 
-                        <!-- MÃ ƯU ĐÃI -->
+                        <!-- Mã ưu đãi -->
                         <div class="d-flex justify-content-between gap-2 mb-2">
 
                             <span class="text-muted small">
@@ -135,7 +141,7 @@
                         </div>
 
 
-                        <!-- SỐ LƯỢNG KHÁCH -->
+                        <!-- Số lượng khách -->
                         <div class="d-flex justify-content-between gap-2 mb-2">
 
                             <span class="text-muted small">
@@ -149,7 +155,7 @@
                         </div>
 
 
-                        <!-- TỔNG GIÁ GỐC -->
+                        <!-- Tổng giá gốc -->
                         <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
 
                             <span class="text-muted small">
@@ -169,7 +175,7 @@
                         </div>
 
 
-                        <!-- MỨC ƯU ĐÃI -->
+                        <!-- Mức giảm ưu đãi -->
                         <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
 
                             <span class="text-muted small">
@@ -204,7 +210,7 @@
                         ">
 
 
-                        <!-- TỔNG GIÁ SAU GIẢM -->
+                        <!-- Tổng giá sau giảm -->
                         <div class="d-flex justify-content-between align-items-center gap-2">
 
                             <strong style="
@@ -228,7 +234,7 @@
                         </div>
 
 
-                        <!-- LƯU Ý GIÁ -->
+                        <!-- Ghi chú lưu ý về giá ưu đãi -->
                         <p class="small text-muted mt-3 mb-0"
                            style="
                                font-size: 11px;
@@ -246,12 +252,11 @@
                 {% endif %}
 
             {% endwith %}
-            <!-- KẾT THÚC THÔNG TIN ƯU ĐÃI -->
 
 
         {% else %}
 
-            <!-- KHÔNG TÌM THẤY LỊCH HẸN -->
+            <!-- Thông báo khi không tìm thấy lịch hẹn -->
             <div class="alert alert-warning">
                 Không tìm thấy thông tin lịch hẹn gần nhất.
             </div>
@@ -259,7 +264,7 @@
         {% endif %}
 
 
-        <!-- NÚT ĐIỀU HƯỚNG -->
+        <!-- Các nút điều hướng: Xem danh sách lịch hẹn & Đặt lịch tiếp -->
         <div class="d-flex justify-content-center align-items-center flex-wrap gap-3 mt-4">
 
             <a href="{% url 'bookings:booking_customer_list' %}"
@@ -279,7 +284,6 @@
             </a>
 
         </div>
-        <!-- KẾT THÚC NÚT ĐIỀU HƯỚNG -->
 
     </div>
 

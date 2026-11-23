@@ -2,15 +2,17 @@
 {% load static charm_format %}
 {% block extra_css %}
    {{ block.super }}
+   <!-- File CSS của trang chi tiết lịch hẹn & các popup -->
    <link rel="stylesheet" href="{% static 'css/bookings/common.css' %}?v=charmspa_20261117_fix1">
    <link rel="stylesheet" href="{% static 'css/bookings/customer.css' %}?v=charmspa_customer_inline_red_20261120">
    <link rel="stylesheet" href="{% static 'css/bookings/booking_modals.css' %}?v=charmspa_20261117_fix1">
 {% endblock %}
 {% block profile_content %}
+<!-- Thư viện CSS lịch Flatpickr -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 
-/* Danh sách dịch vụ: phủ cùng 1 khung với modal Đổi lịch, không tạo modal thứ hai. */
+/* Style lớp phủ chọn dịch vụ ngay trong popup đổi lịch */
 .booking-reschedule-modal .modal-content { position: relative; }
 .booking-reschedule-modal .customer-services-cover {
     position: absolute;
@@ -80,6 +82,7 @@
 }
 </style>
 <div class="booking-customer-detail">
+   <!-- Khung thông báo -->
    {% if messages %}
    <div class="mb-3">
        {% for message in messages %}
@@ -92,12 +95,14 @@
    {% endif %}
 
 
+   <!-- Thanh tiêu đề & nút Quay lại -->
    <header class="customer-detail-page-head">
        <h1>CHI TIẾT LỊCH HẸN</h1>
        <a href="{% url 'bookings:booking_customer_list' %}" class="customer-detail-back"><i class="bi bi-arrow-left"></i> Quay lại</a>
    </header>
 
 
+   <!-- Khung tóm tắt đầu trang, trạng thái & thanh tiến trình -->
    <section class="customer-detail-summary">
        <div class="customer-detail-summary-main">
            <h2>{{ lich_hen.ma_dv.ten_dich_vu|default:'Dịch vụ Charm Spa' }}</h2>
@@ -122,8 +127,11 @@
    </section>
 
 
+   <!-- Nội dung chính chia 2 cột: trái (thông tin & ưu đãi), phải (trạng thái & nút thao tác) -->
    <div class="customer-detail-columns">
+       <!-- Cột trái -->
        <div class="customer-detail-left">
+           <!-- Khối thông tin lịch hẹn -->
            <section class="customer-detail-card">
                <h2>Thông tin lịch hẹn</h2>
                <p class="customer-detail-subtitle">Chi tiết dịch vụ và thời gian đã chọn.</p>
@@ -142,7 +150,7 @@
            </section>
 
 
-           <!-- BẮT ĐẦU BỔ SUNG: HIỂN THỊ ƯU ĐÃI ĐÃ LƯU -->
+           <!-- Khối thông tin ưu đãi áp dụng cho lịch hẹn -->
            {% with uu_dai=lich_hen.uu_dai_ap_dung %}
            {% if uu_dai %}
            <section class="customer-detail-card" aria-label="Ưu đãi áp dụng cho lịch hẹn">
@@ -180,8 +188,8 @@
            </section>
            {% endif %}
            {% endwith %}
-           <!-- KẾT THÚC BỔ SUNG: HIỂN THỊ ƯU ĐÃI -->
 
+           <!-- Khối thông tin khách hàng -->
            <section class="customer-detail-card">
                <h2>Thông tin khách hàng</h2>
                <div class="customer-detail-contact">
@@ -194,6 +202,7 @@
        </div>
 
 
+       <!-- Cột phải: trạng thái hiện tại & các nút Đổi lịch / Hủy lịch -->
        <aside class="customer-detail-card customer-detail-right">
            <h2>Trạng thái lịch hẹn</h2>
            <div class="customer-detail-current-status">
@@ -215,7 +224,7 @@
 
 
 {% if lich_hen.trang_thai != 'Đã hủy' and lich_hen.trang_thai != 'Hoàn thành' and lich_hen.trang_thai != 'Đã xóa' %}
-               <!-- MODAL HỦY LỊCH HẸN (Đã mở rộng chiều dài ngang max-width 950px) -->
+               <!-- Popup (modal) hủy lịch hẹn -->
                <div class="modal fade booking-ui-modal" id="cancelModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
                    <div class="modal-dialog modal-dialog-centered customer-cancel-dialog bk-c-div-04">
                        <div class="modal-content bk-c-div-05">
@@ -229,6 +238,7 @@
                                    <div class="alert alert-warning py-2 px-3 small mb-3 bk-c-alert">
                                        <i class="bi bi-info-circle-fill me-1"></i> Theo quy định, lịch chỉ được hủy trước giờ hẹn ít nhất <strong>6 tiếng</strong>. Nếu không đủ điều kiện, hệ thống sẽ giữ nguyên trạng thái và hiển thị thông báo. Nếu chỉ muốn thay đổi thời gian hoặc dịch vụ, hãy chọn <strong>"Đổi lịch"</strong>.
                                    </div>
+                                   <!-- Ô chọn lý do hủy -->
                                    <div class="mb-3">
                                        <label class="form-label fw-bold text-secondary">Lý do hủy *</label>
                                        <select name="ly_do_huy" id="select_ly_do_{{ lich_hen.ma_lh }}" class="form-select form-select-lg fs-6" onchange="toggleLyDoKhac('{{ lich_hen.ma_lh }}')">
@@ -238,6 +248,7 @@
                                            <option value="Khác">Khác (Vui lòng nhập bên dưới)</option>
                                        </select>
                                    </div>
+                                   <!-- Ô nhập lý do khác khi chọn "Khác" -->
                                    <div class="mb-3 d-none" id="box_ly_do_khac_{{ lich_hen.ma_lh }}">
                                        <label class="form-label fw-bold text-secondary">Nhập lý do khác *</label>
                                        <textarea name="ly_do_khac" class="form-control" rows="3" placeholder="Nhập chi tiết lý do hủy lịch của bạn..."></textarea>
@@ -253,7 +264,7 @@
                </div>
 
 
-               <!-- MODAL THAY ĐỔI LỊCH HẸN -->
+               <!-- Popup (modal) đổi lịch hẹn & dịch vụ -->
                <div class="modal fade booking-ui-modal booking-reschedule-modal" id="rescheduleModal{{ lich_hen.ma_lh }}" tabindex="-1" aria-hidden="true">
                    <div class="modal-dialog modal-dialog-centered modal-xl">
                        <div class="modal-content bk-c-div-07">
@@ -274,20 +285,21 @@
                                <div class="modal-body px-4 text-start" >
 
 
+                                   <!-- Ô ẩn lưu mã dịch vụ mới & khung giờ mới -->
                                    <input type="hidden" name="ma_dv_moi" id="input_ma_dv_moi_{{ lich_hen.ma_lh }}" value="{{ lich_hen.ma_dv.pk }}">
                                    <input type="hidden" name="gio_hen_moi" id="input_time_slot_{{ lich_hen.ma_lh }}" value="{{ lich_hen.gio_hen|time:'H:i' }}">
 
 
                                    <div class="row g-3">
-                                       <!-- CỘT TRÁI: CHỌN DỊCH VỤ & NGÀY HẸN -->
+                                       <!-- Cột trái trong popup đổi lịch: dịch vụ, ngày hẹn & khung giờ -->
                                        <div class="col-lg-8">
-                                           <!-- 1. Chọn dịch vụ trị liệu -->
+                                           <!-- Mục 1: chọn dịch vụ mới & nút xem tất cả dịch vụ -->
                                            <div class="mb-4">
                                                <div class="d-flex justify-content-between align-items-center mb-2">
                                                    <label class="form-label fw-bold text-uppercase text-secondary m-0 reschedule-section-label">
-                                                       1. Chọn dịch vụ trị liệu mới
+1. Chọn dịch vụ trị liệu mới
                                                    </label>
-                                                   <!-- Nút bấm bật/tắt hiển thị toàn bộ dịch vụ ngay trong modal -->
+                                                   <!-- Nút mở danh sách tất cả dịch vụ trong popup -->
                                                    <button type="button" class="btn text-warning fw-bold p-0 border-0 bg-transparent small" onclick="toggleAllServices('{{ lich_hen.ma_lh }}')" id="btn_toggle_services_{{ lich_hen.ma_lh }}">
                                                        Xem tất cả dịch vụ &rarr;
                                                    </button>
@@ -295,6 +307,7 @@
 
 
                                                <small class="booking-inline-error" id="reschedule_service_error_{{ lich_hen.ma_lh }}" hidden></small>
+                                                <!-- Danh sách thẻ dịch vụ -->
                                                 <div class="row g-3" id="service_container_{{ lich_hen.ma_lh }}" data-current-duration="{{ lich_hen.ma_dv.thoi_luong|default:150 }} phút" data-is-expanded="false">
                                                    {% if dich_vu_list %}
                                                        {% for dv in dich_vu_list %}
@@ -317,8 +330,9 @@
                                            </div>
 
 
-                                           <!-- 2. Chọn ngày & 3. Khung giờ -->
+                                           <!-- Mục 2 & 3: ô chọn ngày hẹn mới và danh sách khung giờ trống -->
                                            <div class="row g-3">
+                                               <!-- Ô chọn ngày hẹn mới -->
                                                <div class="col-md-5">
                                                    <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
                                                        <h6 class="fw-bold mb-2 text-secondary" >2. CHỌN NGÀY HẸN MỚI</h6>
@@ -329,6 +343,7 @@
                                                        <small class="booking-inline-error" id="reschedule_date_error_{{ lich_hen.ma_lh }}" hidden></small>
                                                    </div>
                                                </div>
+                                               <!-- Khung giờ trống & badge quỹ giường -->
                                                <div class="col-md-7">
                                                    <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
                                                        <div class="d-flex justify-content-between align-items-center mb-2">
@@ -343,16 +358,18 @@
                                        </div>
 
 
-                                       <!-- CỘT PHẢI: SỐ LƯỢNG KHÁCH, GHI CHÚ & TÓM TẮT -->
+                                       <!-- Cột phải trong popup đổi lịch: số khách, ghi chú & tóm tắt thay đổi -->
                                        <div class="col-lg-4">
                                            <div class="bg-white border rounded p-3 booking-reschedule-panel bk-c-booking-reschedule-panel">
                                                <div>
                                                    <h6 class="fw-bold mb-3 text-secondary" >4. THÔNG TIN BỔ SUNG</h6>
+                                                   <!-- Ô nhập số lượng khách mới -->
                                                    <div class="mb-3">
                                                        <label class="form-label fw-bold text-secondary" >Số lượng khách *</label>
                                                        <input type="number" name="so_luong_khach_moi" id="input_so_luong_{{ lich_hen.ma_lh }}" class="form-control form-control-sm" value="{{ lich_hen.so_luong_khach }}" min="1" max="10" required onchange="updateModalSlots('{{ lich_hen.ma_lh }}')">
                                                         <small class="booking-inline-error" id="reschedule_guests_error_{{ lich_hen.ma_lh }}" hidden></small>
                                                    </div>
+                                                   <!-- Ô nhập ghi chú thay đổi -->
                                                    <div class="mb-3">
                                                        <label class="form-label fw-bold text-secondary" >Ghi chú thay đổi</label>
                                                        <textarea name="ghi_chu_moi" id="input_ghi_chu_{{ lich_hen.ma_lh }}" class="form-control form-control-sm" rows="2" placeholder="Yêu cầu đặc biệt...">{{ lich_hen.ghi_chu }}</textarea>
@@ -360,6 +377,7 @@
                                                </div>
 
 
+                                               <!-- Khung tóm tắt thay đổi -->
                                                <div class="p-3 rounded mt-3 booking-reschedule-summary bk-c-booking-reschedule-summary">
                                                    <small class="text-muted d-block text-uppercase" >TÓM TẮT THAY ĐỔI</small>
                                                    <strong class="d-block text-dark mt-1" id="summary_service_name_{{ lich_hen.ma_lh }}" >
@@ -393,12 +411,13 @@
 
 {% block extra_js %}
    {{ block.super }}
+   <!-- Thư viện JS Bootstrap & Flatpickr -->
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 
    <script>
-   // Hàm ẩn/hiện ô nhập lý do khác
+   // Ẩn/hiện ô nhập lý do khác trong popup hủy lịch
    function toggleLyDoKhac(bookingId) {
        const selectEl = document.getElementById(`select_ly_do_${bookingId}`);
        const boxEl = document.getElementById(`box_ly_do_khac_${bookingId}`);
@@ -412,18 +431,20 @@
    }
 
 
-   // Dữ liệu khóa ngày từ Django: một chuỗi JSON hoặc danh sách ngày YYYY-MM-DD.
+   // Dữ liệu ngày khóa, danh sách khung giờ & API kiểm tra giường
    const disabledDates = {{ locked_dates_json|default:"[]"|safe }}.map(String);
    const bookingTimeSlots = ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30', '21:00'];
    const availabilityUrl = "{% url 'bookings:api_kiem_tra_giuong' %}";
    const rescheduleRequestSerial = {};
 
 
+   // Lấy form đổi lịch theo mã lịch hẹn
    function getRescheduleForm(id) {
        return document.querySelector('.customer-reschedule-form[data-booking-id="' + id + '"]');
    }
 
 
+   // Cập nhật dòng tóm tắt thay đổi trong popup đổi lịch
    function updateModalSummary(id) {
        const form = getRescheduleForm(id);
        if (!form) return;
@@ -436,8 +457,7 @@
    }
 
 
-   // Xem tất cả dịch vụ dưới dạng popup như trang Đặt lịch; dùng thẻ gốc để giữ toàn bộ logic chọn dịch vụ.
-    // Lớp chọn dịch vụ phủ TRỌN khung Đổi lịch, không mở Bootstrap modal thứ hai.
+   // Mở lớp phủ xem tất cả dịch vụ ngay trong popup đổi lịch
     function toggleAllServices(id) {
         const container = document.getElementById('service_container_' + id);
         const parentModal = document.getElementById('rescheduleModal' + id);
@@ -487,6 +507,7 @@
         layer.querySelector('.customer-services-cover-close').focus({preventScroll: true});
     }
 
+    // Đóng lớp phủ danh sách tất cả dịch vụ
     function closeCustomerServicesCover(layer, id, restoreFocus = true) {
         if (!layer) return;
         layer.hidden = true;
@@ -496,6 +517,7 @@
     }
 
 
+   // Chọn một dịch vụ trong popup đổi lịch & cập nhật danh sách khung giờ
    function selectModalService(element, id, serviceId, serviceName, duration, price) {
        const container = document.getElementById('service_container_' + id);
        container.querySelectorAll('.service-card-modal').forEach(card => {
@@ -518,15 +540,14 @@
        container.dataset.currentDuration = duration;
 
 
-       // Đưa thẻ vừa chọn lên đầu danh sách mà không tạo lại HTML.
-       // Giữ nguyên ảnh, thông tin, sự kiện và dữ liệu lịch hẹn gốc.
+       // Đưa dịch vụ vừa chọn lên đầu danh sách
        const selectedItem = element.closest('.service-item-col');
        if (selectedItem && container.firstElementChild !== selectedItem) {
            container.insertBefore(selectedItem, container.firstElementChild);
        }
 
 
-       // Tự thu về ba dịch vụ đầu tiên sau khi chọn.
+       // Thu gọn lại chỉ hiển thị 3 dịch vụ đầu tiên
        container.querySelectorAll('.service-item-col').forEach((item, index) => {
            item.classList.toggle('d-none', index >= 3);
        });
@@ -540,6 +561,7 @@
    }
 
 
+   // Gọi API kiểm tra số giường trống và dựng các ô khung giờ trong popup đổi lịch
    async function updateModalSlots(id) {
        const form = getRescheduleForm(id);
        if (!form) return;
@@ -596,7 +618,6 @@
                const data = await response.json();
                let remaining = Number(data.con_lai);
                if (!Number.isFinite(remaining)) throw new Error('Không hợp lệ');
-               // API hiện tại chưa loại lịch đang sửa. Hoàn lại chỗ cũ CHỈ khi cùng ngày/giờ/loại phòng.
                const originalServiceId = form.dataset.originalService;
                const currentServiceId = document.getElementById('input_ma_dv_moi_' + id).value;
                const currentOriginalCard = document.querySelector('#service_container_' + id + ' .service-card-modal[data-original-service="true"]');
@@ -610,10 +631,8 @@
            }
        }));
        if (requestNo !== rescheduleRequestSerial[id]) return;
-       // Giữ giờ ban đầu nếu phù hợp; khi đổi ngày không tự chọn giờ đầu tiên.
        const selectedTime = cards.some(c => c.available && c.time === oldTime) ? oldTime : '';
        if (oldTime && !selectedTime && date === form.dataset.originalDate && oldTime === form.dataset.originalTime) {
-           // Giờ cũ không còn chọn được: vẫn hiển thị trong tóm tắt, bắt buộc chọn giờ hợp lệ để lưu.
            timeInput.value = oldTime;
        } else {
            timeInput.value = selectedTime;
@@ -631,6 +650,7 @@
    }
 
 
+   // Chọn một khung giờ trong popup đổi lịch
    function selectModalTimeSlot(element, id, time) {
        if (element.disabled) return;
        document.querySelectorAll('.time-slots-container_modal[data-booking-id="' + id + '"] .time-slot-modal').forEach(slot => slot.classList.remove('selected'));
@@ -641,6 +661,7 @@
    }
 
 
+   // Hiển thị thông báo lỗi dưới từng mục trong popup đổi lịch
    function showRescheduleError(id, field, message) {
        const el = document.getElementById(`reschedule_${field}_error_${id}`);
        if (el) {el.textContent = message;el.hidden = false;}
@@ -650,6 +671,7 @@
            : document.getElementById('service_container_' + id);
        target?.classList.add('booking-field-invalid');
    }
+   // Xóa thông báo lỗi dưới từng mục trong popup đổi lịch
    function clearRescheduleError(id, field) {
        const el = document.getElementById(`reschedule_${field}_error_${id}`);
        if (el) el.hidden = true;
@@ -659,6 +681,7 @@
            : document.getElementById('service_container_' + id);
        target?.classList.remove('booking-field-invalid');
    }
+   // Khởi tạo lịch Flatpickr, kiểm tra form và reset dữ liệu khi đóng popup đổi lịch
    document.addEventListener('DOMContentLoaded', function() {
        document.querySelectorAll('.customer-reschedule-form').forEach(form => {
            const id = form.dataset.bookingId;
@@ -680,9 +703,8 @@
                    updateModalSlots(id);
                }
            });
-           // Giữ ngày gốc để xem dù Flatpickr không cho chọn ngày đã qua.
            if (!fp.selectedDates.length) dateInput.value = form.dataset.originalDate;
-           form.noValidate = true; // Lỗi hiển thị trong popup thay vì tooltip mặc định.
+           form.noValidate = true;
            const originalNote = form.querySelector('textarea[name="ghi_chu_moi"]').value;
            const originalServiceName = document.getElementById('summary_service_name_' + id).textContent;
            const originalDuration = document.getElementById('service_container_' + id).dataset.currentDuration;
@@ -741,8 +763,7 @@
    });
 
 
-// Chỉ thay cách HIỂN THỊ danh sách lý do bên trong popup;
-// select gốc vẫn giữ name, value, onchange và dữ liệu gửi về Django.
+// Dropdown lý do mở rộng trong popup hủy lịch
 function initializePopupExpandingReason(select) {
     if (!select || select.dataset.popupExpandingReady === '1') return;
 
@@ -792,7 +813,6 @@ function initializePopupExpandingReason(select) {
         button.disabled = option.disabled;
         button.addEventListener('click', () => {
             select.value = option.value;
-            // Phát change để giữ nguyên logic hiển thị ô nhập 'Khác'.
             select.dispatchEvent(new Event('change', {bubbles: true}));
             sync();
             setClosed();
@@ -803,7 +823,6 @@ function initializePopupExpandingReason(select) {
 
     trigger.addEventListener('click', () => {
         const shouldOpen = list.hidden;
-        // Chỉ một danh sách lý do được mở tại một thời điểm.
         document.querySelectorAll('.popup-expanding-choices:not([hidden])').forEach(other => {
             other.hidden = true;
             other.parentElement?.querySelector('.popup-expanding-trigger')?.setAttribute('aria-expanded', 'false');
@@ -831,7 +850,7 @@ function initializePopupExpandingReason(select) {
 }
 
 
-    // Popup Hủy lịch: xổ lý do thì khung tự cao lên, chọn xong thì thu lại.
+    // Khởi tạo dropdown lý do cho popup hủy lịch khi trang tải xong
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.customer-cancel-dialog select[name="ly_do_huy"]').forEach(initializePopupExpandingReason);
     });

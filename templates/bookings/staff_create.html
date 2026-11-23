@@ -2,6 +2,7 @@
 {% load static %}
 {% block extra_css %}
     {{ block.super }}
+    <!-- Thư viện CSS Bootstrap, icon, bộ chọn ngày và CSS của trang nhân viên tạo lịch -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -12,7 +13,7 @@
 {% block content %}
 
 <div class="booking-staff-create pt-2 px-8 pb-5 max-w-7xl w-full mx-auto">
-    <!-- Tiêu đề trang nhân viên tạo lịch -->
+    <!-- Đầu trang & nút xem danh sách lịch hẹn -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="staff-create-inline-1 fw-bold text-uppercase m-0 text-dark">
@@ -27,6 +28,7 @@
         </div>
     </div>
 
+    <!-- Khung thông báo -->
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
@@ -36,17 +38,19 @@
         {% endfor %}
     {% endif %}
 
-    <!-- Form gửi dữ liệu sang view tạo lịch nhân viên -->
+    <!-- Form tạo lịch hẹn cho khách -->
     <form method="POST" id="staffCreateBookingForm" novalidate>
         {% csrf_token %}
+        <!-- Các ô ẩn lưu mã khách hàng, mã dịch vụ và khung giờ đã chọn -->
         <input type="hidden" name="ma_kh" id="input_ma_kh" value="">
 
         <input type="hidden" name="ma_dv" id="input_ma_dv" value="">
         <input type="hidden" name="time_slot" id="input_time_slot" value="">
 
         <div class="row g-4">
-            <!-- CỘT TRÁI -->
+            <!-- Cột trái: chọn dịch vụ, chọn ngày và khung giờ -->
             <div class="col-lg-8">
+                <!-- Mục 1: chọn dịch vụ trị liệu & nút xem tất cả dịch vụ -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-bold m-0">1. Chọn dịch vụ trị liệu</h6>
@@ -54,6 +58,7 @@
                             Xem tất cả dịch vụ &rarr;
                         </button>
                     </div>
+                    <!-- Danh sách thẻ dịch vụ chính -->
                     <div class="row g-3" id="main_service_container">
                         {% if dich_vu_list %}
                             {% for dv in dich_vu_list %}
@@ -76,20 +81,24 @@
                             <div class="col-12 text-muted">Chưa có dịch vụ nào trong hệ thống.</div>
                         {% endif %}
                     </div>
+                    <!-- Dòng báo lỗi khi chưa chọn dịch vụ -->
                     <div id="staff_create_service_error" class="staff-create-field-error" hidden></div>
                 </div>
 
-                <!-- Ngày & Khung Giờ -->
+                <!-- Mục 2 & 3: ô chọn ngày hẹn và danh sách khung giờ trống -->
                 <div class="row g-3">
+                    <!-- Ô chọn ngày hẹn -->
                     <div class="col-md-5">
                         <div class="calendar-box">
                             <h6 class="staff-create-inline-12 fw-bold mb-2">2. Chọn ngày hẹn</h6>
                             <div class="custom-date-container">
                                 <input type="text" name="ngay_hen" id="input_ngay_hen" class="form-control form-control-custom-date" placeholder="dd/mm/yyyy">
                             </div>
+                            <!-- Dòng báo lỗi khi chưa chọn ngày hẹn -->
                             <div id="staff_create_date_error" class="staff-create-field-error" hidden></div>
                         </div>
                     </div>
+                    <!-- Khung chọn giờ trống & badge quỹ giường -->
                     <div class="col-md-7">
                         <div class="time-box">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -97,7 +106,7 @@
                                 <span class="staff-create-inline-14 badge bg-light text-success border" id="bed_capacity_info">Chọn dịch vụ để xem quỹ giường</span>
                             </div>
 
-                            <!-- KHUNG THÔNG BÁO MÀU VÀNG CẢNH BÁO KHI HẾT GIỜ / KÍN CHỖ -->
+                            <!-- Khung cảnh báo khi hết giờ hoặc kín chỗ -->
                             <div id="no-slots-alert" class="staff-create-inline-15 alert alert-warning d-none align-items-center py-2 px-3 mb-3 shadow-sm" role="alert">
                                 <i class="staff-create-inline-16 bi bi-exclamation-triangle-fill text-warning me-2 fs-5"></i>
                                 <div>
@@ -105,19 +114,21 @@
                                 </div>
                             </div>
 
+                            <!-- Nơi render các ô khung giờ -->
                             <div class="row g-2" id="time_slots_container"></div>
+                            <!-- Dòng báo lỗi khi chưa chọn khung giờ -->
                             <div id="staff_create_time_error" class="staff-create-field-error" hidden></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CỘT PHẢI: THÔNG TIN KHÁCH HÀNG & TÓM TẮT -->
+            <!-- Cột phải: thông tin khách hàng, tóm tắt lịch và nút tạo lịch -->
             <div class="col-lg-4">
                 <div class="summary-card">
                     <h6 class="fw-bold mb-3">4. Thông tin khách hàng</h6>
 
-                    <!-- Ô chọn/tìm kiếm khách hàng cũ dạng Dropdown tùy chỉnh -->
+                    <!-- Dropdown tìm & chọn nhanh khách hàng có sẵn -->
                     <div class="mb-3">
                         <label class="small fw-bold text-primary mb-1">Chọn nhanh từ danh sách khách hàng</label>
                         <div class="customer-dropdown-container">
@@ -126,7 +137,9 @@
                                 <i class="bi bi-chevron-down small"></i>
                             </div>
                             <div class="customer-dropdown-menu" id="customerDropdownMenu">
+                                <!-- Hộp tìm kiếm khách hàng theo tên hoặc SĐT -->
                                 <input type="text" class="customer-search-input" id="customerSearchBox" placeholder="Gõ tên hoặc SĐT để lọc..." oninput="filterCustomerOptions(this)">
+                                <!-- Danh sách gợi ý khách hàng -->
                                 <div id="customerOptionsList">
                                     {% for kh in khach_hang_list %}
                                         <div class="customer-option-item"
@@ -146,37 +159,44 @@
                         <div id="staff_create_customer_error" class="staff-create-field-error" hidden></div>
                     </div>
 
+                    <!-- Ô nhập họ và tên khách -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_ho_ten">Họ và tên khách *</label>
                         <input type="text" id="input_ho_ten" name="ho_ten" class="form-control form-control-custom" placeholder="Nhập họ và tên..." required>
                         <div id="staff_create_name_error" class="staff-create-field-error" hidden></div>
                     </div>
+                    <!-- Ô nhập số điện thoại khách -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_sdt">Số điện thoại *</label>
                         <input type="text" id="input_sdt" name="sdt" class="form-control form-control-custom" placeholder="Nhập số điện thoại..." required>
                         <div id="staff_create_phone_error" class="staff-create-field-error" hidden></div>
                     </div>
+                    <!-- Ô nhập email khách -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_email">Email</label>
                         <input type="email" id="input_email" name="email" class="form-control form-control-custom" placeholder="Nhập email...">
                         <div id="staff_create_email_error" class="staff-create-field-error" hidden></div>
                     </div>
+                    <!-- Ô chọn số lượng khách -->
                     <div class="mb-2">
                         <label class="small fw-bold" for="input_so_luong">Số lượng khách *</label>
                         <input type="number" name="so_luong" id="input_so_luong" class="form-control form-control-custom" value="1" min="1" max="10" onchange="updateFullSummary()">
                         <div id="staff_create_guests_error" class="staff-create-field-error" hidden></div>
                     </div>
+                    <!-- Ô nhập ghi chú nội bộ -->
                     <div class="mb-3">
                         <label class="small fw-bold" for="input_ghi_chu">Ghi chú nội bộ</label>
                         <textarea id="input_ghi_chu" name="ghi_chu" class="form-control form-control-custom" rows="2" placeholder="Yêu cầu đặc biệt từ khách..."></textarea>
                     </div>
 
+                    <!-- Khung tóm tắt lịch hẹn -->
                     <div class="staff-create-inline-17 p-3 mb-3 rounded">
                         <small class="staff-create-inline-18 text-muted d-block text-uppercase">TÓM TẮT LỊCH HẸN</small>
                         <strong class="staff-create-inline-19 d-block" id="summary_service_name">Chưa chọn dịch vụ</strong>
                         <small class="staff-create-inline-20 text-muted" id="summary_details">Chưa chọn ngày · Chưa chọn giờ · 1 khách</small>
                     </div>
 
+                    <!-- Nút xác nhận tạo lịch hẹn cho khách -->
                     <button type="submit" class="btn btn-confirm"><i class="bi bi-check-circle me-1"></i> Tạo Lịch Hẹn Cho Khách</button>
                 </div>
             </div>
@@ -184,7 +204,7 @@
     </form>
 </div>
 
-<!-- Modal Chọn Dịch Vụ -->
+<!-- Popup (modal) xem & chọn tất cả dịch vụ -->
 <div class="modal fade" id="modalAllServices" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="staff-create-inline-21 modal-content">
@@ -215,18 +235,21 @@
     </div>
 </div>
 
+<!-- Thư viện JS Bootstrap & Flatpickr -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
 
 <script>
+    // Biến lưu thời lượng và loại dịch vụ đang chọn
     let currentDuration = '';
     let currentServiceType = '';
 
+    // Danh sách ngày bị khóa từ Django
     const disabledDates = {{ locked_dates_json|safe|default:"[]" }};
 
+    // Khởi tạo modal dịch vụ, lịch Flatpickr và các sự kiện dropdown khách hàng khi tải trang
     document.addEventListener('DOMContentLoaded', function() {
-        // Modal không nằm trong stacking context của layout sidebar.
         const allServicesModal = document.getElementById('modalAllServices');
         allServicesModal?.addEventListener('hidden.bs.modal', () => {
             if (document.querySelector('.modal.show')) return;
@@ -258,14 +281,14 @@
         updateAvailableSlots();
         updateFullSummary();
 
-        // Khi nhân viên tự sửa tên/SĐT, bỏ mã khách đã chọn để tra cứu lại theo SĐT.
+        // Xóa mã khách cũ nếu nhân viên sửa lại tên hoặc SĐT
         ['input_ho_ten', 'input_sdt'].forEach(id => {
             document.getElementById(id).addEventListener('input', () => {
                 document.getElementById('input_ma_kh').value = '';
             });
         });
 
-        // Đóng dropdown khi click ra ngoài
+        // Đóng dropdown khách hàng khi bấm ra ngoài
         document.addEventListener('click', function(e) {
             const container = document.querySelector('.customer-dropdown-container');
             if (container && !container.contains(e.target)) {
@@ -274,7 +297,7 @@
         });
     });
 
-    // Mở/đóng danh sách dropdown chọn khách hàng
+    // Mở/đóng dropdown danh sách khách hàng
     function toggleCustomerDropdown() {
         const menu = document.getElementById('customerDropdownMenu');
         menu.classList.toggle('show');
@@ -283,7 +306,7 @@
         }
     }
 
-    // Lọc danh sách khách hàng khi gõ vào ô tìm kiếm bên trong dropdown
+    // Lọc danh sách khách hàng theo từ khóa tên/SĐT
     function filterCustomerOptions(input) {
         const keyword = input.value.toLowerCase();
         const items = document.querySelectorAll('#customerOptionsList .customer-option-item');
@@ -300,7 +323,7 @@
         document.getElementById('customerNoResults').classList.toggle('d-none', hasMatches || !keyword.trim());
     }
 
-    // Khi chọn một khách hàng từ danh sách dropdown -> Tự điền thông tin vào các input bên dưới
+    // Điền nhanh thông tin khách hàng khi chọn từ dropdown
     function chonKhachHang(maKh, hoTen, sdt, email) {
         document.getElementById('input_ma_kh').value = maKh;
         document.getElementById('input_ho_ten').value = hoTen;
@@ -315,7 +338,7 @@
         document.getElementById('customerDropdownMenu').classList.remove('show');
     }
 
-    // Cập nhật dịch vụ được chọn, đưa thẻ được chọn lên đầu danh sách (giống khách hàng).
+    // Chọn thẻ dịch vụ & đưa thẻ đã chọn lên đầu danh sách
     function selectService(element, serviceId, serviceName, duration, price) {
         const container = document.getElementById('main_service_container');
         if (!container || !element) return;
@@ -350,8 +373,7 @@
         updateAvailableSlots();
     }
 
-    // Chỉ sử dụng một instance Bootstrap để mở/đóng popup dịch vụ.
-    // Tránh data-bs-toggle khởi chạy thêm một instance khi layout đã nạp Bootstrap.
+    // Mở popup xem tất cả dịch vụ
     function openStaffAllServices() {
         const modal = document.getElementById('modalAllServices');
         if (modal && window.bootstrap?.Modal) {
@@ -359,7 +381,7 @@
         }
     }
 
-    // Hàm chọn dịch vụ từ Modal (giống bên phía khách hàng)
+    // Chọn dịch vụ từ popup tất cả dịch vụ & đóng popup
     function chooseFromModal(serviceId, serviceName, duration, price, imgUrl) {
         const container = document.getElementById('main_service_container');
         if (!container) return;
@@ -409,6 +431,7 @@
         }
     }
 
+    // Gọi API lấy số giường trống và dựng danh sách khung giờ
     let staffSlotsRequestId = 0;
     async function updateAvailableSlots() {
         const ngayVal = document.getElementById('input_ngay_hen').value;
@@ -507,6 +530,7 @@
         updateFullSummary();
     }
 
+    // Chọn một ô khung giờ
     function selectTime(element, timeStr) {
         if (element.classList.contains('disabled')) return;
         document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
@@ -516,7 +540,7 @@
         updateFullSummary();
     }
 
-    // Chỉ báo lỗi ngay trong biểu mẫu Tạo lịch, không thay đổi các thao tác khác.
+    // Kiểm tra dữ liệu và hiển thị lỗi từng trường khi gửi form tạo lịch
     const staffCreateFields = {
         service: 'input_ma_dv', date: 'input_ngay_hen', time: 'input_time_slot',
         name: 'input_ho_ten', phone: 'input_sdt', email: 'input_email', guests: 'input_so_luong'
@@ -567,6 +591,7 @@
         });
     }
 
+    // Cập nhật dòng tóm tắt ngày, giờ, thời lượng và số khách
     function updateFullSummary() {
         const dateVal = document.getElementById('input_ngay_hen').value || 'Chưa chọn ngày';
         const timeVal = document.getElementById('input_time_slot').value || 'Chưa chọn giờ';
@@ -575,4 +600,3 @@
     }
 </script>
 {% endblock %}
-
