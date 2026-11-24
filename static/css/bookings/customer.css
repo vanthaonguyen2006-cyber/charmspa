@@ -1,9 +1,9 @@
-/* QUY CHUẨN CHỮ CUSTOMER — theo cùng vai trò với STAFF / ADMIN.
-   Tất cả kích cỡ chữ được điều chỉnh tại common.css; không thêm override ở cuối. */
+/* Áp dụng font Montserrat chuẩn của module bookings cho 4 trang khách hàng và mọi phần tử con bên trong. */
 :is(.booking-customer-create,.booking-customer-list,.booking-customer-detail,.booking-customer-success),
 :is(.booking-customer-create,.booking-customer-list,.booking-customer-detail,.booking-customer-success) :is(h1,h2,h3,h4,h5,h6,p,span,div,strong,small,label,input,select,textarea,button,a,table,th,td) {
     font-family: var(--booking-font-family) !important;
 }
+/* Cỡ chữ thân trang mặc định cho nhóm trang khách hàng. */
 :is(.booking-customer-create,.booking-customer-list,.booking-customer-detail,.booking-customer-success) { font-size: var(--booking-font-body); }
 /* Tiêu đề trang */
 .booking-customer-create .booking-create-title,
@@ -33,6 +33,7 @@
 .booking-customer-list :is(.customer-filter-apply,.customer-filter-reset,.customer-action-detail,.customer-action-button),
 .booking-customer-detail :is(.customer-detail-change,.customer-detail-cancel,.customer-detail-back),
 .booking-customer-success :is(.btn,.btn-gold) { font-size: var(--booking-font-button) !important; }
+/* Responsive màn hình nhỏ (<= 640px): thu gọn cỡ chữ tiêu đề chính của 4 trang khách hàng. */
 @media(max-width:640px){
     .booking-customer-create .booking-create-title,
     .booking-customer-list .booking-list-title,
@@ -43,12 +44,13 @@
 /* CSS module bookings: chỉ định dạng các thành phần riêng; không ghi đè layout customer_base_pro. */
 
 /* CHARM SPA GRAND — CUSTOMER BOOKING
-   1. Create   2. List / Filters / Table   3. Detail   4. Success   5. Reschedule popup
+1. Create   2. List / Filters / Table   3. Detail   4. Success   5. Reschedule popup
    Các kích cỡ chữ được chỉnh ngay tại từng selector, không có khối ghi đè dồn cuối file. */
 
 /* ===== customer_create.html ===== */
 
 
+/* Thẻ dịch vụ, trạng thái đang chọn (.selected) và ảnh đại diện dịch vụ trên trang tạo lịch. */
 body:has(.booking-customer-create) .service-card {
         background: #ffffff;
         border: 1px solid var(--border-color);
@@ -72,6 +74,7 @@ body:has(.booking-customer-create) .service-card img {
         margin-bottom: 8px;
     }
 
+/* Khung chọn ngày, khung chọn giờ và khung tóm tắt lịch hẹn trên trang tạo lịch. */
 body:has(.booking-customer-create) .calendar-box,
 body:has(.booking-customer-create) .time-box,
 body:has(.booking-customer-create) .summary-card {
@@ -114,6 +117,7 @@ body:has(.booking-customer-create) .custom-date-icon {
         font-size: 16px;
     }
 
+/* Các ô khung giờ (.time-slot): mặc định, đang chọn (.selected) và hết chỗ/bị khóa (.disabled). */
 body:has(.booking-customer-create) .time-slot {
         background: #fcfbf9;
         border: 1px solid var(--border-color);
@@ -136,6 +140,7 @@ body:has(.booking-customer-create) .time-slot.disabled {
         cursor: not-allowed;
     }
 
+/* Input/textarea thông thường và nút xác nhận / xem tất cả dịch vụ trên trang tạo lịch. */
 body:has(.booking-customer-create) .form-control-custom {
         background-color: #faf8f5;
         border: 1px solid var(--border-color);
@@ -201,6 +206,7 @@ body:has(.booking-customer-create) .btn-all-services {
     padding: 6px;
     opacity: .7;
 }
+/* Biến thể alert thành công (xanh lá) và thông tin (xanh dương) trên trang danh sách. */
 .booking-customer-list .booking-content-area > .mb-3 .alert.alert-success {
     background: #edf8f0;
     color: #287044;
@@ -215,6 +221,7 @@ body:has(.booking-customer-create) .btn-all-services {
     border-left-color: #4689b4;
 }
 .booking-customer-list .booking-content-area > .mb-3 .alert.alert-info > .bi { color: #4689b4; }
+/* Responsive alert trên màn hình nhỏ (<= 600px). */
 @media (max-width: 600px) {
     .booking-customer-list .booking-content-area > .mb-3 .alert {
         font-size: 14px;
@@ -222,9 +229,7 @@ body:has(.booking-customer-create) .btn-all-services {
     }
 }
 
-
-
-
+/* Thẻ lịch hẹn, nút lọc, thẻ dịch vụ và khung giờ dùng trong modal của trang danh sách. */
 body:has(.booking-customer-list) .booking-card {
         background: #ffffff;
         border: 1px solid var(--border-color);
@@ -313,6 +318,7 @@ body:has(.booking-customer-list) .position-relative .bi-calendar3 {
    CUSTOMER DETAIL - customer_detail.html
    ================================================================ */
 
+/* Khung chi tiết, badge trạng thái xác nhận/hủy, hộp thông tin, từng dòng thông tin và nút vàng. */
 body:has(.booking-customer-detail) .detail-container {
     max-width: 700px;
     margin: 30px auto;
@@ -364,6 +370,7 @@ body:has(.booking-customer-detail) .btn-gold:hover { background: #967a48; color:
    CUSTOMER SUCCESS - customer_success.html
    ================================================================ */
 
+/* Thẻ xác nhận đặt lịch thành công, icon tick tròn, khối thông tin và nút CTA chính. */
 body:has(.booking-customer-success) .success-card {
     background: #fff;
     border: 1px solid #e5e0d8;
@@ -417,6 +424,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
 
 /* ==================== BỘ LỌC TRANG LỊCH HẸN KHÁCH HÀNG ==================== */
+/* Panel bộ lọc trạng thái/nhanh trên trang danh sách lịch hẹn khách hàng. */
 .booking-customer-list .booking-filter-panel {
     background: #fff;
     border: 1px solid #e9dfd3;
@@ -456,6 +464,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     display: flex; flex-wrap: wrap; align-items: center;
     gap: 9px;
 }
+/* Các nút lựa chọn bộ lọc, trạng thái đang chọn (.is-active), nút xóa lọc và focus ring. */
 .booking-customer-list .booking-filter-option,
 .booking-customer-list .booking-filter-clear {
     display: inline-flex; align-items: center; justify-content: center;
@@ -484,6 +493,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 .booking-customer-list .booking-filter-clear:focus-visible {
     outline: 2px solid #a88a59; outline-offset: 2px;
 }
+/* Responsive panel bộ lọc trên màn hình nhỏ (<= 767px). */
 @media (max-width: 767px) {
     .booking-customer-list .booking-filter-panel { padding: 16px; }
     .booking-customer-list .booking-filter-heading,
@@ -500,6 +510,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
    KHÔNG PHỤ THUỘC BOOTSTRAP
    ========================================== */
 
+/* Thanh công cụ lọc dạng form (trạng thái/ngày/từ khóa) dàn đều 1 hàng trên trang danh sách. */
 .booking-customer-list .customer-booking-toolbar {
     display: flex !important;
     align-items: flex-end !important;
@@ -557,6 +568,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     box-sizing: border-box;
 }
 
+/* Nút áp dụng lọc, nút reset bộ lọc và dòng tóm tắt kết quả lọc. */
 .booking-customer-list .customer-filter-apply {
     display: inline-flex;
     align-items: center;
@@ -595,6 +607,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     white-space: nowrap;
 }
 
+/* Responsive thanh lọc ở màn hình trung bình (<= 1050px). */
 @media (max-width: 1050px) {
     .booking-customer-list .customer-booking-filter-form {
         flex-basis: 100%;
@@ -605,6 +618,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     }
 }
 
+/* Bảng lịch hẹn khách hàng dạng CSS Grid: header, từng dòng, mã lịch, dịch vụ, badge trạng thái và nút thao tác. */
 .booking-customer-list .customer-booking-table{background:#fff;border:1px solid #eee2d5;border-radius:12px;overflow:hidden;}
 .booking-customer-list .customer-booking-table-head,.booking-customer-list .customer-booking-table-row{display:grid;grid-template-columns:minmax(100px,.9fr) minmax(250px,2.8fr) minmax(96px,1fr) minmax(65px,.65fr) minmax(75px,.75fr) minmax(110px,1fr) minmax(120px,1fr);align-items:center;column-gap:12px;padding:16px 20px;}
 .booking-customer-list .customer-booking-table-head{background:#fcf8f3;color:#8f8173;text-transform:uppercase;font-weight:700;letter-spacing:.3px;border-bottom:1px solid #eee2d5;text-align:left;}
@@ -623,16 +637,19 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 .booking-customer-list .customer-action-button{background:#fff;border:1px solid #e9dcd0;border-radius:7px;padding:7px 10px;color:#8a7864;cursor:pointer;white-space:nowrap;}
 .booking-customer-list .customer-action-button.danger{background:#fbefed;color:#b85e58;border-color:#fbefed;}
 .booking-customer-list .customer-action-button:hover{border-color:#b99a6c;}
+/* Thanh phân trang, nút chuyển trang và trạng thái rỗng khi không có kết quả. */
 .booking-customer-list .customer-booking-pagination{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fcf8f3;padding:15px 20px;color:#998875;}
 .booking-customer-list .customer-page-buttons{display:flex;align-items:center;gap:7px;}
 .booking-customer-list .customer-page-buttons button{width:32px;height:32px;border:1px solid #e8dbcd;border-radius:7px;background:#fff;color:#786350;}
 .booking-customer-list .customer-page-buttons button:disabled{opacity:.45;cursor:not-allowed;}
 .booking-customer-list .customer-page-buttons span{padding:8px 11px;border-radius:7px;background:#292622;color:#fff;font-weight:700;}
 .booking-customer-list .customer-booking-no-results{text-align:center;padding:24px;color:#8b7965;}
+/* Responsive bảng lịch hẹn: bật cuộn ngang ở <= 1150px và thu gọn khoảng cách ở <= 650px. */
 @media(max-width:1150px){.booking-customer-list .customer-booking-table-head,.booking-customer-list .customer-booking-table-row{grid-template-columns:minmax(95px,.8fr) minmax(180px,2.4fr) 90px 70px 70px 100px minmax(170px,1.7fr);gap:9px;padding-left:13px;padding-right:13px;}.booking-customer-list .customer-booking-table{overflow-x:auto;}.booking-customer-list .customer-booking-table-head,.booking-customer-list .customer-booking-table-row{min-width:890px;}}
 @media(max-width:650px){.booking-customer-list .customer-filter-field{flex:1 1 120px;}.booking-customer-list .customer-booking-filter-form{gap:9px;}.booking-customer-list .customer-filter-summary{padding:0;}}
 
 /* BẢNG LỊCH HẸN KHÁCH HÀNG - BỔ SUNG TÍNH ỔN ĐỊNH */
+/* Chống tràn chữ/cột khi nội dung dài trong bảng lịch hẹn khách hàng. */
 .booking-customer-list .customer-booking-table-head,
 .booking-customer-list .customer-booking-table-row{
     box-sizing:border-box;
@@ -648,6 +665,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
 /* ===== CHI TIẾT LỊCH HẸN KHÁCH HÀNG - BỐ CỤC NHƯ TRANG DANH SÁCH ===== */
 
+/* Khung chính, header trang, thẻ tóm tắt, badge trạng thái và thanh tiến trình (progress) của trang chi tiết. */
 .booking-customer-detail{width:100%;max-width:1300px;margin:0 auto;padding:14px 0 52px;color:#352f2a;}
 .booking-customer-detail *{box-sizing:border-box;}
 .booking-customer-detail .customer-detail-page-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:18px;}
@@ -670,6 +688,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 .booking-customer-detail .customer-detail-progress-step.current .customer-detail-progress-icon{background:#252421;color:#fff;}
 .booking-customer-detail .customer-detail-progress-line{height:1px;flex:1;max-width:240px;background:#ded6cd;}
 .booking-customer-detail .customer-detail-progress-line.done{background:#ad8f5c;}
+/* Lưới 2 cột (trái: thông tin lịch & liên hệ; phải: trạng thái hiện tại & nút đổi/hủy lịch). */
 .booking-customer-detail .customer-detail-columns{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(275px,1fr);gap:17px;align-items:stretch;}
 .booking-customer-detail .customer-detail-left{min-width:0;display:flex;flex-direction:column;gap:16px;}
 .booking-customer-detail .customer-detail-card{padding:22px 24px;min-width:0;}
@@ -699,6 +718,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 .booking-customer-detail .customer-detail-cancel{background:#faeeed;color:#b96860;border-color:#f2deda;}
 .booking-customer-detail .customer-detail-cancel:hover{background:#f5dfdc;color:#ad5750;}
 .booking-customer-detail .customer-detail-policy{color:#a49b92;line-height:1.7;margin:15px 0 0;}
+/* Responsive trang chi tiết trên tablet (<= 900px) và mobile (<= 600px). */
 @media(max-width:900px){.booking-customer-detail .customer-detail-columns{grid-template-columns:1fr;}.booking-customer-detail .customer-detail-facts{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:600px){.booking-customer-detail{padding:10px 0 30px;}.booking-customer-detail .customer-detail-card,.booking-customer-detail .customer-detail-summary{padding:18px;}.booking-customer-detail .customer-detail-summary-main{padding-right:0;}.booking-customer-detail .customer-detail-status{position:static;margin-top:12px;}.booking-customer-detail .customer-detail-progress-line{max-width:30px;}.booking-customer-detail .customer-detail-facts{grid-template-columns:1fr 1fr;}.booking-customer-detail .customer-detail-contact{grid-template-columns:1fr;}.booking-customer-detail .customer-detail-contact > div:last-child{grid-column:auto;}}
 
@@ -769,6 +789,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     color: #a39a90;
     opacity: 1;
 }
+/* Responsive modal đổi lịch trên màn hình nhỏ (<= 767px). */
 @media (max-width: 767px) {
     .booking-reschedule-modal .modal-dialog.modal-xl { margin: 12px auto; }
     .booking-reschedule-modal .modal-content { min-height: 0; max-height: calc(100dvh - 24px); }
@@ -776,7 +797,6 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 }
 
 /* Danh sách dịch vụ: phủ cùng 1 khung với modal Đổi lịch, không tạo modal thứ hai. */
-.booking-reschedule-modal .modal-content { position: relative; }
 .booking-reschedule-modal .customer-services-cover {
     position: absolute;
     inset: 0;
@@ -838,6 +858,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     object-fit: cover;
     border-radius: 8px;
 }
+/* Responsive lớp phủ chọn dịch vụ trên màn hình nhỏ (<= 767px). */
 @media (max-width: 767px) {
     .booking-reschedule-modal .customer-services-cover-header {padding: 14px 16px;}
     .booking-reschedule-modal .customer-services-cover-body {padding: 14px 16px;}
@@ -845,6 +866,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 }
 
 /* Popup đổi/hủy lịch trực tiếp trên trang chi tiết */
+/* Thẻ dịch vụ và ô khung giờ bên trong popup đổi lịch. */
 .booking-reschedule-modal .service-card-modal {
         background: #ffffff;
         border: 1px solid var(--border-color);
@@ -891,6 +913,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
     }
 
 
+/* Con trỏ chuột cho nút mở popup đổi/hủy lịch trên trang chi tiết. */
 .booking-customer-detail .customer-detail-change,
 .booking-customer-detail .customer-detail-cancel {
   cursor: pointer;
@@ -903,6 +926,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 .booking-reschedule-modal .customer-reschedule-date input {cursor:pointer;}
 .booking-customer-detail .customer-cancel-dialog {max-width:min(620px,calc(100vw - 32px)) !important;}
 
+/* Vị trí icon lịch và z-index Flatpickr trong popup đổi lịch. */
 .booking-reschedule-modal .edit-date-picker { cursor:pointer; }
 .booking-reschedule-modal .position-relative .bi-calendar3 {position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;}
 .booking-reschedule-modal .flatpickr-calendar {z-index:1080!important;}
@@ -941,11 +965,6 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
     line-height: 1.4;
 }
-/* Mobile: chữ vừa khung, không ảnh hưởng popup */
-@media (max-width: 600px) {
-  .booking-customer-detail .customer-detail-facts strong,
-}
-
 
 /* Tiêu đề DANH SÁCH LỊCH HẸN – chỉnh cỡ chữ tại đây */
 .booking-customer-list .booking-list-title {
@@ -981,15 +1000,14 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 /* Tiêu đề các khung trắng */
 /* Dịch vụ, ngày, giờ, số khách, nhân viên, giá và thông tin liên hệ */
 .booking-customer-detail .customer-detail-facts span,
-.booking-customer-detail .customer-detail-facts strong,
-/* Ghi chú */
-/* Trạng thái và nút */
+.booking-customer-detail .customer-detail-facts strong {
+    /* Trạng thái và nút */
+}
 .booking-customer-detail .customer-detail-status,
 .booking-customer-detail .customer-detail-change,
 .booking-customer-detail .customer-detail-cancel,
-.booking-customer-detail .customer-detail-policy,
-@media (max-width: 600px) {
-    .booking-customer-detail .customer-detail-facts strong,
+.booking-customer-detail .customer-detail-policy {
+    /* Ghi chú */
 }
 
 /* ==========================================================
@@ -1018,6 +1036,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
    CREATE: THU GON CHIEU CAO - GIU NUT XAC NHAN O CUOI FORM
    Khong fixed, khong sticky, khong doi thu tu form.
    ========================================================== */
+/* Thu gọn padding/margin trang và form tạo lịch để giữ nút xác nhận gọn ở cuối form. */
 .booking-customer-create { padding-top: 12px !important; }
 .booking-customer-create > .text-center.mb-4 { margin-bottom: 14px !important; }
 .booking-customer-create .booking-create-title { margin-bottom: 3px !important; }
@@ -1056,6 +1075,7 @@ body:has(.booking-customer-success) .btn-gold:hover { background: #8c734b; color
 
     box-shadow: none;
 }
+/* Responsive khoảng cách trang tạo lịch trên màn hình nhỏ (<= 767px). */
 @media (max-width: 767px) {
     .booking-customer-create { padding-top: 18px !important; }
     .booking-customer-create .summary-card { padding: 16px !important; }
@@ -1225,6 +1245,7 @@ body:has(.booking-customer-detail)
 
 }
 
+/* Responsive header danh sách lịch hẹn trên màn hình nhỏ (<= 640px). */
 @media (max-width: 640px) {
     .booking-customer-list .booking-list-heading {
         flex-direction: column;
@@ -1270,17 +1291,21 @@ body:has(.booking-customer-detail)
 .booking-customer-create .form-control-custom,
 .booking-customer-create .summary-card label,
 .booking-customer-list .customer-booking-table-row,
-.booking-customer-detail .customer-detail-facts strong,
-/* Ten dich vu */
-/* Chu mo ta phu */
+.booking-customer-detail .customer-detail-facts strong {
+    /* Tên dịch vụ & chữ mô tả phụ */
+}
 .booking-customer-create > .text-center p,
-.booking-customer-list .booking-list-description,
-/* Nhan nho trong bang */
-.booking-customer-list .customer-booking-table-head,
-/* Man hinh nho */
+.booking-customer-list .booking-list-description {
+    /* Nhãn nhỏ trong bảng */
+}
+.booking-customer-list .customer-booking-table-head {
+    /* Màn hình nhỏ */
+}
 @media (max-width: 640px) {
     .booking-customer-create .booking-create-title,
-    .booking-customer-list .booking-list-title,
+    .booking-customer-list .booking-list-title {
+        /* Responsive tiêu đề màn hình nhỏ */
+    }
 }
 /* Mũi tên phân trang lịch hẹn */
 .customer-page-buttons button {
@@ -1307,6 +1332,7 @@ body:has(.booking-customer-detail)
 
 
 /* ===== STYLE CHUYỂN TỪ HTML: KHÔNG ĐỔI LOGIC ===== */
+/* Các class tiện ích .bk-c-* tách từ style inline của template sang CSS. */
 .bk-c-div { display: flex;
             justify-content: space-between;
             align-items: center;

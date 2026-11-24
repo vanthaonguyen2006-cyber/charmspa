@@ -1,15 +1,13 @@
 /* Montserrat được tải một lần cho toàn bộ module đặt lịch. */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-/* BOOKING MODULE - CHARM SPA GRAND
-   Chỉ khai báo biến màu và tiện ích an toàn, không ghi đè layout chung. */
+/* BOOKING MODULE - CHARM SPA GRAND — Khai báo biến màu chủ đạo, nền và viền chung cho module bookings. */
 :root {
     --booking-primary-gold: #ab8e56;
     --booking-bg-beige: #f9f6f0;
     --booking-card-bg: #ffffff;
     --booking-text-dark: #2c2c2c;
     --booking-border-color: #e5e0d8;
-    /* Tên biến đang được các trang HTML cũ sử dụng */
     --primary-gold: #ab8e56;
     --bg-beige: #f9f6f0;
     --card-bg: #ffffff;
@@ -17,7 +15,7 @@
     --border-color: #e5e0d8;
 }
 
-/* Đảm bảo các hình ảnh dịch vụ không biến dạng */
+/* Đảm bảo các hình ảnh dịch vụ không biến dạng trên trang tạo/danh sách của khách và nhân viên. */
 .booking-customer-create .service-card img,
 .booking-customer-list .service-card-modal img,
 .booking-staff-create .service-card img,
@@ -27,7 +25,7 @@
 
 /* ==============================================================
    BỘ QUY CHUẨN FONT CHỮ CHARM SPA - CHỈ ÁP DỤNG MODULE BOOKINGS
-   Sửa các giá trị này khi muốn đổi cỡ chữ đồng loạt.
+   Khai báo font chữ và các cỡ chữ chuẩn (tiêu đề, section, body, label, nút, lịch, thống kê).
    =============================================================== */
 :root {
     --booking-font-family: 'Montserrat', Arial, sans-serif;

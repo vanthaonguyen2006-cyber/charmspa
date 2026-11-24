@@ -3,9 +3,11 @@
 {% block title %}Liệu trình - Charm Spa Grand{% endblock %}
 
 {% block content %}
+<!-- File CSS riêng của trang danh sách liệu trình -->
 <link rel="stylesheet" href="{% static 'css/treatment.css' %}?v=20261101-gon">
 
 <main class="treatment-page">
+    <!-- Banner đầu trang giới thiệu liệu trình -->
     <section class="treatment-banner" aria-labelledby="treatment-page-title">
         <div class="treatment-banner__shade"></div>
         <div class="treatment-container treatment-banner__content">
@@ -15,16 +17,20 @@
         </div>
     </section>
 
+    <!-- Khu vực hiển thị lưới danh sách liệu trình & phân trang -->
     <section class="treatment-section" aria-labelledby="treatment-list-title">
         <div class="treatment-container">
+            <!-- Tiêu đề khu vực danh sách liệu trình -->
             <header class="treatment-heading">
                 <span class="treatment-eyebrow">KHÁM PHÁ CHARM SPA</span>
                 <h2 id="treatment-list-title">DANH SÁCH LIỆU TRÌNH</h2>
                 <p>Chọn liệu trình phù hợp với nhu cầu của bạn.</p>
             </header>
 
+            <!-- Lưới thẻ các liệu trình theo trang hiện tại -->
             <div class="treatment-grid">
                 {% for card in page_obj %}
+                    <!-- Thẻ một liệu trình: hình ảnh & tên dịch vụ -->
                     <article class="treatment-card">
                         <div class="treatment-card__image">
                             <img src="{% static card.image %}" alt="{{ card.service.ten_dich_vu }}" loading="lazy">
@@ -34,10 +40,12 @@
                         </div>
                     </article>
                 {% empty %}
+                    <!-- Thông báo khi chưa có liệu trình nào -->
                     <div class="treatment-empty">Hiện chưa có liệu trình nào trong hệ thống.</div>
                 {% endfor %}
             </div>
 
+            <!-- Thanh phân trang danh sách liệu trình -->
             {% if page_obj.paginator.num_pages > 1 %}
                 <nav class="treatment-pagination" aria-label="Phân trang liệu trình">
                     {% if page_obj.has_previous %}

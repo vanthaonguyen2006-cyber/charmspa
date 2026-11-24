@@ -3,8 +3,12 @@
 
 {% block title %}Quản lý ưu đãi | Charm Grand Spa{% endblock %}
 
+{% block extra_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/admin_promotion_list.css' %}?v=20261123_title_v07">
+{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/admin_promotion_list.css' %}?v=20261119-paddingfix">
 <main class="charm-admin-promo">
   <header class="promo-head">
     <div class="promo-heading-text">

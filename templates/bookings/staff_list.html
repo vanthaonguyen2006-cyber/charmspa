@@ -4,7 +4,7 @@
 
 {% block content %}
 <script>
-/* Giao diện riêng cho select dịch vụ; giữ #filterService để bộ lọc cũ sử dụng. */
+// Dựng dropdown dịch vụ tùy chỉnh đồng bộ với select #filterService
 document.addEventListener('DOMContentLoaded', () => {
   const select = document.getElementById('filterService');
   if (!select || select.dataset.customReady) return;
@@ -27,8 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
   menu.hidden = true;
   wrap.append(toggle, menu);
   select.insertAdjacentElement('afterend', wrap);
+  // Đồng bộ nhãn nút dropdown theo option đang chọn
   const sync = () => { label.textContent = select.options[select.selectedIndex]?.textContent || 'Tất cả dịch vụ'; };
+  // Đóng menu dropdown dịch vụ
   const close = () => { menu.hidden = true; toggle.setAttribute('aria-expanded','false'); };
+  // Nạp lại danh sách tùy chọn dịch vụ mỗi khi mở menu
   const populate = () => {
     menu.replaceChildren();
     [...select.options].forEach(opt => {
@@ -53,13 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', e => {if (!wrap.contains(e.target)) close();});
   document.addEventListener('keydown', e => {if (e.key === 'Escape') close();});
   select.addEventListener('change', sync);
-  // Bộ lọc cũ thêm option tự động sau khi DOMContentLoaded; mở menu sẽ lấy danh sách mới nhất.
   sync();
   ['resetFilters','filterTodayCard','filterUnassignedCard'].forEach(id => {
     document.getElementById(id)?.addEventListener('click', () => {sync();close();});
   });
 });
 </script>
+<!-- Thư viện CSS Bootstrap, icon, bộ chọn ngày & CSS trang quản lý lịch hẹn nhân viên -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -70,20 +73,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <div class="staff-booking-page">
+  <!-- Khung thông báo -->
   {% if messages %}{% for message in messages %}
   <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
   {% endfor %}{% endif %}
+  <!-- Tiêu đề trang & nút tạo lịch thủ công -->
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
     <div><h1 class="staff-title booking-page-title">QUẢN LÝ LỊCH HẸN</h1><p class="staff-sub fw-normal">Theo dõi, kiểm tra và cập nhật trạng thái các lịch trị liệu của khách hàng.</p></div>
     <a href="{% url 'bookings:staff_booking_create' %}" class="staff-btn-dark"><i class="bi bi-plus-circle"></i> Tạo lịch thủ công</a>
   </div>
+  <!-- Thẻ thống kê nhanh: Lịch hẹn hôm nay & Chưa phân công -->
   <div class="stats-grid">
     <button type="button" class="staff-panel stat stat-clickable" id="filterTodayCard" aria-pressed="false" title="Nhấn để xem danh sách lịch hẹn hôm nay"><span class="stat-icon"><i class="bi bi-calendar-event"></i></span><span class="stat-card-content"><span class="stat-label">Lịch hẹn hôm nay</span><span class="stat-value" id="statToday">0</span><span class="stat-hint">Nhấn để xem danh sách <i class="bi bi-arrow-right"></i></span></span></button>
     <button type="button" class="staff-panel stat stat-clickable" id="filterUnassignedCard" aria-pressed="false" title="Nhấn để xem các lịch chưa phân công"><span class="stat-icon bk-s-stat-icon"><i class="bi bi-person-dash"></i></span><span class="stat-card-content"><span class="stat-label">Chưa phân công</span><span class="stat-value" id="statUnassigned">0</span><span class="stat-hint">Nhấn để xem danh sách <i class="bi bi-arrow-right"></i></span></span></button>
   </div>
+  <!-- Thanh bộ lọc tìm kiếm, ngày hẹn, dịch vụ, trạng thái & nhân viên -->
   <div class="staff-panel filters">
     <input id="filterSearch" type="search" placeholder="Tìm mã lịch, khách hàng..." aria-label="Tìm kiếm lịch hẹn">
     <input id="filterDate" type="date" aria-label="Ngày hẹn">
+    <!-- Dropdown dịch vụ -->
     <select id="filterService" aria-label="Dịch vụ" class="staff-service-native-select">
       <option value="">Tất cả dịch vụ</option>
       <option value="Nourishing Hair Shampoo - Charm Spa">Nourishing Hair Shampoo - Charm Spa (Gội đầu dưỡng sinh)</option>
@@ -103,20 +111,25 @@ document.addEventListener('DOMContentLoaded', () => {
       <option value="Body Treatment">Body Treatment (Chăm sóc cơ thể)</option>
       <option value="Packages">Packages (Gói liệu trình)</option>
     </select>
+    <!-- Dropdown trạng thái & nhân viên -->
     <select id="filterStatus" aria-label="Trạng thái"><option value="">Tất cả trạng thái</option><option value="Đã đặt">Đã đặt</option><option value="Hoàn thành">Hoàn thành</option><option value="Đã hủy">Đã hủy</option></select>
     <select id="filterStaff" aria-label="Nhân viên"><option value="">Tất cả nhân viên</option></select>
+    <!-- Nút áp dụng lọc & xóa lọc -->
     <button id="applyFilters" class="staff-btn-apply" type="button"><i class="bi bi-funnel"></i> Lọc</button>
     <button id="resetFilters" class="staff-btn-light" type="button"><i class="bi bi-arrow-counterclockwise"></i> Xóa lọc</button>
   </div>
+  <!-- Khung bảng danh sách lịch hẹn & thanh phân trang -->
   <div class="staff-panel table-frame">
     <div class="table-heading"><span>Danh sách lịch hẹn</span><span class="count-label" id="bookingCount">{{ lich_hen_list|length }} lịch hẹn</span></div>
     <div class="table-scroll"><table><thead><tr><th>Mã lịch hẹn</th><th>Khách hàng</th><th>Dịch vụ</th><th>Ngày hẹn</th><th>Giờ</th><th>Số khách</th><th>Nhân viên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
       <tbody id="staffBookingRows">
         {% for lh in lich_hen_list %}
+        <!-- Một dòng lịch hẹn -->
         <tr class="staff-booking-row" data-date="{{ lh.ngay_hen|date:'Y-m-d' }}" data-service="{{ lh.ma_dv.ten_dich_vu }}" data-status="{{ lh.trang_thai }}" data-staff="{{ lh.staff_assignees_names|escape }}" data-assigned="{% if lh.staff_fully_assigned %}1{% else %}0{% endif %}" data-search="{{ lh.ma_lh }} {{ lh.ma_kh.ho_ten }} {{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:'' }}">
           <td class="code">#{{ lh.ma_lh }}</td>
           <td><div class="name">{{ lh.ma_kh.ho_ten }}</div><div class="phone">{{ lh.so_dien_thoai_lien_he|default:lh.ma_kh.ma_tk.so_dien_thoai|default:'---' }}</div></td>
           <td>{{ lh.ma_dv.ten_dich_vu }}</td><td>{{ lh.ngay_hen|date:'d/m/Y' }}</td><td><span class="staff-booking-time"><i class="bi bi-clock bk-s-bi"></i><span>{{ lh.gio_hen|time:'H:i' }}</span></span></td><td>{{ lh.so_luong_khach }} khách</td>
+          <!-- Cột nhân viên phụ trách & dữ liệu popover -->
           <td class="staff-assignees-cell">
             {% if lh.staff_assignees_count %}
               <button type="button" class="staff-assignees-trigger {% if lh.staff_assignees_missing %}staff-assignees-partial{% endif %}"
@@ -146,18 +159,23 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="unassigned">Chưa phân công</span>
             {% endif %}
           </td>
+          <!-- Cột trạng thái lịch hẹn -->
           <td><span class="state {% if lh.trang_thai == 'Đã hủy' %}cancelled{% elif lh.trang_thai == 'Hoàn thành' %}completed{% elif lh.trang_thai == 'Đang thực hiện' %}progress{% endif %}">{{ lh.trang_thai }}</span></td>
+          <!-- Cột thao tác xem chi tiết -->
           <td class="bk-s-td"><div class="staff-row-actions">
           <a class="tiny-action" title="Xem chi tiết" href="{% url 'bookings:staff_booking_detail' lh.ma_lh %}"><i class="bi bi-eye"></i></a><span class="staff-action-spacer" aria-hidden="true"></span>
           </div></td>
         </tr>
         {% empty %}<tr id="noBookingsDb"><td colspan="9" class="text-center py-4">Chưa có lịch hẹn nào.</td></tr>{% endfor %}
+        <!-- Hàng thông báo khi không tìm thấy dòng khớp bộ lọc -->
         <tr id="noFilterResults"><td colspan="9" class="text-center py-4 text-muted">Không có lịch hẹn nào phù hợp với bộ lọc.</td></tr>
       </tbody></table></div>
+    <!-- Thanh phân trang danh sách lịch hẹn -->
     <div class="paging"><span id="pageInfo">Hiển thị lịch hẹn</span><div class="paging-buttons"><button type="button" id="prevPage">‹</button><button type="button" class="current" id="currentPage">1</button><button type="button" id="nextPage">›</button></div></div>
   </div>
-    <!-- CÁC MODAL ĐƯỢC ĐẶT NGOÀI TABLE ĐỂ TRÁNH HTML LỒNG SAI CẤU TRÚC -->
+    <!-- Các popup (modal) đổi lịch và chọn tất cả dịch vụ theo từng lịch hẹn -->
     {% for lh in lich_hen_list %}
+    <!-- Popup đổi lịch hẹn -->
     <div class="modal booking-modal"
          id="rescheduleModal{{ forloop.counter }}"
          tabindex="-1"
@@ -178,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     {% csrf_token %}
 
+                    <!-- Ô ẩn lưu mã dịch vụ mới & khung giờ mới -->
                     <input type="hidden"
                            name="ma_dv_moi"
                            id="input_ma_dv_moi_{{ forloop.counter }}"
@@ -202,10 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="modal-body px-4">
                         <div class="row g-4">
 
-                            <!-- CỘT TRÁI: CHỌN DỊCH VỤ, NGÀY, GIỜ -->
+                            <!-- Cột trái: chọn dịch vụ, ngày hẹn mới & khung giờ trống -->
                             <div class="col-lg-8">
 
-                                <!-- CHỌN DỊCH VỤ -->
+                                <!-- Mục 1: chọn dịch vụ & nút mở danh sách tất cả dịch vụ -->
                                 <div class="mb-4">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="fw-bold m-0">1. Chọn dịch vụ</h6>
@@ -217,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         </button>
                                     </div>
 
+                                    <!-- Danh sách thẻ dịch vụ -->
                                     <div class="row g-3"
                                          id="main_service_container_{{ forloop.counter }}">
 
@@ -260,8 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     </div>
                                 </div>
 
-                                <!-- CHỌN NGÀY VÀ KHUNG GIỜ -->
+                                <!-- Mục 2 & 3: chọn ngày hẹn mới và khung giờ trống -->
                                 <div class="row g-3">
+                                    <!-- Ô chọn ngày hẹn mới -->
                                     <div class="col-md-5">
                                         <div class="calendar-box">
                                             <h6 class="fw-bold mb-2 bk-s-h6">
@@ -282,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     </div>
                                 </div>
 
+                                <!-- Khung giờ trống & badge sức chứa -->
                                 <div class="col-md-7">
                                     <div class="time-box">
                                         <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
@@ -306,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
 
-                        <!-- CỘT PHẢI: THÔNG TIN VÀ TÓM TẮT -->
+                        <!-- Cột phải: thông tin khách, số lượng khách & tóm tắt lịch hẹn mới -->
                         <div class="col-lg-4">
                             <div class="summary-card">
                                 <h6 class="fw-bold mb-1">4. Thông tin lịch hẹn</h6>
@@ -344,6 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                            onchange="updateAvailableSlots('{{ forloop.counter }}')">
                                 </div>
 
+                                <!-- Khung tóm tắt lịch hẹn mới -->
                                 <div class="p-3 mb-3 rounded bk-s-div-17"
                                     >
                                     <small class="text-muted d-block text-uppercase bk-s-small-18"
@@ -393,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 
-    <!-- MODAL TẤT CẢ DỊCH VỤ CHO TỪNG LỊCH HẸN -->
+    <!-- Popup danh sách tất cả dịch vụ cho từng lịch hẹn -->
     <div class="modal fade"
          id="modalAllServices{{ forloop.counter }}"
          tabindex="-1"
@@ -452,13 +475,13 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
     {% endfor %}
 </div>
+<!-- Thư viện JS Bootstrap & Flatpickr -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
 
 <script>
-    // Những ngày spa đóng cửa được truyền từ view.
-    // Nếu view chưa truyền locked_dates_json thì dùng danh sách rỗng.
+    // Danh sách ngày khóa, khung giờ & trạng thái đổi lịch theo từng dòng
     const disabledDates = {{ locked_dates_json|default:"[]"|safe }};
 
     const timeSlots = [
@@ -469,20 +492,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const bookingStates = {};
 
+    // Xác định loại phòng ('shampoo' hoặc 'massage') từ tên dịch vụ
     function getServiceType(serviceName) {
         const name = (serviceName || '').toLowerCase();
 
-        // Hỗ trợ cả tên dịch vụ tiếng Việt và tiếng Anh.
         return (name.includes('shampoo') || name.includes('gội'))
             ? 'shampoo'
             : 'massage';
     }
 
+    // Lấy chuỗi thời lượng dịch vụ đang chọn
     function getDurationText(bookingId) {
         const state = bookingStates[bookingId];
         return state ? state.duration + ' phút' : '';
     }
 
+    // Chọn một thẻ dịch vụ trong popup đổi lịch
     function selectRescheduleService(element, bookingId) {
         const container = document.getElementById(
             'main_service_container_' + bookingId
@@ -509,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyServiceChoice(element, bookingId);
     }
 
+    // Lưu dịch vụ được chọn, cập nhật tóm tắt và kiểm tra lại khung giờ trống
     function applyServiceChoice(element, bookingId) {
         const serviceId = element.dataset.serviceId;
         const serviceName = element.dataset.serviceName;
@@ -544,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateRescheduleSummary(bookingId);
     }
 
-    // Hiển thị danh sách dịch vụ TRONG modal đổi lịch, không đóng/mở Bootstrap modal.
+    // Mở lớp phủ chọn tất cả dịch vụ bên trong popup đổi lịch
     function openAllServices(bookingId) {
         const mainModalElement = document.getElementById('rescheduleModal' + bookingId);
         const allModalElement = document.getElementById('modalAllServices' + bookingId);
@@ -569,6 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Đóng lớp phủ danh sách tất cả dịch vụ
     function closeStaffAllServices(bookingId) {
         const allModalElement = document.getElementById('modalAllServices' + bookingId);
         if (!allModalElement) return;
@@ -576,6 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         allModalElement.setAttribute('aria-hidden', 'true');
     }
 
+    // Áp dụng dịch vụ chọn từ danh sách tất cả dịch vụ & đóng lớp phủ
     function chooseServiceFromAll(element, bookingId) {
         const mainContainer = document.getElementById('main_service_container_' + bookingId);
         const existingCard = [...mainContainer.querySelectorAll('.service-card')]
@@ -603,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeStaffAllServices(bookingId);
     }
 
+    // Gọi API kiểm tra giường trống và dựng các khung giờ trong popup đổi lịch
     async function updateAvailableSlots(bookingId) {
         const dateInput = document.getElementById(
             'input_ngay_hen_' + bookingId
@@ -649,8 +678,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'Đang kiểm tra khung giờ...' +
             '</div>';
 
-        // Flatpickr đang hiển thị dd/mm/yyyy; API đặt lịch hiện tại
-        // cũng nhận ngày theo định dạng này.
         const parts = dateValue.split('/');
         if (parts.length !== 3) {
             container.innerHTML =
@@ -719,9 +746,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error('Dữ liệu sức chứa không hợp lệ.');
                     }
 
-                    // Chỉ hoàn lại số khách GỐC khi vẫn giữ cùng ngày,
-                    // cùng giờ và cùng loại phòng của lịch hẹn cũ.
-                    // API sức chứa hiện tại được giả định là đang tính cả lịch gốc.
                     const originalType = getServiceType(form.dataset.originalServiceName);
                     if (time === originalTime &&
                         dateValue === form.dataset.originalDate &&
@@ -797,6 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateRescheduleSummary(bookingId);
     }
 
+    // Chọn một khung giờ trong popup đổi lịch
     function selectRescheduleTime(element, bookingId, time) {
         if (element.classList.contains('disabled')) return;
 
@@ -817,6 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateRescheduleSummary(bookingId);
     }
 
+    // Cập nhật dòng tóm tắt lịch hẹn mới
     function updateRescheduleSummary(bookingId) {
         const dateInput = document.getElementById(
             'input_ngay_hen_' + bookingId
@@ -846,18 +872,17 @@ document.addEventListener('DOMContentLoaded', () => {
             `${date} · ${time} · ${duration} · ${guests} khách`;
     }
 
+    // Khởi tạo lịch Flatpickr, sự kiện mở modal & kiểm tra form đổi lịch khi trang tải xong
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.reschedule-form').forEach(form => {
             const bookingId = form.dataset.bookingId;
 
-            // Ghi lại ngày ban đầu để phục vụ trường hợp đổi lịch.
             const dateInput = document.getElementById(
                 'input_ngay_hen_' + bookingId
             );
 
             form.dataset.originalDate = dateInput.value;
 
-            // Khởi tạo dịch vụ ban đầu từ thẻ đang được chọn.
             const selectedCard = document.querySelector(
                 '#main_service_container_' + bookingId +
                 ' .service-card.selected'
@@ -881,9 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
             flatpickr(dateInput, {
                 dateFormat: 'd/m/Y',
                 locale: 'vn',
-                static: false, // Lịch nằm ngoài vùng cuộn của modal để không bị cắt
-                // Không để Flatpickr tự lật lên phía trên khi gần mép màn hình.
-                // Gắn lịch cố định bên dưới ô ngày, nổi trên vùng cuộn và footer modal.
+                static: false,
                 position: function (fp) {
                     const rect = fp._input.getBoundingClientRect();
                     const calendar = fp.calendarContainer;
@@ -910,7 +933,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 ],
                 onChange: function () {
-                    // Xóa giờ cũ vì ngày đã thay đổi, rồi kiểm tra lại.
                     document.getElementById(
                         'input_time_slot_' + bookingId
                     ).value = '';
@@ -921,7 +943,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRescheduleSummary(bookingId);
         });
 
-        // Chỉ kiểm tra khung giờ khi mở modal đổi lịch.
         document.querySelectorAll('.booking-modal').forEach(modalElement => {
             modalElement.addEventListener('shown.bs.modal', function () {
                 const bookingId = modalElement.id.replace('rescheduleModal', '');
@@ -929,7 +950,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Không cho gửi form nếu chưa chọn dịch vụ, ngày hoặc giờ.
         document.querySelectorAll('.reschedule-form').forEach(form => {
             form.addEventListener('submit', function (event) {
                 const bookingId = form.dataset.bookingId;
@@ -955,18 +975,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 </script>
 <script>
+// Lọc danh sách lịch hẹn theo từ khóa, ngày, dịch vụ, trạng thái, nhân viên, thẻ thống kê & phân trang
 (function(){
  const rows=[...document.querySelectorAll('#staffBookingRows .staff-booking-row')];
  const el=id=>document.getElementById(id);
  const search=el('filterSearch'), date=el('filterDate'), service=el('filterService'), status=el('filterStatus'), staff=el('filterStaff');
  let cardFilter='';
  let applied={q:'',date:'',service:'',status:'',staff:''};
+ // Lấy danh sách giá trị duy nhất theo thuộc tính data-*
  const unique=(key)=>[...new Set(rows.map(r=>r.dataset[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi'));
-  // Danh mục cố định theo các dịch vụ Charm Spa Grand đã cung cấp.
-  // Bổ sung những tên thực tế trong DB nếu chưa khớp danh mục, tránh bỏ sót lịch cũ.
+  // Chuẩn hóa tiếng Việt không dấu để so khớp tên dịch vụ
   const normalizeService = text => (text || '').normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
     .toLocaleLowerCase('vi').replace(/[^a-z0-9]+/g, ' ').trim();
+  // Kiểm tra tên dịch vụ thực tế có khớp với lựa chọn lọc hay không
   const serviceMatches = (actual, choice) => {
     const a = normalizeService(actual), b = normalizeService(choice);
     if (!a || !b) return false;
@@ -993,6 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
  const today=new Date(),todayStr=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
  el('statToday').textContent=rows.filter(r=>r.dataset.date===todayStr).length;
   el('statUnassigned').textContent=rows.filter(r=>r.dataset.assigned==='0').length;
+ // Lọc danh sách và cập nhật bảng, số lượng, trạng thái thẻ thống kê & phân trang
  function refresh(){
   const q=applied.q;
   const matched=rows.filter(r=>(!cardFilter || (cardFilter==='today' ? r.dataset.date===todayStr : r.dataset.assigned==='0'))&&(!q||r.dataset.search.toLocaleLowerCase('vi').includes(q))&&(!applied.date||r.dataset.date===applied.date)&&(!applied.service||serviceMatches(r.dataset.service,applied.service))&&(!applied.status||r.dataset.status===applied.status)&&(!applied.staff||(r.dataset.staff || '').split(' | ').includes(applied.staff)));
@@ -1010,6 +1033,7 @@ document.addEventListener('DOMContentLoaded', () => {
   el('currentPage').textContent=page+' / '+pages;
   el('prevPage').disabled=page<=1;el('nextPage').disabled=page>=pages;
  }
+ // Áp dụng các giá trị bộ lọc hiện tại
  const applyCurrentFilters=()=>{
    applied={q:search.value.trim().toLocaleLowerCase('vi'),date:date.value,service:service.value,status:status.value,staff:staff.value};
    cardFilter='';page=1;refresh();
@@ -1020,7 +1044,6 @@ document.addEventListener('DOMContentLoaded', () => {
  for (const [name,id] of [['today','filterTodayCard'],['unassigned','filterUnassignedCard']]) {
    el(id).addEventListener('click', () => {
      cardFilter = cardFilter === name ? '' : name;
-     // Chuyển nhóm thống kê: xóa các lọc cũ để kết quả không bị rỗng ngoài ý muốn.
      search.value='';date.value='';service.value='';status.value='';staff.value='';
      applied={q:'',date:'',service:'',status:'',staff:''};
      page=1;refresh();
@@ -1034,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-/* Xổ danh sách nhân viên: popover gắn lên body để không bị bảng cuộn cắt. */
+// Khởi tạo Bootstrap Popover hiển thị danh sách nhân viên phụ trách cho từng dòng
 document.addEventListener('DOMContentLoaded', function () {
   if (!window.bootstrap || !bootstrap.Popover) return;
   const triggers = document.querySelectorAll('[data-assignee-popover]');
@@ -1066,7 +1089,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (event.target.closest('[data-assignee-popover], .staff-assignees-popover')) return;
     triggers.forEach(button => bootstrap.Popover.getInstance(button)?.hide());
   });
-  // Thay trang lọc hoặc mở popup đổi lịch thì đóng hộp xổ cho gọn.
   document.querySelectorAll('#applyFilters, #resetFilters, #prevPage, #nextPage, #filterTodayCard, #filterUnassignedCard, [data-bs-toggle="modal"]').forEach(el => {
     el.addEventListener('click', () => triggers.forEach(button => bootstrap.Popover.getInstance(button)?.hide()));
   });
@@ -1074,6 +1096,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script>
+// Mở trình chọn ngày native khi click vào ô lọc ngày hẹn
 document.addEventListener('DOMContentLoaded', () => {
   for (const selector of ['#filterDate']) {
     const input = document.querySelector(selector);
@@ -1085,4 +1108,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 {% endblock %}
-

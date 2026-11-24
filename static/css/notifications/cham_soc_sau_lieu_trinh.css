@@ -1,4 +1,3 @@
-
 /* Charm Grand Spa | Aftercare | Scoped to hdcs components */
 .hdcs-page{--hdcs-ink:#302d27;--hdcs-muted:#8a8176;--hdcs-gold:#b58a50;--hdcs-gold-dark:#8c6d4f;--hdcs-line:#e9dfd3;--hdcs-soft:#faf7f1;box-sizing:border-box;background:#f8f5ef;color:var(--hdcs-ink);min-height:calc(100vh - 90px);padding:28px 26px 60px;font-family:'Montserrat','Segoe UI',Arial,sans-serif}
 .hdcs-page *, .hdcs-modal *{box-sizing:border-box}
@@ -231,4 +230,44 @@
   .hdcs-page .hdcs-metric { min-height: 98px; padding: 16px; gap: 15px; }
   .hdcs-page .hdcs-metric-icon { flex-basis: 48px; width: 48px; height: 48px; }
   .hdcs-page .hdcs-metric-value { font-size: 27px; }
+}
+
+
+/* TYPOGRAPHY ONLY: match the lighter Service Management title and table. */
+.hdcs-page .hdcs-heading h1 {
+  font-size: clamp(26px, 2.1vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.hdcs-page .hdcs-heading p { font-size: 13px; font-weight: 400; }
+.hdcs-page .hdcs-metric-name { font-weight: 500; }
+.hdcs-page .hdcs-metric-value { font-weight: 700; }
+.hdcs-page .hdcs-panel-head h2 { font-weight: 700; }
+.hdcs-page .hdcs-table th { font-weight: 600; }
+.hdcs-page .hdcs-name { font-weight: 600; }
+.hdcs-page .hdcs-pill { font-weight: 600; }
+.hdcs-page .hdcs-btn { font-weight: 600; }
+@media (max-width: 760px) {
+  .hdcs-page .hdcs-heading h1 { font-size: 25px; }
+}
+
+/* Final heading parity with Service Management; scoped to aftercare only. */
+.hdcs-page .hdcs-heading h1 {
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-size: clamp(26px, 2.1vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.25;
+  color: #1f1f1d;
+  margin: 0 0 10px;
+}
+.hdcs-page .hdcs-heading p {
+  font-size: 13px; font-weight: 400; line-height: 1.75; color: #a19486;
+}
+.hdcs-page .hdcs-panel-head h2 {font-weight:700;}
+.hdcs-page .hdcs-name {font-weight:600;}
+.hdcs-page .hdcs-table th {font-weight:600;}
+.hdcs-page .hdcs-metric-value {font-weight:700;}
+@media (max-width: 760px) {
+  .hdcs-page .hdcs-heading h1 {font-size:25px;}
 }

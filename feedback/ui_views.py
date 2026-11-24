@@ -382,22 +382,12 @@ def staff_feedback_list(request):
     )
 
 
-# NHÂN VIÊN: Danh sách phiếu đã giải quyết
-@user_passes_test(_nhan_vien_dang_hoat_dong, login_url="dang_nhap")
-def staff_feedback_resolved(request):
-    return _danh_sach_view(
-        request, False, "resolved",
-        "Phiếu đã giải quyết",
-        "Theo dõi các yêu cầu đã hoàn tất xử lý.",
-    )
-
 # ADMIN: Xem chi tiết, phân công, đánh dấu không hợp lệ,
 # cập nhật trạng thái và hoàn tất phiếu
 @user_passes_test(_quan_ly_dang_hoat_dong, login_url="dang_nhap")
 def admin_feedback_detail(request, feedback_id):
     # Lấy phiếu cần xem và tải sẵn thông tin khách hàng liên kết.
-    # Chuỗi quan hệ:
-    # PhanHoiKhieuNai -> KhachHang -> TaiKhoan -> User
+    # Chuỗi quan hệ:PhanHoiKhieuNai -> KhachHang -> TaiKhoan -> User
     ph = get_object_or_404(
         PhanHoiKhieuNai.objects.select_related(
             "ma_kh__ma_tk__user"
