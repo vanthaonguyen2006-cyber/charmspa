@@ -928,73 +928,17 @@ def staff_customer_add_view(request):
     if request.method == 'POST':
         form = ThemKhachHangForm(request.POST)
         if form.is_valid():
-            cleaned = form.cleaned_data
-            ho_ten = cleaned['ho_ten']
-            so_dien_thoai = cleaned['so_dien_thoai']
-            email = cleaned['email']
-            ngay_sinh = cleaned['ngay_sinh']
-            gioi_tinh = cleaned['gioi_tinh']
+            ho_ten = form.cleaned_data['ho_ten']
+
+            if not HangThanhVien.objects.exists():
+                messages.error(
+                    request,
+                    'Chưa có hạng thành viên trong hệ thống. Không thể thêm khách hàng.'
+                )
+                return render(request, 'customer/staff_customer_add.html', {'form': form})
 
             try:
-                with transaction.atomic():
-                    # Lấy hạng thành viên mặc định
-                    hang_mac_dinh = HangThanhVien.objects.order_by(
-                        'diem_toi_thieu', 'ma_tv'
-                    ).first()
-                    if hang_mac_dinh is None:
-                        messages.error(
-                            request,
-                            'Chưa có hạng thành viên trong hệ thống. Không thể thêm khách hàng.'
-                        )
-                        return render(request, 'customer/staff_customer_add.html', {'form': form})
-
-                    # 1. Tạo User Django cho khách hàng
-                    username_moi = f'kh_{so_dien_thoai}'
-                    if User.objects.filter(username=username_moi).exists():
-                        form.add_error('so_dien_thoai', 'Số điện thoại này đã được sử dụng bởi tài khoản khác.')
-                        return render(request, 'customer/staff_customer_add.html', {'form': form})
-
-                    user_moi = User(
-                        username=username_moi,
-                        email=email,
-                        is_active=True,
-                        is_staff=False,
-                        is_superuser=False,
-                    )
-                    user_moi.set_password('Password123@')
-                    user_moi.save()
-
-                    # 2. Tạo TaiKhoan tường minh cho khách hàng
-                    tai_khoan_moi = TaiKhoan.objects.create(
-                        ma_tk=f"TK{user_moi.id:03d}",
-                        user=user_moi,
-                        so_dien_thoai=so_dien_thoai,
-                        vai_tro=ROLE_CUSTOMER,
-                    )
-
-                    # 3. Sinh mã khách hàng tự động tăng (dạng KH-00001)
-                    ma_kh_moi = None
-                    for kh_cu in KhachHang.objects.filter(ma_kh__startswith='KH-').only('ma_kh'):
-                        try:
-                            so_thu_tu = int(kh_cu.ma_kh.split('-')[-1])
-                            if ma_kh_moi is None or so_thu_tu > ma_kh_moi:
-                                ma_kh_moi = so_thu_tu
-                        except (ValueError, IndexError):
-                            continue
-
-                    ma_kh_moi = f'KH-{(ma_kh_moi or 0) + 1:05d}'
-
-                    # 4. Tạo hồ sơ khách hàng
-                    KhachHang.objects.create(
-                        ma_kh=ma_kh_moi,
-                        ma_tk=tai_khoan_moi,
-                        ma_tv=hang_mac_dinh,
-                        ho_ten=ho_ten,
-                        ngay_sinh=ngay_sinh,
-                        gioi_tinh=gioi_tinh,
-                        diem_tich_luy_kh=0
-                    )
-
+                form.save()
                 messages.success(request, f'Đã thêm khách hàng "{ho_ten}" thành công!')
                 return redirect('staff_customer_list')
 
@@ -1229,7 +1173,7 @@ def staff_account_edit_view(request, ma_tk):
     user_bi_tac_dong = tai_khoan.user
     is_ajax = (request.headers.get('x-requested-with') == 'XMLHttpRequest')
 
-    # Chặn tuyệt đối thao tác trên tài khoản Admin kỹ thuật Django
+    # Chặn thao tác trên tài khoản Admin kỹ thuật Django
     if user_bi_tac_dong and user_bi_tac_dong.is_superuser:
         err_msg = "Không được phép chỉnh sửa tài khoản kỹ thuật hệ thống."
         if is_ajax:
@@ -1352,7 +1296,7 @@ def staff_toggle_account_status_view(request, ma_tk):
             messages.error(request, "Không thể tự khóa hoặc mở khóa tài khoản đang đăng nhập.")
             return redirect('staff_account_list')
 
-        # 2. Chặn tuyệt đối thao tác khóa/mở khóa tài khoản Admin kỹ thuật hoặc tài khoản ngoài Nhân viên/Khách hàng
+        # 2. Chặn thao tác khóa/mở khóa tài khoản Admin kỹ thuật hoặc tài khoản Nhân viên/Khách hàng
         if user_bi_tac_dong.is_superuser or vai_tro_muc_tieu not in (ROLE_STAFF, ROLE_CUSTOMER):
             messages.error(request, "Chỉ được phép khóa hoặc mở khóa tài khoản Nhân viên và Khách hàng.")
             return redirect('staff_account_list')
@@ -1422,11 +1366,6 @@ def _gia_sau_uu_dai_thu_cong(dich_vu, uu_dai):
 def staff_customer_record_service_view(request, ma_kh):
     """
     Ghi nhận dịch vụ đã sử dụng cho khách hàng:
-    - Hiển thị thông tin dịch vụ và khách hàng theo layout 2 cột.
-    - Chỉ cho phép chọn nhân viên có vai trò Nhân viên và tài khoản đang hoạt động.
-    - Tự động tính giá và giảm giá theo hạng thành viên.
-    - Lưu vào bảng DichVuDaSuDung qua transaction.atomic.
-    - Tự động cộng điểm tích lũy và nâng hạng thành viên nếu đủ điều kiện.
     """
     # 2. Lấy hồ sơ khách hàng
     khach_hang = get_object_or_404(
@@ -1468,8 +1407,7 @@ def staff_customer_record_service_view(request, ma_kh):
         }
     services_json = json.dumps(services_dict, ensure_ascii=False)
 
-    # Booking linked records never award points twice. Historical booking rows are
-    # already shown in customer history from LichHen/LichSuTichDiemBooking.
+
     from bookings.models import LichHen
     from customers.models import LichSuTichDiemBooking
     from notifications.models import LichHenUuDai

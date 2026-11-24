@@ -15,9 +15,10 @@ from accounts.models import (
     TaiKhoan,
     normalize_role,
 )
+from .models import HangThanhVien, KhachHang
 
 
-class ThemKhachHangForm(forms.Form):
+class ThemKhachHangForm(UserCreationForm):
     GIOI_TINH_CHOICES = [
         ('Nam', 'Nam'),
         ('Nữ', 'Nữ'),
@@ -56,11 +57,48 @@ class ThemKhachHangForm(forms.Form):
         }
     )
 
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'email',
+            'password1',
+            'password2',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'username' in self.fields:
+            self.fields['username'].error_messages.update({
+                'required': 'Tên đăng nhập không được để trống.',
+                'unique': 'Tên đăng nhập này đã được sử dụng bởi tài khoản khác.',
+                'invalid': 'Tên đăng nhập không hợp lệ.',
+            })
+        if 'password1' in self.fields:
+            self.fields['password1'].error_messages.update({
+                'required': 'Vui lòng nhập mật khẩu.',
+            })
+        if 'password2' in self.fields:
+            self.fields['password2'].error_messages.update({
+                'required': 'Vui lòng xác nhận mật khẩu.',
+            })
+        self.error_messages['password_mismatch'] = 'Mật khẩu xác nhận không khớp.'
+
     def clean_ho_ten(self):
         ho_ten = (self.cleaned_data.get('ho_ten') or '').strip()
         if not ho_ten:
             raise forms.ValidationError("Họ và tên không được để trống.")
         return ho_ten
+
+    def clean_username(self):
+        username = (self.cleaned_data.get('username') or '').strip()
+        if not username:
+            raise forms.ValidationError("Tên đăng nhập không được để trống.")
+        if ' ' in username:
+            raise forms.ValidationError("Tên đăng nhập không được chứa khoảng trắng.")
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("Tên đăng nhập này đã được sử dụng bởi tài khoản khác.")
+        return username
 
     def clean_so_dien_thoai(self):
         sdt = (self.cleaned_data.get('so_dien_thoai') or '').strip()
@@ -83,6 +121,56 @@ class ThemKhachHangForm(forms.Form):
         if ngay_sinh and ngay_sinh > timezone.localdate():
             raise forms.ValidationError("Ngày sinh không được lớn hơn ngày hiện tại.")
         return ngay_sinh
+
+    @transaction.atomic
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data.get('email') or ''
+        user.is_active = True
+        user.is_staff = False
+        user.is_superuser = False
+
+        hang_mac_dinh = HangThanhVien.objects.order_by(
+            'diem_toi_thieu', 'ma_tv'
+        ).first()
+        if hang_mac_dinh is None:
+            raise forms.ValidationError(
+                'Chưa có hạng thành viên trong hệ thống. Không thể thêm khách hàng.'
+            )
+
+        if commit:
+            user.save()
+
+            tai_khoan_moi = TaiKhoan.objects.create(
+                ma_tk=f"TK{user.id:03d}",
+                user=user,
+                so_dien_thoai=self.cleaned_data['so_dien_thoai'],
+                vai_tro=ROLE_CUSTOMER,
+            )
+
+            # Sinh mã khách hàng tự động tăng (dạng KH-00001)
+            ma_kh_moi = None
+            for kh_cu in KhachHang.objects.filter(ma_kh__startswith='KH-').only('ma_kh'):
+                try:
+                    so_thu_tu = int(kh_cu.ma_kh.split('-')[-1])
+                    if ma_kh_moi is None or so_thu_tu > ma_kh_moi:
+                        ma_kh_moi = so_thu_tu
+                except (ValueError, IndexError):
+                    continue
+
+            ma_kh_moi = f'KH-{(ma_kh_moi or 0) + 1:05d}'
+
+            KhachHang.objects.create(
+                ma_kh=ma_kh_moi,
+                ma_tk=tai_khoan_moi,
+                ma_tv=hang_mac_dinh,
+                ho_ten=self.cleaned_data['ho_ten'],
+                ngay_sinh=self.cleaned_data.get('ngay_sinh'),
+                gioi_tinh=self.cleaned_data['gioi_tinh'],
+                diem_tich_luy_kh=0,
+            )
+
+        return user
 
 
 class ThemNhanVienForm(UserCreationForm):
