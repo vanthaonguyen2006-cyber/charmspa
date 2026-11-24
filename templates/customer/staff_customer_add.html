@@ -43,6 +43,25 @@
             font-weight: 500;
             margin-top: 5px;
         }
+        .password-field-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-field-wrapper input.is-invalid {
+            padding-right: 40px !important;
+        }
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #887b6d;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
     </style>
 {% endblock %}
 
@@ -52,7 +71,7 @@
     <div class="customer-page-heading mb-4">
         <div>
             <h1>Thêm mới khách hàng</h1>
-            <p>Nhập thông tin chi tiết để tạo hồ sơ khách hàng mới trên hệ thống.</p>
+            <p>Nhập thông tin hồ sơ và hỗ trợ tạo tài khoản để khách hàng theo dõi lịch hẹn, điểm tích lũy trên hệ thống.</p>
         </div>
         <a class="btn btn-outline-secondary px-3 py-2" href="{% url 'staff_customer_list' %}" style="border-radius: 8px; font-size: 14px;">
             <i data-lucide="arrow-left" class="me-1" style="width: 16px; height: 16px;"></i> Quay lại danh sách
@@ -171,6 +190,53 @@
                     {% endfor %}
                 </div>
 
+                <!-- Tên đăng nhập -->
+                <div class="col-12 pt-3 border-top">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Tên đăng nhập (Username) <span class="text-danger">*</span></label>
+                    <input type="text" name="username"
+                           class="form-control py-2 px-3 {% if form.username.errors %}is-invalid{% endif %}"
+                           placeholder="Nhập tên đăng nhập cho khách hàng" required
+                           value="{{ form.username.value|default:'' }}"
+                           style="border-radius: 8px; font-size: 14px;">
+                    {% for error in form.username.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Mật khẩu -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Mật khẩu <span class="text-danger">*</span></label>
+                    <div class="password-field-wrapper">
+                        <input type="password" name="password1" id="customerPassword"
+                               class="form-control py-2 px-3 {% if form.password1.errors %}is-invalid{% endif %}"
+                               placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)" autocomplete="new-password" required
+                               style="border-radius: 8px; font-size: 14px; padding-right: 40px;">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('customerPassword', this)" title="Ẩn/Hiện mật khẩu">
+                            <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
+                        </button>
+                    </div>
+                    {% for error in form.password1.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Xác nhận mật khẩu -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 14px;">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                    <div class="password-field-wrapper">
+                        <input type="password" name="password2" id="customerPasswordConfirm"
+                               class="form-control py-2 px-3 {% if form.password2.errors %}is-invalid{% endif %}"
+                               placeholder="Nhập lại mật khẩu" autocomplete="new-password" required
+                               style="border-radius: 8px; font-size: 14px; padding-right: 40px;">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('customerPasswordConfirm', this)" title="Ẩn/Hiện mật khẩu">
+                            <i data-lucide="eye" style="width: 17px; height: 17px;"></i>
+                        </button>
+                    </div>
+                    {% for error in form.password2.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
                 <!-- Khung thông tin thành viên mặc định -->
                 <div class="col-12 mt-2">
                     <div class="p-3 rounded-4 border bg-light d-flex justify-content-between align-items-center">
@@ -210,5 +276,17 @@
         document.addEventListener('DOMContentLoaded', function () {
             if (window.lucide) window.lucide.createIcons();
         });
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<i data-lucide="eye-off" style="width: 17px; height: 17px;"></i>';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<i data-lucide="eye" style="width: 17px; height: 17px;"></i>';
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
     </script>
 {% endblock %}

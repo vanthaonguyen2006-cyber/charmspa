@@ -45,6 +45,9 @@ class StaffCustomerAddViewTests(TestCase):
                 'so_dien_thoai': '0900000001',
                 'email': 'customer-test@example.com',
                 'gioi_tinh': 'Nữ',
+                'username': 'khach_kiem_tra',
+                'password1': 'CharmCustomer2026!',
+                'password2': 'CharmCustomer2026!',
                 # Untrusted form data must not override the database selection.
                 'ma_tv': self.higher_tier.ma_tv,
             },
@@ -55,6 +58,53 @@ class StaffCustomerAddViewTests(TestCase):
         self.assertEqual(customer.ma_tv, self.lowest_tier)
         self.assertEqual(customer.diem_tich_luy_kh, 0)
         self.assertEqual(customer.ma_tk.so_dien_thoai, '0900000001')
+
+        user = customer.ma_tk.user
+        self.assertEqual(user.username, 'khach_kiem_tra')
+        self.assertEqual(user.email, 'customer-test@example.com')
+        self.assertTrue(user.is_active)
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+        self.assertTrue(user.check_password('CharmCustomer2026!'))
+
+    def test_customer_add_rejects_weak_and_mismatched_password(self):
+        user_model = get_user_model()
+
+        weak_response = self.client.post(
+            reverse('staff_customer_add'),
+            {
+                'ho_ten': 'Khách mật khẩu yếu',
+                'so_dien_thoai': '0900000002',
+                'email': '',
+                'gioi_tinh': 'Nam',
+                'username': 'khach_weak_pw',
+                'password1': '123456',
+                'password2': '123456',
+            },
+        )
+        self.assertEqual(weak_response.status_code, 200)
+        self.assertIn('password2', weak_response.context['form'].errors)
+        self.assertFalse(user_model.objects.filter(username='khach_weak_pw').exists())
+        self.assertFalse(KhachHang.objects.filter(ho_ten='Khách mật khẩu yếu').exists())
+
+        mismatch_response = self.client.post(
+            reverse('staff_customer_add'),
+            {
+                'ho_ten': 'Khách lệch mật khẩu',
+                'so_dien_thoai': '0900000003',
+                'email': '',
+                'gioi_tinh': 'Nam',
+                'username': 'khach_mismatch_pw',
+                'password1': 'CharmCustomer2026!',
+                'password2': 'OtherPass2026!',
+            },
+        )
+        self.assertEqual(mismatch_response.status_code, 200)
+        self.assertIn(
+            'Mật khẩu xác nhận không khớp.',
+            mismatch_response.context['form'].errors.get('password2', []),
+        )
+        self.assertFalse(user_model.objects.filter(username='khach_mismatch_pw').exists())
 
 
 class StaffAccountAddStaffViewTests(TestCase):
