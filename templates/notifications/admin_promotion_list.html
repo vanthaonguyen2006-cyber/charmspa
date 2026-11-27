@@ -1,3 +1,4 @@
+{# 01. KẾ THỪA GIAO DIỆN CHUNG: dùng layout nhân sự, nạp template tags và CSS riêng. #}
 {% extends 'layouts/staff_base.html' %}
 {% load static l10n charm_format %}
 
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="{% static 'css/admin_promotion_list.css' %}?v=20261123_title_v07">
 {% endblock %}
 
+{# 02. GIAO DIỆN QUẢN LÝ ƯU ĐÃI: tiêu đề và nút thêm mới (btnAddPromo). #}
 {% block content %}
 <main class="charm-admin-promo">
   <header class="promo-head">
@@ -18,6 +20,7 @@
     <button class="promo-btn promo-btn-main" type="button" id="btnAddPromo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Thêm mới ưu đãi</span></button>
   </header>
 
+{# 03. THỐNG KÊ: tổng số chương trình, đang áp dụng và sắp diễn ra; dữ liệu từ context của View. #}
   <section class="promo-stats" aria-label="Tổng quan chương trình">
     <article class="promo-stat">
       <span class="promo-stat-icon promo-stat-icon-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8v13M12 8H7.5a3 3 0 0 1 0-6C10 2 12 8 12 8Zm0 0h4.5a3 3 0 0 0 0-6C14 2 12 8 12 8Z"/></svg></span>
@@ -33,24 +36,33 @@
     </article>
   </section>
 
+{# 04. GIAO DIỆN TÌM KIẾM VÀ LỌC: nhập từ khóa, chọn trạng thái, hủy lọc. #}
   <section class="promo-filters" aria-label="Tìm kiếm và lọc chương trình">
     <label class="promo-search"><span class="promo-search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span><input id="promoSearch" type="search" placeholder="Tìm theo tên, mã hoặc mô tả ưu đãi..." aria-label="Tìm kiếm ưu đãi"></label>
     <select id="promoStatusFilter" aria-label="Lọc trạng thái"><option value="">Tất cả trạng thái</option><option value="Đang áp dụng">Đang áp dụng</option><option value="Sắp diễn ra">Sắp diễn ra</option><option value="Đã kết thúc">Đã kết thúc</option><option value="Tạm dừng">Tạm dừng</option></select>
     <button type="button" class="promo-btn promo-btn-filter" id="promoFilterReset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 17h16M9 4v6M15 14v6"/></svg><span>Huỷ lọc</span></button>
   </section>
 
+{# 05. DANH SÁCH ƯU ĐÃI (READ): duyệt ds_uu_dai từ context, mỗi item tạo một hàng. #}
   <section class="promo-panel">
     <div class="promo-panel-head"><div><h2>Danh sách chương trình ưu đãi</h2><span class="promo-count" id="promoVisibleCount">{{ ds_uu_dai|length }} chương trình</span></div><a class="promo-view-link" href="{% url 'notifications:danh_sach_uu_dai' %}" target="_blank" rel="noopener">Xem trang khách ↗</a></div>
     <div class="promo-table-wrap"><table class="promo-table"><thead><tr><th>HÌNH ẢNH</th><th>CHƯƠNG TRÌNH</th><th>THỜI GIAN ÁP DỤNG</th><th>GIÁ GỐC / ƯU ĐÃI</th><th>TRẠNG THÁI</th><th class="promo-th-action">THAO TÁC</th></tr></thead><tbody>
       {% for item in ds_uu_dai %}
       <tr class="promo-data-row" data-search="{{ item.ma_ctud }} {{ item.ten_chuong_trinh }} {{ item.mo_ta|default:'' }}" data-status="{{ item.trang_thai }}">
+{# Hiển thị ảnh banner nếu có, nếu không dùng biểu tượng thay thế. #}
         <td>{% if item.hinh_anh %}<img class="promo-thumb" src="{{ item.hinh_anh }}" alt="Ảnh {{ item.ten_chuong_trinh }}" loading="lazy">{% else %}<span class="promo-thumb-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18M12 8v13M12 8H7.5a3 3 0 0 1 0-6C10 2 12 8 12 8Zm0 0h4.5a3 3 0 0 0 0-6C14 2 12 8 12 8Z"/></svg></span>{% endif %}</td>
+{# Hiển thị tên, mã, dịch vụ liên kết và mô tả rút gọn. #}
         <td class="promo-name-cell"><strong class="promo-table-title">{{ item.ten_chuong_trinh }}</strong><small><b>{{ item.ma_ctud }}</b> · {% if item.ma_dv %}{{ item.ma_dv.ten_dich_vu }}{% else %}Chưa liên kết dịch vụ{% endif %} · {{ item.mo_ta|default:''|truncatechars:50 }}</small></td>
+{# Hiển thị khoảng thời gian áp dụng. #}
         <td><div class="promo-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><span>{{ item.ngay_bat_dau|date:'d/m/Y' }} – {{ item.ngay_ket_thuc|date:'d/m/Y' }}</span></div></td>
+{# Hiển thị giá gốc và giá ưu đãi đã lưu, định dạng bằng filter vnd. #}
         <td><span class="promo-muted promo-original">{% if item.gia_goc %}{{ item.gia_goc|vnd }}{% else %}—{% endif %}</span><strong class="promo-price">{{ item.gia_tri_uu_dai|vnd }}</strong></td>
+{# Gắn class CSS theo trạng thái đã lưu; không tự cập nhật trạng thái trong DB. #}
         <td><span class="promo-status {% if item.trang_thai == 'Đang áp dụng' %}is-live{% elif item.trang_thai == 'Sắp diễn ra' %}is-future{% elif item.trang_thai == 'Tạm dừng' %}is-paused{% else %}is-ended{% endif %}"><i aria-hidden="true"></i>{{ item.trang_thai }}</span></td>
+{# Các nút thao tác: Gửi, Sửa, Xóa. data-* chứa thông tin cho JavaScript. #}
         <td><div class="promo-actions">
           <button type="button" class="promo-action send-btn" title="Gửi thông báo" data-id="{{ item.pk }}" data-name="{{ item.ten_chuong_trinh }}" data-status="{{ item.trang_thai }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg><span>Gửi</span></button>
+{# Nút Sửa: dữ liệu cũ nằm trong data-* để JS điền lại form. #}
           <button type="button" class="promo-action edit-btn" title="Chỉnh sửa"
             data-id="{{ item.pk }}" data-tieu-de="{{ item.ten_chuong_trinh }}" data-mo-ta="{{ item.mo_ta|default:'' }}"
             data-ngay-bd="{{ item.ngay_bat_dau|date:'Y-m-d' }}" data-ngay-kt="{{ item.ngay_ket_thuc|date:'Y-m-d' }}"
@@ -61,18 +73,22 @@
             data-dia-diem="{{ item.dia_diem_ap_dung|default:'Charm Grand Spa & Wellness' }}"
             data-quyen-loi="{{ item.quyen_loi|default:'' }}" data-dieu-kien="{{ item.dieu_kien|default:'' }}"
             data-trang-thai="{{ item.trang_thai }}" data-hinh-anh="{{ item.hinh_anh|default:'' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M4 17l-.8 3.8L7 20l11-11-3-3Z"/><path d="m14 7 3 3"/></svg><span>Sửa</span></button>
+{# Nút Xóa: data-url chứa đường dẫn xóa đúng ưu đãi. #}
           <button type="button" class="promo-action promo-action-danger delete-btn" title="Xóa chương trình" data-url="{% url 'notifications:xoa_uu_dai' item.pk %}" data-name="{{ item.ten_chuong_trinh }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg><span>Xóa</span></button>
         </div></td>
       </tr>
+{# Nếu danh sách rỗng, hiển thị thông báo. #}
       {% empty %}<tr><td colspan="6" class="promo-empty">Chưa có chương trình ưu đãi nào. Hãy tạo chương trình đầu tiên.</td></tr>{% endfor %}
       </tbody></table></div>
     <p class="promo-no-matches" id="promoNoMatches" hidden>Không tìm thấy chương trình phù hợp với bộ lọc.</p>
   </section>
 </main>
 
+{# 06. POPUP THÊM/SỬA: dùng chung một biểu mẫu cho hai nghiệp vụ. #}
 <div class="promo-overlay" id="promoModal" hidden role="dialog" aria-modal="true" aria-labelledby="promoModalTitle">
   <div class="promo-dialog promo-dialog-large">
     <div class="promo-dialog-head"><div><span class="promo-kicker">CHARM GRAND SPA</span><h2 id="promoModalTitle">Thêm chương trình ưu đãi</h2></div><button type="button" class="promo-close" data-close="promoModal" aria-label="Đóng">×</button></div>
+{# Form gửi POST tới API thêm hoặc sửa; id ẩn trống khi thêm, có mã khi sửa. #}
     <form id="promoForm" action="{% url 'notifications:api_them_hoac_sua_uu_dai' %}" method="post">
       {% csrf_token %}<input type="hidden" name="id" id="promo_id">
       <div class="promo-form-grid">
@@ -84,6 +100,7 @@
           <label for="promo_mo_ta">Mô tả</label>
           <textarea name="mo_ta" id="promo_mo_ta" rows="3"></textarea>
         </div>
+{# Chọn dịch vụ: dich_vu_list từ View; data-price và data-duration dùng để xem trước. #}
         <div class="promo-field span-2">
           <label for="promo_ma_dv">Dịch vụ áp dụng <span class="promo-required" aria-hidden="true">*</span></label>
           <select name="ma_dv" id="promo_ma_dv" required>
@@ -95,6 +112,7 @@
             {% endfor %}
           </select>
         </div>
+{# Chọn một trong ba kiểu giảm giá và nhập mức giảm tương ứng. #}
         <div class="promo-field">
           <label for="promo_kieu_giam">Kiểu giảm giá <span class="promo-required" aria-hidden="true">*</span></label>
           <select name="kieu_giam_gia" id="promo_kieu_giam" required>
@@ -107,6 +125,7 @@
           <label for="promo_muc_giam" id="promo_muc_label">Mức giảm (%) <span class="promo-required" aria-hidden="true">*</span></label>
           <input name="muc_giam" id="promo_muc_giam" type="number" min="0.01" step="0.01" required placeholder="Nhập mức giảm">
         </div>
+{# Nhập thời gian áp dụng; kiểm tra ngày hợp lệ cần thực hiện ở Backend. #}
         <div class="promo-field">
           <label for="promo_ngay_bd">Ngày bắt đầu <span class="promo-required" aria-hidden="true">*</span></label>
           <input name="ngay_bat_dau" id="promo_ngay_bd" type="date" required>
@@ -115,6 +134,7 @@
           <label for="promo_ngay_kt">Ngày kết thúc <span class="promo-required" aria-hidden="true">*</span></label>
           <input name="ngay_ket_thuc" id="promo_ngay_kt" type="date" required>
         </div>
+{# Thông tin bổ sung: loại ưu đãi, thời lượng, đối tượng, trạng thái, địa điểm, quyền lợi, điều kiện và ảnh. #}
         <div class="promo-field">
           <label for="promo_loai">Loại ưu đãi</label>
           <input name="loai_uu_dai" id="promo_loai" type="text" maxlength="50" placeholder="Ví dụ: Ưu đãi dịch vụ">
@@ -152,6 +172,7 @@
       <input type="hidden" name="gia_goc" id="promo_gia_goc" value="">
       <input type="hidden" name="gia_tri_uu_dai" id="promo_gia_tri" value="">
 
+{# 07. KHUNG XEM TRƯỚC GIÁ: JS cập nhật giá gốc, số tiền tiết kiệm và giá thanh toán. #}
       <section class="promo-price-preview" aria-labelledby="promoPriceHeading" aria-live="polite">
         <div class="promo-price-preview-heading">
           <span class="promo-price-preview-icon" aria-hidden="true">
@@ -170,11 +191,13 @@
       </section>
       <p class="promo-note">Giá gốc lấy tự động từ dịch vụ. Giá cuối cùng được tính lại trên máy chủ khi lưu, không dựa vào số tiền gửi từ trình duyệt. Chưa áp dụng vào lịch hẹn ở bước này.</p>
       <p class="promo-error" id="promoFormError" role="alert" hidden></p>
+{# Nút Lưu kích hoạt sự kiện submit của promoForm. #}
       <div class="promo-dialog-foot"><button type="button" class="promo-btn promo-btn-ghost" data-close="promoModal">Hủy</button><button type="submit" class="promo-btn promo-btn-main" id="promoSaveButton">Lưu chương trình</button></div>
     </form>
   </div>
 </div>
 
+{# 08. POPUP GỬI THÔNG BÁO: chọn nhóm người nhận, xác nhận gửi thông báo nội bộ. #}
 <div class="promo-overlay" id="sendPromoModal" hidden role="dialog" aria-modal="true" aria-labelledby="sendPromoTitle">
   <div class="promo-dialog">
     <div class="promo-dialog-head"><h2 id="sendPromoTitle">Gửi thông báo ưu đãi</h2><button type="button" class="promo-close" data-close="sendPromoModal" aria-label="Đóng">×</button></div>
@@ -186,6 +209,7 @@
   </div>
 </div>
 
+{# 09. POPUP XÁC NHẬN XÓA: form POST, action được JS gán theo ưu đãi được chọn. #}
 <div class="promo-overlay" id="deleteConfirmModal" hidden role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
   <div class="promo-dialog"><div class="promo-dialog-head"><h2 id="deleteTitle">Xác nhận xóa ưu đãi</h2><button type="button" class="promo-close" data-close="deleteConfirmModal" aria-label="Đóng">×</button></div>
     <p>Bạn chắc chắn muốn xóa <strong id="deletePromoTitle"></strong>? Thao tác này không thể hoàn tác.</p>
@@ -193,54 +217,68 @@
   </div>
 </div>
 
+{# 10. JAVASCRIPT: xử lý các thao tác trên giao diện. #}
 <script>
 (function () {
   'use strict';
+  // Hàm $ lấy phần tử HTML theo ID; đọc CSRF token; lưu mã ưu đãi cần gửi.
   const $ = (id) => document.getElementById(id);
   const csrf = document.querySelector('#promoForm [name="csrfmiddlewaretoken"]').value;
   let sendingId = null;
+  // Định dạng giá hiển thị theo VNĐ (làm tròn đến số nguyên).
   const fmt = (v) => Math.round(v).toLocaleString('vi-VN') + ' đ';
+  // Lấy option dịch vụ đang được chọn.
   function selectedService() {
     return $('promo_ma_dv').selectedOptions[0];
   }
+  // 11. TÍNH GIÁ XEM TRƯỚC: lấy giá dịch vụ, kiểu giảm và mức giảm.
   function recalculate() {
     const svc = selectedService();
     const price = Number(svc && svc.dataset.price || 0);
     const mode = $('promo_kieu_giam').value;
     const raw = $('promo_muc_giam').value;
     const discount = raw.trim() === '' ? NaN : Number(raw);
+  // Đổi nhãn và giới hạn nhập mức giảm theo kiểu giảm.
     const label = mode === 'phan_tram' ? 'Mức giảm (%)' : mode === 'so_tien' ? 'Số tiền giảm (đ)' : 'Giá ưu đãi cố định (đ)';
     $('promo_muc_label').innerHTML = label + ' <span class="promo-required" aria-hidden="true">*</span>';
     $('promo_muc_giam').max = mode === 'phan_tram' ? '100' : (price > 0 ? String(price) : '9999999999');
     $('promo_muc_giam').min = mode === 'gia_co_dinh' ? '0' : '0.01';
 
+  // Kiểm tra mức giảm hợp lệ trước khi tính.
     const valid = price > 0 && Number.isFinite(discount)
       && (mode === 'gia_co_dinh' ? discount >= 0 : discount > 0)
       && (mode !== 'phan_tram' || discount <= 100)
       && (mode === 'phan_tram' || discount <= price);
+  // Ba công thức: phần trăm, trừ số tiền, hoặc giá cố định.
     const rawTotal = !valid ? NaN : mode === 'phan_tram'
       ? price * (100 - discount) / 100
       : mode === 'so_tien' ? price - discount : discount;
     // Giá dùng để xem trước. Backend luôn tính lại bằng Decimal.
+  // Làm tròn giá xem trước đến hai chữ số thập phân.
     const total = Number.isFinite(rawTotal) ? Math.round((rawTotal + Number.EPSILON) * 100) / 100 : NaN;
+  // Gán giá vào trường ẩn; cập nhật ba giá trị hiển thị. Backend phải tính lại.
     $('promo_gia_goc').value = price > 0 ? price.toFixed(2) : '';
     $('promo_gia_tri').value = Number.isFinite(total) && total >= 0 ? total.toFixed(2) : '';
     $('promo_preview_original').textContent = price > 0 ? fmt(price) : '—';
     $('promo_preview_saved').textContent = Number.isFinite(total) && total >= 0 ? '− ' + fmt(Math.max(0, price - total)) : '—';
     $('promo_price_preview').textContent = Number.isFinite(total) && total > 0 ? fmt(total) : 'Chọn dịch vụ và mức giảm';
   }
+  // Khi đổi dịch vụ, tự điền thời lượng và tính lại giá.
   $('promo_ma_dv').addEventListener('change', () => {
     const svc = selectedService();
     if (svc && svc.dataset.duration) $('promo_thoi_luong').value = svc.dataset.duration + ' phút';
     recalculate();
   });
+  // Khi đổi kiểu giảm hoặc nhập mức giảm, tính lại ngay.
   $('promo_kieu_giam').addEventListener('change', recalculate);
   $('promo_muc_giam').addEventListener('input', recalculate);
+  // Hàm tiện ích mở/đóng popup, hiển thị lỗi và gán giá trị form.
   const show = (id) => { $(id).hidden = false; document.body.classList.add('promo-modal-open'); };
   const hide = (id) => { $(id).hidden = true; if (!document.querySelector('.promo-overlay:not([hidden])')) document.body.classList.remove('promo-modal-open'); };
   const error = (id, message) => { $(id).textContent = message || ''; $(id).hidden = !message; };
   const field = (id, value) => { $(id).value = value == null ? '' : value; };
 
+  // 12. THÊM MỚI: reset form, xóa ID cũ, đặt kiểu giảm mặc định rồi mở popup.
   $('btnAddPromo').addEventListener('click', () => {
     $('promoForm').reset(); field('promo_id', '');
     $('promoModalTitle').textContent = 'Thêm chương trình ưu đãi';
@@ -248,6 +286,7 @@
     error('promoFormError', ''); show('promoModal');
   });
 
+  // 13. CHỈNH SỬA: đọc data-* từ nút Sửa, điền lại thông tin cũ và mở popup.
   document.querySelectorAll('.edit-btn').forEach((button) => {
     button.addEventListener('click', () => {
       const d = button.dataset;
@@ -268,6 +307,7 @@
     });
   });
 
+  // 14. GỬI THÔNG BÁO: ghi nhớ ID ưu đãi, hiển thị tên, chọn nhóm nhận.
   document.querySelectorAll('.send-btn').forEach((button) => button.addEventListener('click', () => {
     sendingId = button.dataset.id;
     $('sendPromoName').textContent = button.dataset.name;
@@ -275,12 +315,14 @@
     error('sendPromoError', ''); show('sendPromoModal');
   }));
 
+  // 15. XÓA: gán URL xóa đúng bản ghi rồi mở hộp xác nhận. Form tự gửi POST khi đồng ý.
   document.querySelectorAll('.delete-btn').forEach((button) => button.addEventListener('click', () => {
     $('deletePromoTitle').textContent = button.dataset.name;
     $('deletePromoForm').action = button.dataset.url;
     show('deleteConfirmModal');
   }));
 
+  // Đóng popup bằng nút đóng, click nền hoặc phím Escape.
   document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => hide(button.dataset.close)));
   document.querySelectorAll('.promo-overlay').forEach((overlay) => {
     overlay.addEventListener('click', (event) => { if (event.target === overlay) hide(overlay.id); });
@@ -289,6 +331,7 @@
     if (event.key === 'Escape') document.querySelectorAll('.promo-overlay:not([hidden])').forEach((overlay) => hide(overlay.id));
   });
 
+  // 16. HÀM POST DÙNG CHUNG: fetch gửi FormData, CSRF; kiểm tra JSON và lỗi HTTP.
   async function postForm(url, formData) {
     const response = await fetch(url, {method: 'POST', body: formData, headers: {'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest'}});
     let data;
@@ -298,7 +341,9 @@
   }
 
   // Search and status filters only change displayed rows, not database records.
+  // 17. LỌC DANH SÁCH: lấy các hàng đã hiển thị trong HTML.
   const promoRows = Array.from(document.querySelectorAll('.promo-data-row'));
+  // So khớp từ khóa và trạng thái, ẩn hàng không phù hợp, cập nhật số lượng.
   function applyPromoFilter() {
     const text = $('promoSearch').value.trim().toLocaleLowerCase('vi');
     const status = $('promoStatusFilter').value;
@@ -312,6 +357,7 @@
     $('promoVisibleCount').textContent = count + ' / ' + promoRows.length + ' chương trình';
     $('promoNoMatches').hidden = count !== 0 || promoRows.length === 0;
   }
+  // Bắt sự kiện tìm kiếm, đổi trạng thái và hủy lọc; không thay đổi Database.
   $('promoSearch').addEventListener('input', applyPromoFilter);
   $('promoStatusFilter').addEventListener('change', applyPromoFilter);
   $('promoFilterReset').addEventListener('click', () => {
@@ -320,25 +366,30 @@
     applyPromoFilter();
   });
 
+  // 18. LƯU ƯU ĐÃI: chặn submit mặc định, khóa nút, thu thập dữ liệu, kiểm tra và gửi API.
   $('promoForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     error('promoFormError', '');
     const button = $('promoSaveButton'); button.disabled = true;
     try {
       const data = new FormData(event.currentTarget);
+  // Kiểm tra đã chọn dịch vụ và giá sau giảm lớn hơn 0 tại Frontend.
       if (!data.get('ma_dv')) throw new Error('Vui lòng chọn dịch vụ áp dụng.');
       if (!(Number(data.get('gia_tri_uu_dai')) > 0)) throw new Error('Giá sau giảm phải lớn hơn 0.');
+  // Gửi tới action của form; thành công tải lại trang; lỗi hiển thị trên form.
       await postForm(event.currentTarget.action, data);
       location.reload();
     } catch (err) { error('promoFormError', err.message); } finally { button.disabled = false; }
   });
 
+  // 19. XÁC NHẬN GỬI: gửi promo_id và doi_tuong đến API thông báo.
   $('confirmSendPromo').addEventListener('click', async () => {
     if (!sendingId) return;
     const button = $('confirmSendPromo'); button.disabled = true;
     error('sendPromoError', '');
     const form = new FormData(); form.append('promo_id', sendingId); form.append('doi_tuong', $('doiTuongGui').value);
     try {
+  // Gọi API gửi thông báo, đóng popup và báo kết quả nếu thành công.
       const result = await postForm("{% url 'notifications:api_gui_thong_bao_uu_dai' %}", form);
       hide('sendPromoModal'); alert(result.message || 'Đã gửi thông báo thành công.');
     } catch (err) { error('sendPromoError', err.message); } finally { button.disabled = false; }
@@ -346,4 +397,3 @@
 })();
 </script>
 {% endblock %}
-
