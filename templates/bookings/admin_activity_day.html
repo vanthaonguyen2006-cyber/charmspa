@@ -138,7 +138,7 @@
             <div><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Lý do</label>{{ form.ly_do }}</div>
             <!-- Ô nhập lý do chi tiết khi chọn "Khác" -->
             <div id="lyDoChiTietBox" class="hidden"><label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1" for="id_nhap_ly_do">Nhập lý do chi tiết *</label>{{ form.nhap_ly_do }}</div>
-            <!-- Khung cảnh báo lịch hẹn bị ảnh hưởng -->
+            <!-- Khung cảnh báo & yêu cầu xác nhận khi khoảng khóa có lịch hẹn bị ảnh hưởng -->
             {% if pending_lock %}
             <div class="activity-lock-confirm" role="alert">
                 <strong>Cảnh báo: {{ pending_lock.count }} lịch hẹn sẽ bị ảnh hưởng.</strong>
@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showActivityError('Vui lòng nhập lý do chi tiết khi chọn Khác.');
         }
     });
+    // Tự mở lại popup nếu server trả lỗi form hoặc đang chờ xác nhận lịch bị ảnh hưởng
     {% if form.errors or pending_lock %}toggleModal(true);{% endif %}
 });
 
@@ -300,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.addEventListener('keydown', event => {
         if (event.key === 'Escape') { event.preventDefault(); closeUnlock(); }
     });
+    // Khóa nút xác nhận trước khi gửi form để tránh bấm đúp
     confirmButton.addEventListener('click', () => {
         if (!pendingForm) return;
         confirmButton.disabled = true;
