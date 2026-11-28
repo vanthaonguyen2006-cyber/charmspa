@@ -23,12 +23,12 @@ from accounts.models import (
 )
 
 
-# Decorator kiểm tra quyền theo vai trò nghiệp vụ (chỉ quản lý / chỉ tài khoản nội bộ staff portal).
+# Tạo decorator phân quyền quản lý và nhân viên nội bộ
 manager_only = user_passes_test(is_manager_role, login_url='/accounts/dang_nhap/')
 staff_portal_only = user_passes_test(is_staff_portal_user, login_url='/accounts/dang_nhap/')
 
 
-# Lấy tên, chữ viết tắt, chức vụ và trạng thái quản lý để truyền ra các template.
+# Lấy tên, chữ viết tắt avatar, chức vụ và cờ quản lý cho template
 def get_staff_context(request):
     """Lấy thông tin hiển thị theo vai trò nghiệp vụ, không dùng is_staff/is_superuser của Django Admin."""
     name = request.user.username if request.user.is_authenticated else 'Tài khoản'
@@ -47,24 +47,22 @@ def get_staff_context(request):
         'is_manager': is_manager_role(request.user),
     }
 
-
-# UI: customer_create.html — Khách tạo lịch hẹn mới (bản gốc; cuối file có hàm bọc thêm luồng ưu đãi).
+# Khách hàng tạo lịch hẹn mới
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_create(request):
-    """Chỉ tài khoản khách hàng đã đăng nhập mới được đặt lịch từ trang khách."""
-    # Chặn tài khoản nội bộ (staff/manager) dùng trang đặt lịch dành riêng cho khách.
+    # Chặn tài khoản không phải khách hàng truy cập
     if not is_customer_role(request.user):
         return HttpResponseForbidden("Chỉ tài khoản Khách hàng mới được đặt lịch tại trang này.")
 
+    # Lấy danh sách dịch vụ và danh sách ngày đang bị khóa
     dich_vu_list = DichVu.objects.all()
-
-    # Lấy danh sách ngày bị khóa để gửi ra JS chặn chọn lịch và kiểm tra lại khi POST.
     locked_dates = list(
         NgayHoatDong.objects.filter(trang_thai='Đã khóa')
         .values_list('ngay', flat=True)
     )
     locked_dates_str = [d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d) for d in locked_dates]
 
+    # Xử lý lưu lịch hẹn khi gửi form POST
     if request.method == 'POST':
         ma_dv = request.POST.get('ma_dv')
         ngay_hen = request.POST.get('ngay_hen')
@@ -76,7 +74,7 @@ def booking_customer_create(request):
         try:
             dich_vu = get_object_or_404(DichVu, pk=ma_dv)
 
-            # Chuẩn hóa ngày hẹn (hỗ trợ cả dd/mm/yyyy và yyyy-mm-dd) về YYYY-MM-DD.
+            # Chuẩn hóa định dạng ngày hẹn về YYYY-MM-DD
             ngay_check = datetime.today().strftime('%Y-%m-%d')
             if ngay_hen:
                 if '/' in ngay_hen:
@@ -85,14 +83,14 @@ def booking_customer_create(request):
                     date_obj = datetime.strptime(ngay_hen.strip(), '%Y-%m-%d').date()
                 ngay_check = date_obj.strftime('%Y-%m-%d')
 
-            # Chặn đặt lịch vào ngày spa đang khóa.
+            # Chặn đặt lịch vào ngày spa đang khóa
             if ngay_check in locked_dates_str:
                 messages.error(request, "Ngày bạn chọn hiện đang đóng cửa (Nghỉ lễ/Bảo trì). Vui lòng chọn ngày khác.")
                 return redirect('bookings:booking_customer_create')
 
             so_luong_int = int(so_luong) if so_luong else 1
 
-            # Lấy TaiKhoan và tự tạo/cập nhật hồ sơ KhachHang nếu chưa có.
+            # Lấy tài khoản và tự tạo/cập nhật hồ sơ khách hàng
             tai_khoan_Obj = TaiKhoan.objects.get(user=request.user)
 
             khach_hang, _ = KhachHang.objects.get_or_create(
@@ -103,13 +101,13 @@ def booking_customer_create(request):
                 khach_hang.ho_ten = ho_ten
                 khach_hang.save()
 
-            # Lấy hoặc tạo bản ghi NgayHoatDong cho ngày hẹn ở trạng thái 'Mở'.
+            # Lấy hoặc tạo bản ghi ngày hoạt động ở trạng thái Mở
             ngay_hd, _ = NgayHoatDong.objects.get_or_create(
                 ngay=ngay_check,
                 defaults={'ma_nhd': f'NHD-{ngay_check}', 'trang_thai': 'Mở'}
             )
 
-            # Sinh mã lịch hẹn LH-xxxxxx, lưu DB rồi ghi vào session cho trang success.
+            # Sinh mã lịch hẹn mới, lưu DB và ghi mã vào session
             ma_lh_moi = f"LH-{random.randint(100000, 999999)}"
 
             LichHen.objects.create(
@@ -132,7 +130,7 @@ def booking_customer_create(request):
             traceback.print_exc()
             messages.error(request, f"Có lỗi xảy ra khi đặt lịch: {e}")
 
-    # GET: lấy thông tin tài khoản khách hàng đang đăng nhập để tự điền sẵn vào form.
+    # Lấy thông tin khách hàng để điền sẵn form khi mở trang GET
     tai_khoan = TaiKhoan.objects.filter(
         user=request.user
     ).first()
@@ -171,7 +169,7 @@ def booking_customer_create(request):
     return render(request, 'bookings/customer_create.html', context)
 
 
-# UI: customer_list.html — Danh sách lịch hẹn (khách xem lịch của mình; staff portal xem tất cả, lọc theo tab trạng thái).
+# Hiển thị danh sách lịch hẹn và lọc theo trạng thái
 @user_passes_test(lambda u: get_user_role(u) is not None, login_url='/accounts/dang_nhap/')
 def booking_customer_list(request):
     trang_thai_filter = request.GET.get('trang_thai', '')
@@ -184,7 +182,7 @@ def booking_customer_list(request):
     )
     locked_dates_str = [d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d) for d in locked_dates]
 
-    # Staff portal xem tất cả lịch (trừ 'Đã xóa'); khách hàng chỉ xem lịch của chính tài khoản mình.
+    # Phân quyền dữ liệu danh sách (nội bộ xem hết, khách xem lịch của mình)
     if is_staff_portal_user(request.user):
         lich_hen_list = LichHen.objects.select_related('ma_dv', 'ma_kh').exclude(trang_thai='Đã xóa').order_by('-ngay_hen')
     else:
@@ -195,7 +193,7 @@ def booking_customer_list(request):
         except TaiKhoan.DoesNotExist:
             lich_hen_list = LichHen.objects.none()
 
-    # Lọc danh sách theo tham số ?trang_thai= (active / completed / cancelled).
+    # Lọc danh sách theo tab trạng thái active / completed / cancelled
     if trang_thai_filter:
         if trang_thai_filter == 'active':
             lich_hen_list = lich_hen_list.filter(trang_thai__in=['Đã đặt', 'Đã xác nhận'])
@@ -216,7 +214,7 @@ def booking_customer_list(request):
     })
 
 
-# UI: customer_detail.html — Xem chi tiết 1 lịch hẹn phía khách (kèm danh sách dịch vụ & ngày khóa cho modal đổi lịch).
+# Xem chi tiết 1 lịch hẹn phía khách
 @user_passes_test(lambda u: get_user_role(u) is not None, login_url='/accounts/dang_nhap/')
 def booking_customer_detail(request, ma_lh):
     # Banner hồ sơ trong customer_base_pro cần biến khach_hang.
@@ -243,7 +241,7 @@ def booking_customer_detail(request, ma_lh):
     })
 
 
-# UI: customer_success.html — Trang thông báo đặt lịch thành công (đọc mã lịch vừa tạo từ session).
+# Hiển thị trang đặt lịch thành công từ mã lưu trong session
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_success(request):
     last_code = request.session.get('last_booking_code')
@@ -275,7 +273,7 @@ def booking_customer_success(request):
     })
 
 
-# UI: modal/form hủy lịch của khách — Hủy lịch (chuyển trạng thái 'Đã hủy', bắt buộc trước 6 tiếng và có lý do).
+# Khách hàng hủy lịch (kiểm tra trạng thái, mốc trước 6 tiếng và lý do hủy)
 @login_required(login_url='/accounts/dang_nhap/')
 def booking_customer_cancel(request, ma_lh):
     """Đổi trạng thái lịch thành Đã hủy, giữ bản ghi trong database."""
@@ -288,12 +286,12 @@ def booking_customer_cancel(request, ma_lh):
         LichHen, ma_lh=ma_lh, ma_kh__ma_tk__user=request.user
     )
 
-    # Chặn hủy nếu lịch đã hủy, đã hoàn thành hoặc đã xóa.
+    # Chặn hủy lịch đã kết thúc/hủy/xóa
     if lich_hen.trang_thai in ('Đã hủy', 'Hoàn thành', 'Đã xóa'):
         messages.error(request, 'Lịch hẹn này không thể hủy.')
         return redirect('bookings:booking_customer_list')
 
-    # Ghép ngày hẹn + giờ hẹn, quy về timezone hiện tại rồi so với thời điểm hiện tại.
+    # Kiểm tra quy định hủy trước giờ hẹn ít nhất 6 tiếng
     ngay_gio_hen = datetime.combine(lich_hen.ngay_hen, lich_hen.gio_hen)
     if timezone.is_naive(ngay_gio_hen):
         ngay_gio_hen = timezone.make_aware(
@@ -307,7 +305,7 @@ def booking_customer_cancel(request, ma_lh):
         )
         return redirect('bookings:booking_customer_list')
 
-    # Đọc lý do hủy; nếu chọn 'Khác' thì lấy nội dung nhập ở ô ly_do_khac; trống thì báo lỗi.
+    # Kiểm tra lý do hủy và cập nhật trạng thái Đã hủy
     ly_do = request.POST.get('ly_do_huy', '').strip()
     if ly_do == 'Khác':
         ly_do = request.POST.get('ly_do_khac', '').strip()
@@ -324,7 +322,7 @@ def booking_customer_cancel(request, ma_lh):
     return redirect(reverse('bookings:booking_customer_list') + '?trang_thai=cancelled')
 
 
-# UI: modal/form đổi lịch ở list/detail — Đổi lịch bản gốc (check 3 tiếng, ngày/giờ mới, ngày khóa, sức chứa giường).
+# Đổi lịch hẹn (kiểm tra mốc 3 tiếng, ngày khóa và sức chứa giường)
 @user_passes_test(lambda u: get_user_role(u) is not None, login_url='/accounts/dang_nhap/')
 def booking_customer_reschedule(request, ma_lh):
     # Quay về đúng giao diện danh sách của người đang thực hiện đổi lịch (staff hoặc khách).
@@ -340,7 +338,7 @@ def booking_customer_reschedule(request, ma_lh):
             lich_hen_qs = lich_hen_qs.filter(ma_kh__ma_tk__user=request.user)
         lich_hen = get_object_or_404(lich_hen_qs, ma_lh=ma_lh)
 
-        # Kiểm tra mốc 3 tiếng trước giờ hẹn cũ: dưới 3 * 3600 giây thì chặn đổi.
+        # Kiểm tra quy định đổi lịch trước giờ hẹn cũ ít nhất 3 tiếng
         try:
             time_part = str(lich_hen.gio_hen).split()[0]
             hour_min = time_part.split(':')
@@ -367,7 +365,7 @@ def booking_customer_reschedule(request, ma_lh):
         so_luong_moi = request.POST.get('so_luong_khach_moi')
         ghi_chu_moi = request.POST.get('ghi_chu_moi')
 
-        # Chặn form Đổi lịch thiếu ngày/giờ hoặc chọn thời điểm trong quá khứ.
+        # Kiểm tra ngày/giờ hẹn mới và chặn thời điểm quá khứ
         if not (ngay_hen_moi or '').strip():
             messages.error(request, 'Vui lòng chọn ngày hẹn mới.')
             return redirect(redirect_url)
@@ -405,7 +403,7 @@ def booking_customer_reschedule(request, ma_lh):
             except (ValueError, TypeError):
                 pass
 
-        # Chặn đổi sang ngày đã bị khóa.
+        # Chặn đổi sang ngày spa đang khóa
         if NgayHoatDong.objects.filter(ngay=ngay_str, trang_thai='Đã khóa').exists():
             messages.error(request, 'Ngày mới đã bị khóa. Vui lòng chọn ngày khác.')
             return redirect(redirect_url)
@@ -417,7 +415,7 @@ def booking_customer_reschedule(request, ma_lh):
         except (ValueError, TypeError):
             so_luong_int = lich_hen.so_luong_khach
 
-        # Kiểm tra sức chứa giường: shampoo tối đa 6 giường, dịch vụ khác (massage) tối đa 30 giường.
+        # Tính sức chứa và kiểm tra số giường trống theo khung giờ & loại dịch vụ
         ten_dv_lower = dich_vu_hien_tai.ten_dich_vu.lower()
         is_shampoo = 'shampoo' in ten_dv_lower
         tong_suc_chua = 6 if is_shampoo else 30
@@ -453,7 +451,7 @@ def booking_customer_reschedule(request, ma_lh):
             messages.error(request, f"Không thể đổi lịch! Khung giờ này cho {loai_phong} chỉ còn trống {con_lai} chỗ.")
             return redirect(redirect_url)
 
-        # Cập nhật dịch vụ, ngày hoạt động, giờ, số khách, ghi chú và lưu vào DB.
+        # Cập nhật thông tin lịch hẹn mới vào database
         if ma_dv_moi:
             lich_hen.ma_dv = dich_vu_hien_tai
 
@@ -479,7 +477,7 @@ def booking_customer_reschedule(request, ma_lh):
     return redirect(redirect_url)
 
 
-# UI: admin_activity_day.html — Quản lý lịch tháng & khóa khoảng ngày hoạt động (chỉ manager).
+# Quản lý lịch tháng và khóa khoảng ngày hoạt động (chỉ quản lý)
 @manager_only
 def manage_activity_days(request):
     today = timezone.localdate()
@@ -494,7 +492,7 @@ def manage_activity_days(request):
     prev_month, prev_year = (12, year - 1) if month == 1 else (month - 1, year)
     next_month, next_year = (1, year + 1) if month == 12 else (month + 1, year)
 
-    # Dựng ma trận tuần/ngày trong tháng kèm trạng thái đã khóa (True/False) và lý do khóa để hiển thị lịch.
+    # Dựng ma trận lịch tháng kèm trạng thái khóa và lý do
     ngay_khoa_set = set(NgayHoatDong.objects.filter(
         trang_thai='Đã khóa', ngay__year=year, ngay__month=month
     ).values_list('ngay', flat=True))
@@ -516,7 +514,7 @@ def manage_activity_days(request):
 
     form = KhoaNgayForm()
     pending_lock = None
-    # Xử lý submit form khóa khoảng ngày (btn_khoa_ngay).
+    # Xử lý khóa khoảng ngày, kiểm tra trùng khóa và lịch bị ảnh hưởng
     if request.method == 'POST' and 'btn_khoa_ngay' in request.POST:
         form = KhoaNgayForm(request.POST)
         if form.is_valid():
@@ -585,7 +583,7 @@ def manage_activity_days(request):
     return render(request, 'bookings/admin_activity_day.html', context)
 
 
-# UI: nút mở khóa ngày ở admin_activity_day.html — Mở khóa ngày (chỉ nhận POST, đổi trạng thái về 'Hoạt động').
+# Mở khóa ngày hoạt động (chỉ quản lý, nhận POST)
 @manager_only
 def unlock_activity_day(request, pk):
     # Thay đổi trạng thái ngày chỉ nhận POST, không cho phép GET.
@@ -598,7 +596,7 @@ def unlock_activity_day(request, pk):
     return redirect('bookings:quan_ly_ngay_hoat_dong')
 
 
-# UI: JS gọi AJAX khi chọn ngày/giờ/dịch vụ — API trả JSON số giường còn lại (`con_lai`, `tong`).
+# API JSON kiểm tra số giường còn trống theo ngày, giờ và loại dịch vụ
 def api_check_bed_availability(request):
     ngay = request.GET.get('ngay')
     gio = request.GET.get('gio')
@@ -647,7 +645,7 @@ def api_check_bed_availability(request):
         return JsonResponse({'con_lai': tong_suc_chua, 'tong': tong_suc_chua})
 
 
-# UI: staff_create.html — Nhân viên/quản lý tạo lịch hẹn hộ khách hàng.
+# Nhân viên/quản lý tạo lịch hẹn hộ khách hàng
 @staff_portal_only
 def booking_staff_create(request):
     dich_vu_list = DichVu.objects.all()
@@ -670,7 +668,7 @@ def booking_staff_create(request):
         ghi_chu = request.POST.get('ghi_chu', '')
 
         try:
-            # Kiểm tra hợp lệ: dịch vụ, định dạng ngày dd/mm/yyyy, không đặt ngày quá khứ, giờ hẹn, ngày khóa.
+            # Kiểm tra hợp lệ dịch vụ, ngày hẹn, giờ hẹn và ngày khóa
             if not ma_dv:
                 messages.error(request, 'Vui lòng chọn dịch vụ trị liệu.')
                 return redirect('bookings:staff_booking_create')
@@ -699,7 +697,7 @@ def booking_staff_create(request):
                 messages.error(request, "Ngày bạn chọn hiện đang đóng cửa (Nghỉ lễ/Bảo trì).")
                 return redirect('bookings:staff_booking_create')
 
-            # Xác định khách hàng theo ma_kh (đối chiếu khớp SĐT) hoặc tìm theo SĐT tài khoản (không tìm theo họ tên).
+            # Tìm và đối chiếu hồ sơ khách hàng theo mã chọn hoặc số điện thoại
             if ma_kh_chon:
                 khach_hang = KhachHang.objects.filter(pk=ma_kh_chon).first()
                 if khach_hang is None:
@@ -718,6 +716,7 @@ def booking_staff_create(request):
                     messages.error(request, 'Không tìm thấy tài khoản khách hàng với số điện thoại này. Vui lòng tạo hồ sơ khách hàng trước khi đặt lịch.')
                     return redirect('bookings:staff_booking_create')
 
+            # Lưu lịch hẹn mới cho khách hàng
             ngay_hd, _ = NgayHoatDong.objects.get_or_create(
                 ngay=ngay_check,
                 defaults={'ma_nhd': f'NHD-{ngay_check}', 'trang_thai': 'Mở'}
@@ -754,7 +753,7 @@ def booking_staff_create(request):
     return render(request, 'bookings/staff_create.html', context)
 
 
-# UI: staff_list.html — Danh sách lịch hẹn phía staff/manager, kèm trạng thái phân công nhân viên của từng lịch.
+# Danh sách lịch hẹn phía nhân viên/quản lý kèm trạng thái phân công
 @staff_portal_only
 def booking_staff_list(request):
     trang_thai_filter = request.GET.get('trang_thai', '')
@@ -771,8 +770,7 @@ def booking_staff_list(request):
     elif trang_thai_filter == 'cancelled':
         lich_hen_list = lich_hen_list.filter(trang_thai='Đã hủy')
 
-    # Truy vấn 1 lần bảng PhanCongLichHen để gom danh sách nhân viên phụ trách cho từng lịch.
-    # Tương thích dữ liệu cũ chỉ lưu nhân viên tại LichHen.ma_nv.
+    # Gom danh sách nhân viên phụ trách từ bảng phân công cho từng lịch
     lich_hen_list = list(lich_hen_list)
     assignments_by_booking = {}
     if lich_hen_list:
@@ -787,7 +785,7 @@ def booking_staff_list(request):
                 assignment.ma_nv_phu_trach
             )
 
-    # Gắn thông tin nhân viên đã phân công & số nhân viên còn thiếu theo so_luong_khach vào từng object lh.
+    # Tính số lượng nhân viên đã gán và số nhân viên còn thiếu theo số khách
     for lh in lich_hen_list:
         staff_members = assignments_by_booking.get(lh.pk, [])
         if not staff_members and lh.ma_nv_id:
@@ -819,7 +817,7 @@ def booking_staff_list(request):
     })
 
 
-# UI: staff_detail.html — Chi tiết lịch hẹn phía staff/manager, chuẩn bị danh sách nhân viên & các ô phân công theo số khách.
+# Chi tiết lịch hẹn phía nhân viên/quản lý và chuẩn bị ô phân công theo số khách
 @staff_portal_only
 def booking_staff_detail(request, ma_lh):
     lich_hen = get_object_or_404(
@@ -863,14 +861,14 @@ def booking_staff_detail(request, ma_lh):
     })
 
 
-# UI: nút/modal Hủy lịch & Hoàn thành lịch ở staff_detail.html — Xử lý hủy lịch hoặc hoàn thành lịch + cộng điểm loyalty.
+# Nhân viên/quản lý hủy lịch hoặc hoàn thành lịch kèm cộng điểm tích lũy
 @staff_portal_only
 def booking_staff_complete(request, ma_lh):
     """Xử lý hoàn thành lịch (kèm cộng điểm) hoặc hủy lịch từ portal nhân viên."""
     if request.method != 'POST':
         return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-    # 1. Nhánh HỦY LỊCH từ modal nhân viên (booking_action == 'cancel').
+    # Nhánh hủy lịch từ portal nhân viên
     if request.POST.get('booking_action') == 'cancel':
         with transaction.atomic():
             lich_hen = get_object_or_404(LichHen.objects.select_for_update(), ma_lh=ma_lh)
@@ -907,7 +905,7 @@ def booking_staff_complete(request, ma_lh):
             messages.success(request, f'Đã hủy lịch #{lich_hen.ma_lh} thành công.')
         return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-    # 2. Nhánh HOÀN THÀNH LỊCH: kiểm tra đã hết thời lượng dịch vụ -> cập nhật Hoàn thành -> cộng điểm & gửi thông báo.
+    # Nhánh hoàn thành lịch, kiểm tra hết thời lượng dịch vụ và cộng điểm
     from customers.loyalty import cong_diem_khi_hoan_thanh
     from notifications.loyalty import tao_thong_bao_tich_diem
 
@@ -968,7 +966,7 @@ def booking_staff_complete(request, ma_lh):
     return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
 
-# UI: modal xóa lịch ở staff_detail.html — Xóa mềm lịch hẹn (chuyển trạng thái 'Đã xóa' + lưu lý do, chỉ manager).
+# Quản lý xóa mềm lịch hẹn (chuyển trạng thái Đã xóa và lưu lý do)
 @manager_only
 def booking_admin_delete(request, ma_lh):
     if request.method == "POST":
@@ -992,7 +990,7 @@ def booking_admin_delete(request, ma_lh):
     return redirect('bookings:staff_booking_list')
 
 
-# Hàm phụ tách số phút từ trường thoi_luong của dịch vụ (mặc định 150 phút nếu không đọc được).
+# Tách số phút thời lượng từ dịch vụ (mặc định 150 phút)
 def _thoi_luong_phut(lich_hen):
     """Đọc số phút từ thoi_luong (int, Decimal hoặc chuỗi '150 phút')."""
     value = getattr(lich_hen.ma_dv, 'thoi_luong', None)
@@ -1000,7 +998,7 @@ def _thoi_luong_phut(lich_hen):
     return max(1, int(matched.group())) if matched else 150
 
 
-# Hàm phụ kiểm tra nhân viên chọn có bị trùng khoảng thời gian phục vụ [bắt đầu, kết thúc) với lịch khác không.
+# Kiểm tra nhân viên có bị trùng khoảng thời gian phục vụ với lịch khác trong ngày không
 def _trung_ca_lam(lich_hen, nhan_vien_ids):
     """Kiểm tra giao nhau của khoảng [bắt đầu, kết thúc), kể cả lịch cũ."""
     bat_dau = datetime.combine(lich_hen.ngay_hen, lich_hen.gio_hen)
@@ -1034,7 +1032,7 @@ def _trung_ca_lam(lich_hen, nhan_vien_ids):
     return None
 
 
-# UI: form phân công nhân viên ở staff_detail.html — Gán đủ nhân viên theo số khách hoặc hủy toàn bộ phân công (chỉ manager).
+# Phân công nhân viên theo số lượng khách hoặc hủy toàn bộ phân công (chỉ quản lý)
 @manager_only
 def assign_staff_to_booking(request, ma_lh):
     if request.method != 'POST':
@@ -1048,7 +1046,7 @@ def assign_staff_to_booking(request, ma_lh):
             messages.error(request, 'Lịch đã kết thúc hoặc hủy, không thể phân công.')
             return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-        # Nút 'Hủy toàn bộ phân công' (clear_assignment == '1'): xóa sạch bản ghi phân công và gỡ ma_nv.
+        # Hủy toàn bộ phân công nhân viên của lịch hẹn
         if request.POST.get('clear_assignment') == '1':
             PhanCongLichHen.objects.filter(ma_lh=lich_hen).delete()
             lich_hen.ma_nv = None
@@ -1056,7 +1054,7 @@ def assign_staff_to_booking(request, ma_lh):
             messages.success(request, 'Đã hủy toàn bộ phân công nhân viên.')
             return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-        # Kiểm tra chọn đủ số nhân viên bằng so_luong_khach và không chọn trùng cùng 1 nhân viên.
+        # Kiểm tra đủ số nhân viên theo số khách và không trùng người
         selected_ids = [v.strip() for v in request.POST.getlist('nhan_vien_ids')]
         so_khach = max(1, lich_hen.so_luong_khach or 1)
         if len(selected_ids) != so_khach or any(not v for v in selected_ids):
@@ -1066,7 +1064,7 @@ def assign_staff_to_booking(request, ma_lh):
             messages.error(request, 'Không thể chọn cùng một nhân viên cho nhiều khách trong một lịch.')
             return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-        # Chỉ cho phép nhân viên có vai trò ROLE_STAFF và tài khoản đang kích hoạt (is_active=True).
+        # Kiểm tra nhân viên thuộc vai trò ROLE_STAFF và tài khoản đang hoạt động
         nhan_vien = list(NhanVien.objects.filter(
             pk__in=selected_ids,
             ma_tk__vai_tro=ROLE_STAFF,
@@ -1077,7 +1075,7 @@ def assign_staff_to_booking(request, ma_lh):
             messages.error(request, 'Chỉ được phân công nhân viên có tài khoản đang hoạt động. Vui lòng chọn lại.')
             return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-        # Chặn phân công nếu có nhân viên bị trùng giờ với lịch hẹn khác trong ngày.
+        # Chặn phân công nếu nhân viên trùng giờ phục vụ lịch khác
         trung = _trung_ca_lam(lich_hen, selected_ids)
         if trung:
             ten_nv, ma_lh_trung = trung
@@ -1090,7 +1088,7 @@ def assign_staff_to_booking(request, ma_lh):
             messages.error(request, 'Tài khoản đang đăng nhập chưa có hồ sơ TaiKhoan để ghi nhận người phân công.')
             return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
-        # Xóa phân công cũ và tạo mới danh sách PhanCongLichHen; đồng bộ ma_nv là người đầu tiên.
+        # Ghi danh sách phân công mới và đồng bộ nhân viên đầu tiên vào ma_nv
         PhanCongLichHen.objects.filter(ma_lh=lich_hen).delete()
         PhanCongLichHen.objects.bulk_create([
             PhanCongLichHen(
@@ -1109,13 +1107,7 @@ def assign_staff_to_booking(request, ma_lh):
     return redirect('bookings:staff_booking_detail', ma_lh=ma_lh)
 
 
-# ============================================================================
-# [BỔ SUNG] KẾT NỐI ƯU ĐÃI VỚI BOOKING KHÁCH HÀNG
-# Toàn bộ các hàm Booking ở trên được giữ nguyên, không sửa logic cũ.
-# Phần dưới bọc thêm luồng ưu đãi quanh booking_customer_create.
-# ============================================================================
-
-# Kiểm tra mã ưu đãi (GET ?promo= hoặc POST promo_id) có hợp lệ về trạng thái, hạn, dịch vụ, ngày hẹn, hạng TV và giá không.
+# Kiểm tra tính hợp lệ của chương trình ưu đãi khi đặt lịch
 def _promo_hop_le_cho_booking(request, promo_code=None, service_id=None, ngay_hen=None):
     """Xác thực ưu đãi từ database; nếu không có mã thì không áp dụng."""
     from notifications.models import ChuongTrinhUuDai
@@ -1170,7 +1162,7 @@ def _promo_hop_le_cho_booking(request, promo_code=None, service_id=None, ngay_he
 _booking_customer_create_goc = booking_customer_create
 
 
-# UI: customer_create.html (khi có ?promo= hoặc promo_id) — Tạo lịch và lưu LichHenUuDai trong cùng 1 transaction.
+# Bọc luồng đặt lịch của khách để áp dụng và lưu ưu đãi vào LichHenUuDai
 @login_required(login_url='/accounts/dang_nhap/')
 @wraps(_booking_customer_create_goc)
 def booking_customer_create(request, *args, **kwargs):
@@ -1253,14 +1245,6 @@ def booking_customer_create(request, *args, **kwargs):
     return redirect(reverse('bookings:booking_customer_create') + '?promo=' + promo_code)
 
 
-
-# ============================================================================
-# [BỔ SUNG] ĐỒNG BỘ ƯU ĐÃI KHI ĐỔI LỊCH - CÓ XÁC NHẬN MẤT ƯU ĐÃI
-# Các hàm Booking gốc ở trên giữ nguyên, chỉ bọc thêm xử lý quanh hàm đổi lịch.
-# Quy ước: gia_goc == gia_sau_giam nghĩa là ưu đãi không còn áp dụng;
-# ma_ctud vẫn giữ để lưu vết lịch từng dùng chương trình nào.
-# ============================================================================
-
 from decimal import Decimal, ROUND_HALF_UP
 from django.core import signing
 from django.core.signing import BadSignature, SignatureExpired
@@ -1269,7 +1253,7 @@ _booking_customer_reschedule_goc = booking_customer_reschedule
 _PROMO_CONFIRM_SALT = 'charmspa-reschedule-promo-v1'
 
 
-# Chuẩn hóa giá trị ngày (date, datetime hoặc chuỗi) về kiểu date.
+# Chuẩn hóa ngày về kiểu date
 def _ngay_booking(value):
     if isinstance(value, datetime):
         return value.date()
@@ -1278,12 +1262,12 @@ def _ngay_booking(value):
     return date.fromisoformat(str(value)[:10])
 
 
-# Làm tròn số tiền về 2 chữ số thập phân bằng Decimal.
+# Làm tròn số tiền 2 chữ số thập phân bằng Decimal
 def _tien_booking(value):
     return Decimal(str(value)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
 
-# UI: modal đổi lịch + trang bookings/confirm_promotion_change.html — Tính lại giá ưu đãi và xin xác nhận nếu đổi lịch làm mất ưu đãi.
+# Bọc đổi lịch để tính lại giá ưu đãi, xin xác nhận khi mất ưu đãi và cập nhật LichHenUuDai
 @login_required(login_url='/accounts/dang_nhap/')
 @wraps(_booking_customer_reschedule_goc)
 def booking_customer_reschedule(request, ma_lh):
@@ -1347,7 +1331,7 @@ def booking_customer_reschedule(request, ma_lh):
             if not 1 <= so_moi <= 10:
                 raise ValueError('Số lượng khách phải từ 1 đến 10.')
 
-            # Kiểm tra đổi lịch có làm mất ưu đãi không (đổi dịch vụ, hoặc đổi ngày ra ngoài hạn/chương trình tạm dừng).
+            # Kiểm tra đổi lịch có làm mất ưu đãi và tính lại giá mới
             da_co_giam = item.gia_sau_giam < item.gia_goc
             doi_dich_vu = str(lich.ma_dv_id) != str(ma_dv_moi)
             doi_ngay = ngay_moi != ngay_cu
@@ -1369,7 +1353,7 @@ def booking_customer_reschedule(request, ma_lh):
                 gia_goc_moi = _tien_booking(dv_moi.gia_dich_vu * so_moi)
                 gia_sau_moi = gia_goc_moi
 
-            # Nếu đổi lịch làm mất ưu đãi và chưa có token xác nhận khớp dữ liệu -> mở trang xác nhận cho khách.
+            # Ký token và mở trang xác nhận khi đổi lịch làm mất ưu đãi
             if mat_uu_dai:
                 expected = {
                     'booking': str(lich.pk),
@@ -1417,7 +1401,7 @@ def booking_customer_reschedule(request, ma_lh):
                         else reverse('bookings:staff_booking_detail', args=[lich.pk]),
                     })
 
-            # Gọi hàm đổi lịch gốc để kiểm tra điều kiện (3 tiếng, ngày khóa, sức chứa) và lưu LichHen.
+            # Gọi hàm đổi lịch gốc và đồng bộ lại giá vào LichHenUuDai
             response = _booking_customer_reschedule_goc(request, ma_lh)
             lich.refresh_from_db()
             ngay_luu = _ngay_booking(lich.ngay_hen)
